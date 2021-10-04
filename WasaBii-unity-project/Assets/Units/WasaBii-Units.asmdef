@@ -1,0 +1,14 @@
+{
+    "name": "WasaBii-Units",
+    "rootNamespace": "BII.WasaBii.Units",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

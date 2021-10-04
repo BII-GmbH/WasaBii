@@ -1,0 +1,14 @@
+{
+    "name": "WasaBii-Extra",
+    "rootNamespace": "BII.WasaBii.Extra",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

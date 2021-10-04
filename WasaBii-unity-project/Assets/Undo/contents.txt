@@ -1,0 +1,2 @@
+﻿Undo foo, but not SymOp, which goes into `Utilities.Independent`.
+Not sure how to separate unity/independent foo yet

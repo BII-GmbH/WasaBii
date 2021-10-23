@@ -1,0 +1,5 @@
+- Unit code via code generation?
+- find out what else to do/polish
+- abuse covariant return types for less boxing when available (upgrade unity?)
+- `Time` unit with `time + duration = time`, no `time + time` etc whatever makes sense
+- consider reintroducting Lerp

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using BII.Utilities.Independent;
+using BII.WasaBii.Core;
 
-namespace BII.Units {
+namespace BII.WasaBii.Units {
     
     public abstract class Unit : IEquatable<Unit> {
         public readonly string DisplayName;
@@ -145,7 +147,7 @@ namespace BII.Units {
             allowedUnits = allowedUnits?.If(!areUnitsSorted, 
                 units => units.SortedBy(u => u.Factor).AsReadOnlyList()
             ) ?? AllUnits<TUnit>();
-            Contract.Assert(allowedUnits.IsNotEmpty());
+            Contract.Assert(allowedUnits.Any());
             var displayUnit = allowedUnits[0];
             foreach (var unit in allowedUnits.Skip(1)) {
                 var displayValue = value.As(unit);

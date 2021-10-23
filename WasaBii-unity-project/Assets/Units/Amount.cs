@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
-namespace BII.Units {
+namespace BII.WasaBii.Units {
     
     [Serializable]
     public sealed class AmountUnit : Unit {

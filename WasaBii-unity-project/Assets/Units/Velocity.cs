@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Serialization;
 
-namespace BII.Units {
+namespace BII.WasaBii.Units {
     
     [Serializable]
     public sealed class VelocityUnit : Unit {
@@ -19,13 +17,11 @@ namespace BII.Units {
     public readonly struct Velocity : ValueWithUnit<Velocity, VelocityUnit> {
         
         public static readonly Velocity Zero = new Velocity(velocity: 0f, VelocityUnit.MetersPerSecond);
+        
+        private readonly double metersPerSecond;
+        public double SIValue => metersPerSecond;
 
-        [FormerlySerializedAs("_MetersPerSecond")] [SerializeField]
-        private double _metersPerSecond;
-
-        public double SIValue => _metersPerSecond;
-
-        public Velocity(double velocity, VelocityUnit unit) => _metersPerSecond = velocity * unit.Factor;
+        public Velocity(double velocity, VelocityUnit unit) => metersPerSecond = velocity * unit.Factor;
 
         public Velocity CopyWithDifferentSIValue(double newSIValue) => newSIValue.MetersPerSecond();
         CopyableValueWithUnit CopyableValueWithUnit.CopyWithDifferentSIValue(double newSIValue) => 

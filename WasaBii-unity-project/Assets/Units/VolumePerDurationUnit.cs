@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using BII.WasaBii.Core;
 
-// ReSharper disable once CheckNamespace
-namespace BII.Units {
+namespace BII.WasaBii.Units {
     
     [Serializable]
     public sealed class VolumePerDurationUnit : Unit {
@@ -64,7 +64,7 @@ namespace BII.Units {
         public static Volume operator *(VolumePerDuration mpl, Duration d) => d * mpl;
 
         public static VolumePerDuration Lerp(VolumePerDuration a, VolumePerDuration b, double t)
-            => Mathd.Lerp(a.SIValue, b.SIValue, t).CubicMetersPerSecond();
+            => a.SIValue.Lerp(b.SIValue, t).CubicMetersPerSecond();
 
         public static VolumePerDuration Max(VolumePerDuration a, VolumePerDuration b) =>
             Math.Max(a.SIValue, b.SIValue).CubicMetersPerSecond();

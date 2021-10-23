@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BII.Units {
+namespace BII.WasaBii.Units {
     
     [Serializable]
     public sealed class ForceUnit : Unit {

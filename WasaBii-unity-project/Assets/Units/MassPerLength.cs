@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 // ReSharper disable once CheckNamespace
-namespace BII.Units {
+namespace BII.WasaBii.Units {
     
     [Serializable]
     public sealed class MassPerLengthUnit : Unit {

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using BII.WasaBii.Core;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace BII.Units {
+namespace BII.WasaBii.Units {
 
     [Serializable]
     public sealed class AngleUnit : Unit {

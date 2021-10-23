@@ -1,6 +1,6 @@
 using System;
 
-namespace BII.Units {
+namespace BII.WasaBii.Units {
 
     public readonly struct Interval<T> : IEquatable<Interval<T>>, IComparable<Interval<T>>
         where T : struct, ValueWithUnit, CopyableValueWithUnit<T> {

@@ -1,8 +1,8 @@
 using System;
 using JetBrains.Annotations;
-using static BII.Units.TimeInterval;
+using static BII.WasaBii.Units.TimeInterval;
 
-namespace BII.Units {
+namespace BII.WasaBii.Units {
     
     [Serializable]
     public readonly struct TimeInterval {
@@ -65,8 +65,8 @@ namespace BII.Units {
         
         [Pure]
         public static TimeInterval Encapsulate(this TimeInterval interval, TimeInterval other) => new TimeInterval(
-            interval.Start.Min(other.Start),
-            interval.End.Max(other.End)
+            Duration.Min(interval.Start, other.Start),
+            Duration.Max(interval.End, other.End)
         );
     }
 }

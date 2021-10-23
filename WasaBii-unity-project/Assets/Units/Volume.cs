@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using BII.WasaBii.Core;
 
-namespace BII.Units {
+namespace BII.WasaBii.Units {
     
     [Serializable]
     public sealed class VolumeUnit : Unit {
@@ -18,13 +18,11 @@ namespace BII.Units {
     public readonly struct Volume : ValueWithUnit<Volume, VolumeUnit> {
 
         public static readonly Volume Zero = new Volume(0, VolumeUnit.CubicMeter);
+        
+        private readonly double cubicMeter;
+        public double SIValue => cubicMeter;
 
-        [SerializeField]
-        private double _cubicMeter;
-
-        public double SIValue => _cubicMeter;
-
-        public Volume(double time, VolumeUnit unit) => _cubicMeter = time * unit.Factor;
+        public Volume(double time, VolumeUnit unit) => cubicMeter = time * unit.Factor;
 
         public Volume CopyWithDifferentSIValue(double newSIValue) => newSIValue.CubicMeter();
         CopyableValueWithUnit CopyableValueWithUnit.CopyWithDifferentSIValue(double newSIValue) => 
@@ -49,11 +47,11 @@ namespace BII.Units {
         public static bool operator !=(Volume a, Volume b) => a.SIValue != b.SIValue;
 
         public static Volume Lerp(Volume a, Volume b, double t)
-            => Mathd.Lerp(a._cubicMeter, b._cubicMeter, t).CubicMeter();
+            => a.cubicMeter.Lerp(b.cubicMeter, t).CubicMeter();
 
-        public static Volume Max(Volume a, Volume b) => Math.Max(a._cubicMeter, b._cubicMeter).CubicMeter();
+        public static Volume Max(Volume a, Volume b) => Math.Max(a.cubicMeter, b.cubicMeter).CubicMeter();
         
-        public static Volume Min(Volume a, Volume b) => Math.Min(a._cubicMeter, b._cubicMeter).CubicMeter();
+        public static Volume Min(Volume a, Volume b) => Math.Min(a.cubicMeter, b.cubicMeter).CubicMeter();
 
         public override string ToString() => $"{this.AsCubicMeter()} Cubic Meters";
         

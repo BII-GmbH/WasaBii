@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 
 namespace BII.WasaBii.Core {
     public static class GenericExtensions {
@@ -36,7 +35,7 @@ namespace BII.WasaBii.Core {
         public static S Let<T, S>(this T t, Func<T, S> f) => f(t);
         
         public static bool TryGetValue<T>(this T? source, out T res) where T : struct {
-            if (source is T val) {
+            if (source is { } val) {
                 res = val;
                 return true;
             } else {

@@ -1,7 +1,9 @@
 {
     "name": "WasaBii-Coroutines",
     "rootNamespace": "BII.WasaBii.Coroutines",
-    "references": [],
+    "references": [
+        "GUID:9eee604f53bae234eabd650381ae2a2f"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

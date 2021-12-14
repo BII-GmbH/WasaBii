@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using BII.WasaBii.Coroutines;
 using UnityEngine;
 
 namespace BII.WasaBii.Extra {
@@ -51,6 +53,70 @@ namespace BII.WasaBii.Extra {
         
     }
 
-    // TODO DS: Implement a Behaviour / Coroutines / Pool thing once the main code has been added.
-    
+    public abstract class Smoothed<T> : IDisposable 
+    where T : struct {
+        
+        private T _currentValue;
+        public T CurrentValue {
+            get => _currentValue;
+            set {
+                _currentValue = value;
+                lastUpdateTime = Time.time;
+            }
+        }
+
+        public Func<T> TargetGetter;
+        public T Target {
+            set => TargetGetter = () => value;
+        }
+
+        public readonly T Smoothness;
+        
+        private readonly float? _updateDelay;
+        private float lastUpdateTime;
+        private Coroutine _coroutine;
+
+        protected Smoothed(T startValue, Func<T> targetGetter, T smoothness, float? updateDelay = null) {
+            CurrentValue = startValue;
+            TargetGetter = targetGetter;
+            Smoothness = smoothness;
+            _updateDelay = updateDelay;
+        }
+
+        public void Start() => _coroutine = updateValue().Start();
+        public void Stop() => _coroutine.Stop();
+
+        private IEnumerator updateValue() {
+            lastUpdateTime = Time.time;
+            while(true) {
+                // TODO DS: replace with _updateDelay?.Let(new WaitForSeconds) once `Let` is integrated
+                yield return _updateDelay.HasValue ? new WaitForSeconds(_updateDelay.Value) : null;
+                CurrentValue = interpolate(CurrentValue, TargetGetter(), Smoothness, Time.time - lastUpdateTime);
+                lastUpdateTime = Time.time;
+            }
+            // ReSharper disable once IteratorNeverReturns
+            // Designed to be aborted in `Stop`
+        }
+
+        protected abstract T interpolate(T current, T target, T smoothness, float progress);
+
+        public void Dispose() => Stop();
+    }
+
+    public sealed class SmoothedFloat : Smoothed<float> {
+        public SmoothedFloat(float startValue, Func<float> targetGetter, float smoothness, float? updateDelay = null) 
+            : base(startValue, targetGetter, smoothness, updateDelay) { }
+
+        protected override float interpolate(float current, float target, float smoothness, float progress)
+            => current.SmoothInterpolateTo(target, smoothness, progress);
+    }
+
+    public sealed class SmoothedDouble : Smoothed<double> {
+        public SmoothedDouble(double startValue, Func<double> targetGetter, double smoothness, float? updateDelay = null) 
+            : base(startValue, targetGetter, smoothness, updateDelay) { }
+
+        protected override double interpolate(double current, double target, double smoothness, float progress)
+            => current.SmoothInterpolateTo(target, smoothness, progress);
+    }
+
 }

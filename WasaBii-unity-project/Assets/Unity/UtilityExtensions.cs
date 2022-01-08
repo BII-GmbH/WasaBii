@@ -108,22 +108,6 @@ namespace BII.WasaBii.Unity {
             IfNotNull(value, action, () => elseResult);
 
         /// <summary>
-        /// A game object is not perceivable if it has no active collider and renderer.
-        /// Used instead of deactivation to enable coroutines and sounds to continue to play.
-        /// </summary>
-        public static void SetPerceivable(this GameObject gameObject, bool state) {
-            var allRenderer = gameObject.All<Renderer>(Search.InChildren);
-            var allCollider = gameObject.All<Collider>(Search.InChildren);
-            var allCollider2D = gameObject.All<Collider2D>(Search.InChildren);
-            foreach (var rend in allRenderer) rend.enabled = state;
-            foreach (var col in allCollider) col.enabled = state;
-            foreach (var col in allCollider2D) col.enabled = state;
-
-            var queryables = gameObject.All<WithQueryable>(Search.InChildren);
-            foreach (var q in queryables) q.Queryable.enabled = state;
-        }
-
-        /// <summary>
         /// Destroys the object in the recommended way.
         /// Safe to use in code that is shared between editor and runtime.
         /// <br/>
@@ -287,7 +271,7 @@ namespace BII.WasaBii.Unity {
         /// Uses the <a href="https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle">Fisher–Yates algorithm</a>.
         /// <br/>If the passed IEnumerable is only iterable once it is consumed in the process.
         /// </summary>
-        [NotNull] public static IEnumerable<T> Shuffled<T>(this IEnumerable<T> l, System.Random random = null) {
+        [NotNull] public static List<T> Shuffled<T>(this IEnumerable<T> l, System.Random random = null) {
             if (random == null) random = Rng;
             var list = new List<T>(l);
             var n = list.Count;

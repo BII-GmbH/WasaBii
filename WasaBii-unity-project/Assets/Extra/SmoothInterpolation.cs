@@ -53,6 +53,7 @@ namespace BII.WasaBii.Extra {
         
     }
 
+    // TODO DS: Document.
     public abstract class Smoothed<T> : IDisposable 
     where T : struct {
         

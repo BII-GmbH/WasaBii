@@ -12,13 +12,6 @@ namespace BII.WasaBii.Unity {
     /// </summary>
     public abstract class BaseBehaviour : MonoBehaviour {
 
-        /// <summary>
-        /// A game object is not perceivable if it has no active collider and renderer.
-        /// Used instead of deactivation to enable coroutines and sounds to continue to play.
-        /// Redirects to <see cref="UtilityExtensions.SetPerceivable(GameObject, bool)"/>
-        /// </summary>
-        public void SetPerceivable(bool state) => gameObject.SetPerceivable(state);
-
         /// <inheritdoc cref="ComponentQueryExtensions.AssignComponent{T}(GameObject, out T, Search, bool)"/>
         /// <seealso cref="ComponentQueryExtensions.AssignComponent{T}(GameObject, out T, Search, bool)"/>
         protected void AssignComponent<T>(out T variable, Search where = Search.InObjectOnly) 

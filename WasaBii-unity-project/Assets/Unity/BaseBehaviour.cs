@@ -11,26 +11,6 @@ namespace BII.WasaBii.Unity {
     /// Adds no additional overhead compared to extending from MonoBehaviour directly.
     /// </summary>
     public abstract class BaseBehaviour : MonoBehaviour {
-        private VectorProxy _positionProxy;
-
-        /// <summary>
-        /// Returns the position of this component as a <see cref="VectorProxy"/>.
-        /// This is implicitly convertible to and from a <see cref="Vector3"/>.
-        /// You can treat this exactly like <code>transform.position</code>,
-        /// except that you can now directly write <code>Position.y += 5</code>.
-        /// </summary>
-        public VectorProxy Position {
-            get {
-                if (_positionProxy != null)
-                    return _positionProxy;
-                _positionProxy = new VectorProxy(
-                    () => transform.position,
-                    pos => transform.position = pos);
-                return _positionProxy;
-            }
-            set => transform.position = value;
-        }
-
 
         /// <summary>
         /// A game object is not perceivable if it has no active collider and renderer.

@@ -1,3 +1,0 @@
-﻿Old CoreLib coroutine foo
-
-not in Utilities.Unity because some might want to use these independently, or not at all

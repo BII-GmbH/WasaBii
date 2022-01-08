@@ -2,7 +2,7 @@
     "name": "WasaBii-Extra",
     "rootNamespace": "BII.WasaBii.Extra",
     "references": [
-        "GUID:372b1960c43b1c646bf1cd362f774afa"
+        "GUID:9eee604f53bae234eabd650381ae2a2f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

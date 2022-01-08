@@ -1,0 +1,3 @@
+- remove old unused corelib stuff
+- upgrade C# and fit to conventions
+- namespaces etc

@@ -1,10 +1,9 @@
 using System;
 using System.Collections;
-using BII.WasaBii.Unity;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace BII.WasaBii.Coroutines {
+namespace BII.WasaBii.Unity {
     
     /// <summary>
     /// Author: Cameron Reuschel

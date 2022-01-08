@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Threading.Tasks;
-using BII.WasaBii.Coroutines;
+using BII.WasaBii.Unity;
 
 namespace BII.Utilities.Independent {
     public static class AsyncUtils {

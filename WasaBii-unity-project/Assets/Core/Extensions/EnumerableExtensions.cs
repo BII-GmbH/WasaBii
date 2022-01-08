@@ -198,7 +198,7 @@ namespace BII.WasaBii.Core {
         public static T LastOr<T>(this IEnumerable<T> enumerable, Predicate<T> predicate, T elseResult)
             => enumerable.Reverse().FirstOr(predicate, elseResult);
 
-        public static Option<T> LastOrNone<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate = null) =>
+        public static Option<T> LastOrNone<T>(this IEnumerable<T> enumerable, Func<T, bool>? predicate = null) =>
             enumerable.Reverse().FirstOrNone(predicate);
 
         public static bool SameAs<T>(this IEnumerable<T> lhs, IEnumerable<T> rhs) where T : IEquatable<T> {

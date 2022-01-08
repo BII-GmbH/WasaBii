@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Threading.Tasks;
-using BII.WasaBii.Coroutines;
 
 namespace BII.WasaBii.Unity {
 

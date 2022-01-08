@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using BII.WasaBii.Coroutines;
+using BII.WasaBii.Unity;
 using UnityEngine;
 
 namespace BII.WasaBii.Extra {

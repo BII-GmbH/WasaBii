@@ -1,6 +1,6 @@
 {
-    "name": "WasaBii-Units",
-    "rootNamespace": "BII.WasaBii.Units",
+    "name": "WasaBii-Geometry",
+    "rootNamespace": "BII.WasaBii.Geometry",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

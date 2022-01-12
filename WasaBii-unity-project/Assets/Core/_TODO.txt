@@ -1,2 +1,0 @@
-- Nullable enable for all files?
-- reintroduce jetbrains annotations without unity references

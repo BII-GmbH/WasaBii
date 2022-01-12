@@ -1,5 +1,4 @@
 ﻿using System;
-using BII.WasaBii.Geometry;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {

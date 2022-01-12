@@ -1,7 +1,9 @@
 {
     "name": "WasaBii-Units",
     "rootNamespace": "BII.WasaBii.Units",
-    "references": [],
+    "references": [
+        "WasaBii-Core"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

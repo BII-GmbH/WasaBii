@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace BII.WasaBii.Geometry {
+namespace BII.WasaBii.Unity.Geometry {
     // ReSharper disable all InconsistentNaming
 
     /// <summary>

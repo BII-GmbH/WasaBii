@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BII.WasaBii.Core;
 using BII.WasaBii.Unity.Exceptions;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -213,7 +214,7 @@ namespace BII.WasaBii.Unity {
                         .ToArray(),
                 Search.InWholeHierarchy => go.transform.parent.IfNotNull(
                         p => p.gameObject.GetComponentsInParent<T>(includeInactive), elseResult: Enumerable.Empty<T>())
-                    .AndAlso(go.GetComponentsInChildren<T>(includeInactive)),
+                    .Concat(go.GetComponentsInChildren<T>(includeInactive)),
                 _ => throw new UnsupportedSearchException(where)
             };
         }

@@ -2,7 +2,7 @@ using System;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace BII.WasaBii.Geometry {
+namespace BII.WasaBii.Unity.Geometry {
     
     /// <summary>
     /// Author: Cameron Reuschel

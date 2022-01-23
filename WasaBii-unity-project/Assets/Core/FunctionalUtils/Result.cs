@@ -51,6 +51,18 @@ namespace BII.WasaBii.Core {
             TValue? value, Func<TError> whenNull
         ) where TValue : class => If(value != null, () => value!, whenNull);
 
+        public static Result<TValue, TError> Try<TValue, TError>(
+            Func<TValue> valueConstructor,
+            Func<Exception, TError> onException
+        ) {
+            try {
+                return valueConstructor().Success();
+            }
+            catch (Exception e) {
+                return onException(e).Failure();
+            }
+        }
+
         public static void WhenSuccessful<TValue, TError>(this Result<TValue, TError> source, Action<TValue> onSuccess) =>
             source.Match(onSuccess, _ => { });
         

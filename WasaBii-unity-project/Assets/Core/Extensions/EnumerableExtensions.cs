@@ -325,6 +325,9 @@ namespace BII.WasaBii.Core {
         public static TResult IfNotEmpty<TSource, TResult>(
             this IEnumerable<TSource> enumerable, Func<IEnumerable<TSource>, TResult> then, Func<TResult> elseResultGetter
         ) {
+            if (enumerable is IReadOnlyCollection<TSource> collection)
+                return collection.Count > 0 ? then(collection) : elseResultGetter();
+            
             var enumerator = enumerable.GetEnumerator();
             if (!enumerator.MoveNext()) return elseResultGetter();
             
@@ -339,6 +342,14 @@ namespace BII.WasaBii.Core {
         public static void IfNotEmpty<T>(
             this IEnumerable<T> enumerable, Action<IEnumerable<T>>? thenDo, Action? elseDo = null
         ) {
+            if (enumerable is IReadOnlyCollection<T> collection) {
+                if (collection.Count > 0)
+                    thenDo?.Invoke(collection);
+                else
+                    elseDo?.Invoke();
+                return;
+            }
+            
             var enumerator = enumerable.GetEnumerator();
             if (!enumerator.MoveNext()) {
                 elseDo?.Invoke();

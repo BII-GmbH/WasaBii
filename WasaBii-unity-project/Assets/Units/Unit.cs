@@ -73,17 +73,24 @@ namespace BII.WasaBii.Units {
     [MustBeSerializable]
     public interface ValueWithUnit<TSelf, TUnit> : CopyableValueWithUnit<TSelf>, ValueWithUnit<TUnit>, IEquatable<TSelf>, IComparable<TSelf>
     where TUnit : Unit
-    where TSelf : struct, ValueWithUnit<TSelf, TUnit> {}
+    where TSelf : struct, ValueWithUnit<TSelf, TUnit> {
+        int IComparable<TSelf>.CompareTo(TSelf other) => this.SIValue.CompareTo(other.SIValue);
+    }
 
     public static class UnitUtils {
 
-        public static Number As(this ValueWithUnit value, Unit unit) => (value.SIValue / unit.Factor).Number();
+        [Pure] public static Number As(this ValueWithUnit value, Unit unit) => (value.SIValue / unit.Factor).Number();
         
-        public static TSelf FromSI<TSelf>(double siValue)
+        [Pure] public static Number As<TValue, TUnit>(this TValue value, TUnit unit) 
+        where TValue : struct, ValueWithUnit<TValue, TUnit>
+        where TUnit : Unit
+            => (value.SIValue / unit.Factor).Number();
+        
+        [Pure] public static TSelf FromSI<TSelf>(double siValue)
         where TSelf: struct, CopyableValueWithUnit<TSelf>
             => default(TSelf).CopyWithDifferentSIValue(siValue);
         
-        public static TSelf From<TSelf, TUnit>(double value, TUnit unit)
+        [Pure] public static TSelf From<TSelf, TUnit>(double value, TUnit unit)
         where TUnit : Unit
         where TSelf: struct, ValueWithUnit<TSelf, TUnit>
             => FromSI<TSelf>(value * unit.Factor);
@@ -93,7 +100,7 @@ namespace BII.WasaBii.Units {
         /// Only <see cref="allowedUnits"/> will be considered if it is not null.
         /// These units will be sorted by their factor. In a performance critical context,
         /// you may want to pass an already sorted list. In this case, pass `true` for <see cref="areUnitsSorted"/>.
-        public static TUnit MostFittingDisplayUnitFor<TUnit>(ValueWithUnit<TUnit> value, IReadOnlyList<TUnit> allowedUnits = null, bool areUnitsSorted = false) 
+        [Pure] public static TUnit MostFittingDisplayUnitFor<TUnit>(ValueWithUnit<TUnit> value, IReadOnlyList<TUnit> allowedUnits = null, bool areUnitsSorted = false) 
         where TUnit : Unit {
             Contract.Assert(!(areUnitsSorted && allowedUnits == null));
             allowedUnits = allowedUnits?.If(!areUnitsSorted, 
@@ -115,23 +122,23 @@ namespace BII.WasaBii.Units {
                 : base($"The HasUnit {hasUnitType.Name} is not supported by the UnitUtils") { }
         }
 
-        public static TSelf Min<TSelf>(
+        [Pure] public static TSelf Min<TSelf>(
             TSelf first, params TSelf[] values
         )
         where TSelf : struct, CopyableValueWithUnit<TSelf> =>
             FromSI<TSelf>(Mathd.Min(values.Prepend(first).Select(v => v.SIValue).ToArray()));
 
-        public static TSelf Max<TSelf>(
+        [Pure] public static TSelf Max<TSelf>(
             TSelf first, params TSelf[] values
         ) 
         where TSelf : struct, CopyableValueWithUnit<TSelf> =>
             FromSI<TSelf>(Mathd.Max(values.Prepend(first).Select(v => v.SIValue).ToArray()));
 
-        public static TSelf Clamp<TSelf>(TSelf value, TSelf min, TSelf max)
+        [Pure] public static TSelf Clamp<TSelf>(TSelf value, TSelf min, TSelf max)
         where TSelf : struct, CopyableValueWithUnit<TSelf> =>
             Max(Min(value, max), min);
 
-        public static TSelf Lerp<TSelf>(
+        [Pure] public static TSelf Lerp<TSelf>(
             TSelf from,
             TSelf to,
             double progress,
@@ -143,13 +150,14 @@ namespace BII.WasaBii.Units {
                     ? Mathd.Lerp(from.SIValue, to.SIValue, progress)
                     : Mathd.LerpUnclamped(from.SIValue, to.SIValue, progress));
 
-        public static double InverseLerp<TSelf>(
+        [Pure] public static double InverseLerp<TSelf>(
             TSelf from,
             TSelf to,
-            TSelf value
+            TSelf value,
+            bool shouldClamp = true
         )
         where TSelf : struct, CopyableValueWithUnit<TSelf> =>
-            Mathd.InverseLerp(from.SIValue, to.SIValue, value.SIValue);
+            Mathd.InverseLerp(from.SIValue, to.SIValue, value.SIValue, shouldClamp);
 
         public static TSelf RandomRange<TSelf>(
             TSelf min,
@@ -163,7 +171,7 @@ namespace BII.WasaBii.Units {
         /// values grater than 1 will shift them closer to <see cref="from"/>.
         /// 1 or `null` means uniform distribution.
         /// Should never be 0 or less unless you want crazy extrapolation.</param>
-        public static IEnumerable<TSelf> SampleLinearInterpolation<TSelf>(
+        [Pure] public static IEnumerable<TSelf> SampleLinearInterpolation<TSelf>(
             TSelf from,
             TSelf to,
             int sampleCount,
@@ -183,7 +191,7 @@ namespace BII.WasaBii.Units {
             }
         }
         
-        public static string Format<TUnit>(this ValueWithUnit<TUnit> value, TUnit unit, int digits, RoundingMode roundingMode, double zeroThreshold = 1E-5f)
+        [Pure] public static string Format<TUnit>(this ValueWithUnit<TUnit> value, TUnit unit, int digits, RoundingMode roundingMode, double zeroThreshold = 1E-5f)
         where TUnit : Unit {
             var doubleValue = (double)value.As(unit);
             var fractalDigits = 0;
@@ -203,7 +211,7 @@ namespace BII.WasaBii.Units {
             return $"{doubleValue.Round(digits, roundingMode).ToString(formatSpecifier)} {unit.DisplayName}";
         }
 
-        public static string Format<TUnit>(
+        [Pure] public static string Format<TUnit>(
             this ValueWithUnit<TUnit> value, int digits, RoundingMode roundingMode, double zeroThreshold = 1E-5f
         )
         where TUnit : Unit => value.Format(
@@ -213,23 +221,23 @@ namespace BII.WasaBii.Units {
             zeroThreshold
         );
 
-        public static TSelf Abs<TSelf>(this TSelf val)
+        [Pure] public static TSelf Abs<TSelf>(this TSelf val)
         where TSelf : struct, CopyableValueWithUnit<TSelf> 
             => FromSI<TSelf>(Math.Abs(val.SIValue));
 
-        public static TSelf NegateIf<TSelf>(this TSelf self, bool shouldNegate)
+        [Pure] public static TSelf NegateIf<TSelf>(this TSelf self, bool shouldNegate)
         where TSelf : struct, CopyableValueWithUnit<TSelf> 
             => FromSI<TSelf>(self.SIValue.NegateIf(shouldNegate));
 
-        public static TSelf Sum<TSelf>(this IEnumerable<TSelf> enumerable)
+        [Pure] public static TSelf Sum<TSelf>(this IEnumerable<TSelf> enumerable)
         where TSelf : struct, CopyableValueWithUnit<TSelf>
             => FromSI<TSelf>(enumerable.Aggregate(0.0, (sum, e) => sum + e.SIValue));
 
-        public static TValue Sum<TSelf, TValue>(this IEnumerable<TSelf> enumerable, Func<TSelf, TValue> func)
+        [Pure] public static TValue Sum<TSelf, TValue>(this IEnumerable<TSelf> enumerable, Func<TSelf, TValue> func)
         where TValue : struct, CopyableValueWithUnit<TValue> => enumerable.Select(func).Sum();
 
         
-        public static ValueWithUnit CreateWithValue(this Unit unit, double value) {
+        [Pure] public static ValueWithUnit CreateWithValue(this Unit unit, double value) {
             return unit switch {
                 AmountUnit au => new Amount(value, au),
                 AngleUnit au => new Angle(value, au),
@@ -248,13 +256,19 @@ namespace BII.WasaBii.Units {
             };
         }
 
-        public static bool IsNearly<TSelf>(this TSelf value, TSelf other, TSelf? threshold = null)
+        [Pure] public static bool IsNearly<TSelf>(this TSelf value, TSelf other, TSelf? threshold = null)
         where TSelf : struct, CopyableValueWithUnit<TSelf>
             => value.SIValue.IsNearly(other.SIValue, threshold?.SIValue ?? double.Epsilon);
         
-        public static TSelf RoundToWholeMultipleOf<TSelf>(this TSelf value, TSelf factor)
+        [Pure] public static TSelf RoundToWholeMultipleOf<TSelf>(this TSelf value, TSelf factor)
         where TSelf : struct, CopyableValueWithUnit<TSelf>
             => value.CopyWithDifferentSIValue(Math.Round(value.SIValue / factor.SIValue) * factor.SIValue);
+        
+        [Pure]
+        public static T Average<T>(this IEnumerable<T> enumerable) where T : struct, CopyableValueWithUnit<T> {
+            var (head, tail) = enumerable;
+            return head.CopyWithDifferentSIValue(head.PrependTo(tail).Select(t => t.SIValue).Average());
+        }
         
     }
 }

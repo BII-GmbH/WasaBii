@@ -159,7 +159,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(Duration other) => this == other;
         public override bool Equals(object obj) => obj is Duration duration && this == duration;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(Duration other) => (this > other) ? 1 : ((this < other) ? -1 : 0);
 
         // This needs to be as small as possible,
         // since it is used by some nodes that
@@ -202,11 +201,11 @@ namespace BII.WasaBii.Units {
         public static Duration Days(this int days) => new Duration(days, TimeUnit.Days);
         public static Duration Weeks(this int weeks) => new Duration(weeks, TimeUnit.Weeks);
         
-        public static Number AsMillis(this ValueWithUnit<TimeUnit> duration) => duration.As(TimeUnit.Milliseconds);
-        public static Number AsSeconds(this ValueWithUnit<TimeUnit> duration) => duration.As(TimeUnit.Seconds);
-        public static Number AsMinutes(this ValueWithUnit<TimeUnit> duration) => duration.As(TimeUnit.Minutes);
-        public static Number AsHours(this ValueWithUnit<TimeUnit> duration) => duration.As(TimeUnit.Hours);
-        public static Number AsDays(this ValueWithUnit<TimeUnit> duration) => duration.As(TimeUnit.Days);
-        public static Number AsWeeks(this ValueWithUnit<TimeUnit> duration) => duration.As(TimeUnit.Weeks);
+        public static Number AsMillis(this Duration duration) => duration.As(TimeUnit.Milliseconds);
+        public static Number AsSeconds(this Duration duration) => duration.As(TimeUnit.Seconds);
+        public static Number AsMinutes(this Duration duration) => duration.As(TimeUnit.Minutes);
+        public static Number AsHours(this Duration duration) => duration.As(TimeUnit.Hours);
+        public static Number AsDays(this Duration duration) => duration.As(TimeUnit.Days);
+        public static Number AsWeeks(this Duration duration) => duration.As(TimeUnit.Weeks);
     }
 }

@@ -1,10 +1,29 @@
 using System;
+using BII.WasaBii.Core;
+using JetBrains.Annotations;
 
 namespace BII.WasaBii.Units {
 
+    public static class Interval {
+        public enum ValueComparison {
+            Inside,
+            Before,
+            After
+        }
+        public enum IntervalComparison {
+            Inside = ValueComparison.Inside,
+            Before = ValueComparison.Before,
+            After = ValueComparison.After,
+            Overlap
+        }
+
+        public static bool HasAnyOverlapWith(ValueComparison comp) => comp is ValueComparison.Inside;
+        public static bool HasAnyOverlapWith(IntervalComparison comp) => comp is IntervalComparison.Inside or IntervalComparison.Overlap;
+    }
+    
+    [MustBeSerializable][MustBeImmutable]
     public readonly struct Interval<T> : IEquatable<Interval<T>>, IComparable<Interval<T>>
         where T : struct, ValueWithUnit, CopyableValueWithUnit<T> {
-
         public readonly T Min;
         public readonly T Max;
 
@@ -14,20 +33,13 @@ namespace BII.WasaBii.Units {
         public Interval(T a, T b, bool minBoundInclusive = true, bool maxBoundInclusive = true) {
             MinBoundInclusive = minBoundInclusive;
             MaxBoundInclusive = maxBoundInclusive;
-            
-            if (a.SIValue > b.SIValue) {
-                Max = a;
-                Min = b;
-            } else {
-                Max = b;
-                Min = a;
-            }
+
+            (Min, Max) = a.SIValue < b.SIValue ? (a, b) : (b, a);
         }
 
         public T Size => default(T).CopyWithDifferentSIValue(Max.SIValue - Min.SIValue);
 
         public bool Contains(T value) {
-           
             var minBorder = MinBoundInclusive
                 ? Min.SIValue <= value.SIValue
                 : Min.SIValue < value.SIValue;
@@ -123,9 +135,66 @@ namespace BII.WasaBii.Units {
 
     public static class IntervalExtensions {
 
-        public static Interval<T> ToInterval<T>(this (T a, T b) tuple)
-            where T : struct, ValueWithUnit, CopyableValueWithUnit<T> 
-            => new Interval<T>(tuple.a, tuple.b);
+        public static Interval<T> ToInterval<T>(this (T a, T b) tuple) where T : struct, CopyableValueWithUnit<T> =>
+            new(tuple.a, tuple.b);
         
+        public static bool IsNearly<T>(this Interval<T> self, Interval<T> other)
+            where T : struct, CopyableValueWithUnit<T>, IComparable<T> 
+            => self.Min.IsNearly(other.Min) && self.Max.IsNearly(other.Max);
+        
+        public static Interval<T> WithStart<T>(this Interval<T> interval, T newStart) 
+            where T : struct, CopyableValueWithUnit<T>, IComparable<T>
+            => new Interval<T>(newStart, interval.Max);
+        
+        public static Interval<T> WithEnd<T>(this Interval<T> interval, T newEnd) 
+            where T : struct, CopyableValueWithUnit<T>, IComparable<T>
+            => new Interval<T>(interval.Min, newEnd);
+
+        public static Interval.ValueComparison CompareToInterval<T>(this T value, Interval<T> interval)
+            where T : struct, CopyableValueWithUnit<T>, IComparable<T> =>
+            (value.CompareTo(interval.Min), value.CompareTo(interval.Max)) switch {
+                (-1, -1) => Interval.ValueComparison.Before,
+                (0, -1) when !interval.MinBoundInclusive => Interval.ValueComparison.Before,
+                (1, 1) => Interval.ValueComparison.After,
+                (1, 0) when !interval.MaxBoundInclusive => Interval.ValueComparison.After,
+                _ => Interval.ValueComparison.Inside
+            };
+        
+        public static Interval.IntervalComparison CompareToInterval<T>(this Interval<T> interval, Interval<T> other) 
+            where T : struct, CopyableValueWithUnit<T>, IComparable<T> {
+            var start = interval.Min.CompareToInterval(other);
+            var end = interval.Max.CompareToInterval(other);
+            return (start, end) switch {
+                (Interval.ValueComparison.Before, Interval.ValueComparison.After) => Interval.IntervalComparison.Inside,
+                (Interval.ValueComparison.Before, Interval.ValueComparison.Inside) => Interval.IntervalComparison.Overlap,
+                (Interval.ValueComparison.Inside, Interval.ValueComparison.Inside) => Interval.IntervalComparison.Overlap,
+                (Interval.ValueComparison.Inside, Interval.ValueComparison.After) => Interval.IntervalComparison.Overlap,
+                (Interval.ValueComparison.After, _) => Interval.IntervalComparison.Before,
+                (_, Interval.ValueComparison.Before) => Interval.IntervalComparison.After,
+                _ => throw new Exception("No matching comparision found. This should not happen, duh")
+            };
+        }
+
+        public static double InverseLerp<T>(this Interval<T> interval, T value, bool shouldClamp = true)
+            where T : struct, CopyableValueWithUnit<T>, IComparable<T> =>
+            UnitUtils.InverseLerp(interval.Min, interval.Max, value, shouldClamp);
+
+        public static double? TryInverseLerp<T>(this Interval<T> interval, T value)
+            where T : struct, CopyableValueWithUnit<T>, IComparable<T> =>
+            interval.InverseLerp(value, shouldClamp: false) switch {
+                var val and >= 0d and <= 1d => val,
+                _ => null
+            };
+        
+        [Pure]
+        public static Interval<T> Encapsulate<T>(this Interval<T> interval, Interval<T> other)
+            where T : struct, CopyableValueWithUnit<T>, IComparable<T>
+            => new Interval<T>(
+                interval.Min.Min(other.Min),
+                interval.Max.Max(other.Max)
+            );
+
+        public static Duration Total(this Interval<Duration> interval) => interval.Size;
+
     }
 }

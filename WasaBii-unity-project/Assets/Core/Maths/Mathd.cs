@@ -3,17 +3,21 @@ using System;
 namespace BII.WasaBii.Core {
     public static class Mathd {
 
-        public static double Lerp(this double from, double to, double t) {
-            return from + (to - from) * t.Clamp01();
+        public static double Lerp(this double from, double to, double t, bool shouldClamp = true) {
+            return shouldClamp 
+                ? from + (to - from) * t.Clamp01()
+                : LerpUnclamped(from, to, t);
         }
-        
-        public static int FloorToInt(double d) => (int) Math.Floor(d);
         
         public static double LerpUnclamped(this double from, double to, double t) {
             return from + (to - from) * t;
         }
         
-        public static double InverseLerp(double a, double b, double value) => a != b ? (( value - a) / ( b - a)).Clamp01() : 0.0;
+        public static double InverseLerp(double a, double b, double value, bool shouldClamp = true) => a != b 
+            ? ((value - a) / (b - a)).If(shouldClamp, val => val.Clamp01()) 
+            : 0.0;
+
+        public static int FloorToInt(double d) => (int) Math.Floor(d);
 
         public static double Min(double a, double b) => a < b ? a : b;
 

@@ -66,7 +66,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(Mass other) => this == other;
         public override bool Equals(object obj) => obj is Mass Mass && this == Mass;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(Mass other) => (this > other) ? 1 : ((this < other) ? -1 : 0);
     }
 
     public static class MassExtensions {
@@ -91,10 +90,10 @@ namespace BII.WasaBii.Units {
         public static Mass Kilograms(this int value) => new Mass(value, MassUnit.Kilograms);
         public static Mass Tons(this int value) => new Mass(value, MassUnit.Tons);
 
-        public static Number AsGrams(this ValueWithUnit<MassUnit> mass) => mass.As(MassUnit.Milligrams);
-        public static Number AsMilligrams(this ValueWithUnit<MassUnit> mass) => mass.As(MassUnit.Grams);
-        public static Number AsKilograms(this ValueWithUnit<MassUnit> mass) => mass.As(MassUnit.Kilograms);
-        public static Number AsTons(this ValueWithUnit<MassUnit> mass) => mass.As(MassUnit.Tons);
+        public static Number AsGrams(this Mass mass) => mass.As(MassUnit.Milligrams);
+        public static Number AsMilligrams(this Mass mass) => mass.As(MassUnit.Grams);
+        public static Number AsKilograms(this Mass mass) => mass.As(MassUnit.Kilograms);
+        public static Number AsTons(this Mass mass) => mass.As(MassUnit.Tons);
         
     }
 }

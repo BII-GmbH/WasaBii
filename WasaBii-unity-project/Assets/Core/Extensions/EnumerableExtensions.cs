@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +17,12 @@ namespace BII.WasaBii.Core {
         public static HashSet<T> AsHashSet<T>(this IEnumerable<T> source) =>
             source as HashSet<T> ?? new HashSet<T>(source);
         
+        public static ImmutableList<T> AsImmutableList<T>(this IEnumerable<T> source)
+            => source as ImmutableList<T> ?? source.ToImmutableList();
+
+        public static ImmutableHashSet<T> AsImmutableHashSet<T>(this IEnumerable<T> source)
+            => source as ImmutableHashSet<T> ?? source.ToImmutableHashSet();
+
         /// <summary>
         /// Sorts the enumerable by comparing the values produced by `valueProvider`.
         /// With `thenBy`, more valueProviders can be specified to define the order
@@ -224,6 +231,12 @@ namespace BII.WasaBii.Core {
 
         public static void AddAll<T>(this ISet<T> set, IEnumerable<T> toAdd) => set.UnionWith(toAdd);
 
+        public static ImmutableHashSet<T> AddAllImmutable<T>(this ImmutableHashSet<T> set, IEnumerable<T> toAdd) {
+            var builder = set.ToBuilder();
+            builder.AddAll(toAdd);
+            return builder.ToImmutable();
+        }
+
         /// <summary>
         /// Selects the element minT of the enumerable which has the minimal valueProvider(minT).
         /// If multiple elements have the same minimal value, the first one will be selected.
@@ -422,6 +435,10 @@ namespace BII.WasaBii.Core {
             yield return tuple.Item4;
             yield return tuple.Item5;
         }
+
+        public static ImmutableDictionary<TKey, TValue> ToImmutableDictionary<TKey, TValue>(
+            this IEnumerable<(TKey, TValue)> entries
+        ) => ImmutableDictionary.CreateRange(entries.Select(e => new KeyValuePair<TKey, TValue>(e.Item1, e.Item2)));
 
         public static IEnumerable<T> WithoutNull<T>(this IEnumerable<T?> enumerable) where T : class {
             foreach (var e in enumerable)

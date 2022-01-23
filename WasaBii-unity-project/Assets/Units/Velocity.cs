@@ -61,7 +61,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(Velocity other) => this == other;
         public override bool Equals(object obj) => obj is Velocity Velocity && this == Velocity;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(Velocity other) => (this > other) ? 1 : ((this < other) ? -1 : 0);
     }
 
     public static class VelocityExtensions {
@@ -81,9 +80,8 @@ namespace BII.WasaBii.Units {
         public static Velocity MetersPerSecond(this int value) => new Velocity(value, VelocityUnit.MetersPerSecond);
         public static Velocity KilometersPerHour(this int value) => new Velocity(value, VelocityUnit.KilometersPerHour);
 
-        public static Number AsMetersPerSecond(this ValueWithUnit<VelocityUnit> velocity) => velocity.As(VelocityUnit.MetersPerSecond);
-
-        public static Number AsKilometersPerHour(this ValueWithUnit<VelocityUnit> velocity) => velocity.As(VelocityUnit.KilometersPerHour);
+        public static Number AsMetersPerSecond(this Velocity velocity) => velocity.As(VelocityUnit.MetersPerSecond);
+        public static Number AsKilometersPerHour(this Velocity velocity) => velocity.As(VelocityUnit.KilometersPerHour);
 
     }
 }

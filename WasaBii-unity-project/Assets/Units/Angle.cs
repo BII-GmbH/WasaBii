@@ -145,7 +145,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(Angle other) => this == other;
         public override bool Equals(object obj) => obj is Angle Angle && this == Angle;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(Angle other) => this.SIValue.CompareTo(other.SIValue);
 
         public static Angle Clamp(Angle value, Angle min, Angle max) {
             if (value < min) value = min;
@@ -173,8 +172,8 @@ namespace BII.WasaBii.Units {
         public static Angle Radians(this int value) => new Angle(value, AngleUnit.Radians);
         public static Angle Degrees(this int value) => new Angle(value, AngleUnit.Degrees);
 
-        public static Number AsDegrees(this ValueWithUnit<AngleUnit> angle) => angle.As(AngleUnit.Degrees);
-        public static Number AsRadians(this ValueWithUnit<AngleUnit> angle) => angle.As(AngleUnit.Radians);
+        public static Number AsDegrees(this Angle angle) => angle.As(AngleUnit.Degrees);
+        public static Number AsRadians(this Angle angle) => angle.As(AngleUnit.Radians);
 
         public static Angle Abs(Angle a) => new Angle(Math.Abs(a.SIValue), AngleUnit.Radians);
     }

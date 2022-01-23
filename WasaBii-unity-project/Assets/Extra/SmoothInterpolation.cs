@@ -1,14 +1,16 @@
 using System;
 using System.Collections;
+using BII.WasaBii.Core;
+using BII.WasaBii.Units;
 using BII.WasaBii.Unity;
+using BII.WasaBii.Unity.Geometry;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace BII.WasaBii.Extra {
 
     public static class SmoothInterpolation {
         
-        // TODO DS: Make variants for ValueWithUnit when it is integrated.
-
         /// <summary>
         /// Interpolates between two values such that the interpolation can go on indefinitely,
         /// approaching the target asymptotically.
@@ -32,15 +34,8 @@ namespace BII.WasaBii.Extra {
         /// <param name="progress">Defines how far to interpolate. This will usually be the time that
         /// has passed since the last call (which returned <see cref="current"/>), e.g. <see cref="Time.deltaTime"/>.
         /// Must be greater than or equal to 0.</param>
-        public static float SmoothInterpolateTo(this float current, float target, float smoothness, float progress) =>
+        [Pure] public static float SmoothInterpolateTo(this float current, float target, float smoothness, float progress) =>
             Mathf.Lerp(target, current, Mathf.Pow(smoothness, progress));
-
-        /// <inheritdoc cref="SmoothInterpolateTo(float,float,float,float)"/>
-        public static double SmoothInterpolateTo(this double current, double target, double smoothness, double progress) {
-            // Note DS: There is no `Lerp` for doubles. Do we have one in our codebase?. If not:
-            // TODO DS for maintainer: Add `Lerp` for doubles in an appropriate place.
-            var t = Math.Pow(smoothness, progress);
-            return current * t + target * (1 - t);
             // Proof why the property of consecutive calls mentioned in the summary holds true:
             // float c, t, s, a, b;
             // c.SmoothInterpolateTo(t, s, a).SmoothInterpolateTo(t, s, b)
@@ -49,8 +44,24 @@ namespace BII.WasaBii.Extra {
             // == c * s^(a+b) + t * (s^b - s^(a+b)) + t * (1 - s^b)
             // == c * s^(a+b) + t * (1 - s^(a+b))
             // == c.SmoothInterpolateTo(t, s, a+b)
-        }
-        
+
+        /// <inheritdoc cref="SmoothInterpolateTo(float,float,float,float)"/>
+        [Pure] public static double SmoothInterpolateTo(this double current, double target, double smoothness, double progress) => 
+            Mathd.Lerp(target, current, Math.Pow(smoothness, progress));
+    }
+
+    public static class UnitSmoothInterpolation {
+        /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
+        [Pure] public static T SmoothInterpolateTo<T>(this T current, T target, double smoothness, double progress) 
+            where T : struct, CopyableValueWithUnit<T> => 
+            UnitUtils.Lerp(target, current, Math.Pow(smoothness, progress));
+    }
+
+    public static class TransformHelperSmoothInterpolation {
+        /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
+        [Pure] public static T SmoothInterpolateTo<T>(this T current, T target, double smoothness, double progress) 
+            where T : struct, TransformHelper<T> => 
+            target.LerpTo(current, Math.Pow(smoothness, progress));
     }
 
     // TODO DS: Document.

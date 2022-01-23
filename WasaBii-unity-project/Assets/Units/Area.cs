@@ -66,7 +66,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(Area other) => this == other;
         public override bool Equals(object obj) => obj is Area area && this == area;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(Area other) => (this > other) ? 1 : ((this < other) ? -1 : 0);
     }
     
     public static class AreaExtensions {
@@ -82,7 +81,7 @@ namespace BII.WasaBii.Units {
         public static Area SquareMeters(this int value) => new Area(value, AreaUnit.SquareMeter);
         public static Area Hectares(this int value) => new Area(value, AreaUnit.Hectare);
 
-        public static Number AsSquareMeters(this ValueWithUnit<AreaUnit> area) => area.As(AreaUnit.SquareMeter);
-        public static Number AsHectares(this ValueWithUnit<AreaUnit> area) => area.As(AreaUnit.Hectare);
+        public static Number AsSquareMeters(this Area area) => area.As(AreaUnit.SquareMeter);
+        public static Number AsHectares(this Area area) => area.As(AreaUnit.Hectare);
     }
 }

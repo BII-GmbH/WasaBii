@@ -16,13 +16,13 @@ namespace BII.WasaBii.Core {
         /// Clamps a value between 0 and 1.
         /// Use <see cref="MathExtensions.Clamp{T}"/> to clamp between arbitrary numbers.
         /// </summary>
-        public static double Clamp01(this double value) {
+        [Pure] public static double Clamp01(this double value) {
             if (value < 0.0)
                 return 0.0f;
             return value > 1.0 ? 1.0d : value;
         }
 
-        public static float Round(this float value, int digits, RoundingMode mode) {
+        [Pure] public static float Round(this float value, int digits, RoundingMode mode) {
             switch (mode) {
                 case RoundingMode.DecimalPlaces: return (float) Math.Round(value, digits);
                 case RoundingMode.SignificantDigits:
@@ -34,7 +34,7 @@ namespace BII.WasaBii.Core {
             }
         }
         
-        public static double Round(this double value, int digits, RoundingMode mode) {
+        [Pure] public static double Round(this double value, int digits, RoundingMode mode) {
             switch (mode) {
                 case RoundingMode.DecimalPlaces: return Math.Round(value, digits);
                 case RoundingMode.SignificantDigits:
@@ -46,91 +46,109 @@ namespace BII.WasaBii.Core {
             }
         }
 
-        public static float RoundToWholeMultipleOf(this float value, float factor)
+        [Pure] public static float RoundToWholeMultipleOf(this float value, float factor)
             => (float) Math.Round(value / factor) * factor;
-        public static double RoundToWholeMultipleOf(this double value, double factor)
+        [Pure] public static double RoundToWholeMultipleOf(this double value, double factor)
             => Math.Round(value / factor) * factor;
 
         // From https://stackoverflow.com/a/374470
         /// e.g. 2 for 645.65, 0 for 5.6 or -2 for 0.07656.
         /// NaN for 0
-        public static int PositionOfFirstSignificantDigit(this float value) =>
+        [Pure] public static int PositionOfFirstSignificantDigit(this float value) =>
             (int) Math.Floor(Math.Log10(Math.Abs(value)));
 
         // From https://stackoverflow.com/a/374470
         /// e.g. 2 for 645.65, 0 for 5.6 or -2 for 0.07656.
         /// NaN for 0
-        public static int PositionOfFirstSignificantDigit(this double value) =>
+        [Pure] public static int PositionOfFirstSignificantDigit(this double value) =>
             (int) Math.Floor(Math.Log10(Math.Abs(value)));
 
-        public static bool IsInsideInterval<T>(this T value, T intervalStart, T intervalEnd) where T : IComparable<T> =>
-            value.CompareTo(intervalStart) == 1 && value.CompareTo(intervalEnd) == -1;
+        public static bool IsInsideInterval<T>(this T value, T intervalStart, T intervalEnd, bool inclusive = false) where T : IComparable<T> {
+            var cmp1 = value.CompareTo(intervalStart);
+            var cmp2 = value.CompareTo(intervalEnd);
+            return inclusive
+                ? cmp1 != -1 && cmp2 != 1
+                : cmp1 == 1 && cmp2 == -1;
+        }
 
-        public static bool IsNearly(this float value, float other, float threshold = float.Epsilon)
+        [Pure] public static bool IsNearly(this float value, float other, float threshold = float.Epsilon)
             => Math.Abs(value - other) <= threshold;
 
-        public static bool IsNearly(this double value, double other, double threshold = double.Epsilon)
+        [Pure] public static bool IsNearly(this double value, double other, double threshold = double.Epsilon)
             => Math.Abs(value - other) <= threshold;
 
-        /// <summary>
         /// Returns the greater value.
-        /// </summary>
-        public static T Max<T>(this T a, T b) where T : IComparable<T> => a.CompareTo(b) < 0 ? b : a;
+        [Pure] public static T Max<T>(this T a, T b) where T : IComparable<T> => a.CompareTo(b) < 0 ? b : a;
 
-        /// <summary>
         /// Returns the lesser value.
-        /// </summary>
-        public static T Min<T>(this T a, T b) where T : IComparable<T> => a.CompareTo(b) < 0 ? a : b;
+        [Pure] public static T Min<T>(this T a, T b) where T : IComparable<T> => a.CompareTo(b) < 0 ? a : b;
 
-        public static double Min(this double a, double b) => double.IsNaN(a) || double.IsNaN(b) ? double.NaN : a < b ? a : b;
-        public static double Max(this double a, double b) => double.IsNaN(a) || double.IsNaN(b) ? double.NaN : a > b ? a : b;
+        [Pure] public static double Min(this double a, double b) => double.IsNaN(a) || double.IsNaN(b) ? double.NaN : a < b ? a : b;
+        [Pure] public static double Max(this double a, double b) => double.IsNaN(a) || double.IsNaN(b) ? double.NaN : a > b ? a : b;
         
-        public static float Min(this float a, float b) => float.IsNaN(a) || float.IsNaN(b) ? float.NaN : a < b ? a : b;
-        public static float Max(this float a, float b) => float.IsNaN(a) || float.IsNaN(b) ? float.NaN : a > b ? a : b;
+        [Pure] public static float Min(this float a, float b) => float.IsNaN(a) || float.IsNaN(b) ? float.NaN : a < b ? a : b;
+        [Pure] public static float Max(this float a, float b) => float.IsNaN(a) || float.IsNaN(b) ? float.NaN : a > b ? a : b;
 
-        public static T Clamp<T>(this T value, T min, T max) where T : IComparable<T> =>
+        [Pure] public static T Clamp<T>(this T value, T min, T max) where T : IComparable<T> =>
             value.Max(min).Min(max);
 
-        public static double Clamp(this double value, double min, double max) =>
+        [Pure] public static double Clamp(this double value, double min, double max) =>
             value.Max(min).Min(max);
 
-        public static float Clamp(this float value, float min, float max) =>
+        [Pure] public static float Clamp(this float value, float min, float max) =>
             value.Max(min).Min(max);
 
-        public static bool IsZero(this float value) => value.Equals(0);
-        
-        public static bool IsZero(this int value) => value == 0;
+        [Pure] public static bool IsZero(this int value) => value == 0;
+        [Pure] public static bool IsZero(this float value) => value.IsNearly(0);
+        [Pure] public static bool IsZero(this double value) => value.IsNearly(0);
 
-        public static bool IsNegative(this float value) => value < 0;
+        [Pure] public static bool IsNegative(this float value) => value < 0;
+        [Pure] public static bool IsPositive(this float value) => value > 0;
 
-        public static bool IsPositive(this float value) => value > 0;
+        [Pure] public static int Abs(this int value) => Math.Abs(value);
+        [Pure] public static float Abs(this float value) => Math.Abs(value);
+        [Pure] public static double Abs(this double value) => Math.Abs(value);
 
-        public static float Abs(this float value) => Math.Abs(value);
-        public static double Abs(this double value) => Math.Abs(value);
+        [Pure] public static int NegateIf(this int value, bool shouldNegate) => shouldNegate ? -value : value;
+        [Pure] public static float NegateIf(this float value, bool shouldNegate) => shouldNegate ? -value : value;
+        [Pure] public static double NegateIf(this double value, bool shouldNegate) => shouldNegate ? -value : value;
 
-        public static int NegateIf(this int value, bool shouldNegate) => shouldNegate ? -value : value;
-        public static float NegateIf(this float value, bool shouldNegate) => shouldNegate ? -value : value;
-        public static double NegateIf(this double value, bool shouldNegate) => shouldNegate ? -value : value;
+        [Pure] public static IEnumerable<int> Until(this int from, int toExclusive) => Enumerable.Range(from, toExclusive);
 
-        public static IEnumerable<int> Until(this int from, int toExclusive) => Enumerable.Range(from, toExclusive);
-
-        public static int LerpTo(this int fromInclusive, int toExclusive, float progress) {
+        [Pure] public static int LerpTo(this int fromInclusive, int toExclusive, float progress) {
             Contract.Assert(fromInclusive < toExclusive);
             return ((int) Lerp(fromInclusive, toExclusive, progress)).Min(toExclusive - 1);
         }
-        public static float Lerp(float a, float b, float t) => a + (b - a) * Clamp01(t);
-        public static float Clamp01(float value)
-        {
+        [Pure] public static float Lerp(float a, float b, float t) => a + (b - a) * Clamp01(t);
+        
+        [Pure] public static float Clamp01(float value) {
           if (value < 0.0)
             return 0.0f;
           return value > 1.0 ? 1f : value;
         }
-        public static int LerpTo(this int fromInclusive, int toExclusive, double progress) {
+        
+        [Pure] public static int LerpTo(this int fromInclusive, int toExclusive, double progress) {
             Contract.Assert(fromInclusive < toExclusive);
             return ((int) Mathd.Lerp(fromInclusive, toExclusive, progress)).Min(toExclusive - 1);
         }
         
-        public static int Sign(this float value) => value.IsZero() ? 0 : value > 0 ? 1 : -1;
-        public static int Sign(this int value) => value.IsZero() ? 0 : value > 0 ? 1 : -1;
+        [Pure] public static int Sign(this int value) => value.IsZero() ? 0 : value > 0 ? 1 : -1;
+        [Pure] public static int Sign(this float value) => value.IsZero() ? 0 : value > 0 ? 1 : -1;
+        [Pure] public static int Sign(this double value) => value.IsZero() ? 0 : value > 0 ? 1 : -1;
+
+        [Pure] public static int Sqr(this int value) => value * value;
+        [Pure] public static float Sqr(this float value) => value * value;
+        [Pure] public static double Sqr(this double value) => value * value;
+        
+        /// Mathematically correct modulus.
+        /// Always positive for any x as long as m > 0.
+        [Pure] public static int Mod(int x, int m) => (x % m + m) % m;
+        
+        /// <inheritdoc cref="Mod(int,int)"/>
+        [Pure] public static float Mod(float x, float m) => (x % m + m) % m;
+        
+        /// <inheritdoc cref="Mod(int,int)"/>
+        [Pure] public static double Mod(double x, double m) => (x % m + m) % m;
+
     }
 }

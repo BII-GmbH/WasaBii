@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BII.Units;
-using BII.Utilities.Independent;
-using CoreLibrary;
+using BII.WasaBii.Core;
+using BII.WasaBii.Units;
+using BII.WasaBii.Unity.Geometry;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {

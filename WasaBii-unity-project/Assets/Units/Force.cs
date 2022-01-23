@@ -61,7 +61,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(Force other) => this == other;
         public override bool Equals(object obj) => obj is Force Force && this == Force;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(Force other) => (this > other) ? 1 : ((this < other) ? -1 : 0);
     }
 
     public static class ForceExtensions {
@@ -69,6 +68,6 @@ namespace BII.WasaBii.Units {
         public static Force Newton(this float value) => new Force(value, ForceUnit.Newton);
         public static Force Newton(this double value) => new Force(value, ForceUnit.Newton);
         public static Force Newton(this int value) => new Force(value, ForceUnit.Newton);
-        public static Number AsNewton(this ValueWithUnit<ForceUnit> force) => force.As(ForceUnit.Newton);
+        public static Number AsNewton(this Force force) => force.As(ForceUnit.Newton);
     }
 }

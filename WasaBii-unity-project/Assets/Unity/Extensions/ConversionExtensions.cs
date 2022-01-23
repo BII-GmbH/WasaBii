@@ -1,5 +1,4 @@
 using System.Numerics;
-using BII.Utilities.Independent.Maths;
 
 namespace BII.WasaBii.Unity {
     public static class ConversionExtensions {

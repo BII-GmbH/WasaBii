@@ -82,7 +82,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(MassPerLength other) => this == other;
         public override bool Equals(object obj) => obj is MassPerLength MassPerLength && this == MassPerLength;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(MassPerLength other) => (this > other) ? 1 : ((this < other) ? -1 : 0);
     }
 
     public static class MassPerLengthExtensions {
@@ -97,7 +96,7 @@ namespace BII.WasaBii.Units {
         public static MassPerLength KilogramsPerMeter(this int value) =>
             new MassPerLength(value, MassPerLengthUnit.KilogramsPerMeter);
 
-        public static Number AsKilogramsPerMeter(this ValueWithUnit<MassPerLengthUnit> massPerLength) =>
+        public static Number AsKilogramsPerMeter(this MassPerLength massPerLength) =>
             massPerLength.As(MassPerLengthUnit.KilogramsPerMeter);
         
     }

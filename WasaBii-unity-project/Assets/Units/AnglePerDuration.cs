@@ -62,7 +62,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(AnglePerDuration other) => this == other;
         public override bool Equals(object obj) => obj is AnglePerDuration other && this == other;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(AnglePerDuration other) => this.SIValue.CompareTo(other.SIValue);
 
     }
 
@@ -84,8 +83,8 @@ namespace BII.WasaBii.Units {
         public static AnglePerDuration DegreesPerSecond(this int value) => new AnglePerDuration(value, AnglePerDurationUnit.DegreesPerSecond);
         public static AnglePerDuration DegreesPerMinute(this int value) => new AnglePerDuration(value, AnglePerDurationUnit.DegreesPerMinute);
 
-        public static Number AsRadiansPerSecond(this ValueWithUnit<AnglePerDurationUnit> speed) => speed.As(AnglePerDurationUnit.RadiansPerSecond);
-        public static Number AsDegreesPerSecond(this ValueWithUnit<AnglePerDurationUnit> speed) => speed.As(AnglePerDurationUnit.DegreesPerSecond);
-        public static Number AsDegreesPerMinute(this ValueWithUnit<AnglePerDurationUnit> speed) => speed.As(AnglePerDurationUnit.DegreesPerMinute);
+        public static Number AsRadiansPerSecond(this AnglePerDuration speed) => speed.As(AnglePerDurationUnit.RadiansPerSecond);
+        public static Number AsDegreesPerSecond(this AnglePerDuration speed) => speed.As(AnglePerDurationUnit.DegreesPerSecond);
+        public static Number AsDegreesPerMinute(this AnglePerDuration speed) => speed.As(AnglePerDurationUnit.DegreesPerMinute);
     }
 }

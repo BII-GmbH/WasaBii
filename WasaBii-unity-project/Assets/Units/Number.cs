@@ -74,7 +74,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(Number other) => this == other;
         public override bool Equals(object obj) => obj is Number Number && this == Number;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(Number other) => (this > other) ? 1 : ((this < other) ? -1 : 0);
     }
 
     public static class NumberExtensions {

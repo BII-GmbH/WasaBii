@@ -70,7 +70,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(Volume other) => this == other;
         public override bool Equals(object obj) => obj is Volume Volume && this == Volume;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(Volume other) => (this > other) ? 1 : ((this < other) ? -1 : 0);
     }
 
     public static class VolumeExtensions {
@@ -87,7 +86,7 @@ namespace BII.WasaBii.Units {
         public static Volume Liter(this int value) => new Volume(value, VolumeUnit.Liter);
         public static Volume CubicMeter(this int value) => new Volume(value, VolumeUnit.CubicMeter);
 
-        public static Number AsLiter(this ValueWithUnit<VolumeUnit> volume) => volume.As(VolumeUnit.Liter);
-        public static Number AsCubicMeter(this ValueWithUnit<VolumeUnit> volume) => volume.As(VolumeUnit.CubicMeter);
+        public static Number AsLiter(this Volume volume) => volume.As(VolumeUnit.Liter);
+        public static Number AsCubicMeter(this Volume volume) => volume.As(VolumeUnit.CubicMeter);
     }
 }

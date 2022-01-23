@@ -88,10 +88,9 @@ namespace BII.WasaBii.Units {
         public bool Equals(VolumePerDuration other) => this == other;
 
         public override bool Equals(object obj) =>
-            obj is VolumePerDuration VolumePerDuration && this == VolumePerDuration;
+            obj is VolumePerDuration volumePerDuration && this == volumePerDuration;
 
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(VolumePerDuration other) => (this > other) ? 1 : ((this < other) ? -1 : 0);
     }
 
     public static class VolumePerDurationExtensions {
@@ -106,7 +105,7 @@ namespace BII.WasaBii.Units {
         public static VolumePerDuration CubicMetersPerSecond(this int value) =>
             new VolumePerDuration(value, VolumePerDurationUnit.CubicMetersPerSecond);
 
-        public static Number AsCubicMetersPerSecond(this ValueWithUnit<VolumePerDurationUnit> volumePerDuration) =>
+        public static Number AsCubicMetersPerSecond(this VolumePerDuration volumePerDuration) =>
             volumePerDuration.As(VolumePerDurationUnit.CubicMetersPerSecond);
     }
 }

@@ -66,7 +66,6 @@ namespace BII.WasaBii.Units {
         public bool Equals(Length other) => this == other;
         public override bool Equals(object obj) => obj is Length Length && this == Length;
         public override int GetHashCode() => SIValue.GetHashCode();
-        public int CompareTo(Length other) => (this > other) ? 1 : ((this < other) ? -1 : 0);
     }
 
     public static class LengthExtensions {
@@ -86,8 +85,8 @@ namespace BII.WasaBii.Units {
         public static Length Meters(this int value) => new Length(value, LengthUnit.Meter);
         public static Length Kilometers(this int value) => new Length(value, LengthUnit.Kilometer);
 
-        public static Number AsMillimeters(this ValueWithUnit<LengthUnit> length) => length.As(LengthUnit.Millimeter);
-        public static Number AsMeters(this ValueWithUnit<LengthUnit> length) => length.As(LengthUnit.Meter);
-        public static Number AsKilometers(this ValueWithUnit<LengthUnit> length) => length.As(LengthUnit.Kilometer);
+        public static Number AsMillimeters(this Length length) => length.As(LengthUnit.Millimeter);
+        public static Number AsMeters(this Length length) => length.As(LengthUnit.Meter);
+        public static Number AsKilometers(this Length length) => length.As(LengthUnit.Kilometer);
     }
 }

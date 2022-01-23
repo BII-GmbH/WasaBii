@@ -98,12 +98,6 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static T Max<T>(this T a, T b) where T : struct, HasMagnitude<T>, VectorLike<T> => 
             a.Map(v => Vector3.Max(v, b.AsVector));
 
-        [Pure]
-        public static T Average<T>(this IEnumerable<T> enumerable) where T : struct, VectorLike<T> {
-            var (head, tail) = enumerable;
-            return head.CopyWithDifferentValue(head.PrependTo(tail).Select(t => t.AsVector).Average());
-        }
-        
     }
 
 }

@@ -18,7 +18,7 @@ namespace BII.WasaBii.Unity {
         /// <b>Iterable only once</b>.
         [Pure]
         public static IEnumerable<Transform> GetChildren(this Transform transform) => 
-            transform.Cast<Transform>();
+            transform.Cast<Transform>(); // for proper typing
 
         /// <inheritdoc cref="Util.IsNull{T}"/>
         [Pure]
@@ -231,30 +231,6 @@ namespace BII.WasaBii.Unity {
 
         /// <returns>False if the specified sequence contains no elements, true otherwise.</returns>
         public static bool IsNotEmpty<T>(this IEnumerable<T> sequence) => sequence.Any();
-
-        /// <summary>
-        /// Merges two sequences in a LINQ call chain without having to drop out of it.
-        /// When the concrete types of the two sequences differ, then one must specify
-        /// the desired common supertype explicitly, as seen in the example.
-        /// </summary>
-        /// <example><code>
-        /// List&lt;Component&gt; foo = gameObject
-        ///           .All&lt;T&gt;()
-        ///           .AndAlso&lt;Component&gt;(gameObject.All&lt;U&gt;())
-        ///           .ToList();
-        /// </code></example>
-        [NotNull] public static IEnumerable<T> AndAlso<T>(this IEnumerable<T> sequence, IEnumerable<T> other) {
-            foreach (var x in sequence) yield return x;
-            foreach (var x in other) yield return x;
-        }
-        
-        /// <see cref="otherGetter"/> is only called after the initial sequence has been completely enumerated
-        [NotNull] public static IEnumerable<T> AndAlso<T>(
-            this IEnumerable<T> sequence, Func<IEnumerable<T>> otherGetter
-        ) {
-            foreach (var x in sequence) yield return x;
-            foreach (var x in otherGetter()) yield return x;
-        }
         
         [NotNull] public static IEnumerable<T> AfterwardsDo<T>(this IEnumerable<T> enumerable, Action afterwards) {
             try {

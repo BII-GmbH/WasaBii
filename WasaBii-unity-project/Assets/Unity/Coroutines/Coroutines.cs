@@ -301,13 +301,13 @@ namespace BII.WasaBii.Unity {
         /// </param>
         // ReSharper disable once InvalidXmlDocComment
         [Pure]
-        public static IEnumerator WaitUntil([NotNull] Condition condition, [CanBeNull] CodeBlock afterwards = null,
-            Func<object> yieldInstructionGetter = null) {
+        public static IEnumerator WaitUntil(
+            [NotNull] Condition condition, 
+            [CanBeNull] CodeBlock afterwards = null,
+            Func<object> yieldInstructionGetter = null
+        ) {
             while (!condition())
-                yield return
-                    yieldInstructionGetter != null
-                        ? yieldInstructionGetter.Invoke()
-                        : null;
+                yield return yieldInstructionGetter?.Invoke();
             if (afterwards != null) afterwards.Invoke();
         }
 
@@ -319,8 +319,11 @@ namespace BII.WasaBii.Unity {
         /// </param>
         // ReSharper disable all InvalidXmlDocComment
         [Pure]
-        public static IEnumerator DelayForFrames(uint frames, [CanBeNull] CodeBlock afterwards = null,
-            bool fixedUpdate = false) {
+        public static IEnumerator DelayForFrames(
+            uint frames, 
+            [CanBeNull] CodeBlock afterwards = null,
+            bool fixedUpdate = false
+        ) {
             for (var i = 0; i < frames; ++i)
                 yield return fixedUpdate ? new WaitForFixedUpdate() : null;
             if (afterwards != null) afterwards.Invoke();
@@ -349,8 +352,11 @@ namespace BII.WasaBii.Unity {
         /// Otherwise once per frame. Defaults to false.
         /// </param>
         [Pure]
-        public static IEnumerator RepeatForSeconds(float seconds, [NotNull] CodeBlock action,
-            bool fixedUpdate = false) {
+        public static IEnumerator RepeatForSeconds(
+            float seconds, 
+            [NotNull] CodeBlock action,
+            bool fixedUpdate = false
+        ) {
             var start = Time.time;
             do {
                 action();
@@ -386,14 +392,14 @@ namespace BII.WasaBii.Unity {
         /// after each condition check. If null, yields null and waits for the next frame.
         /// </param>
         [Pure]
-        public static IEnumerator RepeatWhile([NotNull] Condition condition, [NotNull] CodeBlock action,
-            Func<object> yieldInstructionGetter = null) {
+        public static IEnumerator RepeatWhile(
+            [NotNull] Condition condition, 
+            [NotNull] CodeBlock action,
+            Func<object> yieldInstructionGetter = null
+        ) {
             while (condition()) {
                 action();
-                yield return
-                    yieldInstructionGetter != null
-                        ? yieldInstructionGetter.Invoke()
-                        : null;
+                yield return yieldInstructionGetter?.Invoke();
             }
         }
 
@@ -406,8 +412,13 @@ namespace BII.WasaBii.Unity {
         /// <param name="interval">The number of seconds between each call to action</param>
         /// <param name="action">The body of the loop</param>
         [Pure]
-        public static IEnumerator RepeatEverySeconds(float interval, [NotNull] CodeBlock action,
-            int? repetitions = null) {
+        public static IEnumerator RepeatEverySeconds(
+            float interval, 
+            [NotNull] CodeBlock action,
+            int? repetitions = null
+        ) {
+            if (repetitions is int r && r <= 0)
+                throw new ArgumentException($"{nameof(repetitions)} must be either null or > 0");
             for (var i = 0; i != repetitions; ++i) {
                 action();
                 yield return new WaitForSeconds(interval);

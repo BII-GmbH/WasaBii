@@ -8,8 +8,8 @@ namespace BII.WasaBii.Unity {
     /// Author: Cameron Reuschel
     /// <br/><br/>
     /// Base class for all behaviours that depend on CoreLibrary utilities.
-    /// Adds no additional overhead compared to extending from MonoBehaviour directly.
     /// </summary>
+    // TODO CR: change to extensions once QueryableBaseBehaviour is cleaned up
     public abstract class BaseBehaviour : MonoBehaviour {
 
         /// <inheritdoc cref="ComponentQueryExtensions.AssignComponent{T}(GameObject, out T, Search, bool)"/>

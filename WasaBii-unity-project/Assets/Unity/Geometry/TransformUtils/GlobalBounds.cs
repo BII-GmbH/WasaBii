@@ -10,7 +10,7 @@ namespace BII.WasaBii.Unity.Geometry {
     /// A Unity-Independent data structure representing an AABB (axis-aligned bounding-box) in global space.
     [MustBeImmutable]
     [MustBeSerializable]
-    public readonly struct GlobalBounds : IsGlobalVariant<GlobalBounds, LocalBounds>, TransformHelper<GlobalBounds> {
+    public readonly struct GlobalBounds : IsGlobalVariant<GlobalBounds, LocalBounds>, GeometryHelper<GlobalBounds> {
         
         public readonly GlobalPosition Center;
         

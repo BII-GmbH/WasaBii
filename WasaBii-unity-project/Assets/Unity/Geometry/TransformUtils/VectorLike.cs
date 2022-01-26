@@ -12,20 +12,20 @@ namespace BII.WasaBii.Unity.Geometry {
     }
     
     /// Supertype for all transform utils that essentially wrap a vector.
-    public interface VectorLike<TSelf> : VectorLike, TransformHelper<TSelf>
+    public interface VectorLike<TSelf> : VectorLike, GeometryHelper<TSelf>
     where TSelf : struct, VectorLike<TSelf> {
         
         /// Constructs a new instance of this type with the given value.
         /// Needed by utilities like `Map`.
         TSelf CopyWithDifferentValue(Vector3 newValue);
 
-        [Pure] TSelf TransformHelper<TSelf>.LerpTo(TSelf target, double progress, bool shouldClamp) =>
+        [Pure] TSelf GeometryHelper<TSelf>.LerpTo(TSelf target, double progress, bool shouldClamp) =>
             CopyWithDifferentValue(shouldClamp 
                 ? Vector3.Lerp(AsVector, target.AsVector, (float)progress) 
                 : Vector3.LerpUnclamped(AsVector, target.AsVector, (float)progress)
             );
 
-        [Pure] TSelf TransformHelper<TSelf>.SlerpTo(TSelf target, double progress, bool shouldClamp)  =>
+        [Pure] TSelf GeometryHelper<TSelf>.SlerpTo(TSelf target, double progress, bool shouldClamp)  =>
             CopyWithDifferentValue(shouldClamp 
                 ? Vector3.Slerp(AsVector, target.AsVector, (float)progress) 
                 : Vector3.SlerpUnclamped(AsVector, target.AsVector, (float)progress)

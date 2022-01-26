@@ -60,7 +60,7 @@ namespace BII.WasaBii.Extra {
     public static class TransformHelperSmoothInterpolation {
         /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
         [Pure] public static T SmoothInterpolateTo<T>(this T current, T target, double smoothness, double progress) 
-            where T : struct, TransformHelper<T> => 
+            where T : struct, GeometryHelper<T> => 
             target.LerpTo(current, Math.Pow(smoothness, progress));
     }
 

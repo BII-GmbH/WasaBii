@@ -12,20 +12,20 @@ namespace BII.WasaBii.Unity.Geometry {
     }
     
     /// Supertype for all transform utils that essentially wrap a quaternion.
-    public interface QuaternionLike<TSelf> : QuaternionLike, TransformHelper<TSelf>
+    public interface QuaternionLike<TSelf> : QuaternionLike, GeometryHelper<TSelf>
     where TSelf: struct, QuaternionLike<TSelf> {
         
         /// Constructs a new instance of this type with the given value.
         /// Needed by utilities like `Map`.
         TSelf CopyWithDifferentValue(Quaternion newValue);
 
-        TSelf TransformHelper<TSelf>.LerpTo(TSelf target, double progress, bool shouldClamp) =>
+        TSelf GeometryHelper<TSelf>.LerpTo(TSelf target, double progress, bool shouldClamp) =>
             CopyWithDifferentValue(shouldClamp 
                 ? Quaternion.Lerp(AsQuaternion, target.AsQuaternion, (float)progress) 
                 : Quaternion.LerpUnclamped(AsQuaternion, target.AsQuaternion, (float)progress)
             );
 
-        TSelf TransformHelper<TSelf>.SlerpTo(TSelf target, double progress, bool shouldClamp) =>
+        TSelf GeometryHelper<TSelf>.SlerpTo(TSelf target, double progress, bool shouldClamp) =>
             CopyWithDifferentValue(shouldClamp 
                 ? Quaternion.Slerp(AsQuaternion, target.AsQuaternion, (float)progress) 
                 : Quaternion.SlerpUnclamped(AsQuaternion, target.AsQuaternion, (float)progress)

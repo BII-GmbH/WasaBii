@@ -7,7 +7,16 @@ using System.Threading.Tasks;
 
 namespace BII.WasaBii.Core {
     public static class EnumerableExtensions {
-        
+
+        /// <inheritdoc cref="System.Linq.Enumerable.ToDictionary()"/>
+        public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(
+            this IEnumerable<(TKey key, TValue value)> tupleCollection
+        ) => tupleCollection.ToDictionary(tuple => tuple.key, tuple => tuple.value);
+
+        public static ImmutableDictionary<TKey, TValue> ToImmutableDictionary<TKey, TValue>(
+            this IEnumerable<(TKey, TValue)> entries
+        ) => ImmutableDictionary.CreateRange(entries.Select(e => new KeyValuePair<TKey, TValue>(e.Item1, e.Item2)));
+
         public static IReadOnlyCollection<T> AsReadOnlyCollection<T>(this IEnumerable<T> source)
             => source as IReadOnlyCollection<T> ?? source.ToList();
 
@@ -17,11 +26,59 @@ namespace BII.WasaBii.Core {
         public static HashSet<T> AsHashSet<T>(this IEnumerable<T> source) =>
             source as HashSet<T> ?? new HashSet<T>(source);
         
+        public static T[] AsArray<T>(this IEnumerable<T> source)
+            => source as T[] ?? source.ToArray();
+
         public static ImmutableList<T> AsImmutableList<T>(this IEnumerable<T> source)
             => source as ImmutableList<T> ?? source.ToImmutableList();
 
         public static ImmutableHashSet<T> AsImmutableHashSet<T>(this IEnumerable<T> source)
             => source as ImmutableHashSet<T> ?? source.ToImmutableHashSet();
+
+        /// Always returns a new array with predefined size (as opposed to `ToArray()`)
+        /// In a performance critical context, it is preferable to allocate a new array and fill it
+        /// instead of calling `ToArray` on a Linq-Enumerable if the array size is known upfront.
+        public static T[] ToNewArray<T>(this IEnumerable<T> enumerable, int count) {
+            var ret = new T[count];
+            var i = 0;
+            foreach (var t in enumerable) {
+                ret[i] = t; // Throws an IndexOutOfBoundsException if count was to small.
+                i++;
+            }
+
+            return ret;
+        }
+
+        /// Wraps a single object into an enumerable
+        public static IEnumerable<T> WrapAsEnumerable<T>(this T item) {
+            yield return item;
+        }
+
+        public static IEnumerable<T> ToEnumerable<T>(this (T, T) tuple) {
+            yield return tuple.Item1;
+            yield return tuple.Item2;
+        }
+
+        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T) tuple) {
+            yield return tuple.Item1;
+            yield return tuple.Item2;
+            yield return tuple.Item3;
+        }
+        
+        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T, T) tuple) {
+            yield return tuple.Item1;
+            yield return tuple.Item2;
+            yield return tuple.Item3;
+            yield return tuple.Item4;
+        }
+        
+        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T, T, T) tuple) {
+            yield return tuple.Item1;
+            yield return tuple.Item2;
+            yield return tuple.Item3;
+            yield return tuple.Item4;
+            yield return tuple.Item5;
+        }
 
         /// <summary>
         /// Sorts the enumerable by comparing the values produced by `valueProvider`.
@@ -416,41 +473,7 @@ namespace BII.WasaBii.Core {
                 }
             }
         }
-        /// Wraps a single object into an enumerable
-        public static IEnumerable<T> WrapAsEnumerable<T>(this T item) {
-            yield return item;
-        }
-
-        public static IEnumerable<T> ToEnumerable<T>(this (T, T) tuple) {
-            yield return tuple.Item1;
-            yield return tuple.Item2;
-        }
-
-        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T) tuple) {
-            yield return tuple.Item1;
-            yield return tuple.Item2;
-            yield return tuple.Item3;
-        }
         
-        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T, T) tuple) {
-            yield return tuple.Item1;
-            yield return tuple.Item2;
-            yield return tuple.Item3;
-            yield return tuple.Item4;
-        }
-        
-        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T, T, T) tuple) {
-            yield return tuple.Item1;
-            yield return tuple.Item2;
-            yield return tuple.Item3;
-            yield return tuple.Item4;
-            yield return tuple.Item5;
-        }
-
-        public static ImmutableDictionary<TKey, TValue> ToImmutableDictionary<TKey, TValue>(
-            this IEnumerable<(TKey, TValue)> entries
-        ) => ImmutableDictionary.CreateRange(entries.Select(e => new KeyValuePair<TKey, TValue>(e.Item1, e.Item2)));
-
         public static IEnumerable<T> WithoutNull<T>(this IEnumerable<T?> enumerable) where T : class {
             foreach (var e in enumerable)
                 if (e != null)
@@ -548,33 +571,11 @@ namespace BII.WasaBii.Core {
             }
         }
 
-        ///<inheritdoc cref="System.Linq.Enumerable.ToDictionary()"/>
-        public static Dictionary<Key, Value> ToDictionary<Key, Value>(
-            this IEnumerable<(Key key, Value value)> tupleCollection
-        ) => tupleCollection.ToDictionary(tuple => tuple.key, tuple => tuple.value);
-
         public static IEnumerable<(T item, int index)> ZipWithIndices<T>(this IEnumerable<T> source) {
             var index = 0;
             foreach (var item in source) {
                 yield return (item, index++);
             }
-        }
-
-        public static T[] AsArray<T>(this IEnumerable<T> source)
-            => source as T[] ?? source.ToArray();
-
-        /// Always returns a new array with predefined size (as opposed to `ToArray()`)
-        /// In a performance critical context, it is preferable to allocate a new array and fill it
-        /// instead of calling `ToArray` on a Linq-Enumerable if the array size is known upfront.
-        public static T[] ToNewArray<T>(this IEnumerable<T> enumerable, int count) {
-            var ret = new T[count];
-            var i = 0;
-            foreach (var t in enumerable) {
-                ret[i] = t; // Throws an IndexOutOfBoundsException if count was to small.
-                i++;
-            }
-
-            return ret;
         }
 
         /// <summary>

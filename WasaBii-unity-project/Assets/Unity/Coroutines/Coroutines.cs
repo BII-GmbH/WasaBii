@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using BII.WasaBii.Units;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -327,7 +328,7 @@ namespace BII.WasaBii.Unity {
         }
 
         /// <summary>
-        /// Executes the passed callback after `time` seconds.
+        /// Executes the passed callback after <see cref="time"/> seconds.
         /// </summary>
         /// <param name="afterwards">
         /// The block of code to be executed once the specified time has passed.
@@ -337,6 +338,16 @@ namespace BII.WasaBii.Unity {
             yield return new WaitForSeconds(time);
             if (afterwards != null) afterwards.Invoke();
         }
+
+        /// <summary>
+        /// Executes the passed callback after a given <see cref="duration"/>.
+        /// </summary>
+        /// <param name="afterwards">
+        /// The block of code to be executed once the specified time has passed.
+        /// </param>
+        [Pure]
+        public static IEnumerator WaitFor(Duration duration, [CanBeNull] CodeBlock afterwards = null)
+            => WaitForSeconds((float) duration.AsSeconds(), afterwards);
 
         /// <summary>
         /// Repeats the passed action each frame (or each fixedUpdate) until

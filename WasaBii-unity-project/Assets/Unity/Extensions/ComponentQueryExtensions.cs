@@ -213,7 +213,7 @@ namespace BII.WasaBii.Unity {
                         .ToArray(),
                 Search.InWholeHierarchy => go.transform.parent.IfNotNull(
                         p => p.gameObject.GetComponentsInParent<T>(includeInactive), elseResult: Enumerable.Empty<T>())
-                    .AndAlso(go.GetComponentsInChildren<T>(includeInactive)),
+                    .Concat(go.GetComponentsInChildren<T>(includeInactive)),
                 _ => throw new UnsupportedSearchException(where)
             };
         }
@@ -238,13 +238,13 @@ namespace BII.WasaBii.Unity {
         /// <exception cref="ComponentNotFoundException">
         /// If there was no component to be found in the specified search scope.
         /// </exception>
-        public static void AssignComponent<T>(this GameObject go, out T variable, Search where = Search.InObjectOnly,
+        public static void AssignComponent<T>(this MonoBehaviour m, out T variable, Search where = Search.InObjectOnly,
             bool includeInactive = false)
             where T : class {
-            T found = go.As<T>(where, includeInactive);
+            T found = m.gameObject.As<T>(where, includeInactive);
             if (Util.IsNull(found))
                 throw new ComponentNotFoundException(
-                    "Failed to assign component of type " + typeof(T) + " to " + go + ".");
+                    "Failed to assign component of type " + typeof(T) + " to " + m.gameObject + ".");
 
             variable = found;
         }
@@ -257,12 +257,12 @@ namespace BII.WasaBii.Unity {
         /// <param name="variable">A reference to the variable to be set.</param>
         /// <param name="where">Optional search scope if the object itself does not have the component.</param>
         /// <typeparam name="T">The type of the component to find.</typeparam>
-        public static void AssignComponentOrAdd<T>(this GameObject go, out T variable,
+        public static void AssignComponentOrAdd<T>(this MonoBehaviour m, out T variable,
             Search where = Search.InObjectOnly,
             bool includeInactive = false)
             where T : Component {
-            T found = go.As<T>(where, includeInactive);
-            if (found == null) found = go.AddComponent<T>();
+            T found = m.gameObject.As<T>(where, includeInactive);
+            if (found == null) found = m.gameObject.AddComponent<T>();
 
             variable = found;
         }
@@ -278,17 +278,17 @@ namespace BII.WasaBii.Unity {
         /// <typeparam name="T">The type of the component to find.</typeparam>
         /// <returns>true if new value was assigned, false if variable already has a value.</returns>
         /// <exception cref="Exception">If there was no component to be found in the specified search scope.</exception>
-        public static bool AssignIfAbsent<T>(this GameObject go, ref T variable, Search where = Search.InObjectOnly,
+        public static bool AssignIfAbsent<T>(this MonoBehaviour m, ref T variable, Search where = Search.InObjectOnly,
             bool includeInactive = false)
             where T : class {
             if (variable != default(T)) // safer than null
             {
                 Debug.Log(
-                    "Tried to assign component of type " + typeof(T) + " but field already had value " + variable, go);
+                    "Tried to assign component of type " + typeof(T) + " but field already had value " + variable, m.gameObject);
                 return false;
             }
 
-            go.AssignComponent(out variable, where, includeInactive);
+            m.AssignComponent(out variable, where, includeInactive);
             return true;
         }
 
@@ -302,17 +302,17 @@ namespace BII.WasaBii.Unity {
         /// <param name="where">Optional search scope if the object itself does not have the component.</param>
         /// <typeparam name="T">The type of the component to find.</typeparam>
         /// <returns>true if new value was assigned, false if variable already has a value.</returns>
-        public static bool AssignIfAbsentOrAdd<T>(this GameObject go, ref T variable,
+        public static bool AssignIfAbsentOrAdd<T>(this MonoBehaviour m, ref T variable,
             Search where = Search.InObjectOnly,
             bool includeInactive = false)
             where T : Component {
             if (!Util.IsNull(variable)) {
                 Debug.Log(
-                    "Tried to assign component of type " + typeof(T) + " but field already had value " + variable, go);
+                    "Tried to assign component of type " + typeof(T) + " but field already had value " + variable, m.gameObject);
                 return false;
             }
 
-            go.AssignComponentOrAdd(out variable, where, includeInactive);
+            m.AssignComponentOrAdd(out variable, where, includeInactive);
             return true;
         }
     }

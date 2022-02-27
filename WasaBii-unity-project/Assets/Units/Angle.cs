@@ -81,6 +81,7 @@ namespace BII.WasaBii.Units {
         /// </example>
         public static Angle LerpWithMinimalDifference(Angle from, Angle to, double progress, bool shouldClamp = true) {
             (from, to) = NormalizedWithMinimalDifference(from, to);
+            GeneratedNamespace.GeneratedClass.GeneratedMethod();
             return UnitUtils.Lerp(from, to, progress, shouldClamp);
         }
         

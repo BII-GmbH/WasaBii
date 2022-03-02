@@ -254,7 +254,7 @@ namespace BII.WasaBii.Unity {
         /// <typeparam name="T">The type of the component to find.</typeparam>
         /// <param name="ifAction">The action to execute if the component was found.</param>
         /// <param name="elseAction">The action to execute if the component was not found.</param>
-        public static void DoIfType<T>(
+        public static void DoIfComponentExists<T>(
             this GameObject go, 
             [NotNull] Action<T> ifAction, 
             Action elseAction = null, 
@@ -268,16 +268,16 @@ namespace BII.WasaBii.Unity {
         }
 
         /// <inheritdoc cref="DoIfType{T}(GameObject,Action{T},Action,BII.Search,bool)"/>
-        public static void DoIfType<T>(
+        public static void DoIfComponentExists<T>(
             this Component comp,
             [NotNull] Action<T> ifAction,
             Action elseAction = null,
             Search where = Search.InObjectOnly,
             bool includeInactive = false
-        ) where T : class => comp.gameObject.DoIfType(ifAction, elseAction, where, includeInactive);
+        ) where T : class => comp.gameObject.DoIfComponentExists(ifAction, elseAction, where, includeInactive);
         
         /// <inheritdoc cref="DoIfType{T}(GameObject,Action{T},Action,BII.Search,bool)"/>
-        public static void DoIfType<T>(
+        public static void DoIfComponentExists<T>(
             this object obj,
             [NotNull] Action<T> ifAction,
             Action elseAction = null,
@@ -286,10 +286,10 @@ namespace BII.WasaBii.Unity {
         ) where T : class {
             switch(obj) {
                 case GameObject go: 
-                    go.DoIfType<T>(ifAction, elseAction, @where, includeInactive);
+                    go.DoIfComponentExists<T>(ifAction, elseAction, @where, includeInactive);
                     break;
                 case Component comp: 
-                    comp.DoIfType<T>(ifAction, elseAction, @where, includeInactive);
+                    comp.DoIfComponentExists<T>(ifAction, elseAction, @where, includeInactive);
                     break;
                 case T t: ifAction(t);
                     break;

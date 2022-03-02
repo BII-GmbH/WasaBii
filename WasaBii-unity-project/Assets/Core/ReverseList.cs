@@ -6,6 +6,9 @@ using Newtonsoft.Json;
 
 namespace BII.WasaBii.Core {
 
+    /// A list view that simply inverts the order of elements.
+    /// Wraps the original list without copying it. Be aware
+    /// that changes to the original list will reflect to this.
     [Serializable] [MustBeSerializable]
     public sealed class ReverseList<T> : IReadOnlyList<T> {
 
@@ -23,7 +26,7 @@ namespace BII.WasaBii.Core {
 
         public int Count => wrapped.Count;
 
-        public T this[int i] => wrapped[^i];
+        public T this[int i] => wrapped[^(i+1)];
         
         public override bool Equals(object obj) => obj is ReverseList<T> other && Equals(wrapped, other.wrapped);
 

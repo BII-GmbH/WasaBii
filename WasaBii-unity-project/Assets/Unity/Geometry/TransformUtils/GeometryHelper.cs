@@ -4,7 +4,11 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Unity.Geometry {
     
-    /// Supertype for all transform utils.
+    /// Supertype for all geometry utils.
+    /// Those wrap low-level mathematical structures like vectors and quaternions in
+    /// expressive typed helpers that give more context (e.g. position, offset, direction).
+    /// All geometry helpers have to implement linear and spherical interpolation (lerp & slerp)
+    /// as this is needed for several utility extensions like <code>Average</code>.
     public interface GeometryHelper<TSelf>
         where TSelf : GeometryHelper<TSelf> {
 

@@ -29,6 +29,24 @@ namespace BII.WasaBii.Core {
         /// Returns None if the task has not completed yet or if it is canceled or failed.
         public static Option<T> GetIfCompletedSuccessfully<T>(this Task<T> task) =>
             task.Status == TaskStatus.RanToCompletion ? Option.Some(task.Result) : Option.None;
+
+        public static async Task<Option<T>> NoneIfFailed<T>(this Task<T> task) {
+            try {
+                return Option.Some(await task);
+            } catch {
+                return Option.None;
+            }
+        }
+        
+        public static async Task<Result<T, TError>> FailureIfException<T, TError>(
+            this Task<T> task, Func<Exception, TError> onException
+        ) {
+            try {
+                return (await task).Success();
+            } catch (Exception e) {
+                return onException(e).Failure();
+            }
+        }
         
         /// Convert a Task into an IEnumerator intended to be used as a Unity-Coroutine
         public static IEnumerator AsCoroutine(this Task task) {

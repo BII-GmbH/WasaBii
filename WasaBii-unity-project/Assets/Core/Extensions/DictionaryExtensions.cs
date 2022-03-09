@@ -26,24 +26,6 @@ namespace BII.WasaBii.Core {
             else return new TValue();
         }
 
-        public static bool AnyValueOf<TKey, TValue>(
-            this Dictionary<TKey, List<TValue>> dict,
-            TKey key,
-            Predicate<TValue> predicate
-        ) {
-            if (dict.TryGetValue(key, out var list)) return list.Any(item => predicate(item));
-            else return false;
-        }
-
-        public static bool AnyValueOf<TKey, TValue>(
-            this Dictionary<TKey, HashSet<TValue>> dict,
-            TKey key,
-            Predicate<TValue> predicate
-        ) {
-            if (dict.TryGetValue(key, out var list)) return list.Any(item => predicate(item));
-            else return false;
-        }
-
         public static bool IsContentEqualTo<TKey, TValue>(
             this Dictionary<TKey, TValue> dict1,
             Dictionary<TKey, TValue> otherDict

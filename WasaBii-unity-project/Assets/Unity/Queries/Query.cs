@@ -8,7 +8,7 @@ namespace BII.WasaBii.Unity {
     /// Author: Cameron Reuschel
     /// <br/><br/>
     /// Singleton that provides static methods to query all components which
-    /// inherit from <see cref="QueryableBaseBehaviour"/> in a scene.
+    /// inherit from <see cref="QueryableBehaviour"/> in a scene.
     /// <br/><br/>
     /// You can either query all objects in the scene using <see cref="All{T}"/>
     /// or only the currently active ones using <see cref="AllActive{T}"/>.
@@ -22,25 +22,24 @@ namespace BII.WasaBii.Unity {
     /// Every method returns an `IEnumerable` that can only be traversed <b>once</b>.
     /// </summary>
     public class Query : LazySingleton<Query> {
-        private readonly Dictionary<Type, HashSet<QueryableBaseBehaviour>> _registered =
-            new Dictionary<Type, HashSet<QueryableBaseBehaviour>>();
+        private readonly Dictionary<Type, HashSet<QueryableBehaviour>> _registered = new();
 
-        private readonly HashSet<Queryable> _enabled = new HashSet<Queryable>();
+        private readonly HashSet<Queryable> _enabled = new();
 
-        private HashSet<QueryableBaseBehaviour> Registered(QueryableBaseBehaviour obj) {
+        private HashSet<QueryableBehaviour> Registered(QueryableBehaviour obj) {
             var key = obj.GetType();
             if (_registered.TryGetValue(key, out var res)) {
                 return res;
             }
 
-            res = new HashSet<QueryableBaseBehaviour>();
+            res = new HashSet<QueryableBehaviour>();
             _registered[key] = res;
             return res;
         }
 
-        internal void Register(QueryableBaseBehaviour obj) => Registered(obj).Add(obj);
+        internal void Register(QueryableBehaviour obj) => Registered(obj).Add(obj);
 
-        internal void Deregister(QueryableBaseBehaviour obj) => Registered(obj).Remove(obj);
+        internal void Deregister(QueryableBehaviour obj) => Registered(obj).Remove(obj);
 
         internal void SetEnabled(Queryable obj) => _enabled.Add(obj);
 
@@ -53,10 +52,10 @@ namespace BII.WasaBii.Unity {
         /// <typeparam name="T">The type of the components to find.</typeparam>
         /// <returns>An IEnumerable containing all active components of type T in the scene. Can only be iterated once.</returns>
         [NotNull]
-        public static IEnumerable<T> AllActive<T>() where T : QueryableBaseBehaviour => 
+        public static IEnumerable<T> AllActive<T>() where T : QueryableBehaviour => 
             Instance.AllActiveImpl<T>();
 
-        private IEnumerable<T> AllActiveImpl<T>() where T : QueryableBaseBehaviour => 
+        private IEnumerable<T> AllActiveImpl<T>() where T : QueryableBehaviour => 
             QueryAllOf(typeof(T))
                 .Where(q => _enabled.Contains(q.Queryable))
                 .OfType<T>();
@@ -67,10 +66,10 @@ namespace BII.WasaBii.Unity {
         /// <typeparam name="T">The type of the components to find.</typeparam>
         /// <returns>An IEnumerable containing all components of type T in the scene. Can only be iterated once.</returns>
         [NotNull]
-        public static IEnumerable<T> All<T>() where T : QueryableBaseBehaviour => 
+        public static IEnumerable<T> All<T>() where T : QueryableBehaviour => 
             Instance.AllImpl<T>();
 
-        private IEnumerable<T> AllImpl<T>() where T : QueryableBaseBehaviour => 
+        private IEnumerable<T> AllImpl<T>() where T : QueryableBehaviour => 
             QueryAllOf(typeof(T)).OfType<T>();
 
         /// <summary>
@@ -82,7 +81,7 @@ namespace BII.WasaBii.Unity {
         /// with the specified additional Queryables. Can only be iterated once.</returns>
         [NotNull]
         public static IEnumerable<T> AllActiveWith<T>(Type constraint, params Type[] constraints)
-            where T : QueryableBaseBehaviour =>
+            where T : QueryableBehaviour =>
             Instance.AllWithBounds<T>(constraint, constraints, false);
 
 
@@ -95,7 +94,7 @@ namespace BII.WasaBii.Unity {
         /// with the specified additional Queryables. Can only be iterated once.</returns>
         [NotNull]
         public static IEnumerable<T> AllWith<T>(Type constraint, params Type[] constraints)
-            where T : QueryableBaseBehaviour =>
+            where T : QueryableBehaviour =>
             Instance.AllWithBounds<T>(constraint, constraints, true);
 
         private IEnumerable<T> AllWithBounds<T>(Type constraint, Type[] constraints, bool findInactiveObjects) {
@@ -109,7 +108,7 @@ namespace BII.WasaBii.Unity {
             return res.OfType<T>();
         }
 
-        private IEnumerable<QueryableBaseBehaviour> QueryAllOf(Type t) =>
+        private IEnumerable<QueryableBehaviour> QueryAllOf(Type t) =>
             _registered.TryGetValue(t, out var queried)
                 ? queried.AsEnumerable()
                 : _registered

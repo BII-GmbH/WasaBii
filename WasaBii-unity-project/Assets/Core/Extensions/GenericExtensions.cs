@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using System;
-using System.IO;
 
 namespace BII.WasaBii.Core {
     public static class GenericExtensions {
@@ -39,18 +38,5 @@ namespace BII.WasaBii.Core {
         public static (T1New, T2) Let1<T1, T2, T1New>(this (T1, T2) tuple, Func<T1, T1New> f) => (f(tuple.Item1), tuple.Item2);
         public static (T1, T2New) Let2<T1, T2, T2New>(this (T1, T2) tuple, Func<T2, T2New> f) => (tuple.Item1, f(tuple.Item2));
         
-        public static bool TryGetValue<T>(this T? source, out T res) where T : struct {
-            if (source is { } val) {
-                res = val;
-                return true;
-            } else {
-                res = default;
-                return false;
-            }
-        }
-
-        /// Combines <param name="path1"/> and <param name="path2"/> using <see cref="Path"/>.Combine()
-        public static string CombinePath(this string path1, string path2) => $"{path1}/{path2}";
-
     }
 }

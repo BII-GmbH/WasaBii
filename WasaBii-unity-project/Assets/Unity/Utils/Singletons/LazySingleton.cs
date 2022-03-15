@@ -10,12 +10,12 @@ namespace BII.WasaBii.Unity {
     /// <summary>
     /// Author: Cameron Reuschel
     /// <br/><br/>
-    /// Any BaseBehaviour that is a lazy singleton should only be found at most once per scene.
+    /// Any MonoBehaviour that is a lazy singleton should only be found at most once per scene.
     /// A lazy singleton creates an instance of itself in the scene if there is none.
     /// Enables static access to this single object by using <code>Classname.Instance</code>.
     /// </summary>
     /// <typeparam name="T">The implementing type itself</typeparam>
-    public abstract class LazySingleton<T> : BaseBehaviour, LazySingleton where T : LazySingleton<T> {
+    public abstract class LazySingleton<T> : MonoBehaviour, LazySingleton where T : LazySingleton<T> {
         private static T _instance;
 
         public static bool HasInstance => _instance != null;

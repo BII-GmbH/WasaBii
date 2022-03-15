@@ -50,7 +50,7 @@ namespace BII.WasaBii.Unity {
                     action(t1, t2);
         }
 
-        public static (IReadOnlyList<T1>, IReadOnlyList<T2>) Unzip<T1, T2>(this IEnumerable<(T1, T2)> enumerable) {
+        public static (List<T1>, List<T2>) Unzip<T1, T2>(this IEnumerable<(T1, T2)> enumerable) {
             var t1List = new List<T1>();
             var t2List = new List<T2>();
             

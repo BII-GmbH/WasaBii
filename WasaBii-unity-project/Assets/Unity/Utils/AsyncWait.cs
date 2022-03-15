@@ -25,6 +25,6 @@ namespace BII.WasaBii.Unity {
             return ForCoroutine(Coroutines.DelayForFrames(n));
         }
 
-        public static Task ForSeconds(Duration duration) => ForCoroutine(Coroutines.WaitForSeconds((float) duration.AsSeconds()));
+        public static Task For(Duration duration) => ForCoroutine(Coroutines.WaitForSeconds((float) duration.AsSeconds()));
     }
 }

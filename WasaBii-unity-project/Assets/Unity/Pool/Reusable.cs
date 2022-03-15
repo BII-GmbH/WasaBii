@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace BII.WasaBii.Unity {
     
     /// <summary>
@@ -11,7 +13,7 @@ namespace BII.WasaBii.Unity {
     /// should be used after an object has just been reused in order
     /// to prevent immediate reuse. 
     /// </summary>
-    public abstract class Reusable : BaseBehaviour {
+    public abstract class Reusable : MonoBehaviour {
         /// <summary>
         /// This is called whenever an object is attempted to be reused.
         /// When this is called, the state of the entire GameObject should

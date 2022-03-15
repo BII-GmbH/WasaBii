@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.ComponentModel;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -23,42 +24,7 @@ namespace BII.WasaBii.Unity {
     public static class Coroutines {
         
         /// <summary>
-        /// A block of code that can be passed around as a value to be executed
-        /// as many times as desired by the function it is passed to.
-        /// </summary>
-        /// <example><code>
-        /// CodeBlock setDone = () => _done = true;
-        /// 
-        /// CodeBlock doRandomStuff = () => {
-        ///     DoSomeRandomStuff();
-        ///     Player.Instance.transform.position = Vector3.zero; 
-        ///     _done = true;
-        /// };
-        ///
-        /// void ExecuteTwice([CanBeNull] CodeBlock code)
-        /// {
-        ///     code();
-        ///     code();
-        /// }
-        ///
-        /// void ExecuteRandomly([CanBeNull] CodeBlock code)
-        /// {
-        ///     if (Random.Range(0,2) == 0)
-        ///         code?.Invoke();
-        /// }
-        /// 
-        /// </code></example>
-        public delegate void CodeBlock();
-
-        /// A block of code (see <see cref="CodeBlock"/>) that returns
-        /// a value which is yielded in a coroutine. For more information
-        /// about what to return from a coroutine, see the
-        /// <a href="https://docs.unity3d.com/Manual/Coroutines.html">
-        ///     documentation</a>.
-        public delegate object YieldAction();
-
-        /// <summary>
-        /// A block of code (see <see cref="CodeBlock"/>) that returns 
+        /// A block of code (see <see cref="Action"/>) that returns 
         /// a value of type boolean. This code may be executed as 
         /// many times as necessary by the function it is passed to.
         /// <br/>
@@ -68,7 +34,7 @@ namespace BII.WasaBii.Unity {
         /// loops, e.g. in <see cref="Coroutines.YieldWhile"/>.
         /// An example of this can be seen below.
         /// </summary>
-        /// <seealso cref="CodeBlock"/>
+        /// <seealso cref="Action"/>
         /// <example><code>
         /// // a custom implementation of an until-loop using tail recursion
         /// public void Until([NotNull] Condition cond, [NotNull] CodeBlock code)
@@ -176,7 +142,7 @@ namespace BII.WasaBii.Unity {
         /// <param name="afterwards">The block of code to be executed once the execution of this coroutine ends.</param>
         // ReSharper disable once InvalidXmlDocComment
         [NotNull]
-        public static IEnumerator Afterwards(this IEnumerator coroutine, [NotNull] CodeBlock afterwards) {
+        public static IEnumerator Afterwards(this IEnumerator coroutine, [NotNull] Action afterwards) {
             var flattened = coroutine.Flatten();
             try {
                 while (flattened.MoveNext())
@@ -189,10 +155,10 @@ namespace BII.WasaBii.Unity {
 
         /// <summary>
         /// 'Constructor' for a singleton coroutine.
-        /// Takes a <see cref="YieldInstruction"/>, 
-        /// executes it's code and `yield return`s the result.
+        /// Takes a func, executes its code and `yield return`s
+        /// the <see cref="YieldInstruction"/> it returns.
         /// <br/><br/>
-        /// By chaining calls of <see cref="Do(YieldAction)"/>,
+        /// By chaining calls of <see cref="Do(System.Func{UnityEngine.YieldInstruction})"/>,
         /// <see cref="AndThen"/> and <see cref="YieldWhile"/>
         /// you can construct any coroutine from functions only. 
         /// </summary>
@@ -202,13 +168,13 @@ namespace BII.WasaBii.Unity {
         /// <returns>
         /// A singleton coroutine, which when executed calls the passed action and yields the action's result.
         /// </returns>
-        public static IEnumerator Do([NotNull] YieldAction action) {
+        public static IEnumerator Do([NotNull] Func<YieldInstruction> action) {
             yield return action();
         }
 
         /// <summary>
         /// Turns a block of code into a coroutine that never yields anything.
-        /// As soon as the coroutine is started, the passed <see cref="CodeBlock"/>
+        /// As soon as the coroutine is started, the passed <see cref="Action"/>
         /// is executed and the coroutine ends.
         /// <br/><br/>
         /// You can use this as a code-to-coroutine conversion for a function
@@ -220,7 +186,7 @@ namespace BII.WasaBii.Unity {
         /// <returns>
         /// A coroutine that terminates immediately after executing the passed code.
         /// </returns>
-        public static IEnumerator Do([NotNull] CodeBlock code) {
+        public static IEnumerator Do([NotNull] Action code) {
             code();
             yield break;
         }
@@ -264,8 +230,11 @@ namespace BII.WasaBii.Unity {
         /// <param name="times">
         /// The optional number of times the passed action is called and yielded.
         /// </param>
-        public static IEnumerator Repeat([NotNull] YieldAction action, [CanBeNull] int? times = null) {
-            for (var i = 0; i != times; ++i) yield return action();
+        public static IEnumerator Repeat([NotNull] Action action, DelayType delayType, [CanBeNull] int? times = null) {
+            for (var i = 0; i != times; ++i) {
+                action();
+                yield return delayType.ToYieldInstruction();
+            }
         }
 
         /// <summary>
@@ -283,7 +252,7 @@ namespace BII.WasaBii.Unity {
         /// </code></example>
         /// <param name="action">The code to execute before the passed coroutine.</param>
         /// <param name="coroutine">The coroutine to prepend the action to.</param>
-        public static IEnumerator DoBefore([NotNull] CodeBlock action, IEnumerator coroutine) {
+        public static IEnumerator DoBefore([NotNull] Action action, IEnumerator coroutine) {
             action();
             yield return coroutine;
         }
@@ -303,7 +272,7 @@ namespace BII.WasaBii.Unity {
         [Pure]
         public static IEnumerator WaitUntil(
             [NotNull] Condition condition, 
-            [CanBeNull] CodeBlock afterwards = null,
+            [CanBeNull] Action afterwards = null,
             Func<object> yieldInstructionGetter = null
         ) {
             while (!condition())
@@ -321,11 +290,11 @@ namespace BII.WasaBii.Unity {
         [Pure]
         public static IEnumerator DelayForFrames(
             uint frames, 
-            [CanBeNull] CodeBlock afterwards = null,
-            bool fixedUpdate = false
+            [CanBeNull] Action afterwards = null,
+            DelayType delayType = DelayType.Default
         ) {
             for (var i = 0; i < frames; ++i)
-                yield return fixedUpdate ? new WaitForFixedUpdate() : null;
+                yield return delayType.ToYieldInstruction();
             if (afterwards != null) afterwards.Invoke();
         }
 
@@ -336,7 +305,7 @@ namespace BII.WasaBii.Unity {
         /// The block of code to be executed once the specified time has passed.
         /// </param>
         [Pure]
-        public static IEnumerator WaitForSeconds(float time, [CanBeNull] CodeBlock afterwards = null) {
+        public static IEnumerator WaitForSeconds(float time, [CanBeNull] Action afterwards = null) {
             yield return new WaitForSeconds(time);
             if (afterwards != null) afterwards.Invoke();
         }
@@ -354,13 +323,13 @@ namespace BII.WasaBii.Unity {
         [Pure]
         public static IEnumerator RepeatForSeconds(
             float seconds, 
-            [NotNull] CodeBlock action,
-            bool fixedUpdate = false
+            [NotNull] Action action,
+            DelayType delayType = DelayType.Default
         ) {
             var start = Time.time;
             do {
                 action();
-                yield return fixedUpdate ? new WaitForFixedUpdate() : null;
+                yield return delayType.ToYieldInstruction();
             } while (Time.time - start < seconds);
         }
 
@@ -374,10 +343,14 @@ namespace BII.WasaBii.Unity {
         /// Otherwise once per frame. Defaults to false.
         /// </param>
         [Pure]
-        public static IEnumerator RepeatForFrames(uint frames, [NotNull] CodeBlock action, bool fixedUpdate = false) {
+        public static IEnumerator RepeatForFrames(
+            uint frames, 
+            [NotNull] Action action, 
+            DelayType delayType = DelayType.Default
+        ) {
             for (var i = 0; i < frames; ++i) {
                 action();
-                yield return fixedUpdate ? new WaitForFixedUpdate() : null;
+                yield return delayType.ToYieldInstruction();
             }
         }
 
@@ -387,19 +360,15 @@ namespace BII.WasaBii.Unity {
         /// </summary>
         /// <param name="action">The body of the loop</param>
         /// <param name="condition">Execute the action as long as this function returns true</param>
-        /// <param name="yieldInstructionGetter">
-        /// A function which returns the object which should be yielded to the Unity runtime
-        /// after each condition check. If null, yields null and waits for the next frame.
-        /// </param>
         [Pure]
         public static IEnumerator RepeatWhile(
             [NotNull] Condition condition, 
-            [NotNull] CodeBlock action,
-            Func<object> yieldInstructionGetter = null
+            [NotNull] Action action,
+            DelayType delayType = DelayType.Default
         ) {
             while (condition()) {
                 action();
-                yield return yieldInstructionGetter?.Invoke();
+                yield return delayType.ToYieldInstruction();
             }
         }
 
@@ -414,7 +383,7 @@ namespace BII.WasaBii.Unity {
         [Pure]
         public static IEnumerator RepeatEverySeconds(
             float interval, 
-            [NotNull] CodeBlock action,
+            [NotNull] Action action,
             int? repetitions = null
         ) {
             if (repetitions is int r && r <= 0)

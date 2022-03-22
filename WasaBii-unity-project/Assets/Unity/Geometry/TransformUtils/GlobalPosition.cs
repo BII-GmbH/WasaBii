@@ -103,6 +103,10 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static GlobalPosition Reflect(
             this GlobalPosition self, GlobalPosition pointOnPlane, GlobalDirection planeNormal
         ) => self.AsVector.Reflect(pointOnPlane.AsVector, planeNormal.AsVector).AsGlobalPosition();
+        
+        [Pure] public static GlobalPosition Rotate(
+            this GlobalPosition self, GlobalPosition pivot, GlobalRotation rotation    
+        ) => pivot + (self - pivot) * rotation;
 
     }
     

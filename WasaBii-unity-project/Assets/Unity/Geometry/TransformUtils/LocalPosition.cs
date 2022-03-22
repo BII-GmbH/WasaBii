@@ -87,6 +87,9 @@ namespace BII.WasaBii.Unity.Geometry {
             this LocalPosition self, LocalPosition pointOnPlane, LocalDirection planeNormal
         ) => self.AsVector.Reflect(pointOnPlane.AsVector, planeNormal.AsVector).AsLocalPosition();
         
+        [Pure] public static LocalPosition Rotate(
+            this LocalPosition self, LocalPosition pivot, LocalRotation rotation    
+        ) => pivot + (self - pivot) * rotation;
     }
 
 }

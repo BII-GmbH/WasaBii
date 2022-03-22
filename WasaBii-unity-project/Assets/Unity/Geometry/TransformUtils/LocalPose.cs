@@ -105,7 +105,7 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public override string ToString() => "{" + Position + " | " + Rotation + "}";
     }
 
-    public static class RelativeLocationUtils {
+    public static partial class PoseUtils {
         
         [Pure] public static LocalPose WithPosition(this LocalPose source, Func<LocalPosition, LocalPosition> positionMapping) =>
             new LocalPose(positionMapping(source.Position), source.Rotation);
@@ -151,6 +151,13 @@ namespace BII.WasaBii.Unity.Geometry {
         ) => new(
             position: self.Position.Reflect(pointOnPlane, planeNormal),
             forward: self.Forward.Reflect(planeNormal)
+        );
+        
+        [Pure] public static LocalPose Rotate(
+            this LocalPose self, LocalPosition pivot, LocalRotation rotation    
+        ) => new(
+            position: self.Position.Rotate(pivot, rotation),
+            rotation: rotation * self.Rotation
         );
 
     }

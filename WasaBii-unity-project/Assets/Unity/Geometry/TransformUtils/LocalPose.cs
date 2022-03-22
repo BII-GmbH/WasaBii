@@ -49,8 +49,8 @@ namespace BII.WasaBii.Unity.Geometry {
                 : Quaternion.FromToRotation(Vector3.forward, forward)
         ) { }
 
-        public LocalPose(LocalPosition pos, LocalDirection forward) : this(
-            pos.AsVector, forward.AsVector
+        public LocalPose(LocalPosition position, LocalDirection forward) : this(
+            position.AsVector, forward.AsVector
         ) {}
         
         public LocalPose Inverse => new LocalPose(-Position, Rotation.Inverse());
@@ -138,6 +138,20 @@ namespace BII.WasaBii.Unity.Geometry {
                 start.Position.SlerpTo(end.Position, perc, shouldClamp),
                 start.Rotation.SlerpTo(end.Rotation, perc, shouldClamp)
             );
+
+        /// <inheritdoc cref="GeometryUtils.PointReflect(Vector3, Vector3)"/>
+        [Pure] public static LocalPose Reflect(this LocalPose self, LocalPosition on) => new(
+            position: self.Position.Reflect(on),
+            forward: -self.Forward
+        );
+
+        /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3, Vector3)"/>
+        [Pure] public static LocalPose Reflect(
+            this LocalPose self, LocalPosition pointOnPlane, LocalDirection planeNormal
+        ) => new(
+            position: self.Position.Reflect(pointOnPlane, planeNormal),
+            forward: self.Forward.Reflect(planeNormal)
+        );
 
     }
 

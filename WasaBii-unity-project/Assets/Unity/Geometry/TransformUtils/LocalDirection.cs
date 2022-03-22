@@ -83,6 +83,11 @@ namespace BII.WasaBii.Unity.Geometry {
        [Pure] public static LocalDirection AsLocalDirection(this System.Numerics.Vector3 localDirection) 
            => localDirection.ToUnityVector().AsLocalDirection();
 
+       /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3)"/>
+       [Pure] public static LocalDirection Reflect(
+           this LocalDirection self, LocalDirection planeNormal
+       ) => self.AsVector.Reflect(planeNormal.AsVector).AsLocalDirection();
+
     }
 
 }

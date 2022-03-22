@@ -133,5 +133,19 @@ namespace BII.WasaBii.Unity.Geometry {
                 start.Rotation.SlerpTo(end.Rotation, perc, shouldClamp)
             );
 
+        /// <inheritdoc cref="GeometryUtils.PointReflect(Vector3, Vector3)"/>
+        [Pure] public static GlobalPose Reflect(this GlobalPose self, GlobalPosition on) => new(
+            position: self.Position.Reflect(on),
+            forward: -self.Forward
+        );
+
+        /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3, Vector3)"/>
+        [Pure] public static GlobalPose Reflect(
+            this GlobalPose self, GlobalPosition pointOnPlane, GlobalDirection planeNormal
+        ) => new(
+            position: self.Position.Reflect(pointOnPlane, planeNormal),
+            forward: self.Forward.Reflect(planeNormal)
+        );
+
     }
 }

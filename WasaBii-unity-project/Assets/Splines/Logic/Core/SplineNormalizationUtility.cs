@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using BII.Units;
-using BII.Utilities.Independent.Maths;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
-using UnityEngine.Profiling;
 
-namespace BII.CatmullRomSplines.Logic {
+namespace BII.WasaBii.CatmullRomSplines.Logic {
     /// When querying positions, tangents etc on a spline, the parameters t or location can be used
     /// t is a normalized parameter, which means that the nodes of the spline are at 0, 1, 2, ..
     /// and 0.5 is for instance in the middle between node 0 and 1

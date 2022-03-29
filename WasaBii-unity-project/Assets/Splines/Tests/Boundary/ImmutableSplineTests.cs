@@ -1,8 +1,8 @@
-﻿using BII.CatmullRomSplines.Logic;
+﻿using BII.WasaBii.Unity.Geometry.Splines;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.CatmullRomSplines.Tests {
+namespace BII.WasaBii.CatmullRomSplines.Tests {
     public class ImmutableSplineTests {
         [Test]
         public void Ctor_WhenInitializedCorrectly_ThenCorrectNodePositionsAndValidSpline() {
@@ -11,7 +11,7 @@ namespace BII.CatmullRomSplines.Tests {
             var lastHandle = new Vector3(3, 0, 0);
             var endMarginHandle = new Vector3(4, 0, 0);
 
-            var uut = new ImmutableSpline(beginMarginHandle, new[] { firstHandle, lastHandle }, endMarginHandle);
+            var uut = new[] { beginMarginHandle, firstHandle, lastHandle, endMarginHandle }.ToSplineWithMarginHandlesOrThrow();
 
             Assert.That(uut.IsValid(), Is.True);
             Assert.That(uut[SplineHandleIndex.At(0)], Is.EqualTo(beginMarginHandle));

@@ -1,8 +1,8 @@
 using System.Diagnostics.Contracts;
-using BII.Units;
-using BII.Utilities.Independent;
+using BII.WasaBii.Core;
+using BII.WasaBii.Units;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
 
     public enum SampleDirection {
         FromStart,
@@ -12,22 +12,22 @@ namespace BII.CatmullRomSplines {
     /// A subset of the <see cref="Spline"/> in the interval from
     /// <see cref="StartLocation"/> to <see cref="EndLocation"/>.
     [MustBeImmutable][MustBeSerializable]
-    public readonly struct PartialSpline {
-        public readonly Spline Spline;
+    public readonly struct PartialSpline<TPos, TDiff> where TPos : struct where TDiff : struct {
+        public readonly Spline<TPos, TDiff> Spline;
         public readonly SplineLocation StartLocation;
         public readonly SplineLocation EndLocation;
         public readonly Length Length;
 
-        public PartialSpline(Spline spline, SplineLocation startLocation, SplineLocation endLocation) {
+        public PartialSpline(Spline<TPos, TDiff> spline, SplineLocation startLocation, SplineLocation endLocation) {
             Spline = spline;
             StartLocation = startLocation;
             EndLocation = endLocation;
             Length = (endLocation - startLocation).DistanceFromBegin;
         }
 
-        public SplineSample SampleAt(float percentage) => Spline[percentage * Length + StartLocation];
+        public SplineSample<TPos, TDiff> SampleAt(float percentage) => Spline[percentage * Length + StartLocation];
 
-        public SplineSample SampleFromStart(Length distanceFromStart) {
+        public SplineSample<TPos, TDiff> SampleFromStart(Length distanceFromStart) {
             Contract.Assert(
                 distanceFromStart >= Length.Zero, 
                 $"Distance must be above 0, but was {distanceFromStart}"
@@ -39,7 +39,7 @@ namespace BII.CatmullRomSplines {
             return Spline[distanceFromStart + StartLocation];
         }
 
-        public SplineSample SampleFromEnd(Length distanceFromEnd) {
+        public SplineSample<TPos, TDiff> SampleFromEnd(Length distanceFromEnd) {
             Contract.Assert(
                 distanceFromEnd >= Length.Zero, 
                 $"Distance must be above 0, but was {distanceFromEnd}"
@@ -51,7 +51,7 @@ namespace BII.CatmullRomSplines {
             return Spline[EndLocation - distanceFromEnd];
         }
 
-        public SplineSample SampleFrom(SampleDirection direction, Length distance) =>
+        public SplineSample<TPos, TDiff> SampleFrom(SampleDirection direction, Length distance) =>
             direction == SampleDirection.FromStart ? SampleFromStart(distance) : SampleFromEnd(distance);
     }
 }

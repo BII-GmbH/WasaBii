@@ -1,7 +1,7 @@
-﻿using System;
-using BII.Utilities.Independent;
+﻿using System.ComponentModel;
+using BII.WasaBii.Core;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     /// Describes how closely a catmull-rom spline interpolates its handles.
     /// Centripetal is the recommended default, as Uniform may cause loops
     /// and Chordal may cause sharp curves.
@@ -14,18 +14,14 @@ namespace BII.CatmullRomSplines {
 
     namespace Logic {
         public static class SplineTypeUtils {
-            public static float ToAlpha(this SplineType type) {
-                switch (type) {
-                    case SplineType.Uniform:
-                        return 0;
-                    case SplineType.Centripetal:
-                        return 0.5f;
-                    case SplineType.Chordal:
-                        return 1;
-                    default:
-                        throw new InvalidOperationException($"SplineTypeExtensions.ToAlpha does not support the value {type} yet");
-                }
-            }
+            public static float ToAlpha(this SplineType type) =>
+                type switch {
+                    SplineType.Uniform => 0,
+                    SplineType.Centripetal => 0.5f,
+                    SplineType.Chordal => 1,
+                    _ => throw new InvalidEnumArgumentException(
+                        $"SplineTypeExtensions.ToAlpha does not support the value {type} yet")
+                };
         }
     }
 }

@@ -1,38 +1,26 @@
+using System;
 using System.Linq;
-using BII.CatmullRomSplines.Logic;
-using BII.Units;
-using BII.Utilities.Unity;
-using UnityEngine;
+using BII.WasaBii.CatmullRomSplines.Logic;
+using BII.WasaBii.Units;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     public static class SplineCopyExtensions {
 
-        /// Creates a deep-copy of the provided spline like.
-        public static Spline Copy(this Spline spline) =>
-            new ImmutableSpline(spline.HandlesIncludingMargin(), spline.Type);
+        /// Creates a deep-copy of the provided spline.
+        public static Spline<TPos, TDiff> Copy<TPos, TDiff>(this Spline<TPos, TDiff> spline) 
+            where TPos : struct where TDiff : struct =>
+            new ImmutableSpline<TPos, TDiff>(spline.HandlesIncludingMargin(), spline.Ops, spline.Type);
         
-        /// Creates a new spline with a similar trajectory as
-        /// <paramref name="original"/>, but with all handle positions
-        /// being moved a certain distance to the right,
-        /// relative to the provided <paramref name="up"/> vector.
-        ///
-        /// The returned spline is a non-component spline
-        /// and may not be of the same type as <paramref name="original"/>.
-        public static Spline CopyWithOffsetToTheRight(
-            this Spline original, Length offset, Vector3 up
-        ) {
-            Vector3 computePosition(
-                Spline deriveFrom, Vector3 originalPosition, NormalizedSplineLocation tangentLocation
-            ) =>
-                originalPosition -
-                Vector3.Cross(
-                        deriveFrom.TangentAtNormalizedOrThrow(tangentLocation),
-                        up
-                    )
-                    .normalized *
-                (float)offset.SIValue;
+        /// Creates a new spline with a similar trajectory as <paramref name="original"/>, but with all handle
+        /// positions being moved by a certain offset which depends on the spline's tangent at these points.
+        public static Spline<TPos, TDiff> CopyWithOffset<TPos, TDiff>(
+            this Spline<TPos, TDiff> original, Func<TDiff, TDiff> tangentToOffset
+        ) where TPos : struct where TDiff : struct {
+            TPos computePosition(
+                Spline<TPos, TDiff> deriveFrom, TPos originalPosition, NormalizedSplineLocation tangentLocation
+            ) => original.Ops.Sub(originalPosition, tangentToOffset(deriveFrom[tangentLocation].Tangent));
 
-            return new ImmutableSpline(
+            return new ImmutableSpline<TPos, TDiff>(
                 computePosition(original, original.BeginMarginHandle(), NormalizedSplineLocation.Zero),
                 original.Handles()
                     .Select(
@@ -42,78 +30,47 @@ namespace BII.CatmullRomSplines {
                     original,
                     original.EndMarginHandle(),
                     NormalizedSplineLocation.From(original.HandleCount() - 1)
-                )
+                ),
+                original.Ops,
+                original.Type
             );
         }
 
-        /// Creates a new spline with similar trajectory as <paramref name="original"/>, but all
-        /// handle positions being moved a certain distance to the right of its tangent.
-        ///
-        /// The distance is the same as the distance between the provided <paramref name="referencePosition"/>
-        /// and <paramref name="closestToReferenceLocation"/>.
-        ///
-        /// In short, the returned spline has the same trajectory as the original, but is offset by the distance between
-        /// referencePosition and closestToReferenceLocation. 
-        ///
-        /// The returned spline is a non-component spline and may not be of the same type as the
-        /// original.
-        public static Spline CopyWithOffsetToTheRightFromReferencePosition(this Spline original, Vector3 referencePosition,
-            NormalizedSplineLocation closestToReferenceLocation) {
-
-            var startTangent = original[closestToReferenceLocation].Tangent;
-
-            var closestPointToStart = original[closestToReferenceLocation].Position - referencePosition;
-
-            var rightVector = Vector3.Cross( startTangent, Vector3.up).normalized;
-
-            var isRightOf = Vector3.Dot(closestPointToStart.normalized, rightVector) > 0;
-
-            var offset = isRightOf ?
-                Vector3.Project(closestPointToStart, rightVector)
-                : Vector3.Project(closestPointToStart, -rightVector);
-
-            var offsetLength = isRightOf ?
-                offset.magnitude.Meters()
-                : -offset.magnitude.Meters();
-
-            return original.CopyWithOffsetToTheRight(offsetLength, Vector3.up);
-        }
-        
         /// Creates a new spline with the same trajectory as
         /// <paramref name="original"/>, but with all handle positions
         /// being moved along a certain <paramref name="offset"/>,
         /// independent of the spline's tangent at these points.
-        ///
-        /// The returned spline is a non-component spline
-        /// and may not be of the same type as <paramref name="original"/>.
-        public static Spline CopyWithStaticOffset(
-            this Spline original, GlobalOffset offset
-        ) {
-            Vector3 computePosition(Vector3 node) => node + offset.AsVector;
-            return new ImmutableSpline(
+        public static Spline<TPos, TDiff> CopyWithStaticOffset<TPos, TDiff>(
+            this Spline<TPos, TDiff> original, TDiff offset
+        ) where TPos : struct where TDiff : struct {
+            TPos computePosition(TPos node) => original.Ops.Add(node, offset);
+            return new ImmutableSpline<TPos, TDiff>(
                 computePosition(original.BeginMarginHandle()),
                 original.Handles().Select(computePosition),
-                computePosition(original.EndMarginHandle())
+                computePosition(original.EndMarginHandle()),
+                original.Ops,
+                original.Type
             );
         }
         
         /// Creates a new spline with a similar trajectory as
         /// <paramref name="original"/>, but different spacing
         /// between the non-margin handles.
-        ///
-        /// The returned spline is a non-component spline
-        /// and may not be of the same type as <paramref name="original"/>.
-        public static Spline CopyWithDifferentHandleDistance(
-            this Spline original, Length desiredHandleDistance
-        ) => new ImmutableSpline(
-            original.BeginMarginHandle(),
-            original.SampleSplineEvery(desiredHandleDistance),
-            original.EndMarginHandle()
-        );
+        public static Spline<TPos, TDiff> CopyWithDifferentHandleDistance<TPos, TDiff>(
+            this Spline<TPos, TDiff> original, Length desiredHandleDistance
+        ) where TPos : struct where TDiff : struct =>
+            new ImmutableSpline<TPos, TDiff>(
+                original.BeginMarginHandle(),
+                original.SampleSplineEvery(desiredHandleDistance, sample => sample.Position),
+                original.EndMarginHandle(),
+                original.Ops,
+                original.Type
+            );
         
         /// Creates a new spline that is the reverse of the original
         /// but has the same handles and spline type
-        public static Spline Reversed(this Spline original) => 
-            new ImmutableSpline(original.HandlesIncludingMargin().Reverse(), original.Type);
+        public static Spline<TPos, TDiff> Reversed<TPos, TDiff>(this Spline<TPos, TDiff> original) 
+            where TPos : struct where TDiff : struct => 
+                new ImmutableSpline<TPos, TDiff>(original.HandlesIncludingMargin().Reverse(), original.Ops, original.Type);
     }
 }

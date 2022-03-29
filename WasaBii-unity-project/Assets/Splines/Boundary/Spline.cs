@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using BII.CatmullRomSplines.Logic;
+using BII.WasaBii.CatmullRomSplines.Logic;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     /// Class that contains static factory methods for building splines. 
     public static class Splines {
         
@@ -55,6 +55,8 @@ namespace BII.CatmullRomSplines {
         /// It determines how closely the handles are interpolated. 
         SplineType Type { get; }
 
+        Length Length(int samplesPerSegment = 10);
+
     }
     
     /// Interface for implementations of catmull-rom splines
@@ -71,6 +73,12 @@ namespace BII.CatmullRomSplines {
         SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] { get; }
         
         internal PositionOperations<TPos, TDiff> Ops { get; }
+
+        Length UntypedSpline.Length(int samplesPerSegment) => 
+            this.WhenValidOrThrow(
+                _ => Enumerable.Range(0, this.SegmentCount())
+                    .Sum(idx => this[SplineSegmentIndex.At(idx)].Length(samplesPerSegment))
+            );
     }
 
     public interface WithUntypedSpline {
@@ -87,7 +95,7 @@ namespace BII.CatmullRomSplines {
     public static class SplineLikeUtils {
         public static bool IsValid(this UntypedSpline spline) => spline.TotalHandleCount >= 4;
 
-        private static T whenValidOrThrow<T, TPos, TDiff>(this Spline<TPos, TDiff> spline, Func<Spline<TPos, TDiff>, T> resultGetter) 
+        internal static T WhenValidOrThrow<T, TPos, TDiff>(this Spline<TPos, TDiff> spline, Func<Spline<TPos, TDiff>, T> resultGetter) 
             where TPos : struct where TDiff : struct =>
             spline.IsValid() ? resultGetter(spline) : throw new InvalidSplineException(spline, "Not enough handles");
 
@@ -136,7 +144,7 @@ namespace BII.CatmullRomSplines {
 
             var allNodes = spline.Handles().ToList();
 
-            yield return spline.PositionAtNormalizedOrThrow(fromNormalized);
+            yield return spline[fromNormalized].Position;
 
             if (fromNormalized > toNormalized) {
                 // Iterate from end of spline to begin
@@ -150,31 +158,24 @@ namespace BII.CatmullRomSplines {
                         yield return allNodes[nodeIndex];
             }
 
-            yield return spline.PositionAtNormalizedOrThrow(toNormalized);
+            yield return spline[toNormalized].Position;
         }
 
         public static TPos BeginMarginHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
-            spline.whenValidOrThrow(s => s[SplineHandleIndex.At(0)]);
+            spline.WhenValidOrThrow(s => s[SplineHandleIndex.At(0)]);
 
         public static TPos FirstHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
-            spline.whenValidOrThrow(s => s[SplineHandleIndex.At(1)]);
+            spline.WhenValidOrThrow(s => s[SplineHandleIndex.At(1)]);
 
         public static TPos LastHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
-            spline.whenValidOrThrow(s => s[SplineHandleIndex.At(s.TotalHandleCount - 2)]);
+            spline.WhenValidOrThrow(s => s[SplineHandleIndex.At(s.TotalHandleCount - 2)]);
 
         public static TPos EndMarginHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
-            spline.whenValidOrThrow(s => s[SplineHandleIndex.At(s.TotalHandleCount - 1)]);
+            spline.WhenValidOrThrow(s => s[SplineHandleIndex.At(s.TotalHandleCount - 1)]);
 
-        public static Length Length<TPos, TDiff>(this Spline<TPos, TDiff> spline, int samplesPerSegment = 10)
-            where TPos : struct where TDiff : struct => spline.whenValidOrThrow(
-            _ => Enumerable
-                .Range(0, spline.SegmentCount())
-                .Sum(idx => spline[SplineSegmentIndex.At(idx)].Length(samplesPerSegment).AsMeters())
-                .Meters()
-        );
     }
 }

@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BII.CatmullRomSplines.Logic;
-using BII.Units;
-using CoreLibrary;
+using BII.WasaBii.CatmullRomSplines.Logic;
+using BII.WasaBii.Units;
+using BII.WasaBii.Unity.Geometry.Splines;
 using NSubstitute;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.CatmullRomSplines.Tests {
+namespace BII.WasaBii.CatmullRomSplines.Tests {
+    
+    using Spline = Spline<Vector3, Vector3>;
+    using SplineSegment = SplineSegment<Vector3, Vector3>;
+    using SplineSample = SplineSample<Vector3, Vector3>;
+    
     public class SplineTestUtils {
 
         private const float splineTypeAlphaValue = 0.5f;
@@ -38,14 +43,14 @@ namespace BII.CatmullRomSplines.Tests {
             res[Arg.Any<NormalizedSplineLocation>()].ReturnsForAnyArgs(
                 info => SplineSample.From(res, info.Arg<NormalizedSplineLocation>()) ?? throw new ArgumentOutOfRangeException()
             );
-
+        
             return res;
         }
 
         [Test]
         public void MockedSplineTest() {
             var uut = ExampleLinearSpline.Spline;
-
+        
             Assert.That(uut.Spline, Is.EqualTo(uut));
             
             Assert.That(uut[SplineHandleIndex.At(0)], Is.EqualTo(ExampleLinearSpline.FirstHandle));
@@ -55,7 +60,7 @@ namespace BII.CatmullRomSplines.Tests {
             
             Assert.That(uut.TotalHandleCount, Is.EqualTo(ExampleLinearSpline.HandleCount));
             Assert.That(uut.Type, Is.EqualTo(SplineType.Centripetal));
-
+        
             Assert.That(() => uut[SplineSegmentIndex.Zero], Throws.Nothing);
             Assert.That(() => uut[SplineLocation.Zero], Throws.Nothing);
             Assert.That(() => uut[NormalizedSplineLocation.Zero], Throws.Nothing);
@@ -71,7 +76,7 @@ namespace BII.CatmullRomSplines.Tests {
 
             public const int HandleCount = 2;
             public static Spline Spline => CreateMockedSpline(
-                Util.Seq(FirstHandle, SecondHandle),
+                new []{FirstHandle, SecondHandle},
                 SplineType.Centripetal
             );
         }
@@ -96,13 +101,13 @@ namespace BII.CatmullRomSplines.Tests {
             public static Vector3 Expected05Curvature = Vector3.zero;
             public static Vector3 Expected1Curvature = Vector3.zero;
             
-            public static CubicPolynomial Polynomial => CubicPolynomial.FromCatmullRomSegment(
-                new CatmullRomSegment(FirstHandle, SecondHandle, ThirdHandle, FourthHandle),
+            public static CubicPolynomial<Vector3, Vector3> Polynomial => CubicPolynomial.FromCatmullRomSegment(
+                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnityVectorOps.Instance),
                 splineTypeAlphaValue
             );
 
             public static Spline Spline => CreateMockedSpline(
-                Util.Seq(FirstHandle, SecondHandle, ThirdHandle, FourthHandle),
+                new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle},
                 SplineType.Centripetal
             );
         }
@@ -117,7 +122,7 @@ namespace BII.CatmullRomSplines.Tests {
             public static Vector3 FifthHandle = new Vector3(0, 0, 5);
             
             public static Spline Spline => CreateMockedSpline(
-                Util.Seq(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, FifthHandle),
+                new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle, FifthHandle},
                 SplineType.Centripetal
             );
         }
@@ -146,13 +151,13 @@ namespace BII.CatmullRomSplines.Tests {
             
             public static Length ExpectedSplineLength => 4.404f.Meters();
 
-            public static CubicPolynomial Polynomial => CubicPolynomial.FromCatmullRomSegment(
-                new CatmullRomSegment(FirstHandle, SecondHandle, ThirdHandle, FourthHandle),
+            public static CubicPolynomial<Vector3, Vector3> Polynomial => CubicPolynomial.FromCatmullRomSegment(
+                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnityVectorOps.Instance),
                 splineTypeAlphaValue
             );
             
             public static Spline Spline => CreateMockedSpline(
-                Util.Seq(FirstHandle, SecondHandle, ThirdHandle, FourthHandle),
+                new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle},
                 SplineType.Centripetal
             );
         }

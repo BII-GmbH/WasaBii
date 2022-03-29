@@ -1,6 +1,6 @@
-using BII.CatmullRomSplines.Logic;
+using BII.WasaBii.CatmullRomSplines.Logic;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     public readonly struct SplineSample<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {

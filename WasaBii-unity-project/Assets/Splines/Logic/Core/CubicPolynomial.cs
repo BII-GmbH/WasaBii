@@ -2,7 +2,7 @@ using System;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
-namespace BII.CatmullRomSplines.Logic {
+namespace BII.WasaBii.CatmullRomSplines.Logic {
     public readonly struct CubicPolynomial<TPos, TDiff> 
         where TPos : struct 
         where TDiff : struct {

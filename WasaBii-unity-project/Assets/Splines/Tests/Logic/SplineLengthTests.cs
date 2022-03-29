@@ -1,8 +1,8 @@
-﻿using BII.Units;
+﻿using BII.WasaBii.Units;
 using NUnit.Framework;
-using static BII.CatmullRomSplines.Tests.SplineTestUtils;
+using static BII.WasaBii.CatmullRomSplines.Tests.SplineTestUtils;
 
-namespace BII.CatmullRomSplines.Tests {
+namespace BII.WasaBii.CatmullRomSplines.Tests {
     public class SplineLengthTests {
         
         [Test]

@@ -1,18 +1,20 @@
-﻿using NUnit.Framework;
+﻿using BII.WasaBii.Core;
+using BII.WasaBii.Unity.Geometry.Splines;
+using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.CatmullRomSplines.Tests {
+namespace BII.WasaBii.CatmullRomSplines.Tests {
     public class EnumerableToSplineExtensionsTests {
 
         [Test]
-        public void ToSpline_WhenLessThanTwoNodes_ThenThrowsInsufficientNodePositionsException() {
+        public void ToSplineOrThrow_WhenLessThanTwoNodes_ThenThrowsInsufficientNodePositionsException() {
             var positions = new[] { Vector3.zero };
 
             Assert.That(() => positions.ToSplineOrThrow(), Throws.TypeOf<InsufficientNodePositionsException>());
         }
 
         [Test]
-        public void ToSpline_WhenTwoNodes_ThenReturnsCorrectSplineWithCorrectHandles() {
+        public void ToSplineOrThrow_WhenTwoNodes_ThenReturnsCorrectSplineWithCorrectHandles() {
             var first = new Vector3(-1, 0, 0);
             var last = new Vector3(1, 0, 0);
             var positions = new[] { first, last };
@@ -28,16 +30,16 @@ namespace BII.CatmullRomSplines.Tests {
         }
 
         [Test]
-        public void ToSplineOrDefault_WhenLessThanTwoNodes_ThenReturnsNull() {
+        public void ToSplineOrNone_WhenLessThanTwoNodes_ThenReturnsNull() {
             var positions = new[] { Vector3.zero };
 
             var uut = positions.ToSpline();
 
-            Assert.That(uut, Is.Null);
+            Assert.AreEqual(uut, Option<Spline<Vector3, Vector3>>.None);
         }
 
         [Test]
-        public void ToSplineOrDefault_WhenTwoNodes_ThenReturnsCorrectSplineWithCorrectHandles() {
+        public void ToSplineOrNone_WhenTwoNodes_ThenReturnsCorrectSplineWithCorrectHandles() {
             var first = new Vector3(-1, 0, 0);
             var last = new Vector3(1, 0, 0);
             var positions = new[] { first, last };
@@ -45,7 +47,9 @@ namespace BII.CatmullRomSplines.Tests {
             var expectedBeginHandle = new Vector3(-3, 0, 0);
             var expectedEndHandle = new Vector3(3, 0, 0);
 
-            var uut = positions.ToSpline();
+            var uutO = positions.ToSpline();
+            Assert.AreNotEqual(uutO, Option<Spline<Vector3, Vector3>>.None);
+            var uut = uutO.GetOrThrow();
             Assert.That(uut.BeginMarginHandle(), Is.EqualTo(expectedBeginHandle));
             Assert.That(uut.FirstHandle(), Is.EqualTo(first));
             Assert.That(uut.LastHandle(), Is.EqualTo(last));

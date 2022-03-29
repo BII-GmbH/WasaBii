@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using BII.Units;
-using UnityEngine;
-using UnityEngine.Profiling;
+using BII.WasaBii.Units;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
 
     public static class EnumerableClosestOnSplineExtensions {
         
@@ -25,12 +23,14 @@ namespace BII.CatmullRomSplines {
         /// Therefore differing distances between handles would lead to different
         /// querying accuracies on different points on the spline.
         /// </remarks>
-        public static ClosestOnSplineQueryResult<TWithSpline> QueryClosestPositionOnSplinesToOrThrow<TWithSpline>(
+        public static ClosestOnSplineQueryResult<TWithSpline, TPos, TDiff> QueryClosestPositionOnSplinesToOrThrow<TWithSpline, TPos, TDiff>(
             this IEnumerable<TWithSpline> splines,
-            Vector3 position,
+            TPos position,
             int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) where TWithSpline : class, WithSpline => splines.QueryClosestPositionOnSplinesTo(position, samples) ?? throw new ArgumentException(
-            "All splines given to QueryGreedyClosestPositionOnSplinesTo were not valid and a query could therefore not be performed!"
+        ) where TWithSpline : class, WithSpline<TPos, TDiff> 
+            where TPos : struct 
+            where TDiff : struct => splines.QueryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff>(position, samples) ?? throw new ArgumentException(
+            $"All splines given to {nameof(QueryClosestPositionOnSplinesToOrThrow)} were not valid and a query could therefore not be performed!"
         );
 
         /// <summary>
@@ -49,20 +49,22 @@ namespace BII.CatmullRomSplines {
         /// Therefore differing distances between handles would lead to different
         /// querying accuracies on different points on the spline.
         /// </remarks>
-        public static ClosestOnSplineQueryResult<TWithSpline>? QueryClosestPositionOnSplinesTo<TWithSpline>(
+        public static ClosestOnSplineQueryResult<TWithSpline, TPos, TDiff>? QueryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff>(
             this IEnumerable<TWithSpline> splines,
-            Vector3 position,
+            TPos position,
             int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) where TWithSpline : class, WithSpline => queryClosestPositionOnSplinesTo(
+        ) where TWithSpline : class, WithSpline<TPos, TDiff> 
+            where TPos : struct 
+            where TDiff : struct => queryClosestPositionOnSplinesTo(
             splines,
-            queryFunction: spline => spline.QueryClosestPositionOnSplineTo(position, samples)
+            queryFunction: spline => spline.QueryClosestPositionOnSplineTo<TWithSpline, TPos, TDiff>(position, samples)
         );
         
-        private static ClosestOnSplineQueryResult<TWithSpline>? queryClosestPositionOnSplinesTo<TWithSpline>(
-            IEnumerable<TWithSpline> splines, Func<TWithSpline, ClosestOnSplineQueryResult<TWithSpline>?> queryFunction
-        ) where TWithSpline : WithSpline {
-            Profiler.BeginSample("EnumerableClosestOnSplineExtensions.queryClosestPositionOnSplinesTo");
-            var result = default(ClosestOnSplineQueryResult<TWithSpline>?);
+        private static ClosestOnSplineQueryResult<TWithSpline, TPos, TDiff>? queryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff>(
+            IEnumerable<TWithSpline> splines, Func<TWithSpline, ClosestOnSplineQueryResult<TWithSpline, TPos, TDiff>?> queryFunction
+        ) where TWithSpline : WithSpline<TPos, TDiff> where TPos : struct where TDiff : struct {
+            // Profiler.BeginSample("EnumerableClosestOnSplineExtensions.queryClosestPositionOnSplinesTo");
+            var result = default(ClosestOnSplineQueryResult<TWithSpline, TPos, TDiff>?);
 
             foreach (var spline in splines) {
                 var queryResult = queryFunction(spline);
@@ -73,7 +75,7 @@ namespace BII.CatmullRomSplines {
                 }
             }
 
-            Profiler.EndSample();
+            // Profiler.EndSample();
             return result;
         }
     }

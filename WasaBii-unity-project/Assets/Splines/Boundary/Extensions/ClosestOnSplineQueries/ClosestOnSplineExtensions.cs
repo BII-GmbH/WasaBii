@@ -1,13 +1,13 @@
 ﻿using System;
-using UnityEngine;
-using UnityEngine.Profiling;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     public static class ClosestOnSplineExtensions {
         public const int DefaultClosestOnSplineSamples = 5;
 
+        // TODO DS: Standard implementation overrides for these.
+        
         /// <summary>
-        /// Equal to <see cref="QueryClosestPositionOnSplineTo{TWithSpline}"/>,
+        /// Equal to <see cref="QueryClosestPositionOnSplineTo{TWithSpline, TPos, TDiff}"/>,
         /// but a non-nullable result is returned.
         /// Throws when the provided spline is invalid.
         /// </summary>
@@ -23,14 +23,15 @@ namespace BII.CatmullRomSplines {
         /// Therefore differing distances between handles would lead to different
         /// querying accuracies on different points on the spline.
         /// </remarks>
-        public static ClosestOnSplineQueryResult<TWithSpline> QueryClosestPositionOnSplineToOrThrow<TWithSpline>(
+        public static ClosestOnSplineQueryResult<TWithSpline, TPos, TDiff> QueryClosestPositionOnSplineToOrThrow<TWithSpline, TPos, TDiff>(
             this TWithSpline spline,
-            Vector3 position,
+            TPos position,
             int samples = DefaultClosestOnSplineSamples
-        ) where TWithSpline : WithSpline => spline.QueryClosestPositionOnSplineTo(position, samples) ??
-            throw new ArgumentException(
-                "The spline given to QueryClosestPositionOnSplineToOrThrow was not valid and a query could therefore not be performed!"
-            );
+        ) where TWithSpline : WithSpline<TPos, TDiff> where TPos : struct where TDiff : struct => 
+            spline.QueryClosestPositionOnSplineTo<TWithSpline, TPos, TDiff>(position, samples) ??
+                throw new ArgumentException(
+                    $"The spline given to {nameof(QueryClosestPositionOnSplineToOrThrow)} was not valid and a query could therefore not be performed!"
+                );
 
         /// <summary>
         /// This function returns the closest location and position (with its distance to the provided position) 
@@ -49,29 +50,28 @@ namespace BII.CatmullRomSplines {
         /// Therefore differing distances between handles would lead to different
         /// querying accuracies on different points on the spline.
         /// </remarks> 
-        public static ClosestOnSplineQueryResult<TWithSpline>? QueryClosestPositionOnSplineTo<TWithSpline>(
+        public static ClosestOnSplineQueryResult<TWithSpline, TPos, TDiff>? QueryClosestPositionOnSplineTo<TWithSpline, TPos, TDiff>(
             this TWithSpline withSpline,
-            Vector3 queryPosition,
+            TPos queryPosition,
             int samples = DefaultClosestOnSplineSamples
-        ) where TWithSpline : WithSpline {
-        
-            Profiler.BeginSample("QueryGreedyClosestPositionOnSplineTo");
+        ) where TWithSpline : WithSpline<TPos, TDiff> where TPos : struct where TDiff : struct {
+            // Profiler.BeginSample("QueryGreedyClosestPositionOnSplineTo");
 
             try {
                 var spline = withSpline.Spline;
 
-                if (!spline.IsValid())
-                    throw new ArgumentException($"Tried so query closest position to {spline}, but it is invalid!");
+                if (!spline.IsValid()) return null;
+                    // throw new ArgumentException($"Tried so query closest position to {spline}, but it is invalid!");
 
                 // 0: The position is on the plane,
                 // > 0: The position is above the plane (in the direction of the normal)
                 // < 0: The position is below the plane (opposite direction of the normal)
-                float compareToPlane(Vector3 planePosition, Vector3 planeNormal) =>
-                    Vector3.Dot(queryPosition - planePosition, planeNormal);
+                double compareToPlane(TPos planePosition, TDiff planeNormal) =>
+                    spline.Ops.Dot(spline.Ops.Sub(queryPosition, planePosition), planeNormal);
 
-                ClosestOnSplineQueryResult<TWithSpline> computeResult(
-                    Vector3 closestPosition, NormalizedSplineLocation closestLocation
-                ) => new ClosestOnSplineQueryResult<TWithSpline>(
+                ClosestOnSplineQueryResult<TWithSpline, TPos, TDiff> computeResult(
+                    TPos closestPosition, NormalizedSplineLocation closestLocation
+                ) => new(
                     queryPosition,
                     withSpline,
                     closestPosition,
@@ -82,23 +82,14 @@ namespace BII.CatmullRomSplines {
                 var lower = 0;
                 var upper = totalIntervals;
 
-                // If lower == upper there are no segments and the spline is invalid
-                if (lower == upper)
-                    return null;
-
                 // Binary search: We find the normalized spline location segment [lower, upper] where upper = lower + 1
                 //                in which the queriedPosition is located.
                 while (upper - lower > 1) {
                     var currentLocation = (upper + lower) / 2; // Intentional integer result
-                    var tuple = spline.PositionAndTangentAtNormalized(NormalizedSplineLocation.From(currentLocation));
-                    // If no valid position and tangent are returned the underlying spline is invalid
-                    if (!tuple.HasValue)
-                        return null;
-                    var (pos, tan) = tuple.Value;
+                    var (pos, tan) = spline[NormalizedSplineLocation.From(currentLocation)].PositionAndTangent;
                     var comparison = compareToPlane(pos, tan);
 
-                    // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    if (Mathf.Abs(comparison) < float.Epsilon) {
+                    if (Math.Abs(comparison) < float.Epsilon) {
                         // Early exit: The query position is exactly on the plane of the current location,
                         //             therefore that location is the closest result
                         return computeResult(pos, NormalizedSplineLocation.From(currentLocation));
@@ -109,16 +100,9 @@ namespace BII.CatmullRomSplines {
                     }
                 }
 
-                Exception getUnexpectedErrorException(NormalizedSplineLocation location) => new Exception(
-                    $"Unexpected error: Did not get a valid result at location {location} " +
-                    $"(with spline total handle count {spline.TotalHandleCount}) " +
-                    $"even though the spline must be valid at this point. " +
-                    "This error indicates a bug in the closest on spline algorithm"
-                );
-
-                (Vector3 position, Vector3 tangent) getPositionAndTangentAtNormalized(
+                (TPos position, TDiff tangent) getPositionAndTangentAtNormalized(
                     NormalizedSplineLocation location
-                ) => spline.PositionAndTangentAtNormalized(location) ?? throw getUnexpectedErrorException(location);
+                ) => spline[location].PositionAndTangent;
 
                 // Edge case: If the queriedPosition is inside the first segment and comes before it, the closest location is 0
                 if (lower == 0) {
@@ -142,10 +126,10 @@ namespace BII.CatmullRomSplines {
                     + spline[lower.AsSplineSegmentIndex()].Polynomial.EvaluateClosestPointTo(queryPosition, samples)
                 );
 
-                return computeResult(spline.PositionAtNormalizedOrThrow(res), res);
+                return computeResult(spline[res].Position, res);
 
             } finally {
-                Profiler.EndSample();
+                // Profiler.EndSample();
             }
         }
     }

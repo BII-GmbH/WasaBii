@@ -1,15 +1,16 @@
-using BII.Units;
-using UnityEngine;
+using BII.WasaBii.Units;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
 
-    public interface ClosestOnSplineQueryResult {
+    public interface ClosestOnSplineQueryResult<TPos, TDiff>
+        where TPos : struct 
+        where TDiff : struct {
         
         /// The position that was originally queried to find the closest point on the spline 
-        Vector3 QueriedPosition { get; }
+        TPos QueriedPosition { get; }
         
         /// The position on the spline that is closest to the queried position.
-        Vector3 GlobalPosition { get; }
+        TPos GlobalPosition { get; }
         
         /// The location on the spline whose position is closest to the queried position.
         SplineLocation Location { get; }
@@ -21,12 +22,13 @@ namespace BII.CatmullRomSplines {
         Length Distance { get; }
        
         /// The spline where the closest position is on.
-        Spline Spline { get; }
+        Spline<TPos, TDiff> Spline { get; }
     }
     
-    public struct ClosestOnSplineQueryResult<TWithSpline> : ClosestOnSplineQueryResult where TWithSpline : WithSpline {
+    public struct ClosestOnSplineQueryResult<TWithSpline, TPos, TDiff> : ClosestOnSplineQueryResult<TPos, TDiff> 
+        where TWithSpline : WithSpline<TPos, TDiff> where TPos : struct where TDiff : struct {
         internal ClosestOnSplineQueryResult(
-            Vector3 queriedPosition, TWithSpline withSpline, Vector3 position, NormalizedSplineLocation normalizedLocation
+            TPos queriedPosition, TWithSpline withSpline, TPos position, NormalizedSplineLocation normalizedLocation
         ) {
             QueriedPosition = queriedPosition;
             WithSpline = withSpline;
@@ -38,14 +40,14 @@ namespace BII.CatmullRomSplines {
         /// The spline where the closest position is on.
         public TWithSpline WithSpline { get; }
 
-        public Spline Spline => WithSpline.Spline;
+        public Spline<TPos, TDiff>  Spline => WithSpline.Spline;
         
-        public Vector3 QueriedPosition { get; }
+        public TPos QueriedPosition { get; }
 
         /// The position on the spline that is closest to the queried position.
-        public Vector3 GlobalPosition { get; }
+        public TPos GlobalPosition { get; }
 
-        public Vector3 Tangent => Spline[NormalizedLocation].Tangent;
+        public TDiff Tangent => Spline[NormalizedLocation].Tangent;
 
         // Since de-normalizing a location may be an expensive operation on long splines, the value is lazy & cached
         private SplineLocation? __cachedLocation;
@@ -59,6 +61,6 @@ namespace BII.CatmullRomSplines {
         /// The normalized location on the spline whose position is closest to the queried position.
         public NormalizedSplineLocation NormalizedLocation { get; }
 
-        public Length Distance => Vector3.Distance(QueriedPosition, GlobalPosition).Meters();
+        public Length Distance => Spline.Ops.Distance(QueriedPosition, GlobalPosition);
     }
 }

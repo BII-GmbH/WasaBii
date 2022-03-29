@@ -1,6 +1,7 @@
-﻿using BII.WasaBii.Units;
+﻿using BII.WasaBii.Core;
+using BII.WasaBii.Units;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     
     /// Our splines are representation-agnostic, meaning that you can define a spline using
     /// unity vectors, system vectors, 3D vectors, 2D vectors, 10D vectors, `LocalPosition`s,
@@ -8,12 +9,14 @@ namespace BII.CatmullRomSplines {
     /// as long as you provide an implementation for all the necessary geometric operations.
     /// Since C# does not have proper support for type classes 😢, this means passing an
     /// implementation of this interface wherever necessary.
+    [MustBeImmutable][MustBeSerializable]
     public interface PositionOperations<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
         
         Length Distance(TPos p0, TPos p1);
         TDiff Sub(TPos p0, TPos p1);
+        TPos Sub(TPos p, TDiff d);
         TDiff Sub(TDiff d1, TDiff d2);
         TPos Add(TPos d1, TDiff d2);
         TDiff Add(TDiff d1, TDiff d2);

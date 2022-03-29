@@ -1,38 +1,32 @@
 using System;
 using System.Diagnostics.Contracts;
-using BII.Units;
-using BII.Utilities.Independent;
-using BII.Utilities.Independent.Maths;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
-using JetBrains.Annotations;
-using UnityEngine;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     /// A location on a spline, measured in meters away from the beginning along the spline (and not flight distance)
     [Serializable]
     [MustBeSerializable]
     public struct SplineLocation : IEquatable<SplineLocation>, IComparable<SplineLocation> {
-        public static readonly SplineLocation Zero = new SplineLocation(0);
+        public static readonly SplineLocation Zero = new(0);
 
-        // Should be readonly but isn't because that breaks unity serialization. Do not mutate except in constructor.        
-        [SerializeField] private double __value;
-        public double Value => __value;
+        public double Value { get; }
+
         public Length DistanceFromBegin => Value.Meters();
 
-        public static SplineLocation From(double value) => new SplineLocation(value);
-        public static SplineLocation From(Length value) => new SplineLocation(value.AsMeters());
-        public SplineLocation(double value) => __value = value;
+        public static SplineLocation From(double value) => new(value);
+        public static SplineLocation From(Length value) => new(value.AsMeters());
+        public SplineLocation(double value) => Value = value;
 
         [Pure]
-        public Length GetDistanceToClosestSideOf(Spline spline, Length? cachedLength = null) {
+        public Length GetDistanceToClosestSideOf(UntypedSpline spline, Length? cachedLength = null) {
             var length = cachedLength ?? spline.Length();
             var distanceFromEnd = length - DistanceFromBegin;
             return DistanceFromBegin.Min(distanceFromEnd);
         }
 
         [Pure]
-        public bool IsCloserToBeginOf(Spline spline, Length? cachedLength = null) {
+        public bool IsCloserToBeginOf(UntypedSpline spline, Length? cachedLength = null) {
             var length = cachedLength ?? spline.Length();
             return (DistanceFromBegin < length / 2f);
         }
@@ -48,22 +42,22 @@ namespace BII.CatmullRomSplines {
         public static SplineLocation operator -(SplineLocation l) => From(-l.Value);
 
         public static SplineLocation operator +(SplineLocation lhs, SplineLocation rhs) =>
-            new SplineLocation(lhs.Value + rhs.Value);
+            new(lhs.Value + rhs.Value);
 
         public static SplineLocation operator +(SplineLocation lhs, float rhs) =>
-            new SplineLocation(lhs.Value + rhs);
+            new(lhs.Value + rhs);
 
         public static SplineLocation operator +(float lhs, SplineLocation rhs) =>
-            new SplineLocation(lhs + rhs.Value);
+            new(lhs + rhs.Value);
 
         public static SplineLocation operator -(SplineLocation lhs, SplineLocation rhs) =>
-            new SplineLocation(lhs.Value - rhs.Value);
+            new(lhs.Value - rhs.Value);
 
         public static SplineLocation operator -(SplineLocation lhs, float rhs) =>
-            new SplineLocation(lhs.Value - rhs);
+            new(lhs.Value - rhs);
 
         public static SplineLocation operator -(float lhs, SplineLocation rhs) =>
-            new SplineLocation(lhs - rhs.Value);
+            new(lhs - rhs.Value);
 
         public static bool operator <(SplineLocation a, SplineLocation b) => a.Value < b.Value;
         public static bool operator >(SplineLocation a, SplineLocation b) => a.Value > b.Value;
@@ -75,16 +69,16 @@ namespace BII.CatmullRomSplines {
 
         // Spline Location + Length operators
         public static SplineLocation operator +(SplineLocation lhs, Length rhs) =>
-            new SplineLocation(lhs.Value + rhs.SIValue);
+            new(lhs.Value + rhs.SIValue);
 
         public static SplineLocation operator +(Length lhs, SplineLocation rhs) =>
-            new SplineLocation(lhs.SIValue + rhs.Value);
+            new(lhs.SIValue + rhs.Value);
 
         public static SplineLocation operator -(SplineLocation lhs, Length rhs) =>
-            new SplineLocation(lhs.Value - rhs.SIValue);
+            new(lhs.Value - rhs.SIValue);
 
         public static SplineLocation operator -(Length lhs, SplineLocation rhs) =>
-            new SplineLocation(lhs.SIValue - rhs.Value);
+            new(lhs.SIValue - rhs.Value);
 
         public static bool operator <(SplineLocation a, Length b) => a.Value < b.SIValue;
         public static bool operator >(SplineLocation a, Length b) => a.Value > b.SIValue;
@@ -114,11 +108,11 @@ namespace BII.CatmullRomSplines {
         public static readonly NormalizedSplineLocation Zero = From(0);
 
         public double Value { get; }
-        public static NormalizedSplineLocation From(double value) => new NormalizedSplineLocation(value);
+        public static NormalizedSplineLocation From(double value) => new(value);
         public NormalizedSplineLocation(double value) => Value = value;
 
         public static implicit operator double(NormalizedSplineLocation l) => l.Value;
-        public static explicit operator NormalizedSplineLocation(double l) => new NormalizedSplineLocation(l);
+        public static explicit operator NormalizedSplineLocation(double l) => new(l);
 
         public static NormalizedSplineLocation operator +(NormalizedSplineLocation l) => l;
 
@@ -126,25 +120,25 @@ namespace BII.CatmullRomSplines {
             From(-l.Value);
 
         public static NormalizedSplineLocation operator +(NormalizedSplineLocation lhs, NormalizedSplineLocation rhs) =>
-            new NormalizedSplineLocation(lhs.Value + rhs.Value);
+            new(lhs.Value + rhs.Value);
 
         public static NormalizedSplineLocation operator +(NormalizedSplineLocation lhs, double rhs) =>
-            new NormalizedSplineLocation(lhs.Value + rhs);
+            new(lhs.Value + rhs);
 
         public static NormalizedSplineLocation operator +(double lhs, NormalizedSplineLocation rhs) =>
-            new NormalizedSplineLocation(lhs + rhs.Value);
+            new(lhs + rhs.Value);
 
         public static NormalizedSplineLocation operator -(NormalizedSplineLocation lhs, NormalizedSplineLocation rhs) =>
-            new NormalizedSplineLocation(lhs.Value - rhs.Value);
+            new(lhs.Value - rhs.Value);
 
         public static NormalizedSplineLocation operator -(NormalizedSplineLocation lhs, double rhs) =>
-            new NormalizedSplineLocation(lhs.Value - rhs);
+            new(lhs.Value - rhs);
 
         public static NormalizedSplineLocation operator -(double lhs, NormalizedSplineLocation rhs) =>
-            new NormalizedSplineLocation(lhs - rhs.Value);
+            new(lhs - rhs.Value);
 
         public static NormalizedSplineLocation operator *(double factor, NormalizedSplineLocation l) =>
-            new NormalizedSplineLocation(factor * l.Value);
+            new(factor * l.Value);
 
         public static bool operator <(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value < b.Value;
         public static bool operator >(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value > b.Value;

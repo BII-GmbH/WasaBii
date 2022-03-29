@@ -7,7 +7,7 @@ using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 using Newtonsoft.Json;
 
-namespace BII.CatmullRomSplines.Logic {
+namespace BII.WasaBii.CatmullRomSplines.Logic {
     
     [JsonObject(IsReference = false)] // Treat as value type for serialization
     [MustBeSerializable] 
@@ -44,7 +44,7 @@ namespace BII.CatmullRomSplines.Logic {
             throw new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {this.SegmentCount()}");
         
         public SplineSample<TPos, TDiff> this[SplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
-            throw new ArgumentOutOfRangeException(nameof(location), location, $"Must be between 0 and {this.Length()}");
+            throw new ArgumentOutOfRangeException(nameof(location), location, $"Must be between 0 and {((UntypedSpline)this).Length()}");
 
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
             throw new ArgumentOutOfRangeException(

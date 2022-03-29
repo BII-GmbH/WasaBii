@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using static BII.CatmullRomSplines.Logic.SplineNormalizationUtility;
-using static BII.CatmullRomSplines.Tests.SplineTestUtils;
+using static BII.WasaBii.CatmullRomSplines.Logic.SplineNormalizationUtility;
+using static BII.WasaBii.CatmullRomSplines.Tests.SplineTestUtils;
 
-namespace BII.CatmullRomSplines.Tests {
+namespace BII.WasaBii.CatmullRomSplines.Tests {
     public class SplineNormalizationUtilityTest {
         private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizaionSamples = new Dictionary<float, float>
             {{0, 0}, {0.5f, 0.113f}, {1, 0.227f}, {2.6f, 0.590f}, {3, 0.681f}, {4.404f, 1f}}.ToDictionary(
@@ -24,10 +24,10 @@ namespace BII.CatmullRomSplines.Tests {
         
             foreach (var kvp in deNormalizaionSamples) {
                 var location = DeNormalize(uut, kvp.Key);
-                Assert.That(location.Value, Is.EqualTo(kvp.Value.Value).Within(SplineLocationTolerance ));
+                Assert.That(location.Value, Is.EqualTo(kvp.Value.Value).Within(SplineLocationTolerance));
             }
         }
-    
+        
         [Test]
         public void DeNormalize_WhenEquidistantNode_ThenTAndLocationEqual() {
             var uut = ExampleEquidistantLinearSpline.Spline;
@@ -49,7 +49,7 @@ namespace BII.CatmullRomSplines.Tests {
                 Assert.That(t.Value, Is.EqualTo(kvp.Value.Value).Within(SplineLocationTolerance));
             }
         }
-    
+        
         [Test]
         public void Normalize_WhenEquidistantNode_ThenLocationAndTEqual() {
             var uut = ExampleEquidistantLinearSpline.Spline;

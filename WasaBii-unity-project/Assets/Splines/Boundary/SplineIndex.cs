@@ -1,6 +1,6 @@
 using System;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     /// A typed wrapper around an int for indexing the handles of a spline.
     /// Handles are the points that describe a spline and its trajectory.
     /// In out case, all handles (except the margin ones) will be interpolated.

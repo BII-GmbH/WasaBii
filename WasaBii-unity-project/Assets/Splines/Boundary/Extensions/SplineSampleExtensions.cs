@@ -1,122 +1,71 @@
 ﻿using System.Linq;
 using System;
 using System.Collections.Generic;
-using BII.Units;
-using UnityEngine;
-using UnityEngine.Profiling;
+using BII.WasaBii.Units;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     public static class SplineSampleExtensions {
-
-        private const float roundingErrorThreshold = 1E-5f;
-
-        /// <summary>
+        
         /// Returns a new Spline with (nearly) identical "shape" and handles with uniform distance
-        /// </summary>
-        public static Spline Resample(this Spline spline, Length desiredHandleDistance)
-            => Splines.FromInterpolating(spline.SampleSplineEvery(desiredHandleDistance), TODO);
+        public static Spline<TPos, TDiff> Resample<TPos, TDiff>(this Spline<TPos, TDiff> spline, Length desiredHandleDistance) 
+            where TPos : struct where TDiff : struct
+            => Splines.FromInterpolating(spline.SampleSplineEvery(desiredHandleDistance, sample => sample.Position), spline.Ops);
 
-        /// <summary>
         /// This method samples the positions on the entire spline.
         /// The sample rate is a defined amount between each segment of spline handles.
         /// Returns all sampled positions in order from the begin of the spline to its end.
-        /// </summary>
-        public static List<Vector3> SampleSplinePerSegment(this WithSpline withSpline, int samplesPerSegment) {
+        public static List<TPos> SampleSplinePerSegment<TPos, TDiff>(this WithSpline<TPos, TDiff> withSpline, int samplesPerSegment) 
+            where TPos : struct where TDiff : struct {
             var spline = withSpline.Spline;
             var handleCount = spline.HandleCount();
             var increment = 1f / samplesPerSegment;
-            var points = new List<Vector3>();
+            var points = new List<TPos>();
             for (var location = NormalizedSplineLocation.Zero; location < handleCount - 1; location += increment) {
-                var position = spline.PositionAtNormalized(location);
-                if (position.HasValue)
-                    points.Add(position.Value);
+                points.Add(spline[location].Position);
             }
 
             var lastNormalizedSplinePosition = NormalizedSplineLocation.From(handleCount - 1);
-            points.Add(spline.PositionAtNormalizedOrThrow(lastNormalizedSplinePosition));
+            points.Add(spline[lastNormalizedSplinePosition].Position);
             return points;
         }
 
-        /// <summary>
-        /// This function behaves similar to <see cref="SampleSplineBetween"/>,
-        /// but always returns both the position and tangent for each sampled location.
-        /// </summary>
-        public static List<(Vector3 Position, Vector3 Tangent)> SampleSplinePositionAndTangentBetween(
-            this WithSpline withSpline,
-            SplineLocation fromAbsolute,
-            SplineLocation toAbsolute,
-            Length desiredSampleLength,
-            CalculateSegments calculateSegments = null
-        ) => withSpline.Spline.applySampleFunctionBetween<(Vector3, Vector3)>(
-            (s, l) => s.PositionAndTangentAtNormalized(l).Value,
-            fromAbsolute,
-            toAbsolute,
-            desiredSampleLength,
-            calculateSegments ?? divideEquidistantlyWithMin2Segments
-        );
-
-        /// <summary>
-        /// Behaves similar to <see cref="SampleSplineBetween"/>,
+        /// Behaves similar to <see cref="SampleSplineBetween{TPos,TDiff,TRes}"/>
         /// but the spline is always sampled along its entire length.
-        /// </summary>
-        public static List<Vector3> SampleSplineEvery(
-            this WithSpline withSpline,
+        public static List<TRes> SampleSplineEvery<TPos, TDiff, TRes>(
+            this WithSpline<TPos, TDiff> withSpline,
             Length desiredSampleLength,
-            SampleType type = SampleType.Position,
+            Func<SplineSample<TPos, TDiff>, TRes> resultSelector,
             CalculateSegments calculateSegments = null
-        ) => withSpline.Spline.SampleSplineBetween(
+        ) where TPos : struct where TDiff : struct 
+            => withSpline.SampleSplineBetween(
+                resultSelector,
                 SplineLocation.Zero, 
                 withSpline.Spline.Length(),
                 desiredSampleLength,
-                type, calculateSegments
+                calculateSegments
             );
         
-        /// <summary>
         /// Samples locations on the spline between <paramref name="fromAbsolute"/> to <paramref name="toAbsolute"/>.
         /// The position, tanget or curvature at each of these locations
         /// is returned, depending on <paramref name="type"/>.
         /// The returned samples will have the same distance between them,
         /// which is approximately equal to the <paramref name="desiredSampleLength"/>.
-        /// </summary>
-        public static List<Vector3> SampleSplineBetween(
-            this WithSpline withSpline,
+        public static List<TRes> SampleSplineBetween<TPos, TDiff, TRes>(
+            this WithSpline<TPos, TDiff> withSpline,
+            Func<SplineSample<TPos, TDiff>, TRes> resultSelector,
             SplineLocation fromAbsolute,
             SplineLocation toAbsolute,
             Length desiredSampleLength,
-            SampleType type = SampleType.Position,
             CalculateSegments calculateSegments = null
-        ) {
-            var spline = withSpline.Spline;
-            switch (type) {
-                case SampleType.Position:
-                    return spline.applySampleFunctionBetween<Vector3>(
-                        (s, l) => s.PositionAtNormalizedOrThrow(l),
-                        fromAbsolute,
-                        toAbsolute,
-                        desiredSampleLength,
-                        calculateSegments ?? divideEquidistantlyWithMin2Segments
-                    );
-                case SampleType.Tangent:
-                    return spline.applySampleFunctionBetween<Vector3>(
-                        (s, l) => s.TangentAtNormalizedOrThrow(l),
-                        fromAbsolute,
-                        toAbsolute,
-                        desiredSampleLength,
-                        calculateSegments ?? divideEquidistantlyWithMin2Segments
-                    );
-                case SampleType.Curvature:
-                    return spline.applySampleFunctionBetween<Vector3>(
-                        (s, l) => s.CurvatureAtNormalizedOrThrow(l),
-                        fromAbsolute,
-                        toAbsolute,
-                        desiredSampleLength,
-                        calculateSegments ?? divideEquidistantlyWithMin2Segments
-                    );
-                default:
-                    throw new ArgumentException($"SampleType {type} is not supported by SampleSplineBetween");
-            }
-        }
-        
+        ) where TPos : struct where TDiff : struct =>
+            withSpline.Spline.applySampleFunctionBetween(
+                (s, l) => resultSelector(s[l]),
+                fromAbsolute,
+                toAbsolute,
+                desiredSampleLength,
+                calculateSegments ?? divideEquidistantlyWithMin2Segments
+            );
+
         /// Divides the total length into equally long segments
         /// with approximately the length of the desiredSegmentLength.
         /// Returns the count and length of the segments.
@@ -151,26 +100,24 @@ namespace BII.CatmullRomSplines {
         public delegate (Length SegmentLength, int Segments) CalculateSegments(
             Length totalLength, Length desiredSegmentLength
         );
-        private static List<T> applySampleFunctionBetween<T>(
-            this Spline spline,
-            Func<Spline, NormalizedSplineLocation, T> sampleFunction,
+        private static List<T> applySampleFunctionBetween<TPos, TDiff, T>(
+            this Spline<TPos, TDiff> spline,
+            Func<Spline<TPos, TDiff>, NormalizedSplineLocation, T> sampleFunction,
             SplineLocation fromAbsolute,
             SplineLocation toAbsolute,
             Length desiredSampleLength,
             CalculateSegments calculateSegments
-        ) {
-            Profiler.BeginSample("SplineSampleExtensions.applySampleFunctionBetween()");
+        ) where TPos : struct where TDiff : struct {
+            // Profiler.BeginSample("SplineSampleExtensions.applySampleFunctionBetween()");
             
             var reverse = false;
             if (toAbsolute < fromAbsolute) {
-                var temp = toAbsolute;
-                toAbsolute = fromAbsolute;
-                fromAbsolute = temp;
+                (toAbsolute, fromAbsolute) = (fromAbsolute, toAbsolute);
                 reverse = true;
             }
 
             if (desiredSampleLength <= Length.Zero) {
-                Profiler.EndSample();
+                // Profiler.EndSample();
                 throw new ArgumentException($"The sampleLength cannot be 0 or smaller than 0 (was {desiredSampleLength})");
             }
 
@@ -192,15 +139,8 @@ namespace BII.CatmullRomSplines {
             if (reverse)
                 result.Reverse();
 
-            Profiler.EndSample();
+            // Profiler.EndSample();
             return result;
         }
-
-        public enum SampleType {
-            Position = 0,
-            Tangent,
-            Curvature
-        }
-    
     }
 }

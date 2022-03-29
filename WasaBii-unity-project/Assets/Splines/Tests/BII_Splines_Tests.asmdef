@@ -1,10 +1,10 @@
 {
     "name": "BII_Splines_Tests",
     "references": [
-        "BII_Splines",
-        "BII_Units",
-        "CoreLibrary",
-        
+        "WasaBii-Core",
+        "WasaBii-Splines",
+        "WasaBii-Units",
+        "WasaBii-Unity",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

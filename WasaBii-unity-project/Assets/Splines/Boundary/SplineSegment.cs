@@ -1,8 +1,8 @@
 using System.Diagnostics.Contracts;
-using BII.CatmullRomSplines.Logic;
+using BII.WasaBii.CatmullRomSplines.Logic;
 using BII.WasaBii.Units;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     public readonly struct SplineSegment<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
@@ -27,7 +27,7 @@ namespace BII.CatmullRomSplines {
             CachedLength = cachedLength;
         }
         
-        public SplineSample SampleAt(float percentage) => new SplineSample(this, percentage);
+        public SplineSample<TPos, TDiff> SampleAt(float percentage) => new(this, percentage);
     }
 
     public static class SplineSegmentUtils {

@@ -1,10 +1,13 @@
-﻿using BII.CatmullRomSplines.Logic;
+﻿using BII.WasaBii.CatmullRomSplines.Logic;
 using NUnit.Framework;
 using UnityEngine;
-using static BII.CatmullRomSplines.Logic.CatmullRomSegment;
-using static BII.CatmullRomSplines.Tests.SplineTestUtils;
+using static BII.WasaBii.CatmullRomSplines.Logic.CatmullRomSegment;
+using static BII.WasaBii.CatmullRomSplines.Tests.SplineTestUtils;
 
-namespace BII.CatmullRomSplines.Tests {
+namespace BII.WasaBii.CatmullRomSplines.Tests {
+    
+    using CatmullRomSegment = CatmullRomSegment<Vector3, Vector3>;
+    
     public class CatmullRomSegmentTest {
         private void assertExistsAndEquals(
             CatmullRomSegment? segment,
@@ -28,31 +31,31 @@ namespace BII.CatmullRomSplines.Tests {
         [Test]
         public void WhenLocationLessThanZero_ThenReturnNull() {
             var queryResult = CatmullRomSegmentAt(ExampleLinearSpline.Spline, NormalizedSplineLocation.From(-1));
-
+        
             Assert.That(queryResult, Is.EqualTo(null));
         }
-
+        
         [Test]
         public void WhenSplineNull_ThenThrows() {
             Assert.That(
-                () => CatmullRomSegmentAt(spline: null, NormalizedSplineLocation.Zero),
+                () => CatmullRomSegmentAt<Vector3, Vector3>(spline: null, NormalizedSplineLocation.Zero),
                 Throws.ArgumentNullException
             );
         }
-
+        
         [Test]
         public void WhenInvalidSpline_ThenThrows() {
             var spline = ExampleInvalidSpline.Spline;
-
+        
             Assert.That(() =>  CatmullRomSegmentAt(spline, NormalizedSplineLocation.Zero), Throws.ArgumentException);
         }
-
+        
         [Test]
         public void WhenLocationZero_ThenReturnCorrectSegment() {
             var spline = ExampleCurvedSpline.Spline;
-
+        
             var (segment, location) = CatmullRomSegmentAt(spline, NormalizedSplineLocation.Zero).Value;
-
+        
             assertExistsAndEquals(
                 segment,
                 ExampleCurvedSpline.FirstHandle,
@@ -62,13 +65,13 @@ namespace BII.CatmullRomSplines.Tests {
             );
             assertExistsAndEquals(location, 0);
         }
-
+        
         [Test]
         public void WhenLocation1AndLastLocation_ThenReturnLastValidSegment() {
             var node = ExampleCurvedSpline.Spline;
-
+        
             var (segment, location) = CatmullRomSegmentAt(node, NormalizedSplineLocation.From(1)).Value;
-
+        
             assertExistsAndEquals(
                 segment,
                 ExampleCurvedSpline.FirstHandle,
@@ -78,17 +81,17 @@ namespace BII.CatmullRomSplines.Tests {
             );
             assertExistsAndEquals(location, 1);
         }
-
+        
         [Test]
         public void WhenLocation1AndLastLocationButWithinTolerance_ThenReturnLastValidSegment() {
             var node = ExampleCurvedSpline.Spline;
-
+        
             var (segment, location) = CatmullRomSegmentAt(
                     node,
                     NormalizedSplineLocation.From(1 + EndOfSplineOvershootTolerance / 2.0f)
                 )
                 .Value;
-
+        
             assertExistsAndEquals(
                 segment,
                 ExampleCurvedSpline.FirstHandle,
@@ -98,13 +101,13 @@ namespace BII.CatmullRomSplines.Tests {
             );
             assertExistsAndEquals(location, 1);
         }
-
+        
         [Test]
         public void WhenLocationOneAndNotLastLocation_ThenReturnNextSegment() {
             var spline = ExampleEquidistantLinearSpline.Spline;
-
+        
             var (segment, location) = CatmullRomSegmentAt(spline, NormalizedSplineLocation.From(1)).Value;
-
+        
             assertExistsAndEquals(location, 0);
             assertExistsAndEquals(
                 segment,

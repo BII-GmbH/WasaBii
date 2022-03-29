@@ -1,6 +1,6 @@
 using System;
 
-namespace BII.CatmullRomSplines.Logic {
+namespace BII.WasaBii.CatmullRomSplines.Logic {
    
     /// Internal data structure all supported spline data structures are converted to
     /// It is used for the calculations and describes the area between two spline handles (p1 and p2), 

@@ -11,8 +11,8 @@ namespace BII.WasaBii.Unity.Geometry {
     [MustBeImmutable]
     [MustBeSerializable]
     public readonly struct LocalOffset : 
-        VectorLike<LocalOffset>, HasMagnitude<LocalOffset>, 
-        LocalDirectionLike, 
+        LocalDirectionLike<LocalOffset>, 
+        HasMagnitude<LocalOffset>, 
         IsLocalVariant<LocalOffset, GlobalOffset>,
         IEquatable<LocalOffset> {
         

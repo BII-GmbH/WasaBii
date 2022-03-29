@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BII.CatmullRomSplines.Logic;
+using BII.WasaBii.CatmullRomSplines.Logic;
 using BII.WasaBii.Core;
 
-namespace BII.CatmullRomSplines {
+namespace BII.WasaBii.CatmullRomSplines {
     
-    // TODO DS: Make overloads of these for unity & system Vector3 + Local/Global Position and provide the ops.
     public static class EnumerableToSplineExtensions {
 
         private static TPos pointReflect<TPos, TDiff>(this TPos self, TPos on, PositionOperations<TPos, TDiff> ops)
@@ -39,7 +38,7 @@ namespace BII.CatmullRomSplines {
         /// <summary>
         /// Creates a spline that interpolates the provided positions.
         /// The margin handles of the spline are created automatically
-        /// using <see cref="CalculateSplineMarginHandles"/>.
+        /// using <see cref="CalculateSplineMarginHandles{TPos,TDiff}"/>.
         ///
         /// This should be used when the trajectory at the spline's begin / end
         /// should just be similar to the trajectory of the rest of the spline.
@@ -60,7 +59,7 @@ namespace BII.CatmullRomSplines {
 
         /// Creates a spline that interpolates the provided positions.
         /// The margin handles of the spline are created automatically
-        /// using <see cref="CalculateSplineMarginHandles"/>.
+        /// using <see cref="CalculateSplineMarginHandles{TPos,TDiff}"/>.
         ///
         /// This should be used when the trajectory at the spline's begin / end
         /// should just be similar to the trajectory of the rest of the spline.

@@ -29,7 +29,7 @@ namespace BII.WasaBii.Unity.Geometry {
                 return Mathf.Abs(
                     0.5f * Vertices.Skip(1)
                         .PairwiseSliding()
-                        .Select((vj, vk) => (vj - v1).Cross(vk - v1))
+                        .Select((vj, vk) => (vj - v1).Cross(vk - v1).AsVector)
                         .Sum()
                         .magnitude
                 ).SquareMeters();

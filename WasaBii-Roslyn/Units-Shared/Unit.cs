@@ -2,18 +2,14 @@
 
 // TODO CR: equality?
 
-public abstract class Unit {
-    public abstract string DisplayName { get; }
-    public abstract double SiFactor { get; }
-    
-    private Unit() { } // prevent direct subclassing outside of this class
-    
-    // TODO CR: consider interfaces with proper variance instead
+public interface Unit {
+    string DisplayName { get; }
+    double SiFactor { get; }
 
-    public abstract class Base : Unit { }
-    public abstract class Derived : Unit { }
+    public interface Base : Unit { }
+    public interface Derived : Unit { }
     
-    public abstract class Mul<TLeft, TRight> : Derived
+    public interface Mul<out TLeft, out TRight> : Derived
     where TLeft : Unit where TRight : Unit {
 
         public new class Derived : Mul<TLeft, TRight> {
@@ -25,12 +21,12 @@ public abstract class Unit {
                 RightUnit = rightUnit;
             }
 
-            public override string DisplayName => $"{LeftUnit.DisplayName}{RightUnit.DisplayName}"; // e.g. "Nm"
-            public sealed override double SiFactor => LeftUnit.SiFactor * RightUnit.SiFactor;
+            public string DisplayName => $"{LeftUnit.DisplayName}{RightUnit.DisplayName}"; // e.g. "Nm"
+            public double SiFactor => LeftUnit.SiFactor * RightUnit.SiFactor;
         }
     }
 
-    public abstract class Div<TNumerator, TDenominator> : Derived
+    public interface Div<out TNumerator, out TDenominator> : Derived
     where TNumerator : Unit where TDenominator : Unit {
 
         public new class Derived : Div<TNumerator, TDenominator> {
@@ -42,8 +38,8 @@ public abstract class Unit {
                 DenominatorUnit = denominatorUnit;
             }
 
-            public override string DisplayName => $"{NumeratorUnit.DisplayName}/{DenominatorUnit.DisplayName}"; // e.g. "km/h"
-            public sealed override double SiFactor => NumeratorUnit.SiFactor / DenominatorUnit.SiFactor;
+            public string DisplayName => $"{NumeratorUnit.DisplayName}/{DenominatorUnit.DisplayName}"; // e.g. "km/h"
+            public double SiFactor => NumeratorUnit.SiFactor / DenominatorUnit.SiFactor;
         }
     }
 }
@@ -57,7 +53,6 @@ public sealed class UnitMetadataAttribute : Attribute {
 
 public interface UnitDescription<out TUnit> where TUnit : Unit {
     TUnit SiUnit { get; }
-    TUnit DisplayUnit { get; }
 }
 
 public static class UnitExtensions {

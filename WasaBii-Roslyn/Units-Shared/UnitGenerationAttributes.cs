@@ -4,48 +4,39 @@
 
 namespace BII.WasaBii.Units {
 
-    // [BaseUnitDefinition(
-    //     unitName: "Length", 
-    //     siUnit: Meters, 
-    //     displayUnit: Meters, 
-    //     GenerateExtensions = true
-    // )]
-    // public enum LengthDef {
-    //     [Unit("m", 1)] Meters,
-    //     [Unit("km", 1000)] Kilometers,
-    //     [Unit("cm", 0.01)] Centimeters,
-    // }
-
-    // [DivUnitDefinition("Velocity", typeof(Length), typeof(Time), GenerateExtensions = true)]
-    // public enum VelocityDef {
-    //     [Unit("knots", 0.514444)] Knots
-    // }
-
     [AttributeUsage(AttributeTargets.Enum)]
     public sealed class BaseUnitDefinitionAttribute : Attribute {
         public readonly string UnitName;
         public readonly Enum SiUnit;
-        public readonly Enum DisplayUnit;
-        public bool GenerateExtensions { init; get; } = true;
+        public bool GenerateExtensions { init; get; } = false;
 
-        public BaseUnitDefinitionAttribute(string unitName, object siUnit, object displayUnit) {
+        public BaseUnitDefinitionAttribute(string unitName, object siUnit) {
             UnitName = unitName;
             SiUnit = (Enum) siUnit;
-            DisplayUnit = (Enum) displayUnit;
         }
     }
+    
+    public enum DerivedUnitKind { Div, Mul }
 
     [AttributeUsage(AttributeTargets.Enum)]
-    public sealed class DivUnitDefinitionAttribute : Attribute {
+    public sealed class DerivedUnitDefinitionAttribute : Attribute {
+        public readonly DerivedUnitKind UnitKind;
         public readonly string UnitName;
-        public readonly Type LeftUnit;
-        public readonly Type RightUnit;
-        public bool GenerateExtensions { get; set; } = true;
-        public bool IncludeDerivedUnits { get; set; } = false;
-        public DivUnitDefinitionAttribute(string unitName, Type leftUnit, Type rightUnit) {
+        public readonly Type LeftUnitDefinition;
+        public readonly Type RightUnitDefinition;
+        public bool GenerateExtensions { get; set; } = false;
+        public bool IncludeDerivedUnits { get; set; } = true;
+        
+        public DerivedUnitDefinitionAttribute(
+            DerivedUnitKind unitKind, 
+            string unitName, 
+            Type leftUnitDef, 
+            Type rightUnitDef
+        ) {
+            UnitKind = unitKind;
             UnitName = unitName;
-            LeftUnit = leftUnit;
-            RightUnit = rightUnit;
+            LeftUnitDefinition = leftUnitDef;
+            RightUnitDefinition = rightUnitDef;
         }
     }
 
@@ -56,5 +47,13 @@ namespace BII.WasaBii.Units {
         public UnitAttribute(string displayName, double factor) => 
             (DisplayName, Factor) = (displayName, factor);
     }
+
+    /// <summary>
+    /// If added to a class, then all enums with <see cref="BaseUnitDefinitionAttribute"/>
+    ///  or <see cref="DerivedUnitDefinitionAttribute"/> are collected together.
+    /// Appropriate operator overloads for all relevant combinations will be generated in the same namespace.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)] // TODO CR: might be able to do this in assembly scope
+    public sealed class UnitSystemAttribute : Attribute { }
 
 }

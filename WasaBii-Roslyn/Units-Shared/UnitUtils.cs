@@ -7,8 +7,8 @@ namespace BII.WasaBii.Units;
 
 [UnitMetadata(typeof(NumberUnitDesc))]
 public sealed class NumberUnit : Unit.Base {
-    public override string DisplayName => "";
-    public override double SiFactor => 1;
+    public string DisplayName => "";
+    public double SiFactor => 1;
 
     public sealed class NumberUnitDesc : UnitDescription<NumberUnit> {
         public NumberUnit SiUnit => Instance;
@@ -16,7 +16,7 @@ public sealed class NumberUnit : Unit.Base {
     }
 
     private NumberUnit() {}
-    public static NumberUnit Instance = new();
+    public static readonly NumberUnit Instance = new();
 }
 
 public readonly struct Number : UnitValue<Number, NumberUnit> {
@@ -48,10 +48,6 @@ public static class Units {
     public static TUnit SiUnitOf<TUnit>() where TUnit : Unit =>
         ((UnitDescription<TUnit>) Activator.CreateInstance(typeof(TUnit)
             .GetCustomAttribute<UnitMetadataAttribute>().UnitDescriptionType)).SiUnit;
-
-    public static TUnit DisplayUnitOf<TUnit>() where TUnit : Unit =>
-        ((UnitDescription<TUnit>) Activator.CreateInstance(typeof(TUnit)
-            .GetCustomAttribute<UnitMetadataAttribute>().UnitDescriptionType)).DisplayUnit;
 
     // TODO: the other unit utilities from dProB...
 }

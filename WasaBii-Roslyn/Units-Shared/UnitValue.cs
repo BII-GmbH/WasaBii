@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace BII.WasaBii.Units;
+﻿namespace BII.WasaBii.Units;
 
 public interface UnitValue {
     double SiValue { init; get; }

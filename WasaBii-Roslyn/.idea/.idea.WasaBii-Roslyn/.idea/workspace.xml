@@ -5,47 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3d62e137-2f8a-49be-8380-a0b048848eb2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Roslyn/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Roslyn/.idea/indexLayout.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Roslyn/.idea/projectSettingsUpdater.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Roslyn/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Roslyn/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/TestGenerator.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Units-Shared/UnitGenerationAttributes.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Units-Shared/UnitUtils.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Units-Shared/UnitValue.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/net6.0/.NETCoreApp,Version=v6.0.AssemblyAttributes.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/net6.0/WasaBii-Roslyn.AssemblyInfo.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/net6.0/WasaBii-Roslyn.AssemblyInfoInputs.cache" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/net6.0/WasaBii-Roslyn.GeneratedMSBuildEditorConfig.editorconfig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/net6.0/WasaBii-Roslyn.GlobalUsings.g.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/net6.0/WasaBii-Roslyn.assets.cache" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/net6.0/WasaBii-Roslyn.csproj.AssemblyReference.cache" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/.NETStandard,Version=v2.0.AssemblyAttributes.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/WasaBii-Roslyn.AssemblyInfo.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/WasaBii-Roslyn.AssemblyInfoInputs.cache" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/WasaBii-Roslyn.GeneratedMSBuildEditorConfig.editorconfig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/WasaBii-Roslyn.GlobalUsings.g.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/WasaBii-Roslyn.assets.cache" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/WasaBii-Roslyn.csproj.AssemblyReference.cache" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/WasaBii-Roslyn.csproj.CoreCompileInputs.cache" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/WasaBii-Roslyn.csproj.FileListAbsolute.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/WasaBii-Roslyn.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/WasaBii-Roslyn.csproj.nuget.dgspec.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/WasaBii-Roslyn.csproj.nuget.g.props" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/WasaBii-Roslyn.csproj.nuget.g.targets" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/project.assets.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/project.nuget.cache" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/project.packagespec.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obj/rider.project.restore.info" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Assets/Dependencies/RoslynPlugin.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Assets/Dependencies/RoslynPlugin/Debug.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Assets/Dependencies/RoslynPlugin/Debug/netstandard2.0.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Assets/Dependencies/RoslynPlugin/Debug/netstandard2.0/WasaBii-Roslyn.deps.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Assets/Dependencies/RoslynPlugin/Debug/netstandard2.0/WasaBii-Roslyn.deps.json.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Assets/Dependencies/RoslynPlugin/Debug/netstandard2.0/WasaBii-Roslyn.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Assets/Dependencies/RoslynPlugin/Debug/netstandard2.0/WasaBii-Roslyn.dll.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Assets/Units/Angle.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Assets/Units/Angle.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnitGenerator.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Units-Shared/Examples.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.WasaBii-Roslyn/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Roslyn/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TestGenerator.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Units-Shared/Unit.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Units-Shared/Unit.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Units-Shared/UnitGenerationAttributes.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Units-Shared/UnitGenerationAttributes.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Units-Shared/UnitUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Units-Shared/UnitUtils.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Units-Shared/UnitValue.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Units-Shared/UnitValue.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Units-Shared/obj/Units-Shared.csproj.nuget.dgspec.json" beforeDir="false" afterPath="$PROJECT_DIR$/Units-Shared/obj/Units-Shared.csproj.nuget.dgspec.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Units-Shared/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/Units-Shared/obj/project.assets.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Units-Shared/obj/project.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Units-Shared/obj/project.nuget.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Units-Shared/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/Units-Shared/obj/project.packagespec.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Units-Shared/obj/rider.project.restore.info" beforeDir="false" afterPath="$PROJECT_DIR$/Units-Shared/obj/rider.project.restore.info" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/WasaBii-Roslyn.csproj.nuget.dgspec.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/WasaBii-Roslyn.csproj.nuget.dgspec.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/project.assets.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/project.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/obj/project.nuget.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/project.packagespec.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/rider.project.restore.info" beforeDir="false" afterPath="$PROJECT_DIR$/obj/rider.project.restore.info" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,6 +39,9 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/633820b9579f4675babed79321255f1767788/73/7d34d773/AttributeUsageAttribute.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ac13e7e517c04a7f9e002bc26dd715e42ad190/2d/b7e1a284/ISymbol.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/434ba4d9cde0dfc370209baf4f746fbcabd6cc28a9f8112e086933aa3c59b53/Extensions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Units-Shared/UnitUtils.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Units-Shared/Unit.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -82,7 +62,7 @@
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.C#" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -97,7 +77,13 @@
       <workItem from="1645981062162" duration="380000" />
       <workItem from="1645981463239" duration="274000" />
       <workItem from="1645981754337" duration="78000" />
-      <workItem from="1645981868758" duration="8928000" />
+      <workItem from="1645981868758" duration="9525000" />
+      <workItem from="1646226250263" duration="6963000" />
+      <workItem from="1647864278135" duration="1479000" />
+      <workItem from="1649176463738" duration="2562000" />
+      <workItem from="1649179058935" duration="3422000" />
+      <workItem from="1649672255306" duration="603000" />
+      <workItem from="1649673756904" duration="34000" />
     </task>
     <servers />
   </component>

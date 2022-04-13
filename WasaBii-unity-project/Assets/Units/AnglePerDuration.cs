@@ -62,6 +62,8 @@ namespace BII.WasaBii.Units {
         public bool Equals(AnglePerDuration other) => this == other;
         public override bool Equals(object obj) => obj is AnglePerDuration other && this == other;
         public override int GetHashCode() => SIValue.GetHashCode();
+        
+        public int CompareTo(AnglePerDuration other) => SIValue.CompareTo(other.SIValue);
 
     }
 

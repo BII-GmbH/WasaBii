@@ -82,6 +82,8 @@ namespace BII.WasaBii.Units {
         public bool Equals(MassPerLength other) => this == other;
         public override bool Equals(object obj) => obj is MassPerLength MassPerLength && this == MassPerLength;
         public override int GetHashCode() => SIValue.GetHashCode();
+        
+        public int CompareTo(MassPerLength other) => SIValue.CompareTo(other.SIValue);
     }
 
     public static class MassPerLengthExtensions {

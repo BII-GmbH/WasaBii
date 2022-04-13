@@ -60,7 +60,7 @@ namespace BII.WasaBii.Units {
         public override int GetHashCode() => SIValue.GetHashCode();
         
         // Override to avoid rounding errors
-        int IComparable<Amount>.CompareTo(Amount other) => amount.CompareTo(other.amount);
+        public int CompareTo(Amount other) => amount.CompareTo(other.amount);
 
         public static implicit operator int(Amount a) => a.amount;
         public static implicit operator Amount(int i) => new Amount(i, AmountUnit.Amount);

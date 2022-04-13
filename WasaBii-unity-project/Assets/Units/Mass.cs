@@ -66,6 +66,8 @@ namespace BII.WasaBii.Units {
         public bool Equals(Mass other) => this == other;
         public override bool Equals(object obj) => obj is Mass Mass && this == Mass;
         public override int GetHashCode() => SIValue.GetHashCode();
+        
+        public int CompareTo(Mass other) => SIValue.CompareTo(other.SIValue);
     }
 
     public static class MassExtensions {

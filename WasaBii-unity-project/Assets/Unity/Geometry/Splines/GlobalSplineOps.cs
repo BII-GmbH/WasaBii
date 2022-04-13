@@ -1,4 +1,5 @@
-﻿using BII.WasaBii.CatmullRomSplines;
+﻿using System.Linq;
+using BII.WasaBii.CatmullRomSplines;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
@@ -27,6 +28,14 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         public GlobalOffset Mul(GlobalOffset diff, double f) => diff * f.Number();
 
         public double Dot(GlobalOffset a, GlobalOffset b) => a.Dot(b);
+    }
+
+    public static class GlobalSplineExtensions {
+        
+        public static Spline<LocalPosition, LocalOffset> RelativeTo(
+            this Spline<GlobalPosition, GlobalOffset> global, TransformProvider parent
+        ) => global.HandlesIncludingMargin().Select(l => l.RelativeTo(parent)).ToSplineWithMarginHandlesOrThrow();
+        
     }
     
 }

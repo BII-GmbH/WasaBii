@@ -1,4 +1,5 @@
-﻿using BII.WasaBii.CatmullRomSplines;
+﻿using System.Linq;
+using BII.WasaBii.CatmullRomSplines;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
@@ -29,4 +30,12 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         public double Dot(LocalOffset a, LocalOffset b) => a.Dot(b);
     }
     
+    public static class LocalSplineExtensions {
+        
+        public static Spline<GlobalPosition, GlobalOffset> ToGlobalWith(
+            this Spline<LocalPosition, LocalOffset> local, TransformProvider parent
+        ) => local.HandlesIncludingMargin().Select(l => l.ToGlobalWith(parent)).ToSplineWithMarginHandlesOrThrow();
+        
+    }
+
 }

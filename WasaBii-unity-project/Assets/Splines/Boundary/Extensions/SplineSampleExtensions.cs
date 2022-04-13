@@ -1,20 +1,21 @@
 ﻿using System.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using BII.WasaBii.Units;
 
 namespace BII.WasaBii.CatmullRomSplines {
     public static class SplineSampleExtensions {
         
         /// Returns a new Spline with (nearly) identical "shape" and handles with uniform distance
-        public static Spline<TPos, TDiff> Resample<TPos, TDiff>(this Spline<TPos, TDiff> spline, Length desiredHandleDistance) 
+        [Pure] public static Spline<TPos, TDiff> Resample<TPos, TDiff>(this Spline<TPos, TDiff> spline, Length desiredHandleDistance) 
             where TPos : struct where TDiff : struct
             => Splines.FromInterpolating(spline.SampleSplineEvery(desiredHandleDistance, sample => sample.Position), spline.Ops);
 
         /// This method samples the positions on the entire spline.
         /// The sample rate is a defined amount between each segment of spline handles.
         /// Returns all sampled positions in order from the begin of the spline to its end.
-        public static List<TPos> SampleSplinePerSegment<TPos, TDiff>(this WithSpline<TPos, TDiff> withSpline, int samplesPerSegment) 
+        [Pure] public static List<TPos> SampleSplinePerSegment<TPos, TDiff>(this WithSpline<TPos, TDiff> withSpline, int samplesPerSegment) 
             where TPos : struct where TDiff : struct {
             var spline = withSpline.Spline;
             var handleCount = spline.HandleCount();
@@ -31,7 +32,7 @@ namespace BII.WasaBii.CatmullRomSplines {
 
         /// Behaves similar to <see cref="SampleSplineBetween{TPos,TDiff,TRes}"/>
         /// but the spline is always sampled along its entire length.
-        public static List<TRes> SampleSplineEvery<TPos, TDiff, TRes>(
+        [Pure] public static List<TRes> SampleSplineEvery<TPos, TDiff, TRes>(
             this WithSpline<TPos, TDiff> withSpline,
             Length desiredSampleLength,
             Func<SplineSample<TPos, TDiff>, TRes> resultSelector,
@@ -50,7 +51,7 @@ namespace BII.WasaBii.CatmullRomSplines {
         /// is returned, depending on <paramref name="type"/>.
         /// The returned samples will have the same distance between them,
         /// which is approximately equal to the <paramref name="desiredSampleLength"/>.
-        public static List<TRes> SampleSplineBetween<TPos, TDiff, TRes>(
+        [Pure] public static List<TRes> SampleSplineBetween<TPos, TDiff, TRes>(
             this WithSpline<TPos, TDiff> withSpline,
             Func<SplineSample<TPos, TDiff>, TRes> resultSelector,
             SplineLocation fromAbsolute,
@@ -71,7 +72,7 @@ namespace BII.WasaBii.CatmullRomSplines {
         /// Returns the count and length of the segments.
         /// Returns one segment with the total length as segment length
         /// if desiredSampleLength was greater than totalLength.
-        public static (Length SegmentLength, int Segments) DivideEquidistantly(
+        [Pure] public static (Length SegmentLength, int Segments) DivideEquidistantly(
             Length totalLength, Length desiredSegmentLength
         ) {
             var samples = (int)Math.Round((totalLength / desiredSegmentLength));

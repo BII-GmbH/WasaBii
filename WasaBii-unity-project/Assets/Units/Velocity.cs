@@ -61,6 +61,8 @@ namespace BII.WasaBii.Units {
         public bool Equals(Velocity other) => this == other;
         public override bool Equals(object obj) => obj is Velocity Velocity && this == Velocity;
         public override int GetHashCode() => SIValue.GetHashCode();
+        
+        public int CompareTo(Velocity other) => SIValue.CompareTo(other.SIValue);
     }
 
     public static class VelocityExtensions {

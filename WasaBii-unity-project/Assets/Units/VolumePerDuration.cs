@@ -91,6 +91,8 @@ namespace BII.WasaBii.Units {
             obj is VolumePerDuration volumePerDuration && this == volumePerDuration;
 
         public override int GetHashCode() => SIValue.GetHashCode();
+        
+        public int CompareTo(VolumePerDuration other) => SIValue.CompareTo(other.SIValue);
     }
 
     public static class VolumePerDurationExtensions {

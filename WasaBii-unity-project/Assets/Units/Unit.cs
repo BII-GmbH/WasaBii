@@ -74,7 +74,6 @@ namespace BII.WasaBii.Units {
     public interface ValueWithUnit<TSelf, TUnit> : CopyableValueWithUnit<TSelf>, ValueWithUnit<TUnit>, IEquatable<TSelf>, IComparable<TSelf>
     where TUnit : Unit
     where TSelf : struct, ValueWithUnit<TSelf, TUnit> {
-        int IComparable<TSelf>.CompareTo(TSelf other) => this.SIValue.CompareTo(other.SIValue);
     }
 
     public static class UnitUtils {

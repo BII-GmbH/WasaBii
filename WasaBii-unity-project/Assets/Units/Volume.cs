@@ -70,6 +70,8 @@ namespace BII.WasaBii.Units {
         public bool Equals(Volume other) => this == other;
         public override bool Equals(object obj) => obj is Volume Volume && this == Volume;
         public override int GetHashCode() => SIValue.GetHashCode();
+        
+        public int CompareTo(Volume other) => SIValue.CompareTo(other.SIValue);
     }
 
     public static class VolumeExtensions {

@@ -66,6 +66,8 @@ namespace BII.WasaBii.Units {
         public bool Equals(Length other) => this == other;
         public override bool Equals(object obj) => obj is Length Length && this == Length;
         public override int GetHashCode() => SIValue.GetHashCode();
+        
+        public int CompareTo(Length other) => SIValue.CompareTo(other.SIValue);
     }
 
     public static class LengthExtensions {

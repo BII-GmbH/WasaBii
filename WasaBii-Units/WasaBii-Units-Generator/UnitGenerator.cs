@@ -31,19 +31,60 @@ public class UnitGenerator : ISourceGenerator {
     public void Initialize(GeneratorInitializationContext context) { }
 
     public void Execute(GeneratorExecutionContext context) {
+        
+        try {
 
-        var unitDefs = context.AdditionalFiles
-            .Where(f => f.Path.EndsWith(".units.json"))
-            .Select(f => (
-                FileName: f.Path.Split(Path.PathSeparator).Last().Split(".units.json").First(), 
-                Defs: JsonConvert.DeserializeObject<UnitDefinitions>(f.GetText()!.ToString())!));
+            var unitDefs = context.AdditionalFiles
+                .Where(f => f.Path.EndsWith(".units.json"))
+                .Select(f => {
+                    // Sometimes, the paths passed to this are not consistent with `Path.PathSeparator`...
+                    var fileNameFull = f.Path.Split('/').SelectMany(s => s.Split('\\')).Last();
+                    return (
+                        FileName: fileNameFull.Substring(0, fileNameFull.Count() - ".units.json".Count()),
+                        Defs: JsonConvert.DeserializeObject<UnitDefinitions>(f.GetText()!.ToString())!
+                    );
+                }).ToList();
 
-        foreach (var (fileName, unitDef) in unitDefs) {
+            foreach (var (fileName, unitDef) in unitDefs) {
+                var source = GenerateSourceFor(unitDef);
+                context.AddSource(
+                    $"{fileName}.g.cs",
+                    source
+                );
+            }
+            
             context.AddSource(
-                $"{fileName}.g.cs", 
-                GenerateSourceFor(unitDef)
+                $"EnsureGenerationWorks.g.cs",
+                SourceText.From(
+                    "namespace BII.WasaBii.Units { public static class EnsureGenerationDidRun { " +
+                        "public const bool DidRun = true; " +
+                    $"    public const string ErrorMessage = \"All good. {string.Join(",", unitDefs.Select(d => d.FileName))}\";" +
+                    "} }",
+                    Encoding.UTF8
+                )
+            );
+            
+        }
+        catch (Exception e) {
+            context.AddSource(
+                $"EnsureGenerationWorks.g.cs",
+                SourceText.From(
+                    "namespace BII.WasaBii.Units { public static class EnsureGenerationDidRun { " +
+                    "public const bool DidRun = true; " +
+                    $"\npublic const string ErrorMessage = @\"{e.Message.Replace("\"", "\"\"")}\";" +
+                    "} }",
+                    Encoding.UTF8
+                )
             );
         }
+
+        // Note CR: this seems to allow the "init" keyword to compile somehow
+        context.AddSource("EnsureIsExternalInitHack.g.cs", SourceText.From(@"
+namespace System.Runtime.CompilerServices {
+    public static class IsExternalInit {}
+}", Encoding.UTF8));
+
+        
     }
 
     private static SourceText GenerateSourceFor(
@@ -160,6 +201,6 @@ public static class {name}ConstructionExtensions {{
     
     private static string InNamespace(string code, string nameSpace) => 
 $@"namespace {nameSpace} {{
-    {string.Join("\n", code.Split("\n").Select(l => "    " + l))}
+    {string.Join("\n", code.Split('\n').Select(l => "    " + l))}
 }}";
 }

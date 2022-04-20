@@ -169,14 +169,23 @@ public readonly struct {name} : IUnitValue<{name}, {name}.Unit> {{
 
     {/* TODO: operators with this and other compatible units */ ""}
     
-}}
+}}{GenerateToDoubleExtensions(unit)}{GenerateConstructionExtensions(unit)}
+
+#endregion
+";
+    }
+
+    private static string GenerateToDoubleExtensions(BaseUnit unit) {
+        if (!unit.GenerateExtensions) return "";
+        var name = unit.TypeName;
+        return $@"
 
 public static class {name}ToDoubleExtensions {{
-    public static double As{unit.SiUnit.Name}s(this IUnitValue<{name}.Unit> value) => value.SiValue;
+    public static double As{unit.SiUnit.Name}(this IUnitValue<{name}.Unit> value) => value.SiValue;
 {string.Join("\n", unit.AdditionalUnits.Select(au => 
-    $@"    public static double As{au.Name}s(this IUnitValue<{name}.Unit> value) => value.SiValue / {au.Factor};"))}  
-}}{GenerateConstructionExtensions(unit)}
-";
+    $@"    public static double As{au.Name}(this IUnitValue<{name}.Unit> value) => value.SiValue / {au.Factor};"))}  
+}}
+"
     }
 
     private static string GenerateConstructionExtensions(BaseUnit unit) {
@@ -185,12 +194,10 @@ public static class {name}ToDoubleExtensions {{
         return $@"
 
 public static class {name}ConstructionExtensions {{
-    public static {name} {unit.SiUnit.Name}s(this double value) => new(value, {name}.Unit.{unit.SiUnit.Name}.Instance);
+    public static {name} {unit.SiUnit.Name}(this double value) => new(value, {name}.Unit.{unit.SiUnit.Name}.Instance);
 {string.Join("\n", unit.AdditionalUnits.Select(au => 
-    $@"    public static {name} {au.Name}s(this double value) => new(value, {name}.Unit.{au.Name}.Instance);"))}
+    $@"    public static {name} {au.Name}(this double value) => new(value, {name}.Unit.{au.Name}.Instance);"))}
 }}
-
-#endregion
 ";
     }
     

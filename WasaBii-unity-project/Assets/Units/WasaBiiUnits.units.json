@@ -1,26 +1,22 @@
 ﻿{
   "namespace": "BII.WasaBii.Units",
   "baseUnits": [
+    
     {
-      "typeName": "Length",
+      "typeName": "Angle",
       "siUnit": {
-        "name": "Meters",
-        "short": "m"
+        "name": "Radians",
+        "short": "rad"
       },
       "additionalUnits": [
         {
-          "name": "Kilometers",
-          "short": "km",
-          "factor": 1000
-        },
-        {
-          "name": "Centimeters",
-          "short": "cm",
-          "factor": 0.01
+          "name": "Degrees",
+          "short": "°"
         }
       ],
       "generateExtensions": true
     },
+
     {
       "typeName": "Duration",
       "siUnit": {
@@ -55,9 +51,74 @@
         }
       ],
       "generateExtensions": true
+    },
+
+    {
+      "typeName": "Force",
+      "siUnit": {
+        "name": "Newton",
+        "short": "N"
+      },
+      "additionalUnits": [],
+      "generateExtensions": true
+    },
+    
+    {
+      "typeName": "Length",
+      "siUnit": {
+        "name": "Meters",
+        "short": "m"
+      },
+      "additionalUnits": [
+        {
+          "name": "Kilometers",
+          "short": "km",
+          "factor": 1000
+        },
+        {
+          "name": "Centimeters",
+          "short": "cm",
+          "factor": 0.01
+        },
+        {
+          "name": "Millimeters",
+          "short": "cm",
+          "factor": 0.01
+        }
+      ],
+      "generateExtensions": true
+    },
+
+    {
+      "typeName": "Mass",
+      "siUnit": {
+        "name": "Kilograms",
+        "short": "kg"
+      },
+      "additionalUnits": [
+        {
+          "name": "Tons",
+          "short": "t",
+          "factor": 1000
+        },
+        {
+          "name": "Grams",
+          "short": "g",
+          "factor": 0.001
+        },
+        {
+          "name": "Milligrams",
+          "short": "mg",
+          "factor": 0.000001
+        }
+      ],
+      "generateExtensions": true
     }
+    
   ],
+  
   "derivedUnits": [
+    
     {
       "typeName": "Velocity",
       "derived": {
@@ -75,5 +136,6 @@
       "generateExtensions": true,
       "generateDerivedUnits": true
     }
+    
   ]
 }

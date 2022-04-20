@@ -1,7 +1,10 @@
 {
     "name": "WasaBii-Unity",
     "rootNamespace": "BII.WasaBii.Unity",
-    "references": [],
+    "references": [
+        "GUID:4954ca00eb7186a48820728a78a1d27a",
+        "GUID:02ec4b41966df4c4492091832c6404c1"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

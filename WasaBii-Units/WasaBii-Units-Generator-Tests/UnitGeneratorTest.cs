@@ -37,6 +37,7 @@ public class GeneratorTests
     {
         string resourceText = @"
 {
+  ""namespace"": ""com.foo.test"",
   ""baseUnits"": [
     {
       ""typeName"": ""Length"",
@@ -116,16 +117,17 @@ public class GeneratorTests
 }
 ";
         
-        Compilation comp = CreateCompilation();
+        Compilation comp = CreateCompilation(/* "namespace Foo { public static class Main { public static void Main(string[] args){} } }" */);
         var newComp = RunGenerators(comp, out var generatorDiags, new [] {
           new HardCodedText(resourceText, "test.units.json")
         }, new UnitGenerator());
 
         Assert.That(generatorDiags, Is.Empty);
-        Assert.That(newComp.GetDiagnostics(), Is.Empty);
 
         var sources = newComp.SyntaxTrees.Select(t => t.ToString()).ToArray();
         Console.WriteLine(string.Join("\n\n", sources));
+        
+        Assert.That(newComp.GetDiagnostics(), Is.Empty);
     }
 
 
@@ -134,8 +136,13 @@ public class GeneratorTests
             source == null 
               ? new CSharpSyntaxTree[] {} 
               : new[] { CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Preview)) },
-            new[] {MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location) },
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            new[] {
+              MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.1.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").Location),
+              MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location),
+              MetadataReference.CreateFromFile(typeof(System.Object).Assembly.Location),
+              MetadataReference.CreateFromFile(typeof(Units).Assembly.Location) 
+            },
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
     private static Compilation RunGenerators(
         Compilation c, 

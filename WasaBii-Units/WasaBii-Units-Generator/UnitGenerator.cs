@@ -49,12 +49,7 @@ public class UnitGenerator : ISourceGenerator {
     private static SourceText GenerateSourceFor(
         UnitDefinitions unitDef
     ) {
-        var res = $"public static class Whatever {{ " +
-                  $"public const string defs = \"{string.Join(", ", unitDef.BaseUnits.Select(b => b.TypeName))}\";" +
-                  $"public static void Main(string[] args) {{}}" +
-                  $"}}";
-
-        res = $@"
+        var res = $@"
 using System;
 using BII.WasaBii.Units;
 
@@ -69,14 +64,12 @@ using BII.WasaBii.Units;
             Encoding.UTF8
         );
     }
-    
-    // TODO: don't forget usings!
 
     private static string GenerateBaseUnit(BaseUnit unit) {
         var name = unit.TypeName;
         return $@"#region {name}
 
-public readonly struct {name} : IUnitValue<{name}, Unit> {{
+public readonly struct {name} : IUnitValue<{name}, {name}.Unit> {{
     public double SiValue {{ init; get; }}
     public Type UnitType => typeof(Unit);
     
@@ -150,7 +143,7 @@ public static class {name}ToDoubleExtensions {{
         var name = unit.TypeName;
         return $@"
 
-public static readonly class {name}ConstructionExtensions {{
+public static class {name}ConstructionExtensions {{
     public static {name} {unit.SiUnit.Name}s(this double value) => new(value, {name}.Unit.{unit.SiUnit.Name}.Instance);
 {string.Join("\n", unit.AdditionalUnits.Select(au => 
     $@"    public static {name} {au.Name}s(this double value) => new(value, {name}.Unit.{au.Name}.Instance);"))}

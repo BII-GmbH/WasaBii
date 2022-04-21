@@ -117,24 +117,18 @@
     
   ],
   
-  "derivedUnits": [
+  "mulUnits": [
+    
+  ],
+  
+  "divUnits": [
     
     {
       "typeName": "Velocity",
-      "derived": {
-        "type": "div",
-        "primary": "Length",
-        "secondary": "Duration"
-      },
-      "additionalUnits": [
-        {
-          "name": "Knots",
-          "short": "kn",
-          "factor": 0.514444
-        }
-      ],
-      "generateExtensions": true,
-      "generateDerivedUnits": true
+      "primary": "Length",
+      "secondary": "Duration",
+      "additionalUnits": [ ],
+      "generateExtensions": true
     }
     
   ]

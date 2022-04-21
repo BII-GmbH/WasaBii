@@ -65,9 +65,9 @@ namespace BII.WasaBii.Unity.Geometry {
 
         [Pure] public static GlobalOffset operator *(GlobalOffset offset, float scalar) => scalar * offset;
         
-        [Pure] public static GlobalOffset operator *(Number scalar, GlobalOffset offset) => (float)scalar * offset;
-        [Pure] public static GlobalOffset operator *(GlobalOffset offset, Number scalar) => (float)scalar * offset;
-        [Pure] public static GlobalOffset operator /(GlobalOffset offset, Number scalar) => offset / (float)scalar;
+        [Pure] public static GlobalOffset operator *(double scalar, GlobalOffset offset) => (float)scalar * offset;
+        [Pure] public static GlobalOffset operator *(GlobalOffset offset, double scalar) => (float)scalar * offset;
+        [Pure] public static GlobalOffset operator /(GlobalOffset offset, double scalar) => offset / (float)scalar;
 
         [Pure] public static bool operator ==(GlobalOffset a, GlobalOffset b) => a.AsVector == b.AsVector;
         [Pure] public static bool operator !=(GlobalOffset a, GlobalOffset b) => a.AsVector != b.AsVector;

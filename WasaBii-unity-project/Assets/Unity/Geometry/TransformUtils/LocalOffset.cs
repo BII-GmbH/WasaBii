@@ -68,9 +68,9 @@ namespace BII.WasaBii.Unity.Geometry {
 
         [Pure] public static LocalOffset operator *(LocalOffset offset, float scalar) => scalar * offset;
 
-        [Pure] public static LocalOffset operator *(Number scalar, LocalOffset offset) => (float)scalar * offset;
-        [Pure] public static LocalOffset operator *(LocalOffset offset, Number scalar) => (float)scalar * offset;
-        [Pure] public static LocalOffset operator /(LocalOffset offset, Number scalar) => offset / (float)scalar;
+        [Pure] public static LocalOffset operator *(double scalar, LocalOffset offset) => (float)scalar * offset;
+        [Pure] public static LocalOffset operator *(LocalOffset offset, double scalar) => (float)scalar * offset;
+        [Pure] public static LocalOffset operator /(LocalOffset offset, double scalar) => offset / (float)scalar;
         
         [Pure] public static bool operator ==(LocalOffset a, LocalOffset b) => a.AsVector == b.AsVector;
         [Pure] public static bool operator !=(LocalOffset a, LocalOffset b) => a.AsVector != b.AsVector;

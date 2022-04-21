@@ -11,7 +11,8 @@
       "additionalUnits": [
         {
           "name": "Degrees",
-          "short": "°"
+          "short": "°",
+          "factor": 57.2958
         }
       ],
       "generateExtensions": true
@@ -118,16 +119,109 @@
   ],
   
   "mulUnits": [
+
+    {
+      "typeName": "Area",
+      "primary": "Length",
+      "secondary": "Length",
+      "siUnit": {
+        "name": "SquareMeters",
+        "short": "m²"
+      },
+      "additionalUnits": [
+        {
+          "name": "Hectare",
+          "short": "ha",
+          "factor": 10000
+        }
+      ],
+      "generateExtensions": true
+    },
+
+    {
+      "typeName": "Volume",
+      "primary": "Area",
+      "secondary": "Length",
+      "siUnit": {
+        "name": "CubicMeters",
+        "short": "m³"
+      },
+      "additionalUnits": [
+        {
+          "name": "Liters",
+          "short": "l",
+          "factor": 0.001
+        }
+      ],
+      "generateExtensions": true
+    }
     
   ],
   
   "divUnits": [
+
+    {
+      "typeName": "AnglePerDuration",
+      "primary": "Angle",
+      "secondary": "Duration",
+      "siUnit": {
+        "name": "RadiansPerSecond",
+        "short": "rad/s"
+      },
+      "additionalUnits": [
+        {
+          "name": "DegreesPerSecond",
+          "short": "°/s",
+          "factor": 57.2958
+        }, 
+        {
+          "name": "DegreesPerMinute",
+          "short": "°/min",
+          "factor": 0.95493
+        }
+      ],
+      "generateExtensions": true
+    },
     
     {
       "typeName": "Velocity",
       "primary": "Length",
       "secondary": "Duration",
-      "additionalUnits": [ ],
+      "siUnit": {
+        "name": "MetersPerSecond",
+        "short": "m/s"
+      },
+      "additionalUnits": [
+        {
+          "name": "KilometersPerHour",
+          "short": "km/h",
+          "factor": 0.27777777777
+        }
+      ],
+      "generateExtensions": true
+    },
+
+    {
+      "typeName": "MassPerLength",
+      "primary": "Mass",
+      "secondary": "Length",
+      "siUnit": {
+        "name": "KilogramsPerMeter",
+        "short": "kg/m"
+      },
+      "additionalUnits": [],
+      "generateExtensions": true
+    },
+
+    {
+      "typeName": "VolumePerDuration",
+      "primary": "Volume",
+      "secondary": "Duration",
+      "siUnit": {
+        "name": "CubicMetersPerSecond",
+        "short": "m³/s"
+      },
+      "additionalUnits": [],
       "generateExtensions": true
     }
     

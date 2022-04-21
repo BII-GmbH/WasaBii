@@ -72,7 +72,7 @@ namespace BII.WasaBii.Unity.Geometry {
         /// <param name="b"> length of the second side</param>
         /// <param name="c"> length of the third side</param>
         /// <returns> returns the angles of the triangle (A is the opposing angle of side a, ect.)</returns>
-        [Pure] public static (Angle A, Angle B, Angle C) SolveTriangleFromSideLengths(Number a, Number b, Number c) {
+        [Pure] public static (Angle A, Angle B, Angle C) SolveTriangleFromSideLengths(double a, double b, double c) {
             Contract.Assert(
                 a + b > c && a + c > b && b + c > a,
                 "Can only solve triangle if lengths can form a valid triangle" +

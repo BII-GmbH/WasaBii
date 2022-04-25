@@ -61,6 +61,8 @@ namespace BII.WasaBii.Units {
         public bool Equals(Force other) => this == other;
         public override bool Equals(object obj) => obj is Force Force && this == Force;
         public override int GetHashCode() => SIValue.GetHashCode();
+        
+        public int CompareTo(Force other) => SIValue.CompareTo(other.SIValue);
     }
 
     public static class ForceExtensions {

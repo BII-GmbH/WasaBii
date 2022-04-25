@@ -169,6 +169,8 @@ namespace BII.WasaBii.Units {
         /// Returns the minimal positive Duration if `this` is not positive.
         /// </summary>
         public Duration AtLeastEpsilon() => this < Epsilon ? Epsilon : this;
+        
+        public int CompareTo(Duration other) => SIValue.CompareTo(other.SIValue);
     }
 
     public static class TimeExtensions {

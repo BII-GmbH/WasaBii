@@ -66,6 +66,7 @@ namespace BII.WasaBii.Units {
         public bool Equals(Area other) => this == other;
         public override bool Equals(object obj) => obj is Area area && this == area;
         public override int GetHashCode() => SIValue.GetHashCode();
+        public int CompareTo(Area other) => SIValue.CompareTo(other.SIValue);
     }
     
     public static class AreaExtensions {

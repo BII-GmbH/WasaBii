@@ -156,6 +156,8 @@ namespace BII.WasaBii.Units {
             (from, to) = NormalizedWithMinimalDifference(from, to);
             return to - from;
         }
+        
+        public int CompareTo(Angle other) => SIValue.CompareTo(other.SIValue);
     }
 
     public static class AngleExtensions {

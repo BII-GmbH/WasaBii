@@ -41,8 +41,8 @@ namespace Core.Tests {
             var source = new[] {1, 2, 3, 4, 5, 6, 7};
 
             var actual = source.Grouped(groupSize: 2, withPartial: false);
-            var expected = new[] { new [] {1, 2}, new [] {3, 4}, new [] {5, 6}};
-            Assert.That(actual, Is.EquivalentTo(expected));
+            var expected = new[,] { {1, 2}, {3, 4}, {5, 6}};
+            Assert.That(actual, Is.EquivalentTo(unpackArray(expected)));
         }
         
         [Test]
@@ -65,7 +65,7 @@ namespace Core.Tests {
         
         [Test]
         public void Sliding_WhenSourceEmpty_ThenEmptyResultAndDoesNotThrow() {
-            var source = new int[0];
+            var source = Array.Empty<int>();
             
             Assert.That(source.Sliding(), Is.Empty);
         }

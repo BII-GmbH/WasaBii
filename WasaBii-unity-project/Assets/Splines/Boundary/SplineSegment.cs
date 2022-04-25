@@ -1,8 +1,8 @@
 using System.Diagnostics.Contracts;
-using BII.WasaBii.CatmullRomSplines.Logic;
+using BII.WasaBii.Splines.Logic;
 using BII.WasaBii.Units;
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
     public readonly struct SplineSegment<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
@@ -12,14 +12,12 @@ namespace BII.WasaBii.CatmullRomSplines {
         public static SplineSegment<TPos, TDiff>? From(Spline<TPos, TDiff> spline, SplineSegmentIndex idx, Length? cachedSegmentLength = null) {
             var cubicPolynomial = SplineSegmentUtils.CubicPolynomialFor(spline, idx);
 
-            if (cubicPolynomial.HasValue) {
-                return new SplineSegment<TPos, TDiff>(
-                    cubicPolynomial.Value,
+            return cubicPolynomial is { } val
+                ? new SplineSegment<TPos, TDiff>(
+                    val,
                     cachedSegmentLength
-                );
-            }
-            
-            else return null;
+                )
+                : null;
         }
 
         public SplineSegment(CubicPolynomial<TPos, TDiff> polynomial, Length? cachedLength) {
@@ -40,7 +38,7 @@ namespace BII.WasaBii.CatmullRomSplines {
         ) 
         where TPos : struct 
         where TDiff : struct {
-            if (segment.CachedLength is Length cachedResult) return cachedResult;
+            if (segment.CachedLength is { } cachedResult) return cachedResult;
             else return LengthOfSegment(segment.Polynomial, samples);
         }
 
@@ -59,7 +57,7 @@ namespace BII.WasaBii.CatmullRomSplines {
         public static Length LengthOfSegment<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int samples = DefaultLengthSamples) 
             where TPos : struct 
             where TDiff : struct {
-            var length = WasaBii.Units.Length.Zero;
+            var length = Units.Length.Zero;
             var current = polynomial.Evaluate(t: 0);
             var increment = 1f / samples;
 

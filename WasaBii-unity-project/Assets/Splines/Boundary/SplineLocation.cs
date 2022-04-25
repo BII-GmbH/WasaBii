@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
     /// A location on a spline, measured in meters away from the beginning along the spline (and not flight distance)
     [Serializable]
     [MustBeSerializable]
@@ -19,14 +19,16 @@ namespace BII.WasaBii.CatmullRomSplines {
         public SplineLocation(double value) => Value = value;
 
         [Pure]
-        public Length GetDistanceToClosestSideOf(UntypedSpline spline, Length? cachedLength = null) {
+        public Length GetDistanceToClosestSideOf<TPos, TDiff>(Spline<TPos, TDiff> spline, Length? cachedLength = null) 
+            where TPos : struct where TDiff : struct {
             var length = cachedLength ?? spline.Length();
             var distanceFromEnd = length - DistanceFromBegin;
             return DistanceFromBegin.Min(distanceFromEnd);
         }
 
         [Pure]
-        public bool IsCloserToBeginOf(UntypedSpline spline, Length? cachedLength = null) {
+        public bool IsCloserToBeginOf<TPos, TDiff>(Spline<TPos, TDiff> spline, Length? cachedLength = null) 
+            where TPos : struct where TDiff : struct {
             var length = cachedLength ?? spline.Length();
             return (DistanceFromBegin < length / 2f);
         }

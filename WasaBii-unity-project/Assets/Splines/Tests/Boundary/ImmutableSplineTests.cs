@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.WasaBii.CatmullRomSplines.Tests {
+namespace BII.WasaBii.Splines.Tests {
     public class ImmutableSplineTests {
         [Test]
         public void Ctor_WhenInitializedCorrectly_ThenCorrectNodePositionsAndValidSpline() {

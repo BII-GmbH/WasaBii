@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using static BII.WasaBii.CatmullRomSplines.Logic.SplineNormalizationUtility;
+using static BII.WasaBii.Splines.Logic.SplineNormalizationUtility;
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
     public static class SplineNormalizationExtensions {
         /// Converts a location on the spline from <see cref="SplineLocation"/>
         /// to <see cref="NormalizedSplineLocation"/>.

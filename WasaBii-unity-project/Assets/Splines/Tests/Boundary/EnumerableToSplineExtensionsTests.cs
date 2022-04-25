@@ -3,7 +3,7 @@ using BII.WasaBii.Unity.Geometry.Splines;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.WasaBii.CatmullRomSplines.Tests {
+namespace BII.WasaBii.Splines.Tests {
     public class EnumerableToSplineExtensionsTests {
 
         [Test]

@@ -2,7 +2,7 @@ using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
 
     public enum SampleDirection {
         FromStart,

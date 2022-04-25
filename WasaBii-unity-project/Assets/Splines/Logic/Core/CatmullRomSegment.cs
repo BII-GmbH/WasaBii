@@ -1,6 +1,7 @@
 using System;
+#nullable enable
 
-namespace BII.WasaBii.CatmullRomSplines.Logic {
+namespace BII.WasaBii.Splines.Logic {
    
     /// Internal data structure all supported spline data structures are converted to
     /// It is used for the calculations and describes the area between two spline handles (p1 and p2), 
@@ -9,6 +10,12 @@ namespace BII.WasaBii.CatmullRomSplines.Logic {
         where TPos : struct 
         where TDiff : struct {
 
+        public readonly TPos P0, P1, P2, P3;
+        public TPos Start => P1;
+        public TPos End => P2;
+        
+        internal readonly PositionOperations<TPos, TDiff> Ops;
+
         public CatmullRomSegment(TPos p0, TPos p1, TPos p2, TPos p3, PositionOperations<TPos, TDiff> ops) {
             P0 = p0;
             P1 = p1;
@@ -16,12 +23,6 @@ namespace BII.WasaBii.CatmullRomSplines.Logic {
             P3 = p3;
             Ops = ops;
         }
-
-        public readonly TPos P0, P1, P2, P3;
-        public TPos Start => P1;
-        public TPos End => P2;
-        
-        internal readonly PositionOperations<TPos, TDiff> Ops;
 
     }
 
@@ -48,14 +49,14 @@ namespace BII.WasaBii.CatmullRomSplines.Logic {
             if(double.IsNaN(location.Value))
                 throw new ArgumentException("The spline location is NaN", nameof(location));
                 
-            if (location < 0 || location > spline.TotalHandleCount - 3 + EndOfSplineOvershootTolerance)
+            if (location < 0 || location > spline.HandleCount - 1 + EndOfSplineOvershootTolerance)
                 return null;
             
-            var (s0, overshoot) = location >= spline.TotalHandleCount - 3
+            var (s0, overshoot) = location >= spline.HandleCount - 1
                 // The location was almost at, or slightly above the end of the spline
                 // but within tolerance. The used segment automatically
                 // becomes the last valid catmull rom segment.
-                ? (SplineHandleIndex.At(spline.TotalHandleCount - 4), 1.0f)
+                ? (SplineHandleIndex.At(spline.HandleCount - 2), 1.0f)
                 // Otherwise the location is simply converted to a handle index and overshoot
                 : location.AsHandleIndex();
             

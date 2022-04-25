@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BII.WasaBii.CatmullRomSplines.Logic;
 using BII.WasaBii.Core;
+using BII.WasaBii.Splines.Logic;
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
     
     public static class EnumerableToSplineExtensions {
 

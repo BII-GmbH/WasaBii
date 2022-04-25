@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using static BII.WasaBii.CatmullRomSplines.Logic.SplineNormalizationUtility;
-using static BII.WasaBii.CatmullRomSplines.Tests.SplineTestUtils;
+using static BII.WasaBii.Splines.Logic.SplineNormalizationUtility;
+using static BII.WasaBii.Splines.Tests.SplineTestUtils;
 
-namespace BII.WasaBii.CatmullRomSplines.Tests {
+namespace BII.WasaBii.Splines.Tests {
     public class SplineNormalizationUtilityTest {
         private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizaionSamples = new Dictionary<float, float>
             {{0, 0}, {0.5f, 0.113f}, {1, 0.227f}, {2.6f, 0.590f}, {3, 0.681f}, {4.404f, 1f}}.ToDictionary(
@@ -20,7 +20,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
         
         [Test]
         public void DeNormalize_BatchTest() {
-            var uut = ExampleCurvedSpline.Spline;
+            var uut = SplineTestUtils.ExampleCurvedSpline.Spline;
         
             foreach (var kvp in deNormalizaionSamples) {
                 var location = DeNormalize(uut, kvp.Key);
@@ -30,7 +30,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
         
         [Test]
         public void DeNormalize_WhenEquidistantNode_ThenTAndLocationEqual() {
-            var uut = ExampleEquidistantLinearSpline.Spline;
+            var uut = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
         
             foreach (var t in new[] {0, 0.1, 0.3, 0.5, 0.77, 1, 1.5, 1.99, 2}.Select(SplineLocation.From)) {
                 var location = DeNormalize(uut, NormalizedSplineLocation.From(t.Value));
@@ -42,7 +42,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
         
         [Test]
         public void Normalize_BatchTest() {
-            var uut = ExampleCurvedSpline.Spline;
+            var uut = SplineTestUtils.ExampleCurvedSpline.Spline;
         
             foreach (var kvp in normalizaionSamples) {
                 var t = Normalize(uut, kvp.Key);
@@ -52,7 +52,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
         
         [Test]
         public void Normalize_WhenEquidistantNode_ThenLocationAndTEqual() {
-            var uut = ExampleEquidistantLinearSpline.Spline;
+            var uut = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
         
             foreach (var t in new[] {0, 0.1, 0.3, 0.5, 0.77, 1, 1.5, 1.87, 2}.Select(SplineLocation.From)) {
                 var location = Normalize(uut, t);
@@ -64,7 +64,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
         
         [Test]
         public void Normalize_WhenSegmentLengthAsLocation_ThenIntegerValueReturned() {
-            var spline = ExampleEquidistantLinearSpline.Spline;
+            var spline = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
             var length = spline[SplineSegmentIndex.Zero].Length();
             
             var uut = Normalize(spline, length);
@@ -75,7 +75,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
         
         [Test]
         public void BulkNormalizeOrdered_BatchTest() {
-            var uut = ExampleCurvedSpline.Spline;
+            var uut = SplineTestUtils.ExampleCurvedSpline.Spline;
         
             var toNormalize = new SplineLocation[normalizaionSamples.Count];
             var expected = new NormalizedSplineLocation[deNormalizaionSamples.Count];
@@ -96,7 +96,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
         
         [Test]
         public void BulkNormalizeOrdered_WhenEquidistantNode_ThenLocationAndTEqual() {
-            var uut = ExampleEquidistantLinearSpline.Spline;
+            var uut = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
         
             var expected = new[] {0, 0.1, 0.3, 0.5, 0.77, 1, 1.5, 1.87, 2};
             var actual = BulkNormalizeOrdered(uut, expected.Select(SplineLocation.From))

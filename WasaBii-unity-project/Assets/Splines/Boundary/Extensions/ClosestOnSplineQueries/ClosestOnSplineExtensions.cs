@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
     public static class ClosestOnSplineExtensions {
         public const int DefaultClosestOnSplineSamples = 5;
 
@@ -78,7 +78,7 @@ namespace BII.WasaBii.CatmullRomSplines {
                     closestLocation
                 );
 
-                var totalIntervals = spline.HandleCount() - 1;
+                var totalIntervals = spline.HandleCount - 1;
                 var lower = 0;
                 var upper = totalIntervals;
 

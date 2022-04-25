@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using BII.WasaBii.Units;
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
 
     public static class EnumerableClosestOnSplineExtensions {
         

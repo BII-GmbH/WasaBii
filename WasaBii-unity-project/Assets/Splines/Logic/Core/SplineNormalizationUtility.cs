@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
-namespace BII.WasaBii.CatmullRomSplines.Logic {
+namespace BII.WasaBii.Splines.Logic {
     /// When querying positions, tangents etc on a spline, the parameters t or location can be used
     /// t is a normalized parameter, which means that the nodes of the spline are at 0, 1, 2, ..
     /// and 0.5 is for instance in the middle between node 0 and 1

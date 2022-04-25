@@ -1,6 +1,6 @@
 using BII.WasaBii.Units;
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
 
     public interface ClosestOnSplineQueryResult<TPos, TDiff>
         where TPos : struct 

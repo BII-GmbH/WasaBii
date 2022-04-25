@@ -1,15 +1,15 @@
 using System;
 using System.Linq;
-using BII.WasaBii.CatmullRomSplines.Logic;
+using BII.WasaBii.Splines.Logic;
 using BII.WasaBii.Units;
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
     public static class SplineCopyExtensions {
 
         /// Creates a deep-copy of the provided spline.
         public static Spline<TPos, TDiff> Copy<TPos, TDiff>(this Spline<TPos, TDiff> spline) 
             where TPos : struct where TDiff : struct =>
-            new ImmutableSpline<TPos, TDiff>(spline.HandlesIncludingMargin(), spline.Ops, spline.Type);
+            new ImmutableSpline<TPos, TDiff>(spline.HandlesIncludingMargin, spline.Ops, spline.Type);
         
         /// Creates a new spline with a similar trajectory as <paramref name="original"/>, but with all handle
         /// positions being moved by a certain offset which depends on the spline's tangent at these points.
@@ -22,14 +22,13 @@ namespace BII.WasaBii.CatmullRomSplines {
 
             return new ImmutableSpline<TPos, TDiff>(
                 computePosition(original, original.BeginMarginHandle(), NormalizedSplineLocation.Zero),
-                original.Handles()
-                    .Select(
-                        (node, idx) => computePosition(original, node, NormalizedSplineLocation.From(idx))
-                    ),
+                original.Handles.Select((node, idx) => 
+                    computePosition(original, node, NormalizedSplineLocation.From(idx))
+                ),
                 computePosition(
                     original,
                     original.EndMarginHandle(),
-                    NormalizedSplineLocation.From(original.HandleCount() - 1)
+                    NormalizedSplineLocation.From(original.HandleCount - 1)
                 ),
                 original.Ops,
                 original.Type
@@ -46,7 +45,7 @@ namespace BII.WasaBii.CatmullRomSplines {
             TPos computePosition(TPos node) => original.Ops.Add(node, offset);
             return new ImmutableSpline<TPos, TDiff>(
                 computePosition(original.BeginMarginHandle()),
-                original.Handles().Select(computePosition),
+                original.Handles.Select(computePosition),
                 computePosition(original.EndMarginHandle()),
                 original.Ops,
                 original.Type
@@ -71,6 +70,6 @@ namespace BII.WasaBii.CatmullRomSplines {
         /// but has the same handles and spline type
         public static Spline<TPos, TDiff> Reversed<TPos, TDiff>(this Spline<TPos, TDiff> original) 
             where TPos : struct where TDiff : struct => 
-                new ImmutableSpline<TPos, TDiff>(original.HandlesIncludingMargin().Reverse(), original.Ops, original.Type);
+                new ImmutableSpline<TPos, TDiff>(original.HandlesIncludingMargin.Reverse(), original.Ops, original.Type);
     }
 }

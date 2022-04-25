@@ -3,14 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Units;
+#nullable enable
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
     public static class SplineSampleExtensions {
         
         /// Returns a new Spline with (nearly) identical "shape" and handles with uniform distance
         [Pure] public static Spline<TPos, TDiff> Resample<TPos, TDiff>(this Spline<TPos, TDiff> spline, Length desiredHandleDistance) 
             where TPos : struct where TDiff : struct
-            => Splines.FromInterpolating(spline.SampleSplineEvery(desiredHandleDistance, sample => sample.Position), spline.Ops);
+            => GenericSpline.FromInterpolating(spline.SampleSplineEvery(desiredHandleDistance, sample => sample.Position), spline.Ops);
 
         /// This method samples the positions on the entire spline.
         /// The sample rate is a defined amount between each segment of spline handles.
@@ -18,7 +19,7 @@ namespace BII.WasaBii.CatmullRomSplines {
         [Pure] public static List<TPos> SampleSplinePerSegment<TPos, TDiff>(this WithSpline<TPos, TDiff> withSpline, int samplesPerSegment) 
             where TPos : struct where TDiff : struct {
             var spline = withSpline.Spline;
-            var handleCount = spline.HandleCount();
+            var handleCount = spline.HandleCount;
             var increment = 1f / samplesPerSegment;
             var points = new List<TPos>();
             for (var location = NormalizedSplineLocation.Zero; location < handleCount - 1; location += increment) {
@@ -36,7 +37,7 @@ namespace BII.WasaBii.CatmullRomSplines {
             this WithSpline<TPos, TDiff> withSpline,
             Length desiredSampleLength,
             Func<SplineSample<TPos, TDiff>, TRes> resultSelector,
-            CalculateSegments calculateSegments = null
+            CalculateSegments? calculateSegments = null
         ) where TPos : struct where TDiff : struct 
             => withSpline.SampleSplineBetween(
                 resultSelector,
@@ -57,7 +58,7 @@ namespace BII.WasaBii.CatmullRomSplines {
             SplineLocation fromAbsolute,
             SplineLocation toAbsolute,
             Length desiredSampleLength,
-            CalculateSegments calculateSegments = null
+            CalculateSegments? calculateSegments = null
         ) where TPos : struct where TDiff : struct =>
             withSpline.Spline.applySampleFunctionBetween(
                 (s, l) => resultSelector(s[l]),

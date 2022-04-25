@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BII.WasaBii.CatmullRomSplines.Logic;
+using BII.WasaBii.Splines.Logic;
 using BII.WasaBii.Units;
 using BII.WasaBii.Unity.Geometry.Splines;
 using NSubstitute;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.WasaBii.CatmullRomSplines.Tests {
+namespace BII.WasaBii.Splines.Tests {
     
     using Spline = Spline<Vector3, Vector3>;
     using SplineSegment = SplineSegment<Vector3, Vector3>;
@@ -29,7 +29,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
             var handles = handlesIncludingMargin.ToArray();
             var res = Substitute.For<Spline>();
             res.Type.Returns(type);
-            res.TotalHandleCount.Returns(handles.Length);
+            res.HandleCountIncludingMargin.Returns(handles.Length);
             res.Spline.Returns(res);
             
             res[Arg.Any<SplineHandleIndex>()].ReturnsForAnyArgs(info => handles[info.Arg<SplineHandleIndex>()]);
@@ -58,7 +58,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
             Assert.That(uut[SplineHandleIndex.At(2)], Is.EqualTo(ExampleLinearSpline.ThirdHandle));
             Assert.That(uut[SplineHandleIndex.At(3)], Is.EqualTo(ExampleLinearSpline.FourthHandle));
             
-            Assert.That(uut.TotalHandleCount, Is.EqualTo(ExampleLinearSpline.HandleCount));
+            Assert.That(uut.HandleCountIncludingMargin, Is.EqualTo(ExampleLinearSpline.HandleCount));
             Assert.That(uut.Type, Is.EqualTo(SplineType.Centripetal));
         
             Assert.That(() => uut[SplineSegmentIndex.Zero], Throws.Nothing);
@@ -102,7 +102,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
             public static Vector3 Expected1Curvature = Vector3.zero;
             
             public static CubicPolynomial<Vector3, Vector3> Polynomial => CubicPolynomial.FromCatmullRomSegment(
-                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnityVectorOps.Instance),
+                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.PositionOperations.Instance),
                 splineTypeAlphaValue
             );
 
@@ -152,7 +152,7 @@ namespace BII.WasaBii.CatmullRomSplines.Tests {
             public static Length ExpectedSplineLength => 4.404f.Meters();
 
             public static CubicPolynomial<Vector3, Vector3> Polynomial => CubicPolynomial.FromCatmullRomSegment(
-                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnityVectorOps.Instance),
+                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.PositionOperations.Instance),
                 splineTypeAlphaValue
             );
             

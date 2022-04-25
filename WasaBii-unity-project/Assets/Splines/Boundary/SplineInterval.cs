@@ -1,7 +1,7 @@
 ﻿using System;
 using BII.WasaBii.Core;
 
-namespace BII.WasaBii.CatmullRomSplines {
+namespace BII.WasaBii.Splines {
     
     [Serializable]
     public struct SplineInterval {

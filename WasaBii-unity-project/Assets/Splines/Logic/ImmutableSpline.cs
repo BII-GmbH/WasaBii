@@ -7,7 +7,7 @@ using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 using Newtonsoft.Json;
 
-namespace BII.WasaBii.CatmullRomSplines.Logic {
+namespace BII.WasaBii.Splines.Logic {
     
     [JsonObject(IsReference = false)] // Treat as value type for serialization
     [MustBeSerializable] 
@@ -25,14 +25,18 @@ namespace BII.WasaBii.CatmullRomSplines.Logic {
             _ops = ops;
         }
         
-        [JsonConstructor]
-        private ImmutableSpline(){}
+        // The non-nullable fields are not set and thus null, but
+        // they should always be set via reflection, so this is fine.
+    #pragma warning disable 8618
+        [JsonConstructor] private ImmutableSpline(){}
+    #pragma warning restore 8618
 
         private readonly ImmutableArray<TPos> handles;
-        
+
+        public IReadOnlyList<TPos> HandlesIncludingMargin => handles;
+
         public SplineType Type { get; }
         
-        public int TotalHandleCount => handles.Length;
         public Spline<TPos, TDiff> Spline => this;
 
         private readonly PositionOperations<TPos, TDiff> _ops;
@@ -44,18 +48,18 @@ namespace BII.WasaBii.CatmullRomSplines.Logic {
             throw new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {this.SegmentCount()}");
         
         public SplineSample<TPos, TDiff> this[SplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
-            throw new ArgumentOutOfRangeException(nameof(location), location, $"Must be between 0 and {((UntypedSpline)this).Length()}");
+            throw new ArgumentOutOfRangeException(nameof(location), location, $"Must be between 0 and {((Spline<TPos, TDiff>)this).Length()}");
 
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
             throw new ArgumentOutOfRangeException(
                 nameof(location),
                 location,
-                $"Must be between 0 and {this.HandleCount() - 1}"
+                $"Must be between 0 and {((Spline<TPos, TDiff>)this).HandleCount - 1}"
             );
 
         public bool Equals(Spline<TPos, TDiff> other) {
             if (ReferenceEquals(null, other)) return false;
-            return Equals(this.HandlesIncludingMargin(), other.HandlesIncludingMargin()) && Type == other.Type;
+            return Equals(this.HandlesIncludingMargin, other.HandlesIncludingMargin) && Type == other.Type;
         }
 
         public override bool Equals(object obj) => obj is Spline<TPos, TDiff> otherSpline && Equals(otherSpline);

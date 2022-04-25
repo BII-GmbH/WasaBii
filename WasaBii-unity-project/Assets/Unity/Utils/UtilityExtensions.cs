@@ -18,7 +18,7 @@ namespace BII.WasaBii.Unity {
         /// <b>Iterable only once</b>.
         [Pure]
         public static IEnumerable<Transform> GetChildren(this Transform transform) => 
-            transform.Cast<Transform>(); // for proper typing
+            transform.Cast<Transform>();
 
         /// <inheritdoc cref="Util.IsNull{T}"/>
         [Pure]
@@ -143,122 +143,5 @@ namespace BII.WasaBii.Unity {
         }
 
 #endregion General Extensions
-#region Linq Style Extensions
-
-        /// <summary>
-        /// Executes the specified action with side effects for each element in this sequence,
-        /// thereby consuming the sequence if it was only iterable once.
-        /// </summary>
-        public static void ForEach<T>(this IEnumerable<T> sequence, Action<T> action) {
-            foreach (var item in sequence) action(item);
-        }
-
-        /// <summary>
-        /// <inheritdoc cref="ForEach{T}(System.Collections.Generic.IEnumerable{T},System.Action{T})"/>
-        /// </summary>
-        public static void ForEach<T1, T2>(this IEnumerable<(T1, T2)> sequence, Action<T1, T2> action) {
-            foreach (var (t1, t2) in sequence) action(t1, t2);
-        }
-        
-        /// <summary>
-        /// Executes the specified action with side effects for each element in this sequence,
-        /// thereby consuming the sequence if it was only iterable once. The action also takes
-        /// the index of the element as second argument, thus allowing you to potentially replace
-        /// simple counting for loops with this function.
-        /// </summary>
-        public static void ForEachWithIndex<T>(this IEnumerable<T> sequence, Action<T, int> action) {
-            var i = 0;
-            foreach (var item in sequence) action(item, i++);
-        }
-
-        /// <summary>
-        /// Equal to calling <code>.Select(mapping).Where(v => v != null)</code>
-        /// <br/>
-        /// Nice for calling functions that may return no result such as
-        /// <code>.Collect(v => v.As&lt;Whatever&gt;())</code>
-        /// </summary>
-        public static IEnumerable<TRes> Collect<T, TRes>(
-            this IEnumerable<T> sequence, Func<T, TRes> mapping
-        ) where TRes : class =>
-            sequence.Select(mapping).Where(v => v != null);
-
-        /// <inheritdoc cref="Collect{T,TRes}(System.Collections.Generic.IEnumerable{T},System.Func{T,TRes})"/>
-        public static IEnumerable<TRes> Collect<T, TRes>(
-            this IEnumerable<T> sequence, Func<T, int, TRes> mappingWithIndex
-        ) where TRes : class =>
-            sequence.Select(mappingWithIndex).Where(v => v != null);
-
-        /// <summary>
-        /// Similar to <see cref="Collect{T,TRes}(System.Collections.Generic.IEnumerable{T},System.Func{T,TRes})"/>.
-        /// This method works on mappings that return nullable values,
-        /// but returns a non-nullable enumerable instead.
-        /// </summary>
-        public static IEnumerable<TRes> Collect<T, TRes>(this IEnumerable<T> sequence, Func<T, TRes?> mapping)
-        where TRes : struct {
-            foreach (var value in sequence) if (mapping(value) is TRes res) yield return res;
-        }
-
-        /// <summary>
-        /// Equal to calling <code>.SelectMany(mapping).Where(v => v != null)</code>
-        /// <br/>
-        /// Basically the flattening equivalent to <see cref="Collect{T,TRes}(System.Collections.Generic.IEnumerable{T},System.Func{T,TRes})"/>
-        /// </summary>
-        public static IEnumerable<TRes> CollectMany<T, TRes>(
-            this IEnumerable<T> sequence, Func<T, IEnumerable<TRes>> mapping
-        ) {
-            foreach (var value in sequence) 
-            foreach (var mapped in mapping(value))
-                if (mapped != null) yield return mapped;
-        }
-        
-        /// <summary>
-        /// Equal to calling <code>.SelectMany(mapping).Where(v => v != null)</code>
-        /// <br/>
-        /// This method works on mappings that return nullable values,
-        /// but returns a non-nullable enumerable instead.
-        /// Basically the flattening equivalent to <see cref="Collect{T,TRes}(System.Collections.Generic.IEnumerable{T},System.Func{T,Nullable{TRes}})"/>
-        /// </summary>
-        public static IEnumerable<TRes> CollectMany<T, TRes>(
-            this IEnumerable<T> sequence, Func<T, IEnumerable<TRes?>> mapping
-        ) where TRes : struct {
-            foreach (var value in sequence) 
-            foreach (var mapped in mapping(value))
-                if (mapped is TRes res) yield return res;
-        }
-
-        /// <returns>True if the specified sequence contains no elements, false otherwise.</returns>
-        public static bool IsEmpty<T>(this IEnumerable<T> sequence) => !sequence.Any();
-
-        /// <returns>False if the specified sequence contains no elements, true otherwise.</returns>
-        public static bool IsNotEmpty<T>(this IEnumerable<T> sequence) => sequence.Any();
-        
-        [NotNull] public static IEnumerable<T> AfterwardsDo<T>(this IEnumerable<T> enumerable, Action afterwards) {
-            try {
-                foreach (var value in enumerable) yield return value;
-            } finally {
-                afterwards();
-            }
-        }
-
-        private static readonly System.Random Rng = new System.Random();
-
-        /// <summary>
-        /// Shuffles this sequence, yielding a <b>new</b> IEnumerable with all elements in random order.
-        /// Uses the <a href="https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle">Fisher–Yates algorithm</a>.
-        /// <br/>If the passed IEnumerable is only iterable once it is consumed in the process.
-        /// </summary>
-        [NotNull] public static List<T> Shuffled<T>(this IEnumerable<T> l, System.Random random = null) {
-            if (random == null) random = Rng;
-            var list = new List<T>(l);
-            var n = list.Count;
-            while (n > 1) {
-                n--;
-                var k = random.Next(n + 1);
-                (list[k], list[n]) = (list[n], list[k]);
-            }
-
-            return list;
-        }
-#endregion Linq Style Extensions
     }
 }

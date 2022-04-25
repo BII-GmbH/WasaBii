@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BII.WasaBii.Core;
 using BII.WasaBii.Unity.Exceptions;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -87,7 +88,7 @@ namespace BII.WasaBii.Unity {
                 _ => throw new UnsupportedSearchException(where)
             };
 
-        /// <inheritdoc cref="Find{T}(UnityEngine.GameObject,System.Func{UnityEngine.GameObject,T},Search)"/>
+        /// <inheritdoc cref="Find{T}(GameObject,System.Func{UnityEngine.GameObject,T},Search)"/>
         [CanBeNull]
         public static T Find<T>(this Transform tr, [NotNull] Func<GameObject, T> fn, Search where = Search.InObjectOnly)
             where T : class =>
@@ -117,17 +118,26 @@ namespace BII.WasaBii.Unity {
             return !Util.IsNull(result);
         }
 
-        /// <inheritdoc cref="Is{T}(UnityEngine.GameObject,out T,Search)" />
+        /// <inheritdoc cref="Is{T}(GameObject,out T,Search,bool)" />
         public static bool Is<T>(
             this Component comp, out T result, Search where = Search.InObjectOnly, bool includeInactive = false
         ) where T : class =>
             comp.gameObject.Is<T>(out result, @where, includeInactive);
 
-        /// <inheritdoc cref="Is{T}(UnityEngine.GameObject,out T,Search)" />
-        public static bool Is<T>(
-            this Collision col, out T result, Search where = Search.InObjectOnly, bool includeInactive = false
-        ) where T : class =>
-            col.gameObject.Is<T>(out result, @where, includeInactive);
+        /// <inheritdoc cref="Is{T}(GameObject,out T,Search,bool)" />
+        public static bool Is<T>(this object obj, out T ret, Search where = Search.InObjectOnly, bool includeInactive = false)
+            where T : class {
+            switch (obj) {
+                case T t:
+                    ret = t;
+                    return true;
+                case Component component:   return component.Is<T>(out ret, where, includeInactive);
+                case GameObject gameObject: return gameObject.Is<T>(out ret, where, includeInactive);
+                default:
+                    ret = null;
+                    return false;
+            }
+        }
 
         /// <param name="where">Optional search scope if the object itself does not have the component.</param>
         /// <typeparam name="T">The type of the component to find.</typeparam>
@@ -136,22 +146,21 @@ namespace BII.WasaBii.Unity {
             where T : class =>
             go.Is<T>(out _, where, includeInactive);
 
-        /// <inheritdoc cref="Is{T}(GameObject, Search)"/>
+        /// <inheritdoc cref="Is{T}(GameObject, Search,bool)"/>
         public static bool Is<T>(this Component comp, Search where = Search.InObjectOnly, bool includeInactive = false)
             where T : class =>
             comp.gameObject.Is<T>(where, includeInactive);
-
-        /// <inheritdoc cref="Is{T}(GameObject, Search)"/>
-        public static bool Is<T>(this Collision col, Search where = Search.InObjectOnly, bool includeInactive = false)
-            where T : class =>
-            col.gameObject.Is<T>(where, includeInactive);
+        
+        /// <inheritdoc cref="Is{T}(GameObject,Search,bool)" />
+        public static bool Is<T>(this object obj, Search where = Search.InObjectOnly)
+            where T : class => obj.Is<T>(out _, where);
 
         /// <param name="where">Optional search scope if the object itself does not have the component.</param>
         /// <typeparam name="T">The type of the component to find.</typeparam>
         /// <returns>The first component of type T found in the search scope or throws if not found.</returns>
         [NotNull]
-        public static T AsOrThrow<T>(this GameObject go, Search where = Search.InObjectOnly,
-            bool includeInactive = false) where T : class =>
+        public static T AsOrThrow<T>(this GameObject go, Search where = Search.InObjectOnly, bool includeInactive = false) 
+            where T : class =>
             go.As<T>(where, includeInactive).IsNotNull(out var res)
                 ? res
                 : throw new MissingComponentException($"The component of type {typeof(T)} could not be found on {go}");
@@ -187,46 +196,106 @@ namespace BII.WasaBii.Unity {
 
         /// <inheritdoc cref="AsOrThrow{T}(GameObject, Search)"/>
         [NotNull]
-        public static T AsOrThrow<T>(this Component comp, Search where = Search.InObjectOnly,
-            bool includeInactive = false) where T : class =>
+        public static T AsOrThrow<T>(this Component comp, Search where = Search.InObjectOnly, bool includeInactive = false) 
+            where T : class =>
             comp.gameObject.AsOrThrow<T>(@where, includeInactive);
 
         /// <inheritdoc cref="As{T}(GameObject, Search)"/>
-        [CanBeNull]
-        public static T As<T>(this Collision col, Search where = Search.InObjectOnly, bool includeInactive = false)
-            where T : class =>
-            col.gameObject.As<T>(@where, includeInactive);
+        public static T As<T>(this object obj, Search where = Search.InObjectOnly, bool includeInactive = false)
+            where T : class
+            => obj.Is<T>(out var res, where, includeInactive) ? res : null;
+
+        /// <inheritdoc cref="AsOrThrow{T}(GameObject, Search)"/>
+        public static T AsOrThrow<T>(this object obj, Search where = Search.InObjectOnly, bool includeInactive = false)
+            where T : class
+            => obj.Is<T>(out var res, where, includeInactive)
+                ? res
+                : throw new MissingComponentException($"The component of type {typeof(T)} could not be found on {obj}");
 
         /// <param name="where">Optional search scope if the object itself does not have the component.</param>
         /// <typeparam name="T">The type of the component to find.</typeparam>
         /// <returns>A lazily generated IEnumerable of all components of type T found in the search scope. Might be empty.</returns>
-        public static IEnumerable<T> All<T>(this GameObject go, Search where = Search.InObjectOnly,
-            bool includeInactive = false) where T : class {
-            return where switch {
-                Search.InObjectOnly => go.GetComponents<T>(),
-                Search.InParents => go.GetComponentsInParent<T>(includeInactive),
-                Search.InChildren => go.GetComponentsInChildren<T>(includeInactive),
-                Search.InSiblings => go.transform.parent.IsNull(out var p)
-                    ? go.All<T>(includeInactive: includeInactive)
-                    : go.transform.parent.GetChildren()
-                        .Collect(c => c.As<T>(includeInactive: includeInactive))
-                        .ToArray(),
-                Search.InWholeHierarchy => go.transform.parent.IfNotNull(
-                        p => p.gameObject.GetComponentsInParent<T>(includeInactive), elseResult: Enumerable.Empty<T>())
-                    .Concat(go.GetComponentsInChildren<T>(includeInactive)),
-                _ => throw new UnsupportedSearchException(where)
+        public static IEnumerable<T> All<T>(
+            this GameObject go, Search where = Search.InObjectOnly, bool includeInactive = false
+        ) where T : class => where switch {
+            Search.InObjectOnly => go.GetComponents<T>(),
+            Search.InParents => go.GetComponentsInParent<T>(includeInactive),
+            Search.InChildren => go.GetComponentsInChildren<T>(includeInactive),
+            Search.InSiblings => go.transform.parent.IsNull(out var p)
+                ? go.All<T>(includeInactive: includeInactive)
+                : go.transform.parent.GetChildren()
+                    .Collect(c => c.As<T>(includeInactive: includeInactive))
+                    .ToArray(),
+            Search.InWholeHierarchy => go.transform.parent.IfNotNull(
+                    p => p.gameObject.GetComponentsInParent<T>(includeInactive), elseResult: Enumerable.Empty<T>())
+                .Concat(go.GetComponentsInChildren<T>(includeInactive)),
+            _ => throw new UnsupportedSearchException(@where)
+        };
+
+        /// <inheritdoc cref="All{T}(GameObject, Search)"/>
+        public static IEnumerable<T> All<T>(
+            this Component comp, Search where = Search.InObjectOnly, bool includeInactive = false
+        ) where T : class => comp.gameObject.All<T>(@where, includeInactive);
+
+        /// <inheritdoc cref="All{T}(GameObject, Search)"/>
+        public static IEnumerable<T> All<T>(
+            this object obj,  Search where = Search.InObjectOnly, bool includeInactive = false
+        ) where T : class =>
+            obj switch {
+                GameObject go => go.All<T>(where, includeInactive),
+                Component comp => comp.All<T>(where, includeInactive),
+                T t => new[] { t },
+                _ => Enumerable.Empty<T>()
             };
+
+        /// Searches for a component of type T and then executes either <see cref="ifAction"/> or
+        /// <see cref="elseAction"/>, depending on whether it found something.
+        /// <param name="where">Optional search scope if the object itself does not have the component.</param>
+        /// <typeparam name="T">The type of the component to find.</typeparam>
+        /// <param name="ifAction">The action to execute if the component was found.</param>
+        /// <param name="elseAction">The action to execute if the component was not found.</param>
+        public static void DoIfComponentExists<T>(
+            this GameObject go, 
+            [NotNull] Action<T> ifAction, 
+            Action elseAction = null, 
+            Search where = Search.InObjectOnly, 
+            bool includeInactive = false
+        ) where T : class {
+            if (go.Is<T>(out var res, where))
+                ifAction.Invoke(res);
+            else
+                elseAction?.Invoke();
         }
 
-        /// <inheritdoc cref="All{T}(GameObject, Search)"/>
-        public static IEnumerable<T> All<T>(this Component comp, Search where = Search.InObjectOnly,
-            bool includeInactive = false) where T : class =>
-            comp.gameObject.All<T>(@where, includeInactive);
-
-        /// <inheritdoc cref="All{T}(GameObject, Search)"/>
-        public static IEnumerable<T> All<T>(this Collision col, Search where = Search.InObjectOnly,
-            bool includeInactive = false) where T : class =>
-            col.gameObject.All<T>(@where, includeInactive);
+        /// <inheritdoc cref="DoIfType{T}(GameObject,Action{T},Action,BII.Search,bool)"/>
+        public static void DoIfComponentExists<T>(
+            this Component comp,
+            [NotNull] Action<T> ifAction,
+            Action elseAction = null,
+            Search where = Search.InObjectOnly,
+            bool includeInactive = false
+        ) where T : class => comp.gameObject.DoIfComponentExists(ifAction, elseAction, where, includeInactive);
+        
+        /// <inheritdoc cref="DoIfType{T}(GameObject,Action{T},Action,BII.Search,bool)"/>
+        public static void DoIfComponentExists<T>(
+            this object obj,
+            [NotNull] Action<T> ifAction,
+            Action elseAction = null,
+            Search where = Search.InObjectOnly,
+            bool includeInactive = false
+        ) where T : class {
+            switch(obj) {
+                case GameObject go: 
+                    go.DoIfComponentExists<T>(ifAction, elseAction, @where, includeInactive);
+                    break;
+                case Component comp: 
+                    comp.DoIfComponentExists<T>(ifAction, elseAction, @where, includeInactive);
+                    break;
+                case T t: ifAction(t);
+                    break;
+                default: break;
+            };
+        }
 
         /// <summary>
         /// Searches through the specified search scope until a component of type T is found

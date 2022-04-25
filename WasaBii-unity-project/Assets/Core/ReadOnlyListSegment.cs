@@ -32,7 +32,7 @@ namespace BII.WasaBii.Core {
         }
 
         public IEnumerator<T> GetEnumerator() {
-            for (var i = _offset; i <= _offset + Count; i++) yield return _wrapped[i];
+            for (var i = _offset; i < _offset + Count; i++) yield return _wrapped[i];
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

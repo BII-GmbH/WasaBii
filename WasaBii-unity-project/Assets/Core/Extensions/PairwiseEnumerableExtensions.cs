@@ -42,7 +42,7 @@ namespace BII.WasaBii.Core {
             if (slideSize < 2)
                 throw new ArgumentException($"The slide size ({slideSize}) cannot be less than 2!");
 
-            return Enumerable.Range(0, source.Count - slideSize + 1)
+            return Enumerable.Range(0, Math.Max(0, source.Count - slideSize + 1))
                 .Select(offset => (IReadOnlyList<T>) new ReadOnlyListSegment<T>(source, offset, slideSize));
         }
         

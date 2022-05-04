@@ -61,9 +61,35 @@ namespace BII.WasaBii.Units {
 
     public interface IUnitDescription<out TUnit> where TUnit : IUnit {
         TUnit SiUnit { get; }
+        TUnit[] AllUnits { get; }
     }
 
-    public static class UnitExtensions {
+    public static class UnitMulDivExtensions {
+        
+        // TODO: if a unit is a div, then it is the topmost one.
+        //  All nested divs are propagated upwards by the following rules:
+        
+        // a/(b/c) = ac/b
+        // a/b * c/d = ac/bd
+        // a/b / c/d = ad/bc
+        
+        // Then we can simplify units by the following rules:
+        
+        // a/b * b = a
+        // a*b / a = b
+        // a*b / b = a
+        
+        // Note that any letter here could consist of any number of multiplied base units, 
+        //  e.g. `a = Mul<Length, Mul<Velocity, Duration>>`.
+        // And dividing by any of these base units, or any Mul-subset of them,
+        //  should yield the proper unit without the ones divided by.
+        // This can be implemented in C++ and Scala, but I don't think it's possible in C#.
+        
+        // Sadly, C# has no type level computation. Therefore, implementing this would 
+        //  require implementing the following methods for all concrete cases mentioned above.
+        // The added generics would probably overload type inference,
+        //  because the C# compiler usually does not infer generic parameters only used in type constraints.
+
         public static IUnit.Mul<TLeft, TRight> Mul<TLeft, TRight>(
             this TLeft leftUnit, TRight rightUnit
         ) where TLeft : IUnit where TRight : IUnit =>
@@ -73,6 +99,16 @@ namespace BII.WasaBii.Units {
             this TNumerator numeratorUnit, TDenominator denominatorUnit
         ) where TNumerator : IUnit where TDenominator : IUnit =>
             new IUnit.DerivedDiv<TNumerator, TDenominator>(numeratorUnit, denominatorUnit);
+
+        public static UnitValueOf<IUnit.Mul<TLeft, TRight>> Mul<TLeft, TRight>(
+            UnitValueOf<TLeft> left, UnitValueOf<TRight> right
+        ) where TLeft : IUnit where TRight : IUnit => 
+                new UnitValueOf<IUnit.Mul<TLeft, TRight>> { SiValue = left.SiValue * right.SiValue };
+        
+        public static UnitValueOf<IUnit.Div<TLeft, TRight>> Div<TLeft, TRight>(
+            UnitValueOf<TLeft> left, UnitValueOf<TRight> right
+        ) where TLeft : IUnit where TRight : IUnit => 
+            new UnitValueOf<IUnit.Div<TLeft, TRight>> { SiValue = left.SiValue / right.SiValue };
     }
 
 }

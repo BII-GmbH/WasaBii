@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
@@ -148,6 +147,10 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 
         public sealed class Description : IUnitDescription<Unit> {{
             public Unit SiUnit => {name}.SiUnit;
+            public Unit[] AllUnits => new Unit[] {{
+                {unit.SiUnit.Name}.Instance,
+{string.Join(",\n                ", unit.AdditionalUnits.Select(u => u.Name + ".Instance"))}
+            }};
         }}
 
         public sealed class {unit.SiUnit.Name} : Unit {{
@@ -197,9 +200,10 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
         return $@"
 
 public static class {name}ToDoubleExtensions {{
-    public static double As{unit.SiUnit.Name}(this IUnitValue<{name}.Unit> value) => value.SiValue;
+    // Multiplies by 1/factor, precalculated during code generation because multiplication is faster
+    public static double As{unit.SiUnit.Name}<T>(this T value) where T : IUnitValueOf<{name}.Unit> => value.SiValue;
 {string.Join("\n", unit.AdditionalUnits.Select(au =>
-    $@"    public static double As{au.Name}(this IUnitValue<{name}.Unit> value) => value.SiValue / {au.Factor};"))}  
+    $@"    public static double As{au.Name}<T>(this T value) where T : IUnitValueOf<{name}.Unit> => value.SiValue * {1d/au.Factor};"))}  
 }}
 ";
     }
@@ -213,6 +217,9 @@ public static class {name}ConstructionExtensions {{
     public static {name} {unit.SiUnit.Name}(this double value) => new(value, {name}.Unit.{unit.SiUnit.Name}.Instance);
 {string.Join("\n", unit.AdditionalUnits.Select(au => 
     $@"    public static {name} {au.Name}(this double value) => new(value, {name}.Unit.{au.Name}.Instance);"))}
+    public static {name} {unit.SiUnit.Name}(this float value) => new(value, {name}.Unit.{unit.SiUnit.Name}.Instance);
+{string.Join("\n", unit.AdditionalUnits.Select(au => 
+    $@"    public static {name} {au.Name}(this float value) => new(value, {name}.Unit.{au.Name}.Instance);"))}
 }}
 ";
     }
@@ -246,6 +253,10 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 
         public sealed class Description : IUnitDescription<Unit> {{
             public Unit SiUnit => {name}.SiUnit;
+            public Unit[] AllUnits => new Unit[] {{
+                {unit.SiUnit.Name}.Instance,
+{string.Join(",\n                ", unit.AdditionalUnits.Select(u => u.Name + ".Instance"))}
+            }};
         }}
 
         public sealed class {unit.SiUnit.Name} : Unit {{
@@ -295,9 +306,10 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
         return $@"
 
     public static class {name}ToDoubleExtensions {{
-        public static double As{unit.SiUnit.Name}(this IUnitValue<{name}.Unit> value) => value.SiValue;
+        // Multiplies by 1/factor, precalculated during code generation because multiplication is faster
+        public static double As{unit.SiUnit.Name}<T>(this T value) where T : IUnitValueOf<{name}.Unit> => value.SiValue;
     {string.Join("\n", unit.AdditionalUnits.Select(au =>
-        $@"    public static double As{au.Name}(this IUnitValue<{name}.Unit> value) => value.SiValue / {au.Factor};"))}  
+        $@"    public static double As{au.Name}<T>(this T value) where T : IUnitValueOf<{name}.Unit> => value.SiValue * {1d/au.Factor};"))}  
     }}
     ";
     }
@@ -311,6 +323,9 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
         public static {name} {unit.SiUnit.Name}(this double value) => new(value, {name}.Unit.{unit.SiUnit.Name}.Instance);
     {string.Join("\n", unit.AdditionalUnits.Select(au => 
         $@"    public static {name} {au.Name}(this double value) => new(value, {name}.Unit.{au.Name}.Instance);"))}
+        public static {name} {unit.SiUnit.Name}(this float value) => new(value, {name}.Unit.{unit.SiUnit.Name}.Instance);
+    {string.Join("\n", unit.AdditionalUnits.Select(au => 
+        $@"    public static {name} {au.Name}(this float value) => new(value, {name}.Unit.{au.Name}.Instance);"))}
     }}
     ";
     }
@@ -335,32 +350,41 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 
         var res = new StringBuilder();
         
-        // Plus and Minus
-        
-        string GeneratePlusMinus(IUnit unit) {
+        // Trivial operators that any unit supports
+
+        string GenerateScalarOps(IUnit unit) {
             var name = unit.TypeName;
             return $@"    public static {name} operator +({name} first, {name} second) => new(first.SiValue + second.SiValue, {name}.SiUnit);
-    public static {name} operator -({name} first, {name} second) => new(first.SiValue - second.SiValue, {name}.SiUnit);";
+    public static {name} operator -({name} first, {name} second) => new(first.SiValue - second.SiValue, {name}.SiUnit);
+
+    public static {name} operator*({name} a, double s) => new(a.SiValue * s, {name}.SiUnit);
+    public static {name} operator*({name} a, float s) => new(a.SiValue * s, {name}.SiUnit);
+
+    public static {name} operator*(double s, {name} a) => new(a.SiValue * s, {name}.SiUnit);
+    public static {name} operator*(float s, {name} a) => new(a.SiValue * s, {name}.SiUnit);
+
+    public static {name} operator/({name} a, double s) => new(a.SiValue / s, {name}.SiUnit);
+    public static {name} operator/({name} a, float s) => new(a.SiValue / s, {name}.SiUnit);";
         }
-        
+
         foreach (var b in unitDef.BaseUnits) {
             res.Append($@"
 {Header(b)} {{
-{GeneratePlusMinus(b)}  
+{GenerateScalarOps(b)}  
 }}");
         }
         
         foreach (var m in unitDef.MulUnits) {
             res.Append($@"
 {Header(m)} {{
-{GeneratePlusMinus(m)}  
+{GenerateScalarOps(m)}  
 }}");
         }
         
         foreach (var d in unitDef.DivUnits) {
             res.Append($@"
 {Header(d)} {{
-{GeneratePlusMinus(d)}  
+{GenerateScalarOps(d)}  
 }}");
         }
         
@@ -409,10 +433,9 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
         new(c.SiValue / b.SiValue, {a.TypeName}.SiUnit);
 }}
 ";
-
         foreach (var (m, isMul) in unitDef.MulUnits
-            .Select(m => (m, true))
-            .Concat(unitDef.DivUnits.Select(d => (d, false)))
+             .Select(m => (m, true))
+             .Concat(unitDef.DivUnits.Select(d => (d, false)))
         ) {
             var (a, b, c) = OperationForDerived(m, isMul);
             res.Append(GenerateMul(a, b, c));

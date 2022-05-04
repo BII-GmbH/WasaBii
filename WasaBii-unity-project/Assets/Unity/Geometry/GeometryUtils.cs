@@ -80,7 +80,7 @@ namespace BII.WasaBii.Unity.Geometry {
             );
             var aAngle = Angle.Acos((b * b + c * c - a * a) / (2 * b * c));
             var bAngle = Angle.Acos((a * a + c * c - b * b) / (2 * a * c));
-            var cAngle = 180.Degrees() - (aAngle + bAngle);
+            var cAngle = 180d.Degrees() - (aAngle + bAngle);
 
             return (A: aAngle, B: bAngle, C: cAngle);
         }

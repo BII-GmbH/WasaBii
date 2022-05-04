@@ -17,8 +17,8 @@ namespace BII.WasaBii.Unity.Geometry {
         public readonly LocalOffset Size;
         public LocalOffset Extends => Size / 2.0f;
 
-        public LocalPosition BottomCenter => Center.WithY(Center.Y() - Size.Y() / 2.0f);
-        public LocalPosition TopCenter => Center.WithY(Center.Y() + Size.Y() / 2.0f);
+        public LocalPosition BottomCenter => Center.WithY(Center.Y() - Size.Y() / 2.0);
+        public LocalPosition TopCenter => Center.WithY(Center.Y() + Size.Y() / 2.0);
 
         public LocalPosition Min => Center - Extends;
         public LocalPosition Max => Center + Extends;

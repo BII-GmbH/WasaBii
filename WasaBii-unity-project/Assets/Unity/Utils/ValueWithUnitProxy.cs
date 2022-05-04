@@ -12,7 +12,7 @@ namespace BII.WasaBii.Unity {
     /// at runtime through the inspector in an editor instance.
     [Serializable]
     public struct ValueWithUnitProxy<TValue>
-    where TValue : struct, CopyableValueWithUnit<TValue> {
+    where TValue : struct, IUnitValue<TValue> {
 
         // Our units used to be serialized directly and all of them had an individually-named private field
         // to hold the SI value. Since many prefabs were created in that time, they still hold the value
@@ -35,17 +35,17 @@ namespace BII.WasaBii.Unity {
         public double SIValue => _siValue;
 
         public ValueWithUnitProxy(double siValue) => _siValue = siValue;
-        public ValueWithUnitProxy(TValue val) => _siValue = val.SIValue;
+        public ValueWithUnitProxy(TValue val) => _siValue = val.SiValue;
 
         // Conversion operators not possible because `CopyableValueWithUnit` is an interface.
-        public TValue Value => default(TValue).CopyWithDifferentSIValue(_siValue);
+        public TValue Value => UnitUtils.FromSiValue<TValue>(_siValue);
 
     }
 
     public static class ValueWithUnitProxyExtensions {
 
         public static ValueWithUnitProxy<TValue> AsProxy<TValue>(this TValue value)
-        where TValue : struct, CopyableValueWithUnit<TValue> => new(value);
+        where TValue : struct, IUnitValue<TValue> => new(value);
 
     }
     

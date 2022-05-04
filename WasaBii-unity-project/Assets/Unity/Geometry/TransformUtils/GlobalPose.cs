@@ -87,7 +87,7 @@ namespace BII.WasaBii.Unity.Geometry {
         );
     }
 
-    public static class GlobalPoseUtils {
+    public static partial class PoseUtils {
         
         [Pure] public static GlobalPose WithPosition(this GlobalPose source, Func<GlobalPosition, GlobalPosition> positionMapping) =>
             new GlobalPose(positionMapping(source.Position), source.Rotation);
@@ -132,6 +132,27 @@ namespace BII.WasaBii.Unity.Geometry {
                 start.Position.SlerpTo(end.Position, perc, shouldClamp),
                 start.Rotation.SlerpTo(end.Rotation, perc, shouldClamp)
             );
+
+        /// <inheritdoc cref="GeometryUtils.PointReflect(Vector3, Vector3)"/>
+        [Pure] public static GlobalPose Reflect(this GlobalPose self, GlobalPosition on) => new(
+            position: self.Position.Reflect(on),
+            forward: -self.Forward
+        );
+
+        /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3, Vector3)"/>
+        [Pure] public static GlobalPose Reflect(
+            this GlobalPose self, GlobalPosition pointOnPlane, GlobalDirection planeNormal
+        ) => new(
+            position: self.Position.Reflect(pointOnPlane, planeNormal),
+            forward: self.Forward.Reflect(planeNormal)
+        );
+        
+        [Pure] public static GlobalPose Rotate(
+            this GlobalPose self, GlobalPosition pivot, GlobalRotation rotation    
+        ) => new(
+            position: self.Position.Rotate(pivot, rotation),
+            rotation: rotation * self.Rotation
+        );
 
     }
 }

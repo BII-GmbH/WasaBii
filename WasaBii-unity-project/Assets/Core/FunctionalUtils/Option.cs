@@ -19,6 +19,14 @@ namespace BII.WasaBii.Core {
             value.HasValue ? Some(value.Value) : None;
         
         public static Option<T> If<T>(bool predicate, Func<T> then) => predicate ? Some(then()) : Option<T>.None;
+
+        public static Option<T> Try<T>(Func<T> valueConstructor) {
+            try {
+                return Some(valueConstructor());
+            } catch {
+                return None;
+            }
+        }
         
         public static readonly UniversalNone None = new();
 

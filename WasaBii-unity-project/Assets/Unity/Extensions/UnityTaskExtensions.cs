@@ -7,12 +7,13 @@ using Object = UnityEngine.Object;
 namespace BII.WasaBii.Unity {
     public static class UnityTaskExtensions {
         // Note DG: Because Unity sucks, there is no typed variant of a resource request :/
+        /// Throws an exception if the provided resource is not of the given type.
         public static Task<T> AsTask<T>(
             this ResourceRequest request, 
             Action<float> reportProgressEachFrame = null
         ) where T : Object {
             var res = new TaskCompletionSource<T>();
-            
+
             if(reportProgressEachFrame != null)
                 Coroutines.RepeatWhile(
                     condition: () => !request.isDone, 

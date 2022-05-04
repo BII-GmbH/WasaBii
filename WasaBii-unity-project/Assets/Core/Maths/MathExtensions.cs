@@ -6,12 +6,24 @@ using System.Linq;
 namespace BII.WasaBii.Core {
 
     public enum RoundingMode {
+        /// Rounds to the given number of digits after the point, independent of the value:
+        /// <example>
+        /// 123.456f.Round(digits: 2, DecimalPlaces) == 123.46f
+        /// 12345.6f.Round(digits: 2, DecimalPlaces) == 12345.60f
+        /// 1.23456f.Round(digits: 2, DecimalPlaces) == 1.23f
+        /// </example>
         DecimalPlaces,
+        /// Rounds to the given number of digits, counted from the leftmost non-zero digit:
+        /// <example>
+        /// 123.456f.Round(digits: 2, SignificantDigits) == 120f
+        /// 12345.6f.Round(digits: 2, SignificantDigits) == 12000f
+        /// 1.23456f.Round(digits: 2, SignificantDigits) == 1.2f
+        /// </example>
         SignificantDigits
     }
+    
     public static class MathExtensions {
-        
-        
+    
         /// <summary>
         /// Clamps a value between 0 and 1.
         /// Use <see cref="MathExtensions.Clamp{T}"/> to clamp between arbitrary numbers.

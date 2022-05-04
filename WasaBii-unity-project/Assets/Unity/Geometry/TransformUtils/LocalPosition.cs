@@ -77,7 +77,19 @@ namespace BII.WasaBii.Unity.Geometry {
             => Geometry.LocalPosition.FromLocal(gameObject.transform.localPosition);
 
         [Pure] public static Length DistanceTo(this LocalPosition p1, LocalPosition p2) => (p2 - p1).Length;
+        
+        /// <inheritdoc cref="GeometryUtils.PointReflect(Vector3, Vector3)"/>
+        [Pure] public static LocalPosition Reflect(this LocalPosition self, LocalPosition on)
+            => self.AsVector.PointReflect(on: on.AsVector).AsLocalPosition();
 
+        /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3, Vector3)"/>
+        [Pure] public static LocalPosition Reflect(
+            this LocalPosition self, LocalPosition pointOnPlane, LocalDirection planeNormal
+        ) => self.AsVector.Reflect(pointOnPlane.AsVector, planeNormal.AsVector).AsLocalPosition();
+        
+        [Pure] public static LocalPosition Rotate(
+            this LocalPosition self, LocalPosition pivot, LocalRotation rotation    
+        ) => pivot + (self - pivot) * rotation;
     }
 
 }

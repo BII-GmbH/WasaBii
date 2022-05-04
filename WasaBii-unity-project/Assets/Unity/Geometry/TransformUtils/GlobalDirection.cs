@@ -11,8 +11,7 @@ namespace BII.WasaBii.Unity.Geometry {
     [MustBeImmutable]
     [MustBeSerializable]
     public readonly struct GlobalDirection : 
-        VectorLike<GlobalDirection>,
-        GlobalDirectionLike,
+        GlobalDirectionLike<GlobalDirection>,
         IsGlobalVariant<GlobalDirection, LocalDirection>,
         IEquatable<GlobalDirection> {
 
@@ -99,6 +98,11 @@ namespace BII.WasaBii.Unity.Geometry {
 
        [Pure] public static GlobalDirection Up(this GameObject gameObject) =>
            gameObject.transform.up.AsGlobalDirection();
+
+       /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3)"/>
+       [Pure] public static GlobalDirection Reflect(
+           this GlobalDirection self, GlobalDirection planeNormal
+       ) => self.AsVector.Reflect(planeNormal.AsVector).AsGlobalDirection();
 
     }
 

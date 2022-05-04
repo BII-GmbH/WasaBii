@@ -14,7 +14,7 @@ namespace BII.WasaBii.Unity {
     /// Enables static access to this single object by using <code>Classname.Instance</code>.
     /// </summary>
     /// <typeparam name="T">The implementing type itself</typeparam>
-    public abstract class Singleton<T> : BaseBehaviour, Singleton where T : Singleton<T> {
+    public abstract class Singleton<T> : MonoBehaviour, Singleton where T : Singleton<T> {
         private static T _instance;
 
         public static bool HasInstance => _instance != null;

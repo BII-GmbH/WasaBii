@@ -11,8 +11,8 @@ namespace BII.WasaBii.Unity.Geometry {
     [MustBeImmutable]
     [MustBeSerializable]
     public readonly struct GlobalOffset : 
-        VectorLike<GlobalOffset>, HasMagnitude<GlobalOffset>,
-        GlobalDirectionLike, 
+        GlobalDirectionLike<GlobalOffset>,
+        HasMagnitude<GlobalOffset>, 
         IsGlobalVariant<GlobalOffset, LocalOffset>,
         IEquatable<GlobalOffset> {
     
@@ -109,6 +109,11 @@ namespace BII.WasaBii.Unity.Geometry {
 
         [Pure] public static GlobalOffset AsGlobalOffset(this System.Numerics.Vector3 globalOffset)
             => globalOffset.ToUnityVector().AsGlobalOffset();
+
+        /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3)"/>
+        [Pure] public static GlobalOffset Reflect(
+            this GlobalOffset self, GlobalDirection planeNormal
+        ) => self.AsVector.Reflect(planeNormal.AsVector).AsGlobalOffset();
 
     }
     

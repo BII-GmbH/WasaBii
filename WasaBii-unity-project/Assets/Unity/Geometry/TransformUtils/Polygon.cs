@@ -16,7 +16,7 @@ namespace BII.WasaBii.Unity.Geometry {
         public readonly SequenceEqualityList<LocalPosition> Vertices;
         
         /// <param name="vertices">Must be planar and in clockwise order.</param>
-        public Polygon(IEnumerable<LocalPosition> vertices) => Vertices = vertices.AsSequenceEqualityList();
+        public Polygon(IEnumerable<LocalPosition> vertices) => Vertices = vertices.ToSequenceEqualityList();
 
         public bool Equals(Polygon other) => other != null && Equals(Vertices, other.Vertices);
         public override bool Equals(object obj) => ReferenceEquals(this, obj) || obj is Polygon other && Equals(other);
@@ -29,7 +29,7 @@ namespace BII.WasaBii.Unity.Geometry {
                 return Mathf.Abs(
                     0.5f * Vertices.Skip(1)
                         .PairwiseSliding()
-                        .Select((vj, vk) => (vj - v1).Cross(vk - v1))
+                        .Select((vj, vk) => (vj - v1).Cross(vk - v1).AsVector)
                         .Sum()
                         .magnitude
                 ).SquareMeters();

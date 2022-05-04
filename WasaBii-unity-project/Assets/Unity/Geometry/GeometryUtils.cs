@@ -84,6 +84,24 @@ namespace BII.WasaBii.Unity.Geometry {
 
             return (A: aAngle, B: bAngle, C: cAngle);
         }
+
+        /// Reflects the point <see cref="self"/> off <see cref="on"/>. Has the same effect
+        /// as rotating <see cref="self"/> around <see cref="on"/> by 180° around an axis
+        /// perpendicular to the difference between the two.
+        [Pure] public static Vector3 PointReflect(this Vector3 self, Vector3 on) => on + on - self;
+
+        /// Reflects the vector <see cref="offset"/> on the plane defined by the <see cref="planeNormal"/>.
+        /// <param name="offset">The vector to reflect.</param>
+        /// <param name="planeNormal">The normal of the plane. Must be normalized.</param>
+        [Pure] public static Vector3 Reflect(this Vector3 offset, Vector3 planeNormal)
+            => Vector3.Reflect(offset, planeNormal);
+        
+        /// Reflects the <see cref="point"/> on a plane.
+        /// <param name="point">The point to reflect</param>
+        /// <param name="pointOnPlane">Any point on the plane</param>
+        /// <param name="planeNormal">The normal of the plane. Must be normalized.</param>
+        [Pure] public static Vector3 Reflect(this Vector3 point, Vector3 pointOnPlane, Vector3 planeNormal)
+            => pointOnPlane - (point - pointOnPlane).Reflect(planeNormal);
         
         [Pure] public static IEnumerable<Line2D.Intersection> IntersectionsWith(this Rect rect, Circle circle) => 
             circle.IntersectionsWith(rect);

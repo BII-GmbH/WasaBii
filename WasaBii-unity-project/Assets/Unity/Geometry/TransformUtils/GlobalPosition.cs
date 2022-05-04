@@ -94,6 +94,20 @@ namespace BII.WasaBii.Unity.Geometry {
             => Geometry.GlobalPosition.FromGlobal(gameObject.transform.position);
 
         [Pure] public static Length DistanceTo(this GlobalPosition p1, GlobalPosition p2) => (p2 - p1).Length;
+        
+        /// <inheritdoc cref="GeometryUtils.PointReflect(Vector3, Vector3)"/>
+        [Pure] public static GlobalPosition Reflect(this GlobalPosition self, GlobalPosition on)
+            => self.AsVector.PointReflect(on: on.AsVector).AsGlobalPosition();
+
+        /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3, Vector3)"/>
+        [Pure] public static GlobalPosition Reflect(
+            this GlobalPosition self, GlobalPosition pointOnPlane, GlobalDirection planeNormal
+        ) => self.AsVector.Reflect(pointOnPlane.AsVector, planeNormal.AsVector).AsGlobalPosition();
+        
+        [Pure] public static GlobalPosition Rotate(
+            this GlobalPosition self, GlobalPosition pivot, GlobalRotation rotation    
+        ) => pivot + (self - pivot) * rotation;
+
     }
     
 }

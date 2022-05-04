@@ -53,13 +53,13 @@ namespace BII.WasaBii.Unity.Geometry {
             GlobalRotation start, GlobalRotation end, double perc, bool shouldClamp = true
         ) => start.SlerpTo(end, perc, shouldClamp);
 
-        [Pure] public static Builder From(GlobalDirectionLike from) => new Builder(from);
+        [Pure] public static Builder From(RelativeDirectionLike<IsGlobal> from) => new Builder(from);
         public readonly struct Builder {
 
-            private readonly GlobalDirectionLike from;
-            public Builder(GlobalDirectionLike from) => this.from = from;
+            private readonly RelativeDirectionLike<IsGlobal> from;
+            public Builder(RelativeDirectionLike<IsGlobal> from) => this.from = from;
 
-            [Pure] public GlobalRotation To(GlobalDirectionLike to) => GlobalRotation.FromGlobal(
+            [Pure] public GlobalRotation To(RelativeDirectionLike<IsGlobal> to) => GlobalRotation.FromGlobal(
                 Quaternion.FromToRotation(from.AsVector, to.AsVector)
             );
         }

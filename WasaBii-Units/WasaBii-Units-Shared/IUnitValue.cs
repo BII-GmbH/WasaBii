@@ -28,8 +28,8 @@ public readonly struct UnitValueOf<TUnit> : IUnitValue<UnitValueOf<TUnit>, TUnit
     public int CompareTo(UnitValueOf<TUnit> other) => SiValue.CompareTo(other.SiValue);
     public bool Equals(UnitValueOf<TUnit> other) => SiValue.Equals(other.SiValue);
     
-    public static bool operator ==(UnitValueOf<TUnit> left, UnitValueOf<TUnit> right) => Equals(left, right);
-    public static bool operator !=(UnitValueOf<TUnit> left, UnitValueOf<TUnit> right) => !Equals(left, right);
+    public static bool operator ==(UnitValueOf<TUnit> left, UnitValueOf<TUnit> right) => left.Equals(right);
+    public static bool operator !=(UnitValueOf<TUnit> left, UnitValueOf<TUnit> right) => !left.Equals(right);
 
     public override bool Equals(object obj) => obj is UnitValueOf<TUnit> other && Equals(other);
 

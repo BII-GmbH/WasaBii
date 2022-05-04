@@ -180,8 +180,8 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     public int CompareTo({name} other) => this.SiValue.CompareTo(other.SiValue);
     public bool Equals({name} other) => this.SiValue.Equals(other.SiValue);
 
-    public static bool operator ==({name} left, {name} right) => Equals(left, right);
-    public static bool operator !=({name} left, {name} right) => !Equals(left, right);
+    public static bool operator ==({name} left, {name} right) => left.Equals(right);
+    public static bool operator !=({name} left, {name} right) => !left.Equals(right);
 
     public override bool Equals(object obj) => obj is {name} other && Equals(other);
 

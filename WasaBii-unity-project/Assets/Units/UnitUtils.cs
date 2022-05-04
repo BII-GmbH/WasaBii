@@ -90,8 +90,8 @@ namespace BII.WasaBii.Units {
         ) where TSelf : struct, IUnitValue<TSelf> =>
             FromSiValue<TSelf>(
                 shouldClamp 
-                    ? Mathd.Lerp(from.SiValue, to.SiValue, progress)
-                    : Mathd.LerpUnclamped(from.SiValue, to.SiValue, progress));
+                    ? from.SiValue.Lerp(to.SiValue, progress)
+                    : from.SiValue.LerpUnclamped(to.SiValue, progress));
 
         public static double InverseLerp<TSelf>(
             TSelf from,
@@ -161,7 +161,7 @@ namespace BII.WasaBii.Units {
             RoundingMode roundingMode, 
             double zeroThreshold = 1E-5f
         ) where TUnit : IUnit {
-            var doubleValue = (double)value.As(unit);
+            var doubleValue = value.As(unit);
             var fractalDigits = 0;
             switch (roundingMode) {
                 case RoundingMode.DecimalPlaces:

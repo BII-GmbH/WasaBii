@@ -7,7 +7,7 @@ namespace BII.WasaBii.UnitSystem;
 
 /* TODO: operators with this and other compatible units */
 
-#region Json Unit Definition Records
+#region Json Unit Definition Model
 
 record SiUnitDef(string Name, string Short);
 
@@ -37,6 +37,15 @@ record UnitDefinitions(string Namespace, BaseUnit[] BaseUnits, DerivedUnit[] Mul
 
 [Generator]
 public class UnitGenerator : ISourceGenerator {
+    
+    private static readonly DiagnosticDescriptor UnexpectedUnitGenerationIssue = new(
+        id: "WasaBii001",
+        title: "Unexpected Unit Generation Issue",
+        messageFormat: "Unexpected issue while generating unit source code:\n{0}",
+        category: "WasaBii",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
 
     public void Initialize(GeneratorInitializationContext context) { }
 
@@ -63,36 +72,37 @@ public class UnitGenerator : ISourceGenerator {
                 );
             }
             
-            context.AddSource(
-                $"EnsureGenerationWorks.g.cs",
-                SourceText.From(
-                    "namespace BII.WasaBii.UnitSystem { public static class EnsureGenerationDidRun { " +
-                        "public const bool DidRun = true; " +
-                    $"    public const string ErrorMessage = \"All good. {string.Join(",", unitDefs.Select(d => d.FileName))}\";" +
-                    "} }",
-                    Encoding.UTF8
-                )
-            );
+            // context.AddSource(
+            //     $"EnsureGenerationWorks.g.cs",
+            //     SourceText.From(
+            //         "namespace BII.WasaBii.UnitSystem { public static class EnsureGenerationDidRun { " +
+            //             "public const bool DidRun = true; " +
+            //         $"    public const string ErrorMessage = \"All good. {string.Join(",", unitDefs.Select(d => d.FileName))}\";" +
+            //         "} }",
+            //         Encoding.UTF8
+            //     )
+            // );
             
         }
         catch (Exception e) {
-            context.AddSource(
-                $"EnsureGenerationWorks.g.cs",
-                SourceText.From(
-                    "namespace BII.WasaBii.UnitSystem { public static class EnsureGenerationDidRun { " +
-                    "public const bool DidRun = true; " +
-                    $"\npublic const string ErrorMessage = @\"{e.Message.Replace("\"", "\"\"")}\";" +
-                    "} }",
-                    Encoding.UTF8
-                )
-            );
+            context.ReportDiagnostic(Diagnostic.Create(UnexpectedUnitGenerationIssue, Location.None, e.Message));
+            // context.AddSource(
+            //     $"EnsureGenerationWorks.g.cs",
+            //     SourceText.From(
+            //         "namespace BII.WasaBii.UnitSystem { public static class EnsureGenerationDidRun { " +
+            //         "public const bool DidRun = true; " +
+            //         $"\npublic const string ErrorMessage = @\"{e.Message.Replace("\"", "\"\"")}\";" +
+            //         "} }",
+            //         Encoding.UTF8
+            //     )
+            // );
         }
 
         // Note CR: this seems to allow the "init" keyword to compile somehow
-        context.AddSource("EnsureIsExternalInitHack.g.cs", SourceText.From(@"
-namespace System.Runtime.CompilerServices {
-    public static class IsExternalInit {}
-}", Encoding.UTF8));
+//         context.AddSource("EnsureIsExternalInitHack.g.cs", SourceText.From(@"
+// namespace System.Runtime.CompilerServices {
+//     public static class IsExternalInit {}
+// }", Encoding.UTF8));
     }
 
     private static SourceText GenerateSourceFor(

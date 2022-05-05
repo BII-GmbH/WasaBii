@@ -6,9 +6,9 @@ using System.Reflection;
 
 using BII.WasaBii.Core;
 
-namespace BII.WasaBii.Units {
+namespace BII.WasaBii.UnitSystem {
 
-    public static class UnitUtils {
+    public static class Units {
         
         // Construction and metadata
 
@@ -118,7 +118,7 @@ namespace BII.WasaBii.Units {
                     to, 
                     (i / (sampleCount - 1)).If(
                         progressExponent != null, 
-                        p => Math.Pow(p, progressExponent.Value)
+                        p => Math.Pow(p, progressExponent!.Value)
                     )
                 );
             }
@@ -133,7 +133,7 @@ namespace BII.WasaBii.Units {
         /// you may want to pass an already sorted list. In this case, pass `true` for <see cref="areUnitsSorted"/>.
         public static TUnit MostFittingDisplayUnitFor<TUnit>(
             IUnitValueOf<TUnit> value, 
-            IEnumerable<TUnit> allowedUnits = null, 
+            IEnumerable<TUnit> allowedUnits = null!, 
             bool areUnitsSorted = false
         ) where TUnit : IUnit {
             Contract.Assert(!(areUnitsSorted && allowedUnits == null));

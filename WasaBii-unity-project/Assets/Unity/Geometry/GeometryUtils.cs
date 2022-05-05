@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity.Geometry {

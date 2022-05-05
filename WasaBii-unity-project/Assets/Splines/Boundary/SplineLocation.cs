@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
     /// A location on a spline, measured in meters away from the beginning along the spline (and not flight distance)

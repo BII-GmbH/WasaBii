@@ -1,4 +1,5 @@
 ﻿using BII.WasaBii.Core;
+using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static GlobalRotation FromLocal(TransformProvider parent, Quaternion local) =>
             FromGlobal(parent.TransformQuaternion(local));
 
-        [Pure] public static GlobalRotation FromAngleAxis(Units.Angle angle, GlobalDirection axis) => angle.WithAxis(axis);
+        [Pure] public static GlobalRotation FromAngleAxis(Angle angle, GlobalDirection axis) => angle.WithAxis(axis);
         
         [Pure] public static GlobalRotation FromTransform(Transform parent) => new GlobalRotation(parent.rotation);
 
@@ -78,7 +79,7 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static GlobalRotation GlobalRotation(this GameObject gameObject) 
             => Geometry.GlobalRotation.FromGlobal(gameObject.transform.rotation);
 
-        [Pure] public static Units.Angle AngleOn(this GlobalRotation rot, GlobalDirection axis) 
+        [Pure] public static Angle AngleOn(this GlobalRotation rot, GlobalDirection axis) 
             => rot.AsQuaternion.AngleOn(axis.AsVector);
 
     }

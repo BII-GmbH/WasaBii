@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 
-namespace BII.WasaBii.Units;
+namespace BII.WasaBii.UnitSystem;
 
 /* TODO: operators with this and other compatible units */
 
@@ -66,7 +66,7 @@ public class UnitGenerator : ISourceGenerator {
             context.AddSource(
                 $"EnsureGenerationWorks.g.cs",
                 SourceText.From(
-                    "namespace BII.WasaBii.Units { public static class EnsureGenerationDidRun { " +
+                    "namespace BII.WasaBii.UnitSystem { public static class EnsureGenerationDidRun { " +
                         "public const bool DidRun = true; " +
                     $"    public const string ErrorMessage = \"All good. {string.Join(",", unitDefs.Select(d => d.FileName))}\";" +
                     "} }",
@@ -79,7 +79,7 @@ public class UnitGenerator : ISourceGenerator {
         //     context.AddSource(
         //         $"EnsureGenerationWorks.g.cs",
         //         SourceText.From(
-        //             "namespace BII.WasaBii.Units { public static class EnsureGenerationDidRun { " +
+        //             "namespace BII.WasaBii.UnitSystem { public static class EnsureGenerationDidRun { " +
         //             "public const bool DidRun = true; " +
         //             $"\npublic const string ErrorMessage = @\"{e.Message.Replace("\"", "\"\"")}\";" +
         //             "} }",
@@ -98,7 +98,7 @@ namespace System.Runtime.CompilerServices {
     private static SourceText GenerateSourceFor(
         UnitDefinitions unitDef
     ) {
-        var unitsInclude = unitDef.Namespace.Equals("BII.WasaBii.Units") ? "" : "using BII.WasaBii.Units;\n";
+        var unitsInclude = unitDef.Namespace.Equals("BII.WasaBii.UnitSystem") ? "" : "using BII.WasaBii.UnitSystem;\n";
         var res = $@"
 using System;
 {unitsInclude}

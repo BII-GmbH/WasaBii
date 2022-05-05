@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Splines.Logic;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using BII.WasaBii.Unity.Geometry.Splines;
 using NSubstitute;
 using NUnit.Framework;

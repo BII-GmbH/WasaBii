@@ -1,5 +1,5 @@
 using System;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -38,7 +38,7 @@ namespace BII.WasaBii.Unity {
         public ValueWithUnitProxy(TValue val) => _siValue = val.SiValue;
 
         // Conversion operators not possible because `CopyableValueWithUnit` is an interface.
-        public TValue Value => UnitUtils.FromSiValue<TValue>(_siValue);
+        public TValue Value => Units.FromSiValue<TValue>(_siValue);
 
     }
 

@@ -1,4 +1,4 @@
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity.Geometry {
@@ -19,10 +19,10 @@ namespace BII.WasaBii.Unity.Geometry {
 
     public static class DirectionLikeExtensions {
         
-        public static Units.Angle AngleTo<TRelativity>(this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs) 
+        public static Angle AngleTo<TRelativity>(this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs) 
             where TRelativity : WithRelativity => Vector3.Angle(lhs.AsVector, rhs.AsVector).Degrees();
 
-        public static Units.Angle SignedAngleTo<TRelativity>(
+        public static Angle SignedAngleTo<TRelativity>(
             this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs, RelativeDirectionLike<TRelativity> axis
         ) where TRelativity : WithRelativity => 
             Vector3.SignedAngle(lhs.AsVector, rhs.AsVector, axis.AsVector).Degrees();

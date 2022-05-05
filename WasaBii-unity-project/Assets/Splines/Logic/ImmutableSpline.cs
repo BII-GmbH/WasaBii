@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using Newtonsoft.Json;
 
 namespace BII.WasaBii.Splines.Logic {

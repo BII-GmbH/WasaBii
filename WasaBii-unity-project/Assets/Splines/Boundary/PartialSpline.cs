@@ -1,6 +1,6 @@
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
 

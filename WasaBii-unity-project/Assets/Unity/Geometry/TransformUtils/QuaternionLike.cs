@@ -1,5 +1,5 @@
 using System;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -49,7 +49,7 @@ namespace BII.WasaBii.Unity.Geometry {
 
         [Pure] public static Quaternion Inverse(this Quaternion q) => Quaternion.Inverse(q);
         
-        [Pure] public static Units.Angle AngleOn(this Quaternion q, Vector3 axis) {
+        [Pure] public static Angle AngleOn(this Quaternion q, Vector3 axis) {
             // An arbitrary vector that is orthogonal to `axis`.
             // Taken from https://math.stackexchange.com/a/3077100
             // Prove: 

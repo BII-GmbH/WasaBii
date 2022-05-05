@@ -1,4 +1,4 @@
-﻿namespace BII.WasaBii.Units;
+﻿namespace BII.WasaBii.UnitSystem;
 
 public interface IUnitValue {
     double SiValue { init; get; }

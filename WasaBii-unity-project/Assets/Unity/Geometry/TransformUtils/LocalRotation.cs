@@ -1,5 +1,6 @@
 using System;
 using BII.WasaBii.Core;
+using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static LocalRotation FromLocal(Quaternion local) =>
             new LocalRotation(local);
 
-        [Pure] public static LocalRotation FromAngleAxis(Units.Angle angle, LocalDirection axis) => angle.WithAxis(axis);
+        [Pure] public static LocalRotation FromAngleAxis(Angle angle, LocalDirection axis) => angle.WithAxis(axis);
         
         [Pure] public static LocalRotation FromTransform(Transform parent) => new LocalRotation(parent.localRotation);
 
@@ -81,7 +82,7 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static LocalRotation LocalRotation(this GameObject gameObject) 
             => Geometry.LocalRotation.FromLocal(gameObject.transform.localRotation);
 
-        [Pure] public static Units.Angle AngleOn(this LocalRotation rot, LocalDirection axis) 
+        [Pure] public static Angle AngleOn(this LocalRotation rot, LocalDirection axis) 
             => rot.AsQuaternion.AngleOn(axis.AsVector);
 
     }

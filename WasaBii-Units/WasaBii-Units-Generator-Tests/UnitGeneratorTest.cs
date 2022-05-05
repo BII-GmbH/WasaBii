@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
 
-namespace BII.WasaBii.Units;
+namespace BII.WasaBii.UnitSystem;
 
 // https://gist.github.com/chsienki/2955ed9336d7eb22bcb246840bfeb05c
 
@@ -77,7 +77,7 @@ public class GeneratorTests
     }
 
     private const string testJson = @"{
-  ""namespace"": ""BII.WasaBii.Units"",
+  ""namespace"": ""BII.WasaBii.UnitSystem"",
   ""baseUnits"": [
     
     {

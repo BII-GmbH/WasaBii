@@ -5,7 +5,7 @@ using UnityEngine;
 using Quaternion = System.Numerics.Quaternion;
 using Vector3 = System.Numerics.Vector3;
 
-namespace BII.WasaBii.Units {
+namespace BII.WasaBii.UnitSystem {
     public static class Angles {
 
         static Angles() {
@@ -59,7 +59,7 @@ namespace BII.WasaBii.Units {
         /// </example>
         public static Angle LerpWithMinimalDifference(Angle from, Angle to, double progress, bool shouldClamp = true) {
             (from, to) = NormalizedWithMinimalDifference(from, to);
-            return UnitUtils.Lerp(from, to, progress, shouldClamp);
+            return Units.Lerp(from, to, progress, shouldClamp);
         }
         
         public static double Cos(this Angle angle) => Math.Cos(angle.SiValue);

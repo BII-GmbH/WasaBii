@@ -1,6 +1,6 @@
 {
     "name": "WasaBii-Units",
-    "rootNamespace": "BII.WasaBii.Units",
+    "rootNamespace": "BII.WasaBii.UnitSystem",
     "references": [
         "WasaBii-Core"
     ],

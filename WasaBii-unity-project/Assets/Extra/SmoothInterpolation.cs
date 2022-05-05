@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using BII.WasaBii.Unity;
 using BII.WasaBii.Unity.Geometry;
 using JetBrains.Annotations;
@@ -54,7 +54,7 @@ namespace BII.WasaBii.Extra {
         /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
         [Pure] public static T SmoothInterpolateTo<T>(this T current, T target, double smoothness, double progress) 
             where T : struct, IUnitValue<T> => 
-            UnitUtils.Lerp(target, current, Math.Pow(smoothness, progress));
+            Units.Lerp(target, current, Math.Pow(smoothness, progress));
     }
 
     public static class TransformHelperSmoothInterpolation {

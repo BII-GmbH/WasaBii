@@ -1,5 +1,5 @@
 ﻿using BII.WasaBii.Splines;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity.Geometry.Splines {

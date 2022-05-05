@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 #nullable enable
 
 namespace BII.WasaBii.Splines {

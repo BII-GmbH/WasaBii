@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
 
@@ -69,13 +69,12 @@ namespace BII.WasaBii.Splines {
             foreach (var spline in splines) {
                 var queryResult = queryFunction(spline);
                 if (queryResult.HasValue) {
-                    if (queryResult.Value.Distance < (result?.Distance ?? Length.MaxValue)) {
+                    if (queryResult.Value.Distance < (result?.Distance ?? Units.FromSiValue<Length>(double.MaxValue))) {
                         result = queryResult;
                     }
                 }
             }
-
-            // Profiler.EndSample();
+            
             return result;
         }
     }

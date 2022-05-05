@@ -1,4 +1,4 @@
-﻿using BII.WasaBii.Units;
+﻿using BII.WasaBii.UnitSystem;
 using NUnit.Framework;
 using static BII.WasaBii.Splines.Tests.SplineTestUtils;
 

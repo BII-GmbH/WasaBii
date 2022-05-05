@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using BII.WasaBii.Splines.Logic;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
     public static class SplineCopyExtensions {

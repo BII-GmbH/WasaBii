@@ -1,5 +1,5 @@
 ﻿{
-  "namespace": "BII.WasaBii.Units",
+  "namespace": "BII.WasaBii.UnitSystem",
   "baseUnits": [
     
     {

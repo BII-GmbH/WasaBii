@@ -2,7 +2,7 @@
     public static class IsExternalInit {}
 }
 
-namespace BII.WasaBii.Units {
+namespace BII.WasaBii.UnitSystem {
 
     // TODO CR: equality?
 

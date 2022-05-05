@@ -2,7 +2,7 @@
 using System.Linq;
 using BII.WasaBii.Splines;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 
 namespace BII.WasaBii.Unity.Geometry.Splines {

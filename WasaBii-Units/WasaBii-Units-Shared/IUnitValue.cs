@@ -30,6 +30,12 @@ public readonly struct UnitValueOf<TUnit> : IUnitValue<UnitValueOf<TUnit>, TUnit
     
     public static bool operator ==(UnitValueOf<TUnit> left, UnitValueOf<TUnit> right) => left.Equals(right);
     public static bool operator !=(UnitValueOf<TUnit> left, UnitValueOf<TUnit> right) => !left.Equals(right);
+    
+    public static bool operator >(UnitValueOf<TUnit> left, UnitValueOf<TUnit> right) => left.SiValue > right.SiValue;
+    public static bool operator <(UnitValueOf<TUnit> left, UnitValueOf<TUnit> right) => left.SiValue < right.SiValue;
+
+    public static bool operator >=(UnitValueOf<TUnit> left, UnitValueOf<TUnit> right) => left.SiValue >= right.SiValue;
+    public static bool operator <=(UnitValueOf<TUnit> left, UnitValueOf<TUnit> right) => left.SiValue <= right.SiValue;
 
     public override bool Equals(object obj) => obj is UnitValueOf<TUnit> other && Equals(other);
 

@@ -1,31 +1,25 @@
 ﻿using System;
 using JetBrains.Annotations;
 using BII.WasaBii.Core;
-using UnityEngine;
 using Quaternion = System.Numerics.Quaternion;
 using Vector3 = System.Numerics.Vector3;
 
 namespace BII.WasaBii.UnitSystem {
     public static class Angles {
-
-        static Angles() {
-            if (!EnsureGenerationDidRun.DidRun) throw new Exception();
-            Debug.Log(EnsureGenerationDidRun.ErrorMessage);
-        }
         
         public static readonly Angle HalfCircle = Math.PI.Radians();
         public static readonly Angle FullCircle = 2 * HalfCircle;
         
-        [Pure] private static double remainder(double x, double m) => (x % m + m) % m;
-        
         /// The angle between 0° and 360°
-        public static Angle Normalized360(this Angle angle) => remainder(angle.SiValue, FullCircle.SiValue).Radians();
+        public static Angle Normalized360(this Angle angle) {
+            var m = FullCircle.SiValue;
+            return ((angle.SiValue % m + m) % m).Radians();
+        }
         
-
         /// The angle between -180° and 180°
         public static Angle Normalized180(this Angle angle) => 
             angle.Normalized360().If(n => n > HalfCircle, n => n - FullCircle);
-
+        
         /// <summary>
         /// Brings the two angles into the same "space" (either [0°, 360°) or [-180°, 180°))
         /// where the absolute of the difference between them is minimal.
@@ -44,10 +38,10 @@ namespace BII.WasaBii.UnitSystem {
                 from = from.Normalized180();
                 to = to.Normalized180();
             }
-
+        
             return (from, to);
         }
-
+        
         /// <summary>
         /// Lerps between the angles after transforming them into a space where their difference is minimal.
         /// </summary>
@@ -65,18 +59,18 @@ namespace BII.WasaBii.UnitSystem {
         public static double Cos(this Angle angle) => Math.Cos(angle.SiValue);
         public static double Sin(this Angle angle) => Math.Sin(angle.SiValue);
         public static double Tan(this Angle angle) => Math.Tan(angle.SiValue);
-
+        
         public static Angle Acos(double d) => Math.Acos(d).Radians();
         public static Angle Asin(double d) => Math.Asin(d).Radians();
         public static Angle Atan(double d) => Math.Atan(d).Radians();
         public static Angle Atan2(double opposite, double adjacent) => Math.Atan2(opposite, adjacent).Radians();
-
+        
         /// <param name="opposite">German: Ankathete</param>
         public static Angle Asin(Length opposite, Length hypotenuse) => Asin(opposite / hypotenuse);
-
+        
         /// <param name="adjacent">German: Gegenkathete</param>
         public static Angle Acos(Length adjacent, Length hypotenuse) => Acos(adjacent / hypotenuse);
-
+        
         /// <param name="opposite">German: Ankathete</param>
         /// <param name="adjacent">German: Gegenkathete</param>
         public static Angle Atan(Length opposite, Length adjacent) => Atan(opposite / adjacent);

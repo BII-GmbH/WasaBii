@@ -42,7 +42,7 @@ public class UnitGenerator : ISourceGenerator {
 
     public void Execute(GeneratorExecutionContext context) {
         
-        // try {
+        try {
 
             var unitDefs = context.AdditionalFiles
                 .Where(f => f.Path.EndsWith(".units.json"))
@@ -74,19 +74,19 @@ public class UnitGenerator : ISourceGenerator {
                 )
             );
             
-        // }
-        // catch (Exception e) {
-        //     context.AddSource(
-        //         $"EnsureGenerationWorks.g.cs",
-        //         SourceText.From(
-        //             "namespace BII.WasaBii.UnitSystem { public static class EnsureGenerationDidRun { " +
-        //             "public const bool DidRun = true; " +
-        //             $"\npublic const string ErrorMessage = @\"{e.Message.Replace("\"", "\"\"")}\";" +
-        //             "} }",
-        //             Encoding.UTF8
-        //         )
-        //     );
-        // }
+        }
+        catch (Exception e) {
+            context.AddSource(
+                $"EnsureGenerationWorks.g.cs",
+                SourceText.From(
+                    "namespace BII.WasaBii.UnitSystem { public static class EnsureGenerationDidRun { " +
+                    "public const bool DidRun = true; " +
+                    $"\npublic const string ErrorMessage = @\"{e.Message.Replace("\"", "\"\"")}\";" +
+                    "} }",
+                    Encoding.UTF8
+                )
+            );
+        }
 
         // Note CR: this seems to allow the "init" keyword to compile somehow
         context.AddSource("EnsureIsExternalInitHack.g.cs", SourceText.From(@"

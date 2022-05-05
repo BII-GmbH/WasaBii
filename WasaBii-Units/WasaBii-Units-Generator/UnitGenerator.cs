@@ -183,6 +183,12 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     public static bool operator ==({name} left, {name} right) => left.Equals(right);
     public static bool operator !=({name} left, {name} right) => !left.Equals(right);
 
+    public static bool operator >({name} left, {name} right) => left.SiValue > right.SiValue;
+    public static bool operator <({name} left, {name} right) => left.SiValue < right.SiValue;
+
+    public static bool operator >=({name} left, {name} right) => left.SiValue >= right.SiValue;
+    public static bool operator <=({name} left, {name} right) => left.SiValue <= right.SiValue;
+
     public override bool Equals(object obj) => obj is {name} other && Equals(other);
 
     // We include this type in case values of different units are hashed in the same collection
@@ -289,6 +295,12 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     public static bool operator ==({name} left, {name} right) => Equals(left, right);
     public static bool operator !=({name} left, {name} right) => !Equals(left, right);
 
+    public static bool operator >({name} left, {name} right) => left.SiValue > right.SiValue;
+    public static bool operator <({name} left, {name} right) => left.SiValue < right.SiValue;
+
+    public static bool operator >=({name} left, {name} right) => left.SiValue >= right.SiValue;
+    public static bool operator <=({name} left, {name} right) => left.SiValue <= right.SiValue;
+
     public override bool Equals(object obj) => obj is {name} other && Equals(other);
 
     // We include this type in case values of different units are hashed in the same collection
@@ -352,7 +364,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
         
         // Trivial operators that any unit supports
 
-        string GenerateScalarOps(IUnit unit) {
+        string GenerateCommonOps(IUnit unit) {
             var name = unit.TypeName;
             return $@"    public static {name} operator +({name} first, {name} second) => new(first.SiValue + second.SiValue, {name}.SiUnit);
     public static {name} operator -({name} first, {name} second) => new(first.SiValue - second.SiValue, {name}.SiUnit);
@@ -364,27 +376,29 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     public static {name} operator*(float s, {name} a) => new(a.SiValue * s, {name}.SiUnit);
 
     public static {name} operator/({name} a, double s) => new(a.SiValue / s, {name}.SiUnit);
-    public static {name} operator/({name} a, float s) => new(a.SiValue / s, {name}.SiUnit);";
+    public static {name} operator/({name} a, float s) => new(a.SiValue / s, {name}.SiUnit);
+
+    public static double operator/({name} a, {name} b) => a.SiValue / b.SiValue;";
         }
 
         foreach (var b in unitDef.BaseUnits) {
             res.Append($@"
 {Header(b)} {{
-{GenerateScalarOps(b)}  
+{GenerateCommonOps(b)}  
 }}");
         }
         
         foreach (var m in unitDef.MulUnits) {
             res.Append($@"
 {Header(m)} {{
-{GenerateScalarOps(m)}  
+{GenerateCommonOps(m)}  
 }}");
         }
         
         foreach (var d in unitDef.DivUnits) {
             res.Append($@"
 {Header(d)} {{
-{GenerateScalarOps(d)}  
+{GenerateCommonOps(d)}  
 }}");
         }
         

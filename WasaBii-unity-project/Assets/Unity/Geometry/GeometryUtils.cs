@@ -78,8 +78,8 @@ namespace BII.WasaBii.Unity.Geometry {
                 "Can only solve triangle if lengths can form a valid triangle" +
                 "\n Lengths are: \n A: {a}\n B: {b}\n C: {c}"
             );
-            var aAngle = Angle.Acos((b * b + c * c - a * a) / (2 * b * c));
-            var bAngle = Angle.Acos((a * a + c * c - b * b) / (2 * a * c));
+            var aAngle = Angles.Acos((b * b + c * c - a * a) / (2 * b * c));
+            var bAngle = Angles.Acos((a * a + c * c - b * b) / (2 * a * c));
             var cAngle = 180d.Degrees() - (aAngle + bAngle);
 
             return (A: aAngle, B: bAngle, C: cAngle);
@@ -338,8 +338,8 @@ namespace BII.WasaBii.Unity.Geometry {
         public readonly Angle MaxAngle;
         public Pie(Circle circle, Angle minAngle, Angle maxAngle) {
             Circle = circle;
-            MinAngle = minAngle.Normalized360;
-            MaxAngle = maxAngle.Normalized360;
+            MinAngle = minAngle.Normalized360();
+            MaxAngle = maxAngle.Normalized360();
         }
 
         [Pure] public IEnumerable<Line2D> Edges() {
@@ -368,7 +368,7 @@ namespace BII.WasaBii.Unity.Geometry {
                 .From(GlobalDirection.Forward)
                 .To(GlobalOffset.From(Circle.Center.xxy()).To(point.xxy()).Normalized, 
                     axis: GlobalDirection.Up)
-                .Normalized360;
+                .Normalized360();
             return MinAngle < MaxAngle
                 ? MinAngle <= angle && angle <= MaxAngle
                 : MinAngle <= angle || angle <= MaxAngle;

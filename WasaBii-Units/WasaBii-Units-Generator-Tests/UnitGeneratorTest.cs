@@ -13,32 +13,28 @@ namespace BII.WasaBii.Units;
 
 // https://gist.github.com/chsienki/2955ed9336d7eb22bcb246840bfeb05c
 
-// TODO: Implement Joule = Nm/s²
-
 public class HardCodedText : AdditionalText {
+    public string Text { get; }
+    public override string Path { get; }
+  
     public HardCodedText(string text, string path) {
         this.Text = text;
-        this.path = path;
+        this.Path = path;
     }
-
-    public readonly string Text;
-    private readonly string path;
 
     public override SourceText? GetText(CancellationToken cancellationToken = new()) => 
         SourceText.From(Text);
-
-    public override string Path => path;
 }
 
 public class GeneratorTests
 {
     [Test]
-    public void SimpleGeneratorTest() {
+    public void EnsureExampleCompiles() {
         var resourceText = testJson;
         
-        Compilation comp = CreateCompilation(/* "namespace Foo { public static class Main { public static void Main(string[] args){} } }" */);
+        Compilation comp = CreateCompilation();
         var newComp = RunGenerators(comp, out var generatorDiags, new [] {
-          new HardCodedText(resourceText, "test.units.json")
+            new HardCodedText(resourceText, "test.units.json")
         }, new UnitGenerator());
 
         Assert.That(generatorDiags, Is.Empty);

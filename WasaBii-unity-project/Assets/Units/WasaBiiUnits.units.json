@@ -12,7 +12,7 @@
         {
           "name": "Degrees",
           "short": "°",
-          "factor": 57.2958
+          "factor": 57.2957795131
         }
       ],
       "generateExtensions": true
@@ -172,12 +172,12 @@
         {
           "name": "DegreesPerSecond",
           "short": "°/s",
-          "factor": 57.2958
+          "factor": 57.2957795131
         }, 
         {
           "name": "DegreesPerMinute",
           "short": "°/min",
-          "factor": 0.95493
+          "factor": 0.95492965855
         }
       ],
       "generateExtensions": true

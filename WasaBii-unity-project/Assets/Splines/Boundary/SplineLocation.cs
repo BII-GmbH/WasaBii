@@ -71,25 +71,25 @@ namespace BII.WasaBii.Splines {
 
         // Spline Location + Length operators
         public static SplineLocation operator +(SplineLocation lhs, Length rhs) =>
-            new(lhs.Value + rhs.SIValue);
+            new(lhs.Value + rhs.SiValue);
 
         public static SplineLocation operator +(Length lhs, SplineLocation rhs) =>
-            new(lhs.SIValue + rhs.Value);
+            new(lhs.SiValue + rhs.Value);
 
         public static SplineLocation operator -(SplineLocation lhs, Length rhs) =>
-            new(lhs.Value - rhs.SIValue);
+            new(lhs.Value - rhs.SiValue);
 
         public static SplineLocation operator -(Length lhs, SplineLocation rhs) =>
-            new(lhs.SIValue - rhs.Value);
+            new(lhs.SiValue - rhs.Value);
 
-        public static bool operator <(SplineLocation a, Length b) => a.Value < b.SIValue;
-        public static bool operator >(SplineLocation a, Length b) => a.Value > b.SIValue;
-        public static bool operator <(Length a, SplineLocation b) => a.SIValue < b.Value;
-        public static bool operator >(Length a, SplineLocation b) => a.SIValue > b.Value;
-        public static bool operator <=(Length a, SplineLocation b) => a.SIValue <= b.Value;
-        public static bool operator >=(Length a, SplineLocation b) => a.SIValue >= b.Value;
-        public static bool operator <=(SplineLocation a, Length b) => a.Value <= b.SIValue;
-        public static bool operator >=(SplineLocation a, Length b) => a.Value >= b.SIValue;
+        public static bool operator <(SplineLocation a, Length b) => a.Value < b.SiValue;
+        public static bool operator >(SplineLocation a, Length b) => a.Value > b.SiValue;
+        public static bool operator <(Length a, SplineLocation b) => a.SiValue < b.Value;
+        public static bool operator >(Length a, SplineLocation b) => a.SiValue > b.Value;
+        public static bool operator <=(Length a, SplineLocation b) => a.SiValue <= b.Value;
+        public static bool operator >=(Length a, SplineLocation b) => a.SiValue >= b.Value;
+        public static bool operator <=(SplineLocation a, Length b) => a.Value <= b.SiValue;
+        public static bool operator >=(SplineLocation a, Length b) => a.Value >= b.SiValue;
 
         public static SplineLocation operator %(SplineLocation lhs, Length rhs) =>
             From(lhs.Value % rhs.AsMeters());
@@ -146,8 +146,8 @@ namespace BII.WasaBii.Splines {
         public static bool operator >(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value > b.Value;
         public static bool operator <=(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value <= b.Value;
         public static bool operator >=(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value >= b.Value;
-        public static bool operator ==(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value == b.Value;
-        public static bool operator !=(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value != b.Value;
+        public static bool operator ==(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value.Equals(b.Value);
+        public static bool operator !=(NormalizedSplineLocation a, NormalizedSplineLocation b) => !a.Value.Equals(b.Value);
 
         public (SplineHandleIndex Index, double Overshoot) AsHandleIndex() {
             var index = SplineHandleIndex.At(Mathd.FloorToInt(Value));

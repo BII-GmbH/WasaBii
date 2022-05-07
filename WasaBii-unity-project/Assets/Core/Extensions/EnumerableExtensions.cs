@@ -647,8 +647,12 @@ namespace BII.WasaBii.Core {
             using var e = enumerator;
             while (e.MoveNext()) yield return e.Current;
         }
-// TODO: Sort and stuff
-#region CoreLibrary 
+        
+        /// <returns>True if the specified sequence contains no elements, false otherwise.</returns>
+        public static bool IsEmpty<T>(this IEnumerable<T> sequence) { return !sequence.Any(); }
+
+        /// <returns>False if the specified sequence contains no elements, true otherwise.</returns>
+        public static bool IsNotEmpty<T>(this IEnumerable<T> sequence) { return sequence.Any(); }
 
         /// Executes the specified action with side effects for each element in this sequence,
         /// thereby consuming the sequence if it was only iterable once.
@@ -704,21 +708,11 @@ namespace BII.WasaBii.Core {
             this IEnumerable<T> sequence, Func<T, IEnumerable<TRes?>> mapping
         ) where TRes : struct => sequence.SelectMany(mapping).WithoutNull();
 
-        public static IEnumerable<T> AfterwardsDo<T>(this IEnumerable<T> enumerable, Action afterwards) {
-            try {
-                foreach (var value in enumerable) yield return value;
-            } finally {
-                afterwards();
-            }
-        }
-
-        private static readonly System.Random Rng = new System.Random();
-
         /// Shuffles this sequence, yielding a <b>new</b> IEnumerable with all elements in random order.
         /// Uses the <a href="https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle">Fisher–Yates algorithm</a>.
         /// <br/>If the passed IEnumerable is only iterable once it is consumed in the process.
         public static List<T> Shuffled<T>(this IEnumerable<T> l, System.Random? random = null) {
-            random ??= Rng;
+            random ??= new System.Random();
             var list = new List<T>(l);
             var n = list.Count;
             while (n > 1) {
@@ -729,7 +723,6 @@ namespace BII.WasaBii.Core {
 
             return list;
         }
-#endregion CoreLibrary
         
     }
 }

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace BII.WasaBii.Undo {
+namespace BII.WasaBii.Core {
     
     /// Special stack implementation which limits its size
     /// to the given value. If a push causes the content to
@@ -17,12 +17,13 @@ namespace BII.WasaBii.Undo {
 
         public void Push(T toPush) {
             underlying.AddLast(toPush);
-            if (underlying.Count > maxSize)
-            {
+            if (underlying.Count > maxSize) {
                 underlying.First.Value.Dispose();
                 underlying.RemoveFirst();
             }
         }
+
+        public T Peek() => underlying.Last.Value;
 
         public T Pop() {
             var res = underlying.Last.Value;
@@ -33,7 +34,7 @@ namespace BII.WasaBii.Undo {
         public int Count => underlying.Count;
         public void Clear() => underlying.Clear();
 
-        // Note DG: We want the top of the stack to
+        // We want the top of the stack to
         // come first, but it is inserted last.
         // Thus, we must iterate in reverse.
         public IEnumerator<T> GetEnumerator() {

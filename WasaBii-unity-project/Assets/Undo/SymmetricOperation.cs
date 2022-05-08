@@ -9,8 +9,6 @@ using BII.WasaBii.Core;
 
 namespace BII.WasaBii.Undos {
     
-    // TODO CR: optimize usage by making all symop params `ref`
-    
     // ReSharper disable all InvalidXmlDocComment // for the caller arguments which are explicitly not documented
 
     /// Contains debug data that specifies where a <see cref="SymmetricOperation"/> has been constructed.
@@ -31,9 +29,11 @@ namespace BII.WasaBii.Undos {
     }
     
     [CannotBeSerialized("Based on function references which cannot be serialized.")]
-    public readonly struct SymmetricOperation {
+    public sealed class SymmetricOperation {
         internal readonly Action lastDo;
         internal readonly Action lastUndo;
+        
+        // TODO CR: optimize this somehow, if even possible (struct layout foo to fake a C union?)
         
         // Note CR: Composition can lead to thousands of symmetric operations that are composed before being used.
         //   Simply using function composition will lead to huge recursive call stacks, which can cause stack overflows.
@@ -143,7 +143,7 @@ namespace BII.WasaBii.Undos {
         
         // Note CR: we still use function composition for this type, as there is usually
         //   only one final typed SymOp after a chain of untyped SymOps.
-        //   => Composition of typed SymOps is unlikely, so recursive calls are fine.
+        //  => Composition of typed SymOps is unlikely, so recursive calls are fine.
         //   In particular, one would
         //     either need to call `.WithoutResult` and then compose untyped which shouldn't happen a lot,
         //     or use `.Map` which would require recursive calls either way. 
@@ -290,7 +290,7 @@ namespace BII.WasaBii.Undos {
         }
 
         /// Chains a <see cref="SymmetricOperation"/> after another <see cref="SymmetricOperation"/>.
-        public static SymmetricOperation AndThen(in this SymmetricOperation src, in SymmetricOperation then) {
+        public static SymmetricOperation AndThen(this SymmetricOperation src, in SymmetricOperation then) {
             var newDo = ImmutableList.CreateBuilder<Action>();
             if (src.doInOrder != null) newDo.AddRange(src.doInOrder);
             newDo.Add(src.lastDo);
@@ -353,7 +353,7 @@ namespace BII.WasaBii.Undos {
         /// <paramref name="doThen"/> will be executed after the source Do.
         /// <paramref name="undoThen"/> will be executed before the source Undo.
         public static SymmetricOperation AndThenDo(
-            in this SymmetricOperation src,
+            this SymmetricOperation src,
             Action doThen,
             Action undoThen,
             Action? disposeAfterDoThen = null,

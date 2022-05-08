@@ -10,8 +10,12 @@ using JetBrains.Annotations;
 using UnityEngine;
 
 namespace BII.WasaBii.Undo {
+    
+    // TODO CR: not just a `string name`, but any generic object with undo operation metadata.
+    // The user might want images or other associations in there.
+    // Note: also adjust docs!
 
-    [CannotBeSerialized("Undos are closure-based, so even attempting this is a mistake.")]
+    [CannotBeSerialized("Undos are closure-based. Do not serialize closures.")]
     public class UndoManager {
 
         public event Action OnAfterActionRecorded;
@@ -19,24 +23,29 @@ namespace BII.WasaBii.Undo {
         public event Action<int> OnAfterRedo;
         public event Action OnUndoBufferPushed;
         public event Action OnUndoBufferPopped;
+
+        private bool _currentlyRegistering = false;
+        private readonly UndoManagerState state;
         
-        private readonly UndoManagerState state = new UndoManagerState();
+        /// <param name="maxUndoStackSize">
+        /// The default <see cref="UndoBuffer"/> will only store up to this many undo or redo operations.
+        /// When the number of operations would exceed that number, the oldest operation is removed and freed.
+        /// </param>
+        public UndoManager(int maxUndoStackSize) => state = new UndoManagerState(maxUndoStackSize);
 
         public void PushUndoBuffer([NotNull] UndoBuffer customBuffer) {
-            state.PushUndoBuffer(customBuffer);
+            state.pushUndoBuffer(customBuffer);
             OnUndoBufferPushed?.Invoke();
         }
 
         public void PopUndoBuffer() {
-            state.PopUndoBuffer();
+            state.popUndoBuffer();
             OnUndoBufferPopped?.Invoke();
         }
 
         public IEnumerable<string> UndoLabels => state.currentUndoBuffer.UndoStack.Select(a => a.Name);
         public IEnumerable<string> RedoLabels => state.currentUndoBuffer.RedoStack.Select(a => a.Name);
 
-        private bool _currentlyRegistering = false;
-        
         public bool IsRecording => state._currentActionName != null;
         
         [CanBeNull]

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using BII.WasaBii.Core;
 using BII.WasaBii.Undos;
 using JetBrains.Annotations;
 
@@ -12,34 +11,33 @@ namespace BII.WasaBii.Undo.Logic {
         // Naming conventions are private-based, as they are private to all but the 
         //   UndoManager and the respective names reflect the mutability of the fields
 
-        private class BackingUndoBuffer : DefaultUndoBuffer {
+        private sealed class BackingUndoBuffer : DefaultUndoBuffer {
+            public BackingUndoBuffer(int maxStackSize) : base(maxStackSize) { }
+            
             // Does nothing interesting, since these are never actually called.
             // There is only one instance of this class, and it always exists as a fallback.
             public override void OnBeforeAttach() { }
             public override void OnAfterDetach() { }
+            
         }
 
-        public readonly UndoBuffer DefaultUndoBuffer = new BackingUndoBuffer();
+        public readonly UndoBuffer DefaultUndoBuffer;
+        private readonly Stack<UndoBuffer> _undoBufferStack = new();
 
-        private readonly Stack<UndoBuffer> __undoBufferStack = new();
-        private Stack<UndoBuffer> _undoBufferStack {
-            get {
-                var ubs = __undoBufferStack;
-                if (ubs.IsEmpty())
-                    ubs.Push(DefaultUndoBuffer);
-                return ubs;
-            }
+        internal UndoManagerState(int maxStackSize) {
+            DefaultUndoBuffer = new BackingUndoBuffer(maxStackSize);
+            _undoBufferStack.Push(DefaultUndoBuffer);
         }
         
-        public UndoBuffer currentUndoBuffer => _undoBufferStack.Peek();
+        internal UndoBuffer currentUndoBuffer => _undoBufferStack.Peek();
 
-        public void PushUndoBuffer([NotNull] UndoBuffer customBuffer) {
+        internal void pushUndoBuffer([NotNull] UndoBuffer customBuffer) {
             if (customBuffer == null) throw new ArgumentNullException(nameof(customBuffer));
             customBuffer.OnBeforeAttach();
             _undoBufferStack.Push(customBuffer);
         }
 
-        public void PopUndoBuffer() {
+        internal void popUndoBuffer() {
             if (_undoBufferStack.Count == 1) 
                 throw new InvalidOperationException("No custom undo buffers on stack");
             var popped = _undoBufferStack.Pop();
@@ -51,14 +49,11 @@ namespace BII.WasaBii.Undo.Logic {
             public bool _wasAborted = false;
             
             public readonly LinkedList<SymmetricOperation> _recordedOperations = new();
-            
             public readonly HashSet<LinkedListNode<SymmetricOperation>> _validUndoPlaceholder = new();
         }
 
-        private BufferRecordingData recordingDataFor(UndoBuffer buffer) => buffer._recordingData;
-
-        private BufferRecordingData currentRecordingData => recordingDataFor(currentUndoBuffer);
-
+        private BufferRecordingData currentRecordingData => currentUndoBuffer._recordingData;
+        
         internal IEnumerable<SymmetricOperation> recordedOperations => currentRecordingData._recordedOperations;
 
         internal void appendRecordedOperation(SymmetricOperation toAppend) =>

@@ -13,11 +13,6 @@ namespace BII.WasaBii.Undo {
     /// It manages completed undo actions and the actual undo and redo logic.
     public interface UndoBuffer {
         
-        // The stack accessors return the type `Stack`
-        // Since there is no IReadOnlyStack, but we want
-        // the stack ordering of the data and not some
-        // potentially arbitrary ordering.
-        
         void RegisterUndo(UndoAction res);
 
         /// Undos at most n actions. Returns the number of actions actually undone.
@@ -48,18 +43,25 @@ namespace BII.WasaBii.Undo {
     /// of the UndoManager.
     public abstract class DefaultUndoBuffer : UndoBuffer {
         
-        /// Every undo after this causes the oldest undo
+        /// Every undo or redo after this causes the oldest undo or redo
         /// to be forgotten and its resources to be freed.
-        public const int MaxUndoStackSize = 100;
-
-        /// Every redo after this causes the oldest redo
-        /// to be forgotten and its resources to be freed.
-        public const int MaxRedoStackSize = 100;
+        public readonly int MaxStackSize;
             
-        private readonly MaxSizeStack<UndoAction> _undoStack = new(MaxUndoStackSize);
-        private readonly MaxSizeStack<RedoAction> _redoStack = new(MaxRedoStackSize);
+        private readonly MaxSizeStack<UndoAction> _undoStack;
+        private readonly MaxSizeStack<RedoAction> _redoStack;
 
-        private UndoManagerState.BufferRecordingData __recordingData = new();
+        private readonly UndoManagerState.BufferRecordingData _recordingData;
+        
+        /// <param name="maxStackSize">
+        /// This buffer will only store up to this many undo or redo operations.
+        /// When the number of operations would exceed that number, the oldest operation is removed and freed.
+        /// </param>
+        protected DefaultUndoBuffer(int maxStackSize) {
+            MaxStackSize = maxStackSize;
+            _undoStack = new MaxSizeStack<UndoAction>(maxStackSize);
+            _redoStack = new MaxSizeStack<RedoAction>(maxStackSize);
+            _recordingData = new UndoManagerState.BufferRecordingData();
+        }
 
         public IEnumerable<UndoAction> UndoStack => _undoStack;
         public IEnumerable<RedoAction> RedoStack => _redoStack;
@@ -107,7 +109,7 @@ namespace BII.WasaBii.Undo {
             _redoStack.Clear();
         }
         
-        UndoManagerState.BufferRecordingData UndoBuffer._recordingData => __recordingData;
+        UndoManagerState.BufferRecordingData UndoBuffer._recordingData => _recordingData;
     }
     
 }

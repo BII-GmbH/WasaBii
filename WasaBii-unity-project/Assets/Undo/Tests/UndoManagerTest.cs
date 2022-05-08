@@ -22,7 +22,7 @@ namespace BII.WasaBii.Undo.Tests {
         }
         
         [SetUp]
-        public void Setup() { undoManager = new UndoManager(); }
+        public void Setup() { undoManager = new UndoManager(100); }
 
         [Test]
         public void WhenRegistering_ThenExecuted() {
@@ -690,6 +690,80 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.PopUndoBuffer();
 
             Assert.That(invokeCount, Is.EqualTo(1));
+        }
+
+        private class SingleElementUndoBuffer : DefaultUndoBuffer {
+            private readonly Action onBeforeAttach;
+            private readonly Action onAfterAttach;
+
+            public SingleElementUndoBuffer(Action onBeforeAttach, Action onAfterAttach) : base(1) {
+                this.onAfterAttach = onAfterAttach;
+                this.onBeforeAttach = onBeforeAttach;
+            }
+
+            public override void OnBeforeAttach() => onBeforeAttach();
+            public override void OnAfterDetach() => onAfterAttach();
+        }
+
+        public void WhenUndosExceedCap_ThenOldestRemoved() {
+            var onBeforeAttachCalled = false;
+            var onAfterDetachCalled = false;
+
+            var buffer = new SingleElementUndoBuffer(
+                () => onBeforeAttachCalled = true, 
+                () => onAfterDetachCalled = true
+            );
+            
+            undoManager.PushUndoBuffer(buffer);
+
+            var action1Done = false;
+            var action2Done = false;
+            var action1Undone = false;
+            var action2Undone = false;
+            
+            undoManager.StartRecordingAction("Test action 1");
+            undoManager.RegisterAndExecute(
+                () => action1Done = true, 
+                () => {
+                    action1Undone = true;
+                    action1Done = false;
+                }
+            );
+            undoManager.StopRecordingAction();
+            
+            Assert.That(action1Done, Is.True);
+            Assert.That(action1Undone, Is.False);
+            
+            undoManager.StartRecordingAction("Test action 2");
+            undoManager.RegisterAndExecute(
+                () => action2Done = true, 
+                () => {
+                    action2Undone = true;
+                    action2Done = false;
+                }
+            );
+            undoManager.StopRecordingAction();
+            
+            Assert.That(action2Done, Is.True);
+            Assert.That(action2Undone, Is.False);
+            
+            Assert.That(undoManager.Undo(2), Is.EqualTo(1));
+            
+            // only 2 should be undone; action 1 should still be done
+            
+            Assert.That(action2Done, Is.False);
+            Assert.That(action2Undone, Is.True);
+            
+            Assert.That(action1Done, Is.True);
+            Assert.That(action1Undone, Is.False);
+            
+            Assert.That(undoManager.Redo(2), Is.EqualTo(1));
+            
+            Assert.That(action1Done, Is.True);
+            Assert.That(action1Undone, Is.False);
+            
+            Assert.That(action2Done, Is.True);
+            Assert.That(action2Undone, Is.False);
         }
 
 #endregion

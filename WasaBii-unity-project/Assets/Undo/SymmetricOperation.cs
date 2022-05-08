@@ -33,8 +33,6 @@ namespace BII.WasaBii.Undos {
         internal readonly Action lastDo;
         internal readonly Action lastUndo;
         
-        // TODO CR: optimize this somehow, if even possible (struct layout foo to fake a C union?)
-        
         // Note CR: Composition can lead to thousands of symmetric operations that are composed before being used.
         //   Simply using function composition will lead to huge recursive call stacks, which can cause stack overflows.
         // Instead, once a SymOp is built using composition, we use immutable lists to keep track of the additional operations,

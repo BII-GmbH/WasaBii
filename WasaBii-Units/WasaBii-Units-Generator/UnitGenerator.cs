@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
@@ -51,6 +52,9 @@ public class UnitGenerator : ISourceGenerator {
 
     public void Execute(GeneratorExecutionContext context) {
         
+        // Ensure proper printing of decimal constants as valid C# code
+        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
         try {
 
             var unitDefs = context.AdditionalFiles

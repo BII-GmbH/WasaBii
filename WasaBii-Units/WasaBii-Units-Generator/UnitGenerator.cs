@@ -53,6 +53,7 @@ public class UnitGenerator : ISourceGenerator {
     public void Execute(GeneratorExecutionContext context) {
         
         // Ensure proper printing of decimal constants as valid C# code
+        var origCulture = Thread.CurrentThread.CurrentCulture;
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
         try {
@@ -75,7 +76,7 @@ public class UnitGenerator : ISourceGenerator {
                     source
                 );
             }
-            
+
             // context.AddSource(
             //     $"EnsureGenerationWorks.g.cs",
             //     SourceText.From(
@@ -86,7 +87,7 @@ public class UnitGenerator : ISourceGenerator {
             //         Encoding.UTF8
             //     )
             // );
-            
+
         }
         catch (Exception e) {
             context.ReportDiagnostic(Diagnostic.Create(UnexpectedUnitGenerationIssue, Location.None, e.Message));
@@ -100,6 +101,9 @@ public class UnitGenerator : ISourceGenerator {
             //         Encoding.UTF8
             //     )
             // );
+        }
+        finally {
+            Thread.CurrentThread.CurrentCulture = origCulture;
         }
 
         // Note CR: this seems to allow the "init" keyword to compile somehow

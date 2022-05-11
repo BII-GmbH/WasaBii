@@ -13,24 +13,24 @@ record SiUnitDef(string Name, string Short);
 
 record UnitDef(string Name, string Short, double Factor);
 
-interface IUnit {
+interface IUnitDef {
     string TypeName { get; }
     SiUnitDef SiUnit { get; }
     UnitDef[] AdditionalUnits { get; }
     bool GenerateExtensions { get; }
 }
 
-record BaseUnit(string TypeName, SiUnitDef SiUnit, UnitDef[] AdditionalUnits, bool GenerateExtensions = false) : IUnit;
+record BaseUnitDef(string TypeName, SiUnitDef SiUnit, UnitDef[] AdditionalUnits, bool GenerateExtensions = false) : IUnitDef;
 
-record DerivedUnit(string TypeName, 
+record DerivedUnitDef(string TypeName, 
     string Primary, 
     string Secondary, 
     SiUnitDef SiUnit,
     UnitDef[] AdditionalUnits, 
     bool GenerateExtensions = false
-) : IUnit;
+) : IUnitDef;
 
-record UnitDefinitions(string Namespace, BaseUnit[] BaseUnits, DerivedUnit[] MulUnits, DerivedUnit[] DivUnits);
+record UnitDefinitions(string Namespace, BaseUnitDef[] BaseUnits, DerivedUnitDef[] MulUnits, DerivedUnitDef[] DivUnits);
 
 #endregion
 
@@ -133,7 +133,7 @@ using System;
     
 #region Base Units
 
-    private static string GenerateBaseUnit(BaseUnit unit) {
+    private static string GenerateBaseUnit(BaseUnitDef unit) {
         var name = unit.TypeName;
         return $@"#region {name}
 
@@ -210,7 +210,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 ";
     }
 
-    private static string GenerateToDoubleExtensions(BaseUnit unit) {
+    private static string GenerateToDoubleExtensions(BaseUnitDef unit) {
         if (!unit.GenerateExtensions) return "";
         var name = unit.TypeName;
         return $@"
@@ -224,7 +224,7 @@ public static class {name}ToDoubleExtensions {{
 ";
     }
 
-    private static string GenerateConstructionExtensions(BaseUnit unit) {
+    private static string GenerateConstructionExtensions(BaseUnitDef unit) {
         if (!unit.GenerateExtensions) return "";
         var name = unit.TypeName;
         return $@"
@@ -244,7 +244,7 @@ public static class {name}ConstructionExtensions {{
 
 #region Derived Units
 
-    private static string GenerateDerivedUnit(DerivedUnit unit, bool isMul) {
+    private static string GenerateDerivedUnit(DerivedUnitDef unit, bool isMul) {
         var name = unit.TypeName;
         var typeStr = isMul ? "Mul" : "Div";
         return $@"#region {name}
@@ -322,7 +322,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 ";
     }
 
-    private static string GenerateDerivedToDoubleExtensions(DerivedUnit unit) {
+    private static string GenerateDerivedToDoubleExtensions(DerivedUnitDef unit) {
         if (!unit.GenerateExtensions) return "";
         var name = unit.TypeName;
         return $@"
@@ -336,7 +336,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     ";
     }
 
-    private static string GenerateDerivedConstructionExtensions(DerivedUnit unit) {
+    private static string GenerateDerivedConstructionExtensions(DerivedUnitDef unit) {
         if (!unit.GenerateExtensions) return "";
         var name = unit.TypeName;
         return $@"
@@ -368,13 +368,13 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
         
         // For ease of use, just make a lot of partial classes
 
-        string Header(IUnit unit) => $"public readonly partial struct {unit.TypeName}";
+        string Header(IUnitDef unit) => $"public readonly partial struct {unit.TypeName}";
 
         var res = new StringBuilder();
         
         // Trivial operators that any unit supports
 
-        string GenerateCommonOps(IUnit unit) {
+        string GenerateCommonOps(IUnitDef unit) {
             var name = unit.TypeName;
             return $@"    public static {name} operator +({name} first, {name} second) => new(first.SiValue + second.SiValue, {name}.SiUnit);
     public static {name} operator -({name} first, {name} second) => new(first.SiValue - second.SiValue, {name}.SiUnit);
@@ -414,7 +414,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
         
         // Multiplication and Division
 
-        (UnitDefType, IUnit) MatchUnit(string unit) {
+        (UnitDefType, IUnitDef) MatchUnit(string unit) {
             if (baseNameToUnit!.TryGetValue(unit, out var b)) {
                 return (UnitDefType.Base, b);
             } else if (mulNameToUnit!.TryGetValue(unit, out var m)) {
@@ -425,7 +425,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
         }
 
         // first and second are symmetric
-        (IUnit First, IUnit Second, IUnit Third) OperationForDerived(DerivedUnit unit, bool isMul) {
+        (IUnitDef First, IUnitDef Second, IUnitDef Third) OperationForDerived(DerivedUnitDef unit, bool isMul) {
             var (firstType, first) = MatchUnit(unit.Primary);
             var (secondType, second) = MatchUnit(unit.Secondary);
             if (isMul) {
@@ -437,13 +437,13 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
             }
         } 
         
-        string GenerateMul(IUnit a, IUnit b, IUnit c) => $@"
+        string GenerateMul(IUnitDef a, IUnitDef b, IUnitDef c) => $@"
 {Header(a)} {{
     public static {c.TypeName} operator*({a.TypeName} a, {b.TypeName} b) => 
         new(a.SiValue * b.SiValue, {c.TypeName}.SiUnit);
 }}";
 
-        string GenerateDiv(IUnit a, IUnit b, IUnit c) => 
+        string GenerateDiv(IUnitDef a, IUnitDef b, IUnitDef c) => 
             a.Equals(b) ? $@"
 {Header(c)} {{
     public static {b.TypeName} operator/({c.TypeName} c, {a.TypeName} a) => 

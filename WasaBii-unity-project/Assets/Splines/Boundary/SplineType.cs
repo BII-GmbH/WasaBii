@@ -21,7 +21,7 @@ namespace BII.WasaBii.Splines {
                     SplineType.Centripetal => 0.5f,
                     SplineType.Chordal => 1,
                     _ => throw new InvalidEnumArgumentException(
-                        $"SplineTypeExtensions.ToAlpha does not support the value {type} yet")
+                        $"{nameof(SplineTypeUtils)}.{nameof(ToAlpha)} does not support the value {type}")
                 };
         }
     }

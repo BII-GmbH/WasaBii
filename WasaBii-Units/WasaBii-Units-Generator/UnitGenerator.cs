@@ -62,7 +62,7 @@ public class UnitGenerator : ISourceGenerator {
                 .Where(f => f.Path.EndsWith(".units.json"))
                 .Select(f => {
                     // Sometimes, the paths passed to this are not consistent with `Path.PathSeparator`...
-                    var fileNameFull = f.Path.Split('/').SelectMany(s => s.Split('\\')).Last();
+                    var fileNameFull = Path.GetFileName(f.Path);
                     return (
                         FileName: fileNameFull.Substring(0, fileNameFull.Count() - ".units.json".Count()),
                         Defs: JsonConvert.DeserializeObject<UnitDefinitions>(f.GetText()!.ToString())!

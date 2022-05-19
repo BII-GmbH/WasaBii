@@ -40,7 +40,7 @@ record UnitDefinitions(string Namespace, BaseUnitDef[] BaseUnits, DerivedUnitDef
 public class UnitGenerator : ISourceGenerator {
     
     private static readonly DiagnosticDescriptor UnexpectedUnitGenerationIssue = new(
-        id: "WasaBii001",
+        id: "WasaBiiUnits",
         title: "Unexpected Unit Generation Issue",
         messageFormat: "Unexpected issue while generating unit source code:\n{0}",
         category: "WasaBii",
@@ -77,40 +77,13 @@ public class UnitGenerator : ISourceGenerator {
                 );
             }
 
-            // context.AddSource(
-            //     $"EnsureGenerationWorks.g.cs",
-            //     SourceText.From(
-            //         "namespace BII.WasaBii.UnitSystem { public static class EnsureGenerationDidRun { " +
-            //             "public const bool DidRun = true; " +
-            //         $"    public const string ErrorMessage = \"All good. {string.Join(",", unitDefs.Select(d => d.FileName))}\";" +
-            //         "} }",
-            //         Encoding.UTF8
-            //     )
-            // );
-
         }
         catch (Exception e) {
             context.ReportDiagnostic(Diagnostic.Create(UnexpectedUnitGenerationIssue, Location.None, e.Message));
-            // context.AddSource(
-            //     $"EnsureGenerationWorks.g.cs",
-            //     SourceText.From(
-            //         "namespace BII.WasaBii.UnitSystem { public static class EnsureGenerationDidRun { " +
-            //         "public const bool DidRun = true; " +
-            //         $"\npublic const string ErrorMessage = @\"{e.Message.Replace("\"", "\"\"")}\";" +
-            //         "} }",
-            //         Encoding.UTF8
-            //     )
-            // );
         }
         finally {
             Thread.CurrentThread.CurrentCulture = origCulture;
         }
-
-        // Note CR: this seems to allow the "init" keyword to compile somehow
-//         context.AddSource("EnsureIsExternalInitHack.g.cs", SourceText.From(@"
-// namespace System.Runtime.CompilerServices {
-//     public static class IsExternalInit {}
-// }", Encoding.UTF8));
     }
 
     private static SourceText GenerateSourceFor(
@@ -119,6 +92,7 @@ public class UnitGenerator : ISourceGenerator {
         var unitsInclude = unitDef.Namespace.Equals("BII.WasaBii.UnitSystem") ? "" : "using BII.WasaBii.UnitSystem;\n";
         var res = $@"
 using System;
+using System.Collections.Generic;
 {unitsInclude}
 
 {string.Join("\n\n", unitDef.BaseUnits.Select(GenerateBaseUnit))}
@@ -165,7 +139,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 
         public sealed class Description : IUnitDescription<Unit> {{
             public Unit SiUnit => {name}.SiUnit;
-            public Unit[] AllUnits => new Unit[] {{
+            public IReadOnlyList<Unit> AllUnits => new Unit[] {{
                 {unit.SiUnit.Name}.Instance,
 {string.Join(",\n                ", unit.AdditionalUnits.Select(u => u.Name + ".Instance"))}
             }};
@@ -277,7 +251,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 
         public sealed class Description : IUnitDescription<Unit> {{
             public Unit SiUnit => {name}.SiUnit;
-            public Unit[] AllUnits => new Unit[] {{
+            public IReadOnlyList<Unit> AllUnits => new Unit[] {{
                 {unit.SiUnit.Name}.Instance,
 {string.Join(",\n                ", unit.AdditionalUnits.Select(u => u.Name + ".Instance"))}
             }};

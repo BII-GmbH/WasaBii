@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 
 using BII.WasaBii.Core;
+using NSubstitute.Exceptions;
 
 namespace BII.WasaBii.UnitSystem {
 
@@ -23,8 +23,11 @@ namespace BII.WasaBii.UnitSystem {
             where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit => value.SiValue * unit.SiFactor;
 
         public static double As(this IUnitValue value, IUnit unit) {
-            Contract.Assert(value.UnitType.IsInstanceOfType(unit));
-            return value.SiValue * unit.SiFactor;
+            if (!value.UnitType.IsInstanceOfType(unit))
+                throw new ArgumentException(
+                    $"The type of the target unit does not match the type of the value's unit type. " +
+                    $"Expected {value.UnitType} but was {unit}");
+            return value.SiValue / unit.SiFactor;
         }
 
         private static IUnitDescription<TUnit> unitDescriptionOf<TUnit>() where TUnit : IUnit =>
@@ -39,7 +42,7 @@ namespace BII.WasaBii.UnitSystem {
 
         public static TUnit SiUnitOf<TUnit>() where TUnit : IUnit => unitDescriptionOf<TUnit>().SiUnit;
         
-        public static TUnit[] AllUnitsOf<TUnit>() where TUnit : IUnit => unitDescriptionOf<TUnit>().AllUnits;
+        public static IReadOnlyList<TUnit> AllUnitsOf<TUnit>() where TUnit : IUnit => unitDescriptionOf<TUnit>().AllUnits;
         
         // Basic maths
         
@@ -88,17 +91,15 @@ namespace BII.WasaBii.UnitSystem {
             double progress,
             bool shouldClamp = true
         ) where TSelf : struct, IUnitValue<TSelf> =>
-            FromSiValue<TSelf>(
-                shouldClamp 
-                    ? from.SiValue.Lerp(to.SiValue, progress)
-                    : from.SiValue.LerpUnclamped(to.SiValue, progress));
-
+            FromSiValue<TSelf>(from.SiValue.Lerp(to.SiValue, progress, shouldClamp));
+        
         public static double InverseLerp<TSelf>(
             TSelf from,
             TSelf to,
-            TSelf value
+            TSelf value,
+            bool shouldClamp = true
         ) where TSelf : struct, IUnitValue<TSelf> =>
-            Mathd.InverseLerp(from.SiValue, to.SiValue, value.SiValue);
+            Mathd.InverseLerp(from.SiValue, to.SiValue, value.SiValue, shouldClamp);
         
         /// <param name="progressExponent">Defines how the samples are distributed.
         /// A value between 0 and 1 will shift the samples towards <see cref="to"/>,
@@ -111,7 +112,9 @@ namespace BII.WasaBii.UnitSystem {
             int sampleCount,
             double? progressExponent = null
         ) where TSelf : struct, IUnitValue<TSelf> {
-            Contract.Assert(sampleCount >= 2, $"At least 2 sample points are needed. {sampleCount} were requested.");
+            if (sampleCount < 2) 
+                throw new ArgumentException($"At least 2 sample points are needed. {sampleCount} were requested.");
+            
             for (double i = 0; i < sampleCount; i++) {
                 yield return Lerp(
                     from, 
@@ -133,16 +136,14 @@ namespace BII.WasaBii.UnitSystem {
         /// you may want to pass an already sorted list. In this case, pass `true` for <see cref="areUnitsSorted"/>.
         public static TUnit MostFittingDisplayUnitFor<TUnit>(
             IUnitValueOf<TUnit> value, 
-            IEnumerable<TUnit> allowedUnits = null!, 
+            IEnumerable<TUnit> allowedUnits, 
             bool areUnitsSorted = false
         ) where TUnit : IUnit {
-            Contract.Assert(!(areUnitsSorted && allowedUnits == null));
-            
             var allowed = allowedUnits?.If(!areUnitsSorted, 
                 units => (IEnumerable<TUnit>) units.SortedBy(u => u.SiFactor)
             ).AsReadOnlyList() ?? AllUnitsOf<TUnit>();
-            
-            Contract.Assert(allowed.Any());
+
+            if (!allowed.Any()) throw new ArgumentNotFoundException($"No allowed units given for {typeof(TUnit)}.");
             
             var displayUnit = allowed[0];
             foreach (var unit in allowed.Skip(1)) {
@@ -153,6 +154,12 @@ namespace BII.WasaBii.UnitSystem {
 
             return displayUnit;
         }
+
+        /// Returns the unit which leads to the smallest possible value not less than 1 when applied.
+        /// If no unit yields a value >= 1, the unit with the greatest value is returned.
+        public static TUnit MostFittingDisplayUnitFor<TUnit>(
+            IUnitValueOf<TUnit> value
+        ) where TUnit : IUnit => MostFittingDisplayUnitFor(value, AllUnitsOf<TUnit>(), areUnitsSorted: false);
 
         public static string Format<TUnit>(
             this IUnitValueOf<TUnit> value, 
@@ -171,7 +178,7 @@ namespace BII.WasaBii.UnitSystem {
                     if(!doubleValue.IsNearly(0, zeroThreshold))
                         fractalDigits = Math.Max(0, digits - doubleValue.PositionOfFirstSignificantDigit() - 1);
                     break;
-                default: throw new UnsupportedEnumValueException(roundingMode, "ValueWithUnit formatting");
+                default: throw new UnsupportedEnumValueException(roundingMode, "UnitValue formatting");
             }
             // e.g. 0.000 for 3 fractal digits
             var formatSpecifier = string.Concat(Enumerable.Repeat("0", fractalDigits).Prepend("0."));

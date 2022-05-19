@@ -128,13 +128,7 @@
         "name": "SquareMeters",
         "short": "m²"
       },
-      "additionalUnits": [
-        {
-          "name": "Hectare",
-          "short": "ha",
-          "factor": 10000
-        }
-      ],
+      "additionalUnits": [ ],
       "generateExtensions": true
     },
 

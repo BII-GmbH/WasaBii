@@ -83,8 +83,8 @@
         },
         {
           "name": "Millimeters",
-          "short": "cm",
-          "factor": 0.01
+          "short": "mm",
+          "factor": 0.001
         }
       ],
       "generateExtensions": true

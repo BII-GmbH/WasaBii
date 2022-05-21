@@ -22,6 +22,9 @@ public sealed class UnitConversions {
         var identifierToName = new Dictionary<UnitIdentifier, string>();
 
         void AddIdentifier(string name, UnitIdentifier identifier) {
+            if (identifierToName.TryGetValue(identifier, out var existing)) 
+                throw new Exception(
+                    $"Duplicate unit definitions: {name} is the same as {existing} but with a different name!");
             nameToIdentifier.Add(name, identifier);
             identifierToName.Add(identifier, name);
         }
@@ -29,7 +32,7 @@ public sealed class UnitConversions {
         // step 1: register all base units
         foreach (var baseUnit in defs.BaseUnits) {
             AddIdentifier(baseUnit.TypeName,
-                new UnitIdentifier(new BaseUnitFactor(ImmutableSortedSet.Create(baseUnit.TypeName)),
+                new UnitIdentifier(new BaseUnitFactor(ImmutableSortedDictionary<string, int>.Empty.Add(baseUnit.TypeName, 1)),
                     BaseUnitFactor.Empty));
         }
 
@@ -44,7 +47,7 @@ public sealed class UnitConversions {
         foreach (var (derived, isMul) in defs.MulUnits.Select(u => (u, true)).Concat(defs.DivUnits.Select(u => (u, false)))) {
             var node = new DerivedUnitNode(derived.TypeName, derived.Primary, derived.Secondary, isMul, new HashSet<DerivedUnitNode>());
             nameToNode.Add(derived.TypeName, node);
-            if (nameToIdentifier.ContainsKey(node.req1) && nameToIdentifier.ContainsKey(node.req2)) {
+            if (nameToIdentifier.ContainsKey(node.Primary) && nameToIdentifier.ContainsKey(node.Secondary)) {
                 canMakeModelQueue.Enqueue(node);
             }
         }
@@ -52,24 +55,24 @@ public sealed class UnitConversions {
         // second pass: populate `neededToCompute`
         
         foreach (var node in nameToNode.Values) {
-            if (nameToNode.TryGetValue(node.req1, out var rn1)) rn1.neededToCompute.Add(node);
-            if (nameToNode.TryGetValue(node.req2, out var rn2)) rn2.neededToCompute.Add(node);
+            if (nameToNode.TryGetValue(node.Primary, out var rn1)) rn1.NeededToCompute.Add(node);
+            if (nameToNode.TryGetValue(node.Secondary, out var rn2)) rn2.NeededToCompute.Add(node);
         }
         
         // step 3: dequeue and make model, then enqueue all in `neededToCompute` when their dependencies are done
         
         while (canMakeModelQueue.Any()) {
             var curr = canMakeModelQueue.Dequeue();
-            var a = nameToIdentifier[curr.req1];
-            var b = nameToIdentifier[curr.req2];
+            var a = nameToIdentifier[curr.Primary];
+            var b = nameToIdentifier[curr.Secondary];
 
-            if (curr.isMul) AddIdentifier(curr.name, a * b);
-            else AddIdentifier(curr.name, a / b);
+            if (curr.IsMul) AddIdentifier(curr.Name, a * b);
+            else AddIdentifier(curr.Name, a / b);
 
-            nameToNode.Remove(curr.name);
+            nameToNode.Remove(curr.Name);
             
-            foreach (var candidate in curr.neededToCompute) 
-                if (nameToIdentifier.ContainsKey(candidate.req1) && nameToIdentifier.ContainsKey(candidate.req2)) 
+            foreach (var candidate in curr.NeededToCompute) 
+                if (nameToIdentifier.ContainsKey(candidate.Primary) && nameToIdentifier.ContainsKey(candidate.Secondary)) 
                     canMakeModelQueue.Enqueue(candidate);
         }
 
@@ -105,41 +108,79 @@ public sealed class UnitConversions {
     //  check whether that multiplication or addition would result in another existing unit.
 
     private record UnitIdentifier(BaseUnitFactor Numerator, BaseUnitFactor Denominator) {
+        // TODO CR PREMERGE: numerator and denominator duplicates should be shortened
+        
         public static UnitIdentifier operator *(UnitIdentifier a, UnitIdentifier b) =>
-            new UnitIdentifier(a.Numerator + b.Numerator, a.Denominator + b.Denominator);
+            Minimized(a.Numerator + b.Numerator, a.Denominator + b.Denominator);
 
         public static UnitIdentifier operator /(UnitIdentifier a, UnitIdentifier b) =>
-            new UnitIdentifier(a.Numerator + b.Denominator, a.Denominator + b.Numerator);
+            Minimized(a.Numerator + b.Denominator, a.Denominator + b.Numerator);
+
+        public static UnitIdentifier Minimized(BaseUnitFactor a, BaseUnitFactor b) {
+            var (a2, b2) = BaseUnitFactor.Minimized(a, b);
+            return new UnitIdentifier(a2, b2);
+        }
     }
     
     private class BaseUnitFactor {
-        public readonly ImmutableSortedSet<string> BaseUnits;
+        // Every unit can occur multiple times, e.g. Area = Length * Length.
+        // => the value of the dict is the number of occurrences of that unit.
+        // Sorted, so that GetHashCode can properly compare two dictionaries by content.
+        private readonly ImmutableSortedDictionary<string, int> baseUnits;
 
-        public BaseUnitFactor(ImmutableSortedSet<string> baseUnits) => BaseUnits = baseUnits;
+        public BaseUnitFactor(ImmutableSortedDictionary<string, int> baseUnits) => this.baseUnits = baseUnits;
 
         public override bool Equals(object obj) => obj is BaseUnitFactor other && Equals(other);
         public bool Equals(BaseUnitFactor other) {
-            if (BaseUnits.Count != other.BaseUnits.Count) return false;
-        
-            using var first = BaseUnits.GetEnumerator();
-            using var second = other.BaseUnits.GetEnumerator();
-        
-            while (first.MoveNext()) {
-                if (!second.MoveNext()) return false;
-                if (!Equals(first.Current, second.Current)) return false;
+            if (baseUnits.Count != other.baseUnits.Count) return false;
+            foreach (var (au, ai) in baseUnits) {
+                if (!other.baseUnits.TryGetValue(au, out var i)) return false;
+                if (i != ai) return false;
             }
-
-            if (second.MoveNext()) return false;
             return true;
-        } 
-    
-        public override int GetHashCode() => BaseUnits.GetHashCode();
+        }
+        
+        public override int GetHashCode() => baseUnits.Aggregate(19, HashCode.Combine);
 
-        public static BaseUnitFactor Empty = new(ImmutableSortedSet<string>.Empty);
+        public static readonly BaseUnitFactor Empty = new(ImmutableSortedDictionary<string, int>.Empty);
 
         public static BaseUnitFactor operator +(BaseUnitFactor a, BaseUnitFactor b) =>
-            new(b.BaseUnits.Aggregate(a.BaseUnits, (acc, c) => acc.Add(c)));
+            new(b.baseUnits.Aggregate(a.baseUnits, (acc, c) => {
+                if (acc.TryGetValue(c.Key, out var n)) 
+                    return acc.SetItem(c.Key, n + c.Value);
+                else return acc.Add(c.Key, c.Value);
+            }));
+
+        public static (BaseUnitFactor, BaseUnitFactor) Minimized(BaseUnitFactor numerator, BaseUnitFactor denominator) {
+            // Goal: appropriately reduce occurrences of units that appear in both numerator and denominator
+            var finalNumerator = numerator.baseUnits;
+            var finalDenominator = denominator.baseUnits;
+            
+            // step 1: find all units that both have in common
+
+            foreach (var u in numerator.baseUnits.Keys.Where(denominator.baseUnits.ContainsKey)) {
+                var ni = finalNumerator[u];
+                var di = finalDenominator[u];
+                if (ni < di) {
+                    // remove from numerator
+                    finalDenominator = finalDenominator.SetItem(u, di - ni);
+                    finalNumerator = finalNumerator.Remove(u);
+                } 
+                else if (ni == di) {
+                    // equal, so remove from both
+                    finalDenominator = finalDenominator.Remove(u);
+                    finalNumerator = finalNumerator.Remove(u);
+                } 
+                else {
+                    // ni > di, so remove from denominator
+                    finalNumerator = finalNumerator.SetItem(u, ni - di);
+                    finalDenominator = finalDenominator.Remove(u);
+                }
+            }
+
+            return (new(finalNumerator), new(finalDenominator));
+        }
     }
     
-    private record DerivedUnitNode(string name, string req1, string req2, bool isMul, HashSet<DerivedUnitNode> neededToCompute);
+    private record DerivedUnitNode(string Name, string Primary, string Secondary, bool IsMul, HashSet<DerivedUnitNode> NeededToCompute);
 }

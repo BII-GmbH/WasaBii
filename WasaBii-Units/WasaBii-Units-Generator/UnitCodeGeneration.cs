@@ -55,8 +55,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
             private {au.Name}() : base() {{}}
 
             public static readonly {au.Name} Instance = new();
-        }}
-"))}
+        }}"))}
 
     }}
 
@@ -71,6 +70,8 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 
     public static bool operator >=({name} left, {name} right) => left.SiValue >= right.SiValue;
     public static bool operator <=({name} left, {name} right) => left.SiValue <= right.SiValue;
+
+{GenerateConversionsFor(unit, conversions.For(unit))}
 
     public override bool Equals(object obj) => obj is {name} other && Equals(other);
 
@@ -167,8 +168,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
             private {au.Name}() : base() {{}}
 
             public static readonly {au.Name} Instance = new();
-        }}
-"))}
+        }}"))}
 
     }}
 
@@ -265,7 +265,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
         string GenerateMul(string b, string c) => $@"
     public static {c} operator*({a} a, {b} b) => 
         new(a.SiValue * b.SiValue, {c}.SiUnit);
-}}";
+";
 
         string GenerateDiv(string b, string c) => $@"
     public static {c} operator/({a} a, {b} b) => 

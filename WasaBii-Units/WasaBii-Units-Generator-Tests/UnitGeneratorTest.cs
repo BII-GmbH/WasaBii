@@ -32,7 +32,7 @@ public class GeneratorTests
     public void EnsureExampleCompiles() {
         var resourceText = testJson;
         
-        Compilation comp = CreateCompilation();
+        Compilation comp = CreateCompilation("namespace System.Runtime.CompilerServices { public static class IsExternalInit {} }");
         var newComp = RunGenerators(comp, out var generatorDiags, new [] {
             new HardCodedText(resourceText, "test.units.json")
         }, new UnitGenerator());
@@ -78,6 +78,7 @@ public class GeneratorTests
 
     private const string testJson = @"{
   ""namespace"": ""BII.WasaBii.UnitSystem"",
+  
   ""baseUnits"": [
     
     {
@@ -90,7 +91,7 @@ public class GeneratorTests
         {
           ""name"": ""Degrees"",
           ""short"": ""°"",
-          ""factor"": 57.2958
+          ""factor"": 57.2957795131
         }
       ],
       ""generateExtensions"": true
@@ -131,16 +132,6 @@ public class GeneratorTests
       ],
       ""generateExtensions"": true
     },
-
-    {
-      ""typeName"": ""Force"",
-      ""siUnit"": {
-        ""name"": ""Newton"",
-        ""short"": ""N""
-      },
-      ""additionalUnits"": [],
-      ""generateExtensions"": true
-    },
     
     {
       ""typeName"": ""Length"",
@@ -161,8 +152,8 @@ public class GeneratorTests
         },
         {
           ""name"": ""Millimeters"",
-          ""short"": ""cm"",
-          ""factor"": 0.01
+          ""short"": ""mm"",
+          ""factor"": 0.001
         }
       ],
       ""generateExtensions"": true
@@ -208,9 +199,9 @@ public class GeneratorTests
       },
       ""additionalUnits"": [
         {
-          ""name"": ""Hectare"",
-          ""short"": ""ha"",
-          ""factor"": 10000
+          ""name"": ""SquareKilometers"",
+          ""short"": ""km²"",
+          ""factor"": 0.000001
         }
       ],
       ""generateExtensions"": true
@@ -223,6 +214,24 @@ public class GeneratorTests
       ""siUnit"": {
         ""name"": ""CubicMeters"",
         ""short"": ""m³""
+      },
+      ""additionalUnits"": [
+        {
+          ""name"": ""Liters"",
+          ""short"": ""l"",
+          ""factor"": 0.001
+        }
+      ],
+      ""generateExtensions"": true
+    },
+
+    {
+      ""typeName"": ""Force"",
+      ""primary"": ""Mass"",
+      ""secondary"": ""Acceleration"",
+      ""siUnit"": {
+        ""name"": ""Newton"",
+        ""short"": ""N""
       },
       ""additionalUnits"": [
         {
@@ -250,12 +259,12 @@ public class GeneratorTests
         {
           ""name"": ""DegreesPerSecond"",
           ""short"": ""°/s"",
-          ""factor"": 57.2958
+          ""factor"": 57.2957795131
         }, 
         {
           ""name"": ""DegreesPerMinute"",
           ""short"": ""°/min"",
-          ""factor"": 0.95493
+          ""factor"": 0.95492965855
         }
       ],
       ""generateExtensions"": true
@@ -301,8 +310,19 @@ public class GeneratorTests
       },
       ""additionalUnits"": [],
       ""generateExtensions"": true
+    },
+
+    {
+      ""typeName"": ""Acceleration"",
+      ""primary"": ""Velocity"",
+      ""secondary"": ""Duration"",
+      ""siUnit"": {
+        ""name"": ""MetersPerSecondSquared"",
+        ""short"": ""m/s²""
+      },
+      ""additionalUnits"": [],
+      ""generateExtensions"": true
     }
-    
   ]
 }";
 }

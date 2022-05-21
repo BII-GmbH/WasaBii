@@ -31,9 +31,10 @@ public sealed class UnitConversions {
         
         // step 1: register all base units
         foreach (var baseUnit in defs.BaseUnits) {
-            AddIdentifier(baseUnit.TypeName,
-                new UnitIdentifier(new BaseUnitFactor(ImmutableSortedDictionary<string, int>.Empty.Add(baseUnit.TypeName, 1)),
-                    BaseUnitFactor.Empty));
+            AddIdentifier(
+                baseUnit.TypeName,
+                new UnitIdentifier(new BaseUnitFactor(ImmutableSortedDictionary<string, int>.Empty.Add(baseUnit.TypeName, 1)))
+            );
         }
 
         // step 2: register all derived units
@@ -88,9 +89,9 @@ public sealed class UnitConversions {
             foreach (var (a, ai) in nameToIdentifier)
             foreach (var (b, bi) in nameToIdentifier) {
                 if (identifierToName.TryGetValue(ai * bi, out var c1))
-                    yield return new UnitConversion(a, b, c1, true);
+                    yield return new UnitConversion(a, b, c1, IsMul: true);
                 if (identifierToName.TryGetValue(ai / bi, out var c2))
-                    yield return new UnitConversion(a, b, c2, true);
+                    yield return new UnitConversion(a, b, c2, IsMul: false);
             }
         }
 
@@ -99,87 +100,64 @@ public sealed class UnitConversions {
     
     
     
-    // The idea: Any unit in an SI-unit-like system can be identified by a division
-    //           of two factors of base units. And any set of divisions and multiplications
-    //           can be written as a division of two sets of factors. When a set is empty,
-    //           then the factor is equal to 1. Therefore a base unit has only itself
-    //           in the numerator set, and nothing in the denominator set.
+    // The idea: Any unit in an SI-unit-like system can be identified by a mapping of
+    //           base units to their powers. Negative powers indicate divisions.
+    //           Empty entries are equal to the power of 0, or the factor 1.
     // With these identifiers, we can then "simulate" operations for any two units, and
     //  check whether that multiplication or addition would result in another existing unit.
 
-    private record UnitIdentifier(BaseUnitFactor Numerator, BaseUnitFactor Denominator) {
-        // TODO CR PREMERGE: numerator and denominator duplicates should be shortened
-        
-        public static UnitIdentifier operator *(UnitIdentifier a, UnitIdentifier b) =>
-            Minimized(a.Numerator + b.Numerator, a.Denominator + b.Denominator);
+    private record UnitIdentifier(BaseUnitFactor Factor) {
+
+        public static UnitIdentifier operator *(UnitIdentifier a, UnitIdentifier b) => 
+            new (a.Factor + b.Factor); // multiplication adds exponents
 
         public static UnitIdentifier operator /(UnitIdentifier a, UnitIdentifier b) =>
-            Minimized(a.Numerator + b.Denominator, a.Denominator + b.Numerator);
-
-        public static UnitIdentifier Minimized(BaseUnitFactor a, BaseUnitFactor b) {
-            var (a2, b2) = BaseUnitFactor.Minimized(a, b);
-            return new UnitIdentifier(a2, b2);
-        }
+            new(a.Factor - b.Factor); // division subtracts exponents
     }
     
     private class BaseUnitFactor {
         // Every unit can occur multiple times, e.g. Area = Length * Length.
         // => the value of the dict is the number of occurrences of that unit.
         // Sorted, so that GetHashCode can properly compare two dictionaries by content.
-        private readonly ImmutableSortedDictionary<string, int> baseUnits;
+        private readonly ImmutableSortedDictionary<string, int> baseUnitPowers;
 
-        public BaseUnitFactor(ImmutableSortedDictionary<string, int> baseUnits) => this.baseUnits = baseUnits;
+        public BaseUnitFactor(ImmutableSortedDictionary<string, int> baseUnitPowers) => this.baseUnitPowers = baseUnitPowers;
 
         public override bool Equals(object obj) => obj is BaseUnitFactor other && Equals(other);
         public bool Equals(BaseUnitFactor other) {
-            if (baseUnits.Count != other.baseUnits.Count) return false;
-            foreach (var (au, ai) in baseUnits) {
-                if (!other.baseUnits.TryGetValue(au, out var i)) return false;
+            if (baseUnitPowers.Count != other.baseUnitPowers.Count) return false;
+            foreach (var (au, ai) in baseUnitPowers) {
+                if (!other.baseUnitPowers.TryGetValue(au, out var i)) return false;
                 if (i != ai) return false;
             }
             return true;
         }
         
-        public override int GetHashCode() => baseUnits.Aggregate(19, HashCode.Combine);
+        public override int GetHashCode() => baseUnitPowers.Aggregate(19, HashCode.Combine);
 
         public static readonly BaseUnitFactor Empty = new(ImmutableSortedDictionary<string, int>.Empty);
 
         public static BaseUnitFactor operator +(BaseUnitFactor a, BaseUnitFactor b) =>
-            new(b.baseUnits.Aggregate(a.baseUnits, (acc, c) => {
-                if (acc.TryGetValue(c.Key, out var n)) 
-                    return acc.SetItem(c.Key, n + c.Value);
+            new(b.baseUnitPowers.Aggregate(a.baseUnitPowers, (acc, c) => {
+                if (acc.TryGetValue(c.Key, out var n)) {
+                    var i = n + c.Value;
+                    if (i == 0) return acc.Remove(c.Key);
+                    else return acc.SetItem(c.Key, i);
+                }
                 else return acc.Add(c.Key, c.Value);
             }));
-
-        public static (BaseUnitFactor, BaseUnitFactor) Minimized(BaseUnitFactor numerator, BaseUnitFactor denominator) {
-            // Goal: appropriately reduce occurrences of units that appear in both numerator and denominator
-            var finalNumerator = numerator.baseUnits;
-            var finalDenominator = denominator.baseUnits;
-            
-            // step 1: find all units that both have in common
-
-            foreach (var u in numerator.baseUnits.Keys.Where(denominator.baseUnits.ContainsKey)) {
-                var ni = finalNumerator[u];
-                var di = finalDenominator[u];
-                if (ni < di) {
-                    // remove from numerator
-                    finalDenominator = finalDenominator.SetItem(u, di - ni);
-                    finalNumerator = finalNumerator.Remove(u);
-                } 
-                else if (ni == di) {
-                    // equal, so remove from both
-                    finalDenominator = finalDenominator.Remove(u);
-                    finalNumerator = finalNumerator.Remove(u);
-                } 
-                else {
-                    // ni > di, so remove from denominator
-                    finalNumerator = finalNumerator.SetItem(u, ni - di);
-                    finalDenominator = finalDenominator.Remove(u);
+        
+        public static BaseUnitFactor operator -(BaseUnitFactor a, BaseUnitFactor b) =>
+            new(b.baseUnitPowers.Aggregate(a.baseUnitPowers, (acc, c) => {
+                if (acc.TryGetValue(c.Key, out var n)) {
+                    var i = n - c.Value;
+                    if (i == 0) return acc.Remove(c.Key);
+                    else return acc.SetItem(c.Key, i);
                 }
-            }
+                else return acc.Add(c.Key, -c.Value);
+            }));
 
-            return (new(finalNumerator), new(finalDenominator));
-        }
+        public override string ToString() => string.Join(", ", baseUnitPowers.Select(c => $"{c.Key}:{c.Value}"));
     }
     
     private record DerivedUnitNode(string Name, string Primary, string Secondary, bool IsMul, HashSet<DerivedUnitNode> NeededToCompute);

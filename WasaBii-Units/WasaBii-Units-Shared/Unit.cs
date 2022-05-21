@@ -4,8 +4,6 @@
 
 namespace BII.WasaBii.UnitSystem {
 
-    // TODO CR: equality?
-
     public interface IUnit {
         string LongName { get; }
         string ShortName { get; }

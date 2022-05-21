@@ -6,8 +6,6 @@ using Newtonsoft.Json;
 
 namespace BII.WasaBii.UnitSystem;
 
-/* TODO: operators with this and other compatible units */
-
 [Generator]
 public class UnitGenerator : ISourceGenerator {
     

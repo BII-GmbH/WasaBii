@@ -33,11 +33,9 @@ namespace BII.WasaBii.UnitSystem {
         private static IUnitDescription<TUnit> unitDescriptionOf<TUnit>() where TUnit : IUnit =>
             Activator.CreateInstance(
                 typeof(TUnit).GetCustomAttribute<UnitMetadataAttribute>()?.UnitDescriptionType
-                ?? throw new ArgumentException($"Cannot call .{nameof(SiUnitOf)}: " +
-                                               $"{typeof(TUnit)} needs an attribute of type {nameof(UnitMetadataAttribute)}.")
+                ?? throw new ArgumentException($"{typeof(TUnit)} needs an attribute of type {nameof(UnitMetadataAttribute)}!")
             ) as IUnitDescription<TUnit>
-            ?? throw new ArgumentException($"Cannot call .{nameof(SiUnitOf)}: " +
-                                           $"The {nameof(UnitMetadataAttribute.UnitDescriptionType)} of the {nameof(UnitMetadataAttribute)} " +
+            ?? throw new ArgumentException($"The {nameof(UnitMetadataAttribute.UnitDescriptionType)} of the {nameof(UnitMetadataAttribute)} " +
                                            $"must be of type {typeof(IUnitDescription<TUnit>)}.");
 
         public static TUnit SiUnitOf<TUnit>() where TUnit : IUnit => unitDescriptionOf<TUnit>().SiUnit;

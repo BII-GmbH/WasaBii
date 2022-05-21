@@ -184,6 +184,8 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     public static bool operator >=({name} left, {name} right) => left.SiValue >= right.SiValue;
     public static bool operator <=({name} left, {name} right) => left.SiValue <= right.SiValue;
 
+{GenerateConversionsFor(unit, conversions.For(unit))}
+
     public override bool Equals(object obj) => obj is {name} other && Equals(other);
 
     // We include this type in case values of different units are hashed in the same collection
@@ -231,23 +233,13 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 
     // Plus and Minus on the same units
     // Mul and Div on composed units
-    
-    enum UnitDefType { Base, Mul, Div }
 
-    public static string GenerateConversions(UnitDefinitions unitDef) {
-        var baseNameToUnit = unitDef.BaseUnits.ToDictionary(u => u.TypeName, u => u);
-        var mulNameToUnit = unitDef.MulUnits.ToDictionary(u => u.TypeName, u => u);
-        var divNameToUnit = unitDef.DivUnits.ToDictionary(u => u.TypeName, u => u);
-        
-        // For ease of use, just make a lot of partial classes
-
-        string Header(IUnitDef unit) => $"public readonly partial struct {unit.TypeName}";
-
+    public static string GenerateConversionsFor(IUnitDef unit, IReadOnlyCollection<UnitConversion> conversions) {
         var res = new StringBuilder();
         
         // Trivial operators that any unit supports
 
-        string GenerateCommonOps(IUnitDef unit) {
+        string GenerateCommonOps() {
             var name = unit.TypeName;
             return $@"    public static {name} operator +({name} first, {name} second) => new(first.SiValue + second.SiValue, {name}.SiUnit);
     public static {name} operator -({name} first, {name} second) => new(first.SiValue - second.SiValue, {name}.SiUnit);
@@ -264,80 +256,25 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     public static double operator/({name} a, {name} b) => a.SiValue / b.SiValue;";
         }
 
-        foreach (var b in unitDef.BaseUnits) {
-            res.Append($@"
-{Header(b)} {{
-{GenerateCommonOps(b)}  
-}}");
-        }
-        
-        foreach (var m in unitDef.MulUnits) {
-            res.Append($@"
-{Header(m)} {{
-{GenerateCommonOps(m)}  
-}}");
-        }
-        
-        foreach (var d in unitDef.DivUnits) {
-            res.Append($@"
-{Header(d)} {{
-{GenerateCommonOps(d)}  
-}}");
-        }
+        res.Append(GenerateCommonOps());
         
         // Multiplication and Division
 
-        (UnitDefType, IUnitDef) MatchUnit(string unit) {
-            if (baseNameToUnit!.TryGetValue(unit, out var b)) {
-                return (UnitDefType.Base, b);
-            } else if (mulNameToUnit!.TryGetValue(unit, out var m)) {
-                return (UnitDefType.Mul, m);
-            } else if (divNameToUnit!.TryGetValue(unit, out var d)) {
-                return (UnitDefType.Div, d);
-            } else throw new Exception($"Unit not declared: '{unit}'");
-        }
-
-        // first and second are symmetric
-        (IUnitDef First, IUnitDef Second, IUnitDef Third) OperationForDerived(DerivedUnitDef unit, bool isMul) {
-            var (firstType, first) = MatchUnit(unit.Primary);
-            var (secondType, second) = MatchUnit(unit.Secondary);
-            if (isMul) {
-                return  (first, second, unit);
-                // TODO: find other units that can be combined, recursively
-            } else { // is div: (first / second = unit) <=> (unit * second = first)
-                return (unit, second, first);
-                // TODO: find other unit that can be combined, recursively
-            }
-        } 
+        var a = unit.TypeName;
         
-        string GenerateMul(IUnitDef a, IUnitDef b, IUnitDef c) => $@"
-{Header(a)} {{
-    public static {c.TypeName} operator*({a.TypeName} a, {b.TypeName} b) => 
-        new(a.SiValue * b.SiValue, {c.TypeName}.SiUnit);
+        string GenerateMul(string b, string c) => $@"
+    public static {c} operator*({a} a, {b} b) => 
+        new(a.SiValue * b.SiValue, {c}.SiUnit);
 }}";
 
-        string GenerateDiv(IUnitDef a, IUnitDef b, IUnitDef c) => 
-            a.Equals(b) ? $@"
-{Header(c)} {{
-    public static {b.TypeName} operator/({c.TypeName} c, {a.TypeName} a) => 
-        new(c.SiValue / a.SiValue, {b.TypeName}.SiUnit);
-}}
-" : $@"
-{Header(c)} {{
-    public static {b.TypeName} operator/({c.TypeName} c, {a.TypeName} a) => 
-        new(c.SiValue / a.SiValue, {b.TypeName}.SiUnit);
-    public static {a.TypeName} operator/({c.TypeName} c, {b.TypeName} b) => 
-        new(c.SiValue / b.SiValue, {a.TypeName}.SiUnit);
-}}
+        string GenerateDiv(string b, string c) => $@"
+    public static {c} operator/({a} a, {b} b) => 
+        new(a.SiValue / b.SiValue, {c}.SiUnit);
 ";
-        foreach (var (m, isMul) in unitDef.MulUnits
-             .Select(m => (m, true))
-             .Concat(unitDef.DivUnits.Select(d => (d, false)))
-        ) {
-            var (a, b, c) = OperationForDerived(m, isMul);
-            res.Append(GenerateMul(a, b, c));
-            if (!a.Equals(b)) res.Append(GenerateMul(b, a, c));
-            res.Append(GenerateDiv(a, b, c));
+
+        foreach (var c in conversions) {
+            if (c.IsMul) res.Append(GenerateMul(c.B, c.C));
+            else res.Append(GenerateDiv(c.B, c.C));
         }
 
         return res.ToString();

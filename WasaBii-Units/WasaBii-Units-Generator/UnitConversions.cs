@@ -7,10 +7,13 @@ namespace BII.WasaBii.UnitSystem;
 public record UnitConversion(string A, string B, string C, bool IsMul);
 
 public sealed class UnitConversions {
-    public IReadOnlyDictionary<string, IReadOnlyCollection<UnitConversion>> Conversions { get; }
+    private readonly IReadOnlyDictionary<string, IReadOnlyCollection<UnitConversion>> conversions;
+
+    public IReadOnlyCollection<UnitConversion> For(IUnitDef unit) =>
+        conversions.TryGetValue(unit.TypeName, out var res) ? res : new List<UnitConversion>();
 
     public UnitConversions(IEnumerable<UnitConversion> conversions) => 
-        Conversions = conversions.GroupBy(c => c.A)
+        this.conversions = conversions.GroupBy(c => c.A)
             .ToDictionary(g => g.Key, g => (IReadOnlyCollection<UnitConversion>) g.ToList());
     
     

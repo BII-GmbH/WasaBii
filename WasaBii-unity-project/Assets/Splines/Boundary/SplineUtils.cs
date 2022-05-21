@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using System.Linq;
 
 namespace BII.WasaBii.Splines {
     
     public static class SplineUtils {
+        
+        [Pure]
         public static bool IsValid<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.HandleCountIncludingMargin >= 4;
@@ -14,25 +15,20 @@ namespace BII.WasaBii.Splines {
             where TPos : struct where TDiff : struct =>
             spline.IsValid() ? resultGetter(spline) : throw new InvalidSplineException<TPos, TDiff>(spline, "Not enough handles");
 
+        [Pure]
         public static int SegmentCount<TPos, TDiff>(this Spline<TPos, TDiff> spline) 
             where TPos : struct where TDiff : struct =>
             spline.IsValid() ? spline.HandleCountIncludingMargin - 3 : 0;
 
-        public static bool TryQuery<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline, NormalizedSplineLocation location, out SplineSample<TPos, TDiff> sample
-        ) where TPos : struct where TDiff : struct {
-            var res = SplineSample<TPos, TDiff>.From(spline, location);
-            sample = res ?? new SplineSample<TPos, TDiff>();
-            return res != null;
-        }
+        [Pure]
+        public static SplineSample<TPos, TDiff>? TryQuery<TPos, TDiff>(
+            this Spline<TPos, TDiff> spline, NormalizedSplineLocation location
+        ) where TPos : struct where TDiff : struct => SplineSample<TPos, TDiff>.From(spline, location);
 
-        public static bool TryQuery<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline, SplineLocation location, out SplineSample<TPos, TDiff> sample
-        ) where TPos : struct where TDiff : struct {
-            var res = SplineSample<TPos, TDiff>.From(spline, location);
-            sample = res ?? new SplineSample<TPos, TDiff>();
-            return res != null;
-        }
+        [Pure]
+        public static SplineSample<TPos, TDiff>? TryQuery<TPos, TDiff>(
+            this Spline<TPos, TDiff> spline, SplineLocation location
+        ) where TPos : struct where TDiff : struct => SplineSample<TPos, TDiff>.From(spline, location);
         
         /// Returns all the positions of spline handles that are between the given locations on the spline.
         /// The positions of the locations on the spline themselves are included at begin and end.
@@ -64,18 +60,22 @@ namespace BII.WasaBii.Splines {
             yield return spline[toNormalized].Position;
         }
 
+        [Pure]
         public static TPos BeginMarginHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.WhenValidOrThrow(s => s.HandlesIncludingMargin[0]);
 
+        [Pure]
         public static TPos FirstHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.WhenValidOrThrow(s => s.Handles[0]);
 
+        [Pure]
         public static TPos LastHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.WhenValidOrThrow(s => s.Handles[^1]);
 
+        [Pure]
         public static TPos EndMarginHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.WhenValidOrThrow(s => s.HandlesIncludingMargin[^1]);

@@ -103,11 +103,9 @@ namespace BII.WasaBii.Splines.Logic {
         }
         
         [OnDeserialized]
-        private void OnDeserialized(StreamingContext context) {
-            _cachedSegmentLengths = new Length[this.SegmentCount()];
-        }
+        private void OnDeserialized(StreamingContext context) => _cachedSegmentLengths = new Length[this.SegmentCount()];
 
-#endregion
+        #endregion
 
     }
 }

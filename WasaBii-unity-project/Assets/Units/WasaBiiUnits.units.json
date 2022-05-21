@@ -1,5 +1,6 @@
 ﻿{
   "namespace": "BII.WasaBii.UnitSystem",
+  
   "baseUnits": [
     
     {
@@ -53,16 +54,6 @@
       ],
       "generateExtensions": true
     },
-
-    {
-      "typeName": "Force",
-      "siUnit": {
-        "name": "Newton",
-        "short": "N"
-      },
-      "additionalUnits": [],
-      "generateExtensions": true
-    },
     
     {
       "typeName": "Length",
@@ -83,8 +74,8 @@
         },
         {
           "name": "Millimeters",
-          "short": "cm",
-          "factor": 0.01
+          "short": "mm",
+          "factor": 0.001
         }
       ],
       "generateExtensions": true
@@ -130,9 +121,9 @@
       },
       "additionalUnits": [
         {
-          "name": "Hectare",
-          "short": "ha",
-          "factor": 10000
+          "name": "SquareKilometers",
+          "short": "km²",
+          "factor": 0.000001
         }
       ],
       "generateExtensions": true
@@ -145,6 +136,24 @@
       "siUnit": {
         "name": "CubicMeters",
         "short": "m³"
+      },
+      "additionalUnits": [
+        {
+          "name": "Liters",
+          "short": "l",
+          "factor": 0.001
+        }
+      ],
+      "generateExtensions": true
+    },
+
+    {
+      "typeName": "Force",
+      "primary": "Mass",
+      "secondary": "Acceleration",
+      "siUnit": {
+        "name": "Newton",
+        "short": "N"
       },
       "additionalUnits": [
         {
@@ -223,7 +232,18 @@
       },
       "additionalUnits": [],
       "generateExtensions": true
+    },
+
+    {
+      "typeName": "Acceleration",
+      "primary": "Velocity",
+      "secondary": "Duration",
+      "siUnit": {
+        "name": "MetersPerSecondSquared",
+        "short": "m/s²"
+      },
+      "additionalUnits": [],
+      "generateExtensions": true
     }
-    
   ]
 }

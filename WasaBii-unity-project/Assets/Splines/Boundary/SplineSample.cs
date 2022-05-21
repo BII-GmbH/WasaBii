@@ -1,9 +1,11 @@
+using System.Diagnostics.Contracts;
 using BII.WasaBii.Splines.Logic;
 
 namespace BII.WasaBii.Splines {
     public readonly struct SplineSample<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
+        
         public readonly SplineSegment<TPos, TDiff> Segment;
         public readonly double T;
 
@@ -17,9 +19,11 @@ namespace BII.WasaBii.Splines {
             T = t;
         }
 
+        [Pure]
         public static SplineSample<TPos, TDiff>? From(Spline<TPos, TDiff> spline, SplineLocation location) =>
             From(spline, spline.NormalizedLocation(location));
 
+        [Pure]
         public static SplineSample<TPos, TDiff>? From(Spline<TPos, TDiff> spline, NormalizedSplineLocation location) {
             var segmentData = CatmullRomSegment.CatmullRomSegmentAt(spline, location);
             if (segmentData.HasValue)

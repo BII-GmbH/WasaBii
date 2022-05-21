@@ -35,7 +35,7 @@ namespace BII.WasaBii.Unity.Geometry {
         }
 
         /// Returns the smallest possible bounds in local space relative to <see cref="parent"/> that completely
-        /// wraps <see cref="Center"/>. Will most likely be larger than the original if rotations of any angles
+        /// wraps this set of bounds. Will most likely be larger than the original if rotations of any angles
         /// other than 90°-multiples are involved. 
         [Pure] public LocalBounds RelativeTo(TransformProvider parent)
             => this.Vertices().Select(p => p.RelativeTo(parent)).Bounds();

@@ -11,7 +11,7 @@ namespace BII.WasaBii.Unity {
     /// unit value. The mutability of this type also reflects the fact that unity-serialized fields can be mutated
     /// at runtime through the inspector in an editor instance.
     [Serializable]
-    public struct ValueWithUnitProxy<TValue>
+    public struct UnitValueProxy<TValue>
     where TValue : struct, IUnitValue<TValue> {
 
         // Our units used to be serialized directly and all of them had an individually-named private field
@@ -34,17 +34,16 @@ namespace BII.WasaBii.Unity {
         
         public double SIValue => _siValue;
 
-        public ValueWithUnitProxy(double siValue) => _siValue = siValue;
-        public ValueWithUnitProxy(TValue val) => _siValue = val.SiValue;
-
-        // Conversion operators not possible because `CopyableValueWithUnit` is an interface.
+        public UnitValueProxy(double siValue) => _siValue = siValue;
+        public UnitValueProxy(TValue val) => _siValue = val.SiValue;
+        
         public TValue Value => Units.FromSiValue<TValue>(_siValue);
 
     }
 
-    public static class ValueWithUnitProxyExtensions {
+    public static class UnitValueProxyExtensions {
 
-        public static ValueWithUnitProxy<TValue> AsProxy<TValue>(this TValue value)
+        public static UnitValueProxy<TValue> AsProxy<TValue>(this TValue value)
         where TValue : struct, IUnitValue<TValue> => new(value);
 
     }

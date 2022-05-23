@@ -23,30 +23,6 @@ namespace BII.WasaBii.Splines.Logic {
         /// Since calculating the length of a spline is only ever an approximation, a sample rate is needed
         public const int DefaultNormalizationSamples = 10;
 
-        public static SplineLocation DeNormalize<TPos, TDiff>(
-            Spline<TPos, TDiff> spline,
-            NormalizedSplineLocation t,
-            int normalizationSamplesPerSegment = DefaultNormalizationSamples
-        )  
-            where TPos : struct 
-            where TDiff : struct {
-            // Profiler.BeginSample("SplineNormalizationUtility.DeNormalize()");
-
-            var location = SplineLocation.Zero;
-            var segmentIdx = SplineSegmentIndex.Zero;
-            for (var remainingT = t; remainingT > 0; remainingT -= 1) {
-                if (segmentIdx >= spline.SegmentCount())
-                    break;
-                
-                var length = spline[segmentIdx].Length(normalizationSamplesPerSegment);
-                segmentIdx += 1;
-                location += length * Math.Min(1, remainingT);
-            }
-
-            // Profiler.EndSample();
-            return location;
-        }
-
         /// Normalizing a spline location to calculate the normalized spline location for a given spline
         /// is normally not possible when the location is above the spline's length.
         /// This is the tolerance the location can be above the length and to be considered
@@ -56,8 +32,13 @@ namespace BII.WasaBii.Splines.Logic {
         /// because calculating a spline's length is always an approximation of its actual length.
         private static readonly SplineLocation splineLocationOvershootTolerance = 0.1f.Meters();
 
+        /// Converts a location on the spline from <see cref="SplineLocation"/>
+        /// to <see cref="NormalizedSplineLocation"/>.
+        /// <br/>
+        /// Such a conversion is desirable when performance is relevant,
+        /// since operations on <see cref="NormalizedSplineLocation"/> are faster.
         public static NormalizedSplineLocation Normalize<TPos, TDiff>(
-            Spline<TPos, TDiff> spline,
+            this Spline<TPos, TDiff> spline,
             SplineLocation location,
             int normalizationSamplesPerSegment = DefaultNormalizationSamples
         ) 
@@ -101,6 +82,36 @@ namespace BII.WasaBii.Splines.Logic {
             }
         }
 
+        /// Converts a location on the spline from <see cref="NormalizedSplineLocation"/>
+        /// to <see cref="SplineLocation"/>.
+        /// <br/>
+        /// Such a conversion is desirable when the location value needs to be interpreted,
+        /// since <see cref="SplineLocation"/> is equal to the distance
+        /// from the beginning of the spline to the location, in meters.
+        public static SplineLocation DeNormalize<TPos, TDiff>(
+            this Spline<TPos, TDiff> spline,
+            NormalizedSplineLocation t,
+            int normalizationSamplesPerSegment = DefaultNormalizationSamples
+        )  
+            where TPos : struct 
+            where TDiff : struct {
+            // Profiler.BeginSample("SplineNormalizationUtility.DeNormalize()");
+
+            var location = SplineLocation.Zero;
+            var segmentIdx = SplineSegmentIndex.Zero;
+            for (var remainingT = t; remainingT > 0; remainingT -= 1) {
+                if (segmentIdx >= spline.SegmentCount())
+                    break;
+                
+                var length = spline[segmentIdx].Length(normalizationSamplesPerSegment);
+                segmentIdx += 1;
+                location += length * Math.Min(1, remainingT);
+            }
+
+            // Profiler.EndSample();
+            return location;
+        }
+
         /// For a given node on a spline and locations relative to it,
         /// this method will normalize all of these locations and return them in the same order.
         /// However, the provided locations have to be sorted in ascending order,
@@ -109,10 +120,10 @@ namespace BII.WasaBii.Splines.Logic {
         /// to avoid situations where points are returned in a different
         /// order than they were provided, leading to hard-to-understand bugs.
         /// 
-        /// This method is a more performant alternative to <see cref="Normalize"/>
+        /// This method is a more performant alternative to <see cref="Normalize{TPos,TDiff}"/>
         /// when normalizing multiple locations at once.
         public static IEnumerable<NormalizedSplineLocation> BulkNormalizeOrdered<TPos, TDiff>(
-            Spline<TPos, TDiff> spline,
+            this Spline<TPos, TDiff> spline,
             IEnumerable<SplineLocation> locations,
             int normalizationSamplesPerSegment = DefaultNormalizationSamples
         ) 

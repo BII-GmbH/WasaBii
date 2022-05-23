@@ -52,6 +52,39 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         public static (Vector3 BeginHandle, Vector3 EndHandle) CalculateSplineMarginHandles(
             this IEnumerable<Vector3> handlePositions
         ) => handlePositions.CalculateSplineMarginHandles(PositionOperations.Instance);
+        
+        /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineToOrThrow{TPos, TDiff}"/>
+        [Pure]
+        public static ClosestOnSplineQueryResult< Vector3, Vector3> QueryClosestPositionOnSplineToOrThrow(
+            this Spline<Vector3, Vector3> spline,
+            Vector3 position,
+            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+        ) => spline.QueryClosestPositionOnSplineToOrThrow<Vector3, Vector3>(position, samples);
+        
+        /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineTo{TPos, TDiff}"/>
+        [Pure]
+        public static ClosestOnSplineQueryResult<Vector3, Vector3>? QueryClosestPositionOnSplineTo(
+            this Spline<Vector3, Vector3> spline,
+            Vector3 position,
+            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+        ) => spline.QueryClosestPositionOnSplineTo<Vector3, Vector3>(position, samples);
+
+        /// <inheritdoc cref="EnumerableClosestOnSplineExtensions.QueryClosestPositionOnSplinesTo{TWithSpline, TPos, TDiff}"/>
+        [Pure] public static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<Vector3, Vector3> queryResult)> QueryClosestPositionOnSplinesTo<TWithSpline>(
+            this IEnumerable<TWithSpline> splines,
+            Vector3 position,
+            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+        ) where TWithSpline : class, WithSpline<Vector3, Vector3>
+            => splines.QueryClosestPositionOnSplinesTo<TWithSpline, Vector3, Vector3>(position, samples);
+        
+        /// <inheritdoc cref="EnumerableClosestOnSplineExtensions.QueryClosestPositionOnSplinesToOrThrow{TWithSpline, TPos, TDiff}"/>
+        [Pure] public static (TWithSpline closestSpline, ClosestOnSplineQueryResult<Vector3, Vector3> queryResult) QueryClosestPositionOnSplinesToOrThrow<TWithSpline>(
+            this IEnumerable<TWithSpline> splines,
+            Vector3 position,
+            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+        ) where TWithSpline : class, WithSpline<Vector3, Vector3>
+            => splines.QueryClosestPositionOnSplinesToOrThrow<TWithSpline, Vector3, Vector3>(position, samples);
+
 #endregion
         
         [MustBeImmutable][MustBeSerializable]

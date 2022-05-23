@@ -2,17 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using BII.WasaBii.Splines.Logic;
 using BII.WasaBii.Units;
 #nullable enable
 
 namespace BII.WasaBii.Splines {
     public static class SplineSampleExtensions {
         
-        /// Returns a new Spline with (nearly) identical "shape" and handles with uniform distance
-        [Pure] public static Spline<TPos, TDiff> Resample<TPos, TDiff>(this Spline<TPos, TDiff> spline, Length desiredHandleDistance) 
-            where TPos : struct where TDiff : struct
-            => GenericSpline.FromInterpolating(spline.SampleSplineEvery(desiredHandleDistance, sample => sample.Position), spline.Ops);
-
         /// This method samples the positions on the entire spline.
         /// The sample rate is a defined amount between each segment of spline handles.
         /// Returns all sampled positions in order from the begin of the spline to its end.
@@ -33,14 +29,12 @@ namespace BII.WasaBii.Splines {
 
         /// Behaves similar to <see cref="SampleSplineBetween{TPos,TDiff,TRes}"/>
         /// but the spline is always sampled along its entire length.
-        [Pure] public static List<TRes> SampleSplineEvery<TPos, TDiff, TRes>(
+        [Pure] public static List<SplineSample<TPos, TDiff>> SampleSplineEvery<TPos, TDiff>(
             this WithSpline<TPos, TDiff> withSpline,
             Length desiredSampleLength,
-            Func<SplineSample<TPos, TDiff>, TRes> resultSelector,
             CalculateSegments? calculateSegments = null
         ) where TPos : struct where TDiff : struct 
             => withSpline.SampleSplineBetween(
-                resultSelector,
                 SplineLocation.Zero, 
                 withSpline.Spline.Length(),
                 desiredSampleLength,
@@ -52,16 +46,15 @@ namespace BII.WasaBii.Splines {
         /// is returned, depending on <paramref name="type"/>.
         /// The returned samples will have the same distance between them,
         /// which is approximately equal to the <paramref name="desiredSampleLength"/>.
-        [Pure] public static List<TRes> SampleSplineBetween<TPos, TDiff, TRes>(
+        [Pure] public static List<SplineSample<TPos, TDiff>> SampleSplineBetween<TPos, TDiff>(
             this WithSpline<TPos, TDiff> withSpline,
-            Func<SplineSample<TPos, TDiff>, TRes> resultSelector,
             SplineLocation fromAbsolute,
             SplineLocation toAbsolute,
             Length desiredSampleLength,
             CalculateSegments? calculateSegments = null
         ) where TPos : struct where TDiff : struct =>
             withSpline.Spline.applySampleFunctionBetween(
-                (s, l) => resultSelector(s[l]),
+                (s, l) => s[l],
                 fromAbsolute,
                 toAbsolute,
                 desiredSampleLength,
@@ -73,23 +66,22 @@ namespace BII.WasaBii.Splines {
         /// Returns the count and length of the segments.
         /// Returns one segment with the total length as segment length
         /// if desiredSampleLength was greater than totalLength.
-        [Pure] public static (Length SegmentLength, int Segments) DivideEquidistantly(
+        [Pure] private static (Length SegmentLength, int Segments) divideEquidistantly(
             Length totalLength, Length desiredSegmentLength
         ) {
-            var samples = (int)Math.Round((totalLength / desiredSegmentLength));
-            if (samples <= 0) samples = 1;
+            var samples = (int) Math.Max(1, Math.Round(totalLength / desiredSegmentLength));
             var segmentLength = totalLength / samples;
             return (segmentLength, samples);
         }
         
-        /// Same as <see cref="DivideEquidistantly" /> but it ensure that there are at least 2 segments
+        /// Same as <see cref="divideEquidistantly" /> but it ensure that there are at least 2 segments
         /// (and thus 3 sampled positions / tangents / ...).
         /// This is useful when there should be a minimum of sampled points,
         /// such as when the samples are turned back into a spline.
         private static (Length SegmentLength, int Segments) divideEquidistantlyWithMin2Segments(
             Length totalLength, Length desiredSegmentLength
         ) {
-            var (segmentLength, segments) = DivideEquidistantly(totalLength, desiredSegmentLength);
+            var (segmentLength, segments) = divideEquidistantly(totalLength, desiredSegmentLength);
             
             if (segments < 2) {
                 segmentLength = totalLength / 2;
@@ -110,7 +102,6 @@ namespace BII.WasaBii.Splines {
             Length desiredSampleLength,
             CalculateSegments calculateSegments
         ) where TPos : struct where TDiff : struct {
-            // Profiler.BeginSample("SplineSampleExtensions.applySampleFunctionBetween()");
             
             var reverse = false;
             if (toAbsolute < fromAbsolute) {
@@ -119,7 +110,6 @@ namespace BII.WasaBii.Splines {
             }
 
             if (desiredSampleLength <= Length.Zero) {
-                // Profiler.EndSample();
                 throw new ArgumentException($"The sampleLength cannot be 0 or smaller than 0 (was {desiredSampleLength})");
             }
 
@@ -134,14 +124,13 @@ namespace BII.WasaBii.Splines {
                 locations.Add(location);
             }
 
-            var result = spline.BulkNormalizedLocationsOrdered(locations)
+            var result = spline.BulkNormalizeOrdered(locations)
                 .Select(nl => sampleFunction(spline, nl))
                 .ToList();
 
             if (reverse)
                 result.Reverse();
 
-            // Profiler.EndSample();
             return result;
         }
     }

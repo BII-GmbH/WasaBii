@@ -43,11 +43,9 @@ namespace BII.WasaBii.Unity.Geometry {
         // but until then, we use sampling.
         public static Length CalculateCirpingMovementLength(
             PositionProvider from, PositionProvider to, PositionProvider pivot, int sampleCount = 6
-        )
-            => Enumerable.Range(0, sampleCount)
-                .Select(i => Cirp(from, to, pivot, i / (sampleCount - 1d)))
-                .Select(loc => loc.AsVector)
-                .TotalPathLength();
+        ) => EnumerableUtils.Range(t => Cirp(from, to, pivot, t), sampleCount, includeFrom: true, includeTo: true)
+            .Select(loc => loc.AsVector)
+            .TotalPathLength();
 
         /// <summary>
         /// This function solves the angles of a triangle from its sides lengths.

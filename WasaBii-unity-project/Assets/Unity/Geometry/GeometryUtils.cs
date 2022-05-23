@@ -43,11 +43,9 @@ namespace BII.WasaBii.Unity.Geometry {
         // but until then, we use sampling.
         public static Length CalculateCirpingMovementLength(
             PositionProvider from, PositionProvider to, PositionProvider pivot, int sampleCount = 6
-        )
-            => Enumerable.Range(0, sampleCount)
-                .Select(i => Cirp(from, to, pivot, i / (sampleCount - 1d)))
-                .Select(loc => loc.AsVector)
-                .TotalPathLength();
+        ) => EnumerableUtils.Range(t => Cirp(from, to, pivot, t), sampleCount, includeFrom: true, includeTo: true)
+            .Select(loc => loc.AsVector)
+            .TotalPathLength();
 
         /// <summary>
         /// This function solves the angles of a triangle from its sides lengths.
@@ -117,23 +115,6 @@ namespace BII.WasaBii.Unity.Geometry {
             rect1.Contains(new Vector2(rect2.xMax, rect2.yMin)) &&
             rect1.Contains(new Vector2(rect2.xMax, rect2.yMax));
                 
-        /// <summary>
-        /// Checks if the spline intersects with the rect and returns the index of the spline segment
-        /// that intersected first along with the local intersection on this spline segment.
-        /// </summary>
-        [Pure] public static (int segmentIndex, Line2D.Intersection)? ClosestIntersectionWith(this IEnumerable<Vector2> sampledSpline, Rect rect) {
-            var spline = sampledSpline as IReadOnlyList<Vector2> ?? sampledSpline.ToArray();
-            for (var i = 0; i < spline.Count - 1; i++) {
-                if(new Line2D(
-                    start: spline[i],
-                    end: spline[i + 1])
-                .IntersectionsWith(rect)
-                .TryGetElementWithMinimalValue(valueProvider: it => it.t, out var tMin))
-                    return (i, tMin);
-            }
-            return null;
-        }
-
         [Pure] public static IEnumerable<Line2D> Edges(this Rect rect) {
             yield return new Line2D(rect.min, new Vector2(rect.xMin, rect.yMax));
             yield return new Line2D(new Vector2(rect.xMin, rect.yMax), rect.max);

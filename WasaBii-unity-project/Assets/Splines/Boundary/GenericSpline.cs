@@ -47,7 +47,7 @@ namespace BII.WasaBii.Splines {
     public interface WithSpline<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
-         Spline<TPos, TDiff> Spline { get; }
+        Spline<TPos, TDiff> Spline { get; }
     }
 
     /// Contains generic factory methods for building splines.

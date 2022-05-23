@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Logic;
 
@@ -7,10 +6,6 @@ namespace BII.WasaBii.Splines {
     
     public static class EnumerableToSplineExtensions {
 
-        private static TPos pointReflect<TPos, TDiff>(this TPos self, TPos on, PositionOperations<TPos, TDiff> ops)
-            where TPos : struct where TDiff : struct 
-            => ops.Add(on, ops.Sub(on, self));
-        
         /// <summary>
         /// Calculates margin handles for a spline that interpolates the given handle positions.
         /// These margin handles are calculated on the easiest way possible by
@@ -26,12 +21,12 @@ namespace BII.WasaBii.Splines {
         public static (TPos BeginHandle, TPos EndHandle) CalculateSplineMarginHandles<TPos, TDiff>(
             this IEnumerable<TPos> handlePositions, PositionOperations<TPos, TDiff> ops
         ) where TPos : struct where TDiff : struct {
-            var positions = handlePositions.AsReadOnlyCollection();
+            var positions = handlePositions.AsReadOnlyList();
             if (positions.Count < 2)
                 throw new InsufficientNodePositionsException(positions.Count, 2);
 
-            var beginHandle = positions.Second().pointReflect(positions.First(), ops);
-            var endHandle = positions.SecondFromLast().pointReflect(positions.Last(), ops);
+            var beginHandle = positions[1].pointReflect(positions[0], ops);
+            var endHandle = positions[^2].pointReflect(positions[^1], ops);
             return (beginHandle, endHandle);
         }
 
@@ -90,13 +85,16 @@ namespace BII.WasaBii.Splines {
         public static Spline<TPos, TDiff> ToSplineWithMarginHandlesOrThrow<TPos, TDiff>(
             this IEnumerable<TPos> source, PositionOperations<TPos, TDiff> ops, SplineType? type = null
         ) where TPos : struct where TDiff : struct {
-            var positions = source.ToList();
+            var positions = source.AsReadOnlyCollection();
             if (positions.Count < 4)
                 throw new InsufficientNodePositionsException(positions.Count, 4);
 
             return new ImmutableSpline<TPos, TDiff>(positions, ops, type);
         }
 
+        private static TPos pointReflect<TPos, TDiff>(this TPos self, TPos on, PositionOperations<TPos, TDiff> ops)
+            where TPos : struct where TDiff : struct 
+            => ops.Add(on, ops.Sub(on, self));
     }
 
 }

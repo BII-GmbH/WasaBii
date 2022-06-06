@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 using JetBrains.Annotations;
@@ -114,7 +116,7 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static GlobalOffset Reflect(
             this GlobalOffset self, GlobalDirection planeNormal
         ) => self.AsVector.Reflect(planeNormal.AsVector).AsGlobalOffset();
-
+        
     }
     
 }

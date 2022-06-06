@@ -13,10 +13,7 @@ namespace BII.WasaBii.Splines {
             var cubicPolynomial = SplineSegmentUtils.CubicPolynomialFor(spline, idx);
 
             return cubicPolynomial is { } val
-                ? new SplineSegment<TPos, TDiff>(
-                    val,
-                    cachedSegmentLength
-                )
+                ? new SplineSegment<TPos, TDiff>(val, cachedSegmentLength)
                 : null;
         }
 
@@ -38,8 +35,7 @@ namespace BII.WasaBii.Splines {
         ) 
         where TPos : struct 
         where TDiff : struct {
-            if (segment.CachedLength is { } cachedResult) return cachedResult;
-            else return LengthOfSegment(segment.Polynomial, samples);
+            return segment.CachedLength ?? LengthOfSegment(segment.Polynomial, samples);
         }
 
         [Pure]
@@ -48,9 +44,9 @@ namespace BII.WasaBii.Splines {
         where TDiff : struct {
             var catmullRomSegment = CatmullRomSegment.CatmullRomSegmentAt(spline, NormalizedSplineLocation.From(idx));
 
-            if (catmullRomSegment.HasValue)
-                return CubicPolynomial.FromCatmullRomSegment(catmullRomSegment.Value.Segment, spline.Type.ToAlpha());
-            else return null;
+            return catmullRomSegment is { } val 
+                ? CubicPolynomial.FromCatmullRomSegment(val.Segment, spline.Type.ToAlpha()) 
+                : null;
         }
         
         [Pure]
@@ -79,6 +75,6 @@ namespace BII.WasaBii.Splines {
             this SplineSample<TPos, TDiff> sample, TPos queriedPosition, int samples
         ) 
         where TPos : struct 
-        where TDiff : struct => NormalizedSplineLocation.From(sample.Segment.Polynomial.EvaluateClosestPointTo(queriedPosition, samples));
+        where TDiff : struct => NormalizedSplineLocation.From(sample.T + sample.Segment.Polynomial.EvaluateClosestPointTo(queriedPosition, samples));
     }
 }

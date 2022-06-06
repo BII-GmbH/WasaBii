@@ -14,9 +14,9 @@ namespace BII.WasaBii.Splines.Logic {
         public TPos Start => P1;
         public TPos End => P2;
         
-        internal readonly PositionOperations<TPos, TDiff> Ops;
+        internal readonly GeometricOperations<TPos, TDiff> Ops;
 
-        public CatmullRomSegment(TPos p0, TPos p1, TPos p2, TPos p3, PositionOperations<TPos, TDiff> ops) {
+        public CatmullRomSegment(TPos p0, TPos p1, TPos p2, TPos p3, GeometricOperations<TPos, TDiff> ops) {
             P0 = p0;
             P1 = p1;
             P2 = p2;

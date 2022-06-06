@@ -32,10 +32,10 @@ namespace BII.WasaBii.Splines {
         TPos this[SplineHandleIndex index] => HandlesIncludingMargin[index];
 
         SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] { get; }
-        SplineSample<TPos, TDiff> this[SplineLocation location] { get; }
+        SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
         SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] { get; }
         
-        internal PositionOperations<TPos, TDiff> Ops { get; }
+        internal GeometricOperations<TPos, TDiff> Ops { get; }
 
         Length Length(int samplesPerSegment = 10) => 
             this.WhenValidOrThrow(
@@ -51,16 +51,14 @@ namespace BII.WasaBii.Splines {
     }
 
     /// Contains generic factory methods for building splines.
-    /// For explicitly typed variants with <see cref="PositionOperations{TPos,TDiff}"/>
+    /// For explicitly typed variants with <see cref="GeometricOperations{TPos,TDiff}"/>
     /// included, use `UnitySpline`, `GlobalSpline` or `LocalSpline` in the Unity assembly.
     public static class GenericSpline {
         
-        /// Creates a spline builder for a spline that interpolates the given handles.
-        /// The begin and end margin handles will be generated automatically
-        /// using <see cref="GenericEnumerableToSplineExtensions.CalculateSplineMarginHandles{TPos,TDiff}"/>
+        /// Creates a spline that interpolates the given handles.
         [Pure]
         public static Spline<TPos, TDiff> FromInterpolating<TPos, TDiff>(
-            IEnumerable<TPos> handles, PositionOperations<TPos, TDiff> ops, SplineType? type = null
+            IEnumerable<TPos> handles, GeometricOperations<TPos, TDiff> ops, SplineType? type = null
         ) where TPos : struct where TDiff : struct {
             var interpolatedHandles = handles.AsReadOnlyList();
             var (beginMarginHandle, endMarginHandle) = interpolatedHandles.CalculateSplineMarginHandles(ops);
@@ -72,7 +70,7 @@ namespace BII.WasaBii.Splines {
             TPos beginMarginHandle, 
             IEnumerable<TPos> interpolatedHandles, 
             TPos endMarginHandle, 
-            PositionOperations<TPos, TDiff> ops, 
+            GeometricOperations<TPos, TDiff> ops, 
             SplineType? type = null
         ) where TPos : struct where TDiff : struct => 
             FromHandlesIncludingMargin(
@@ -81,12 +79,11 @@ namespace BII.WasaBii.Splines {
                 type
             );
 
-        /// Creates a spline builder for a spline with the given handles.
-        /// These include the begin and end margin handles.
+        /// Creates a spline with the given handles, which include the begin and end margin handles.
         [Pure]
         public static Spline<TPos, TDiff> FromHandlesIncludingMargin<TPos, TDiff>(
             IEnumerable<TPos> allHandlesIncludingMargin, 
-            PositionOperations<TPos, TDiff> ops, 
+            GeometricOperations<TPos, TDiff> ops, 
             SplineType? type = null
         ) where TPos : struct where TDiff : struct 
             => new ImmutableSpline<TPos, TDiff>(allHandlesIncludingMargin, ops, type);

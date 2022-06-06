@@ -13,7 +13,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         [Pure]
         public static Spline<Vector3, Vector3> FromInterpolating(
             IEnumerable<Vector3> handles, SplineType? type = null
-        ) => GenericSpline.FromInterpolating(handles, PositionOperations.Instance, type);
+        ) => GenericSpline.FromInterpolating(handles, GeometricOperations.Instance, type);
         
         /// <inheritdoc cref="GenericSpline.FromHandles{TPos,TDiff}"/>
         [Pure]
@@ -22,36 +22,36 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
             IEnumerable<Vector3> interpolatedHandles, 
             Vector3 endMarginHandle, 
             SplineType? type = null
-        ) => GenericSpline.FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, PositionOperations.Instance, type);
+        ) => GenericSpline.FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, GeometricOperations.Instance, type);
 
         /// <inheritdoc cref="GenericSpline.FromHandlesIncludingMargin{TPos,TDiff}"/>
         [Pure]
         public static Spline<Vector3, Vector3> FromHandlesIncludingMargin(
             IEnumerable<Vector3> allHandlesIncludingMargin,
             SplineType? type = null
-        ) => GenericSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, PositionOperations.Instance, type);
+        ) => GenericSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, GeometricOperations.Instance, type);
         
 #region Extensions
         /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
         [Pure]
         public static Spline<Vector3, Vector3> ToSplineOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
-            => source.ToSplineOrThrow(PositionOperations.Instance, splineType);
+            => source.ToSplineOrThrow(GeometricOperations.Instance, splineType);
 
         /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSpline{TPos,TDiff}"/>
         [Pure]
         public static Option<Spline<Vector3, Vector3>> ToSpline(this IEnumerable<Vector3> source, SplineType? splineType = null)
-            => source.ToSpline(PositionOperations.Instance, splineType);
+            => source.ToSpline(GeometricOperations.Instance, splineType);
 
         /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
         [Pure]
         public static Spline<Vector3, Vector3> ToSplineWithMarginHandlesOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
-            => source.ToSplineWithMarginHandlesOrThrow(PositionOperations.Instance, splineType);
+            => source.ToSplineWithMarginHandlesOrThrow(GeometricOperations.Instance, splineType);
 
         /// <inheritdoc cref="GenericEnumerableToSplineExtensions.CalculateSplineMarginHandles{TPos,TDiff}"/>
         [Pure]
         public static (Vector3 BeginHandle, Vector3 EndHandle) CalculateSplineMarginHandles(
             this IEnumerable<Vector3> handlePositions
-        ) => handlePositions.CalculateSplineMarginHandles(PositionOperations.Instance);
+        ) => handlePositions.CalculateSplineMarginHandles(GeometricOperations.Instance);
         
         /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineToOrThrow{TPos, TDiff}"/>
         [Pure]
@@ -88,11 +88,11 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
 #endregion
         
         [MustBeImmutable][MustBeSerializable]
-        public sealed class PositionOperations : PositionOperations<Vector3, Vector3> {
+        public sealed class GeometricOperations : GeometricOperations<Vector3, Vector3> {
 
-            public static readonly PositionOperations Instance = new();
+            public static readonly GeometricOperations Instance = new();
             
-            private PositionOperations() { }
+            private GeometricOperations() { }
 
             public Length Distance(Vector3 p0, Vector3 p1) => p0.DistanceTo(p1).Meters();
 

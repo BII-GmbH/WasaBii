@@ -8,16 +8,16 @@ namespace BII.WasaBii.Splines.Logic {
         where TDiff : struct {
     
         /// Coefficients of the polynomial function 
-        private readonly TDiff _a, _b, _c;
-        private readonly TPos _d;
+        private readonly TDiff a, b, c;
+        private readonly TPos d;
 
-        internal readonly PositionOperations<TPos, TDiff> Ops;
+        internal readonly GeometricOperations<TPos, TDiff> Ops;
         
-        public CubicPolynomial(TDiff a, TDiff b, TDiff c, TPos d, PositionOperations<TPos, TDiff> ops) {
-            this._a = a;
-            this._b = b;
-            this._c = c;
-            this._d = d;
+        public CubicPolynomial(TDiff a, TDiff b, TDiff c, TPos d, GeometricOperations<TPos, TDiff> ops) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+            this.d = d;
             this.Ops = ops;
         }
 
@@ -25,30 +25,31 @@ namespace BII.WasaBii.Splines.Logic {
             LazyContract.Assert(t is >= 0 and <= 1, () => $"The parameter 't' must be between 0 and 1 but it was {t}");
             var tt = t * t;
             var ttt = tt * t;
-            return Ops.Add(_d, Ops.Mul(_c, t), Ops.Mul(_b, tt), Ops.Mul(_a, ttt));
+            return Ops.Add(d, Ops.Mul(c, t), Ops.Mul(b, tt), Ops.Mul(a, ttt));
         }
 
         public TDiff EvaluateDerivative(double t) {
             LazyContract.Assert(t is >= 0 and <= 1, () => $"The parameter 't' must be between 0 and 1 but it was {t}");
             var tt = t * t;
-            return Ops.Add(_c, Ops.Mul(_b, 2 * t), Ops.Mul(_a, 3 * tt));
+            return Ops.Add(c, Ops.Mul(b, 2 * t), Ops.Mul(a, 3 * tt));
         }
 
         public TDiff EvaluateSecondDerivative(double t) {
             LazyContract.Assert(t >= 0 && t <= 1, () => $"The parameter 't' must be between 0 and 1 but it was {t}");
-            return Ops.Add(Ops.Mul(_b, 2), Ops.Mul(_a, 6 * t));
+            return Ops.Add(Ops.Mul(b, 2), Ops.Mul(a, 6 * t));
         }
 
+        /// <returns>The progress along the polynomial at which the interpolated position is closest to <see cref="p"/></returns>
         public double EvaluateClosestPointTo(TPos p, int iterations) {
             // Needed because "this" of structs cannot be captured by nested functions
             var copyOfThis = this;
             var ops = copyOfThis.Ops;
 
-            double DistanceDerived(double t, TDiff diff, TDiff tan) => 
-                2 * ops.Dot(tan, diff);
+            double SqrDistanceFactorDerived(double t, TDiff diff, TDiff tan) => 
+                ops.Dot(tan, diff);
 
-            double DistanceDerivedDerived(double t, TDiff diff, TDiff tan) => 
-                2 * (ops.Dot(copyOfThis.EvaluateSecondDerivative(t), diff) + ops.Dot(tan, tan));
+            double SqrDistanceFactorTwiceDerived(double t, TDiff diff, TDiff tan) => 
+                ops.Dot(copyOfThis.EvaluateSecondDerivative(t), diff) + ops.Dot(tan, tan);
 
             // We describe the squared distance from the queried position p to the spline as the distance function d(t, qp).
             // (we use the squared distance, instead of the normal distance,
@@ -72,8 +73,8 @@ namespace BII.WasaBii.Splines.Logic {
                 var pos = copyOfThis.Evaluate(res);
                 var tan = copyOfThis.EvaluateDerivative(res);
                 var diff = ops.Sub(pos, p);
-                var numerator = DistanceDerived(res, diff, tan);
-                var denominator = DistanceDerivedDerived(res, diff, tan);
+                var numerator = SqrDistanceFactorDerived(res, diff, tan);
+                var denominator = SqrDistanceFactorTwiceDerived(res, diff, tan);
                 if (Math.Abs(denominator) < float.Epsilon)
                     return res;
                 res -= numerator / denominator;
@@ -109,7 +110,13 @@ namespace BII.WasaBii.Splines.Logic {
             var dt2 = DTFor(p2, p3, orWhenZero: dt1);
             
             TDiff TFor(TPos pa, TPos pb, TPos pc, double dta, double dtb) =>
-                ops.Mul(ops.Add(ops.Sub(ops.Div(ops.Sub(pb, pa), dta), ops.Div(ops.Sub(pc, pa), dta + dtb)), ops.Div(ops.Sub(pc, pb), dtb)), dt1);
+                ops.Mul(ops.Add(
+                    ops.Sub(
+                        ops.Div(ops.Sub(pb, pa), dta), 
+                        ops.Div(ops.Sub(pc, pa), dta + dtb)
+                    ), 
+                    ops.Div(ops.Sub(pc, pb), dtb)
+                ), dt1);
 
             var t1 = TFor(p0, p1, p2, dt0, dt1);
             var t2 = TFor(p1, p2, p3, dt1, dt2);

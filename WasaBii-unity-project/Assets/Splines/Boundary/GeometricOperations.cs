@@ -7,12 +7,12 @@ namespace BII.WasaBii.Splines {
     
     /// Our splines are representation-agnostic, meaning that you can define a spline using
     /// unity vectors, system vectors, 3D vectors, 2D vectors, 10D vectors, `LocalPosition`s,
-    /// `GlobalPosition`s, cats, lazy vectors or even <see cref="BII.WasaBii.Core.Nothing"/>,
+    /// `GlobalPosition`s, cats, lazy vectors, GPU buffers or even <see cref="BII.WasaBii.Core.Nothing"/>,
     /// as long as you provide an implementation for all the necessary geometric operations.
     /// Since C# does not have proper support for type classes 😢, this means passing an
     /// implementation of this interface wherever necessary.
     [MustBeImmutable][MustBeSerializable]
-    public interface PositionOperations<TPos, TDiff>
+    public interface GeometricOperations<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
         
@@ -37,19 +37,19 @@ namespace BII.WasaBii.Splines {
     public static class PositionOperationsExtensions {
 
         [Pure]
-        public static TPos Add<TPos, TDiff>(this PositionOperations<TPos, TDiff> ops, TPos p, TDiff d1, TDiff d2) 
+        public static TPos Add<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TPos p, TDiff d1, TDiff d2) 
             where TPos : struct where TDiff : struct => ops.Add(ops.Add(p, d1), d2);
 
         [Pure]
-        public static TPos Add<TPos, TDiff>(this PositionOperations<TPos, TDiff> ops, TPos p, TDiff d1, TDiff d2, TDiff d3) 
+        public static TPos Add<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TPos p, TDiff d1, TDiff d2, TDiff d3) 
             where TPos : struct where TDiff : struct => ops.Add(ops.Add(p, d1, d2), d3);
 
         [Pure]
-        public static TDiff Add<TPos, TDiff>(this PositionOperations<TPos, TDiff> ops, TDiff d1, TDiff d2, TDiff d3) 
+        public static TDiff Add<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TDiff d1, TDiff d2, TDiff d3) 
             where TPos : struct where TDiff : struct => ops.Add(ops.Add(d1, d2), d3);
 
         [Pure]
-        public static TDiff Sub<TPos, TDiff>(this PositionOperations<TPos, TDiff> ops, TDiff d1, TDiff d2, TDiff d3) 
+        public static TDiff Sub<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TDiff d1, TDiff d2, TDiff d3) 
             where TPos : struct where TDiff : struct => ops.Sub(ops.Sub(d1, d2), d3);
 
     }

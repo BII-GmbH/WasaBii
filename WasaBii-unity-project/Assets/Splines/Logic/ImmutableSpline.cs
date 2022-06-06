@@ -14,11 +14,11 @@ namespace BII.WasaBii.Splines.Logic {
     public sealed class ImmutableSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
         public ImmutableSpline(
             TPos startHandlePosition, IEnumerable<TPos> handles, TPos endHandlePosition, 
-            PositionOperations<TPos, TDiff> ops,
+            GeometricOperations<TPos, TDiff> ops,
             SplineType? splineType = null
         ) : this(handles.Prepend(startHandlePosition).Append(endHandlePosition), ops, splineType){}
 
-        public ImmutableSpline(IEnumerable<TPos> allHandlesIncludingMarginHandles, PositionOperations<TPos, TDiff> ops, SplineType? splineType = null) {
+        public ImmutableSpline(IEnumerable<TPos> allHandlesIncludingMarginHandles, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null) {
             handles = ImmutableArray.CreateRange(allHandlesIncludingMarginHandles);
             Type = splineType ?? SplineType.Centripetal;
             _cachedSegmentLengths = new Length[this.SegmentCount()];
@@ -39,17 +39,14 @@ namespace BII.WasaBii.Splines.Logic {
         
         public Spline<TPos, TDiff> Spline => this;
 
-        private readonly PositionOperations<TPos, TDiff> _ops;
-        PositionOperations<TPos, TDiff> Spline<TPos, TDiff>.Ops => _ops;
+        private readonly GeometricOperations<TPos, TDiff> _ops;
+        GeometricOperations<TPos, TDiff> Spline<TPos, TDiff>.Ops => _ops;
 
         public TPos this[SplineHandleIndex index] => handles[index];
 
         public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => SplineSegment<TPos, TDiff>.From(this, index, cachedSegmentLengthOf(index)) ??
             throw new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {this.SegmentCount()}");
         
-        public SplineSample<TPos, TDiff> this[SplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
-            throw new ArgumentOutOfRangeException(nameof(location), location, $"Must be between 0 and {((Spline<TPos, TDiff>)this).Length()}");
-
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
             throw new ArgumentOutOfRangeException(
                 nameof(location),
@@ -57,10 +54,10 @@ namespace BII.WasaBii.Splines.Logic {
                 $"Must be between 0 and {((Spline<TPos, TDiff>)this).HandleCount - 1}"
             );
 
-        public bool Equals(Spline<TPos, TDiff> other) {
-            if (ReferenceEquals(null, other)) return false;
-            return Equals(this.HandlesIncludingMargin, other.HandlesIncludingMargin) && Type == other.Type;
-        }
+        public bool Equals(Spline<TPos, TDiff> other) => 
+            !ReferenceEquals(null, other) 
+            && this.HandlesIncludingMargin.SequenceEqual(other.HandlesIncludingMargin)
+            && Type == other.Type;
 
         public override bool Equals(object obj) => obj is Spline<TPos, TDiff> otherSpline && Equals(otherSpline);
 

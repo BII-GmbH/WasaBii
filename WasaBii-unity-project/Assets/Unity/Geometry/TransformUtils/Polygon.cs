@@ -26,13 +26,11 @@ namespace BII.WasaBii.Unity.Geometry {
             get {
                 // https://math.stackexchange.com/questions/3207981/caculate-area-of-polygon-in-3d
                 var v1 = Vertices[0];
-                return Mathf.Abs(
-                    0.5f * Vertices.Skip(1)
-                        .PairwiseSliding()
-                        .Select((vj, vk) => (vj - v1).Cross(vk - v1).AsVector)
-                        .Sum()
-                        .magnitude
-                ).SquareMeters();
+                return 0.5f.Meters() * Vertices.Skip(1)
+                    .PairwiseSliding()
+                    .Select((vj, vk) => (vj - v1).Cross(vk - v1))
+                    .Sum()
+                    .Length;
             }
         }
         

@@ -8,33 +8,32 @@ namespace BII.WasaBii.Splines {
     [Serializable]
     [MustBeSerializable]
     public struct SplineLocation : IEquatable<SplineLocation>, IComparable<SplineLocation> {
-        public static readonly SplineLocation Zero = new(0);
+        public static readonly SplineLocation Zero = new(Length.Zero);
 
-        public double Value { get; }
+        public Length Value { get; }
 
-        public Length DistanceFromBegin => Value.Meters();
-
-        public static SplineLocation From(double value) => new(value);
-        public static SplineLocation From(Length value) => new(value.AsMeters());
-        public SplineLocation(double value) => Value = value;
+        public static SplineLocation From(double value) => new(value.Meters());
+        public static SplineLocation From(Length value) => new(value);
+        public SplineLocation(Length value) => Value = value;
 
         [Pure]
         public Length GetDistanceToClosestSideOf<TPos, TDiff>(Spline<TPos, TDiff> spline, Length? cachedLength = null) 
             where TPos : struct where TDiff : struct {
             var length = cachedLength ?? spline.Length();
-            var distanceFromEnd = length - DistanceFromBegin;
-            return DistanceFromBegin.Min(distanceFromEnd);
+            var distanceFromEnd = length - Value;
+            return Value.Min(distanceFromEnd);
         }
 
         [Pure]
         public bool IsCloserToBeginOf<TPos, TDiff>(Spline<TPos, TDiff> spline, Length? cachedLength = null) 
             where TPos : struct where TDiff : struct {
             var length = cachedLength ?? spline.Length();
-            return (DistanceFromBegin < length / 2f);
+            return (Value < length / 2f);
         }
 
-        public static implicit operator double(SplineLocation l) => l.Value;
-        public static implicit operator SplineLocation(Length l) => From(l.AsMeters());
+        public static implicit operator Length(SplineLocation l) => l.Value;
+        public static implicit operator double(SplineLocation l) => l.Value.AsMeters();
+        public static implicit operator SplineLocation(Length l) => From(l);
         public static explicit operator SplineLocation(double l) => From(l);
 
         public static SplineLocation Lerp(SplineLocation from, SplineLocation to, double progress)
@@ -47,19 +46,19 @@ namespace BII.WasaBii.Splines {
             new(lhs.Value + rhs.Value);
 
         public static SplineLocation operator +(SplineLocation lhs, float rhs) =>
-            new(lhs.Value + rhs);
+            new(lhs.Value + rhs.Meters());
 
         public static SplineLocation operator +(float lhs, SplineLocation rhs) =>
-            new(lhs + rhs.Value);
+            rhs + lhs;
 
         public static SplineLocation operator -(SplineLocation lhs, SplineLocation rhs) =>
             new(lhs.Value - rhs.Value);
 
         public static SplineLocation operator -(SplineLocation lhs, float rhs) =>
-            new(lhs.Value - rhs);
+            new(lhs.Value - rhs.Meters());
 
         public static SplineLocation operator -(float lhs, SplineLocation rhs) =>
-            new(lhs - rhs.Value);
+            new(lhs.Meters() - rhs.Value);
 
         public static bool operator <(SplineLocation a, SplineLocation b) => a.Value < b.Value;
         public static bool operator >(SplineLocation a, SplineLocation b) => a.Value > b.Value;
@@ -71,31 +70,31 @@ namespace BII.WasaBii.Splines {
 
         // Spline Location + Length operators
         public static SplineLocation operator +(SplineLocation lhs, Length rhs) =>
-            new(lhs.Value + rhs.SIValue);
+            new(lhs.Value + rhs);
 
         public static SplineLocation operator +(Length lhs, SplineLocation rhs) =>
-            new(lhs.SIValue + rhs.Value);
+            new(lhs + rhs.Value);
 
         public static SplineLocation operator -(SplineLocation lhs, Length rhs) =>
-            new(lhs.Value - rhs.SIValue);
+            new(lhs.Value - rhs);
 
         public static SplineLocation operator -(Length lhs, SplineLocation rhs) =>
-            new(lhs.SIValue - rhs.Value);
+            new(lhs - rhs.Value);
 
-        public static bool operator <(SplineLocation a, Length b) => a.Value < b.SIValue;
-        public static bool operator >(SplineLocation a, Length b) => a.Value > b.SIValue;
-        public static bool operator <(Length a, SplineLocation b) => a.SIValue < b.Value;
-        public static bool operator >(Length a, SplineLocation b) => a.SIValue > b.Value;
-        public static bool operator <=(Length a, SplineLocation b) => a.SIValue <= b.Value;
-        public static bool operator >=(Length a, SplineLocation b) => a.SIValue >= b.Value;
-        public static bool operator <=(SplineLocation a, Length b) => a.Value <= b.SIValue;
-        public static bool operator >=(SplineLocation a, Length b) => a.Value >= b.SIValue;
+        public static bool operator <(SplineLocation a, Length b) => a.Value < b;
+        public static bool operator >(SplineLocation a, Length b) => a.Value > b;
+        public static bool operator <(Length a, SplineLocation b) => a < b.Value;
+        public static bool operator >(Length a, SplineLocation b) => a > b.Value;
+        public static bool operator <=(Length a, SplineLocation b) => a <= b.Value;
+        public static bool operator >=(Length a, SplineLocation b) => a >= b.Value;
+        public static bool operator <=(SplineLocation a, Length b) => a.Value <= b;
+        public static bool operator >=(SplineLocation a, Length b) => a.Value >= b;
 
         public static SplineLocation operator %(SplineLocation lhs, Length rhs) =>
-            From(lhs.Value % rhs.AsMeters());
+            From(lhs.Value % rhs);
         
         [Pure] public static SplineLocation Lerp(SplineLocation from, SplineLocation to, float progress) =>
-            From(Mathd.Lerp(from.Value, to.Value, progress));
+            From(UnitUtils.Lerp(from.Value, to.Value, progress));
 
         public override string ToString() => $"(Absolute) Spline Location: {Value}";
 

@@ -13,7 +13,7 @@ namespace BII.WasaBii.Splines.Tests {
     public class SplineTestUtils {
 
         private const float splineTypeAlphaValue = 0.5f;
-        public const float SplineLocationTolerance = 0.01f;
+        public const double SplineLocationTolerance = 0.01;
         private const float accuracy = 0.01f;
 
         public static void AssertVectorEquality(Vector3 actual, Vector3 expected) {
@@ -76,7 +76,7 @@ namespace BII.WasaBii.Splines.Tests {
             public static Vector3 Expected1Curvature = Vector3.zero;
             
             public static CubicPolynomial<Vector3, Vector3> Polynomial => CubicPolynomial.FromCatmullRomSegment(
-                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.PositionOperations.Instance),
+                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance),
                 splineTypeAlphaValue
             );
 
@@ -126,7 +126,7 @@ namespace BII.WasaBii.Splines.Tests {
             public static Length ExpectedSplineLength => 4.404f.Meters();
 
             public static CubicPolynomial<Vector3, Vector3> Polynomial => CubicPolynomial.FromCatmullRomSegment(
-                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.PositionOperations.Instance),
+                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance),
                 splineTypeAlphaValue
             );
             

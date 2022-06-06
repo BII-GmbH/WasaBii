@@ -64,7 +64,7 @@ namespace BII.WasaBii.Splines {
             if (desiredSampleLength <= Length.Zero)
                 throw new ArgumentException($"The sampleLength cannot be 0 or smaller than 0 (was {desiredSampleLength})");
 
-            var segments = Math.Max(2, (int) Math.Ceiling((toAbsolute - fromAbsolute).DistanceFromBegin / desiredSampleLength) + 1);
+            var segments = Math.Max(2, (int) Math.Ceiling((toAbsolute - fromAbsolute) / desiredSampleLength) + 1);
 
             return spline.SampleSplineBetween(fromAbsolute, toAbsolute, segments);
         }

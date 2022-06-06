@@ -1,3 +1,5 @@
+using System;
+using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
@@ -22,18 +24,20 @@ namespace BII.WasaBii.Splines {
             Spline = spline;
             StartLocation = startLocation;
             EndLocation = endLocation;
-            Length = (endLocation - startLocation).DistanceFromBegin;
+            Length = endLocation - startLocation;
+            if(StartLocation > EndLocation) throw new ArgumentException($"StartLocation ({StartLocation}) must be before EndLocation ({EndLocation})");
+            if(Length < Length.Zero) throw new ArgumentException($"PartialSpline must have a positive length (was {Length})");
         }
 
         public SplineSample<TPos, TDiff> SampleAt(float percentage) => Spline[percentage * Length + StartLocation];
 
         public SplineSample<TPos, TDiff> SampleFromStart(Length distanceFromStart) {
             Contract.Assert(
-                distanceFromStart >= Length.Zero, 
+                distanceFromStart >= -Length.Epsilon, 
                 $"Distance must be above 0, but was {distanceFromStart}"
             );
             Contract.Assert(
-                distanceFromStart <= Length,
+                distanceFromStart <= Length + Length.Epsilon, 
                 $"Distance must be below the length of {Length}, but was {distanceFromStart}"
             );
             return Spline[distanceFromStart + StartLocation];
@@ -41,17 +45,20 @@ namespace BII.WasaBii.Splines {
 
         public SplineSample<TPos, TDiff> SampleFromEnd(Length distanceFromEnd) {
             Contract.Assert(
-                distanceFromEnd >= Length.Zero, 
+                distanceFromEnd >= -Length.Epsilon, 
                 $"Distance must be above 0, but was {distanceFromEnd}"
             );
             Contract.Assert(
-                distanceFromEnd <= Length,
+                distanceFromEnd <= Length + Length.Epsilon, 
                 $"Distance must be below the length of {Length}, but was {distanceFromEnd}"
             );
             return Spline[EndLocation - distanceFromEnd];
         }
 
-        public SplineSample<TPos, TDiff> SampleFrom(SampleDirection direction, Length distance) =>
-            direction == SampleDirection.FromStart ? SampleFromStart(distance) : SampleFromEnd(distance);
+        public SplineSample<TPos, TDiff> SampleFrom(SampleDirection direction, Length distance) => direction switch {
+            SampleDirection.FromStart => SampleFromStart(distance),
+            SampleDirection.FromEnd => SampleFromEnd(distance),
+            _ => throw new InvalidEnumArgumentException(nameof(direction), (int) direction, typeof(SampleDirection))
+        };
     }
 }

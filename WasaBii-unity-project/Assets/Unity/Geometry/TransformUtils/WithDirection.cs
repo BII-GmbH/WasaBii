@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.Linq;
 using BII.WasaBii.Units;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity.Geometry {
@@ -19,21 +22,27 @@ namespace BII.WasaBii.Unity.Geometry {
 
     public static class DirectionLikeExtensions {
         
-        public static Units.Angle AngleTo<TRelativity>(this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs) 
+        [Pure] public static Units.Angle AngleTo<TRelativity>(this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs) 
             where TRelativity : WithRelativity => Vector3.Angle(lhs.AsVector, rhs.AsVector).Degrees();
 
-        public static Units.Angle SignedAngleTo<TRelativity>(
+        [Pure] public static Units.Angle SignedAngleTo<TRelativity>(
             this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs, RelativeDirectionLike<TRelativity> axis
         ) where TRelativity : WithRelativity => 
             Vector3.SignedAngle(lhs.AsVector, rhs.AsVector, axis.AsVector).Degrees();
 
-        public static float Dot<T>(this T a, T b) where T : struct, DirectionLike<T> => a.AsVector.Dot(b.AsVector);
+        [Pure] public static float Dot<T>(this T a, T b) where T : struct, DirectionLike<T> => a.AsVector.Dot(b.AsVector);
 
-        public static T Cross<T>(this T a, T b) where T : struct, DirectionLike<T> => a.CopyWithDifferentValue(a.AsVector.Cross(b.AsVector));
+        [Pure] public static T Cross<T>(this T a, T b) where T : struct, DirectionLike<T> => a.CopyWithDifferentValue(a.AsVector.Cross(b.AsVector));
 
-        public static bool PointsInSameDirectionAs<TRelativity>(this RelativeDirectionLike<TRelativity> a, RelativeDirectionLike<TRelativity> b)
+        [Pure] public static bool PointsInSameDirectionAs<TRelativity>(this RelativeDirectionLike<TRelativity> a, RelativeDirectionLike<TRelativity> b)
             where TRelativity : WithRelativity => a.AsVector.PointsInSameDirectionAs(b.AsVector);
         
+        [Pure] public static T Add<T>(this T a, T b) where T : struct, DirectionLike<T>, HasMagnitude<T>
+            => a.CopyWithDifferentValue(a.AsVector + b.AsVector);
+        
+        [Pure] public static T Sum<T>(this IEnumerable<T> elements) where T : struct, DirectionLike<T>, HasMagnitude<T>
+            => elements.Aggregate(Add);
+
     }
 
 }

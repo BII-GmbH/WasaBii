@@ -61,22 +61,18 @@ namespace BII.WasaBii.Splines {
             yield return spline[toNormalized].Position;
         }
 
-        [Pure]
         public static TPos BeginMarginHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.WhenValidOrThrow(s => s.HandlesIncludingMargin[0]);
 
-        [Pure]
         public static TPos FirstHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.WhenValidOrThrow(s => s.Handles[0]);
 
-        [Pure]
         public static TPos LastHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.WhenValidOrThrow(s => s.Handles[^1]);
 
-        [Pure]
         public static TPos EndMarginHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.WhenValidOrThrow(s => s.HandlesIncludingMargin[^1]);

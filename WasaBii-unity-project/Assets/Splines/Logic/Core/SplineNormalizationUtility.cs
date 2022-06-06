@@ -30,7 +30,7 @@ namespace BII.WasaBii.Splines.Logic {
         ///
         /// Such a threshold is necessary since the normalization algorithm is inherently inaccurate
         /// because calculating a spline's length is always an approximation of its actual length.
-        private static readonly SplineLocation splineLocationOvershootTolerance = 0.1f.Meters();
+        private static readonly SplineLocation splineLocationOvershootTolerance = 0.1.Meters();
 
         /// Converts a location on the spline from <see cref="SplineLocation"/>
         /// to <see cref="NormalizedSplineLocation"/>.
@@ -44,42 +44,33 @@ namespace BII.WasaBii.Splines.Logic {
         ) 
             where TPos : struct 
             where TDiff : struct {
-            // Profiler.BeginSample("SplineNormalizationUtility.Normalize()");
 
             var currentSegmentIdx = SplineSegmentIndex.Zero;
-            var remainingDistanceToLocation = location.DistanceFromBegin;
+            var remainingDistanceToLocation = location.Value;
 
             // Iterate from each node and subtract its length from the location. 
             // Once the location is no longer greater than the node's length, 
             // the remaining location relative to the length is the normalized value t
-            while (true) {
-                if (currentSegmentIdx < spline.SegmentCount()) {
-                    var segmentLength = spline[currentSegmentIdx].Length(normalizationSamplesPerSegment);
-                    if (remainingDistanceToLocation > segmentLength) {
-                        remainingDistanceToLocation -= segmentLength;
-                        currentSegmentIdx += 1;
-                    } else {
-
-                        var progressToNextHandle = remainingDistanceToLocation switch {
-                            var d when d.IsNearly(Length.Zero, threshold: 1E-3.Meters()) => 0d,
-                            var d when d.IsNearly(segmentLength, threshold: 1E-3.Meters()) => 1d,
-                            var d => d / segmentLength
-                        };
-                        
-                        // Profiler.EndSample();
-                        return NormalizedSplineLocation.From(currentSegmentIdx) + progressToNextHandle;
-                    }
+            while (currentSegmentIdx < spline.SegmentCount()) {
+                var segmentLength = spline[currentSegmentIdx].Length(normalizationSamplesPerSegment);
+                if (remainingDistanceToLocation > segmentLength) {
+                    remainingDistanceToLocation -= segmentLength;
+                    currentSegmentIdx += 1;
                 } else {
-                    // Profiler.EndSample();
+                    var progressToNextHandle = remainingDistanceToLocation switch {
+                        var d when d.IsNearly(Length.Zero, threshold: 1E-3.Meters()) => 0d,
+                        var d when d.IsNearly(segmentLength, threshold: 1E-3.Meters()) => 1d,
+                        var d => d / segmentLength
+                    };
                     
-                    
-                    if(remainingDistanceToLocation < splineLocationOvershootTolerance)
-                        return NormalizedSplineLocation.From(currentSegmentIdx);
-                    else // The spline location is outside the spline's length,
-                         // so an out-of-range normalized spline location is returned 
-                        return NormalizedSplineLocation.From(currentSegmentIdx + 1);
+                    return NormalizedSplineLocation.From(currentSegmentIdx) + progressToNextHandle;
                 }
             }
+            return remainingDistanceToLocation < splineLocationOvershootTolerance
+                ? NormalizedSplineLocation.From(currentSegmentIdx)
+                // The spline location is outside the spline's length,
+                // so an out-of-range normalized spline location is returned 
+                : NormalizedSplineLocation.From(currentSegmentIdx + 1);
         }
 
         /// Converts a location on the spline from <see cref="NormalizedSplineLocation"/>
@@ -95,20 +86,15 @@ namespace BII.WasaBii.Splines.Logic {
         )  
             where TPos : struct 
             where TDiff : struct {
-            // Profiler.BeginSample("SplineNormalizationUtility.DeNormalize()");
 
             var location = SplineLocation.Zero;
             var segmentIdx = SplineSegmentIndex.Zero;
-            for (var remainingT = t; remainingT > 0; remainingT -= 1) {
-                if (segmentIdx >= spline.SegmentCount())
-                    break;
-                
+            for (var remainingT = t; remainingT > 0 && segmentIdx < spline.SegmentCount(); remainingT -= 1) {
                 var length = spline[segmentIdx].Length(normalizationSamplesPerSegment);
                 segmentIdx += 1;
                 location += length * Math.Min(1, remainingT);
             }
 
-            // Profiler.EndSample();
             return location;
         }
 
@@ -150,11 +136,6 @@ namespace BII.WasaBii.Splines.Logic {
             // Then the progress within that segment is added to the index,
             // and the result is the Normalized location.
 
-            // Profiler.BeginSample(
-            //     $"SplineNormalizationUtility.BulkNormalizeOrdered(" +
-            //     $"normalizationSamplesPerSegment = {normalizationSamplesPerSegment})"
-            // );
-
             Length segmentLengthAt(SplineSegmentIndex idx) => spline[idx].Length(normalizationSamplesPerSegment);
 
             var currentSegmentIndex = SplineSegmentIndex.Zero;
@@ -170,7 +151,7 @@ namespace BII.WasaBii.Splines.Logic {
                         segmentAbsoluteBegin = segmentAbsoluteEnd;
                         segmentAbsoluteEnd += segmentLengthAt(currentSegmentIndex);
                     
-                    }else if (currentLocation - segmentAbsoluteEnd < splineLocationOvershootTolerance) {
+                    } else if (currentLocation - segmentAbsoluteEnd < splineLocationOvershootTolerance) {
                         // If it is the last segment, but we are within overshoot tolerance
                         // treat the current location as if it were in the last segment
                         currentLocation = segmentAbsoluteEnd;
@@ -180,7 +161,7 @@ namespace BII.WasaBii.Splines.Logic {
                         throw new ArgumentOutOfRangeException(
                             nameof(locations), 
                             $"The location {currentLocation} is outside of the spline's" +
-                            $" length {spline.Length()} and cannot be normalized! Tolerance overshoot: {overshoot.Value.Meters()}"
+                            $" length {spline.Length()} and cannot be normalized! Tolerance overshoot: {overshoot.Value}"
                         );
                     }
                    
@@ -196,8 +177,6 @@ namespace BII.WasaBii.Splines.Logic {
                     Mathd.InverseLerp(segmentAbsoluteBegin, segmentAbsoluteEnd, current)
                 ) + currentSegmentIndex;
             }
-
-            // Profiler.EndSample();
         }
     }
 }

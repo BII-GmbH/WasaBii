@@ -13,7 +13,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         [Pure]
         public static Spline<GlobalPosition, GlobalOffset> FromInterpolating(
             IEnumerable<GlobalPosition> handles, SplineType? type = null
-        ) => GenericSpline.FromInterpolating(handles, PositionOperations.Instance, type);
+        ) => GenericSpline.FromInterpolating(handles, GeometricOperations.Instance, type);
         
         /// <inheritdoc cref="GenericSpline.FromHandles{TPos,TDiff}"/>
         [Pure]
@@ -22,36 +22,36 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
             IEnumerable<GlobalPosition> interpolatedHandles, 
             GlobalPosition endMarginHandle, 
             SplineType? type = null
-        ) => GenericSpline.FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, PositionOperations.Instance, type);
+        ) => GenericSpline.FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, GeometricOperations.Instance, type);
 
         /// <inheritdoc cref="GenericSpline.FromHandlesIncludingMargin{TPos,TDiff}"/>
         [Pure]
         public static Spline<GlobalPosition, GlobalOffset> FromHandlesIncludingMargin(
             IEnumerable<GlobalPosition> allHandlesIncludingMargin,
             SplineType? type = null
-        ) => GenericSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, PositionOperations.Instance, type);
+        ) => GenericSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, GeometricOperations.Instance, type);
 
 #region Extensions
         /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
         [Pure]
         public static Spline<GlobalPosition, GlobalOffset> ToSplineOrThrow(this IEnumerable<GlobalPosition> source, SplineType? splineType = null)
-            => source.ToSplineOrThrow(PositionOperations.Instance, splineType);
+            => source.ToSplineOrThrow(GeometricOperations.Instance, splineType);
 
         /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSpline{TPos,TDiff}"/>
         [Pure]
         public static Option<Spline<GlobalPosition, GlobalOffset>> ToSpline(this IEnumerable<GlobalPosition> source, SplineType? splineType = null)
-            => source.ToSpline(PositionOperations.Instance, splineType);
+            => source.ToSpline(GeometricOperations.Instance, splineType);
 
         /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
         [Pure]
         public static Spline<GlobalPosition, GlobalOffset> ToSplineWithMarginHandlesOrThrow(this IEnumerable<GlobalPosition> source, SplineType? splineType = null)
-            => source.ToSplineWithMarginHandlesOrThrow(PositionOperations.Instance, splineType);
+            => source.ToSplineWithMarginHandlesOrThrow(GeometricOperations.Instance, splineType);
         
         /// <inheritdoc cref="GenericEnumerableToSplineExtensions.CalculateSplineMarginHandles{TPos,TDiff}"/>
         [Pure]
         public static (GlobalPosition BeginHandle, GlobalPosition EndHandle) CalculateSplineMarginHandles(
             this IEnumerable<GlobalPosition> handlePositions
-        ) => handlePositions.CalculateSplineMarginHandles(PositionOperations.Instance);
+        ) => handlePositions.CalculateSplineMarginHandles(GeometricOperations.Instance);
 
         [Pure]
         public static Spline<LocalPosition, LocalOffset> RelativeTo(
@@ -93,11 +93,11 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
 #endregion
         
         [MustBeImmutable][MustBeSerializable]
-        public sealed class PositionOperations : PositionOperations<GlobalPosition, GlobalOffset> {
+        public sealed class GeometricOperations : GeometricOperations<GlobalPosition, GlobalOffset> {
 
-            public static readonly PositionOperations Instance = new();
+            public static readonly GeometricOperations Instance = new();
         
-            private PositionOperations() { }
+            private GeometricOperations() { }
 
             public Length Distance(GlobalPosition p0, GlobalPosition p1) => p0.DistanceTo(p1);
 

@@ -3,7 +3,7 @@ using System;
 namespace BII.WasaBii.Splines {
     /// A typed wrapper around an int for indexing the handles of a spline.
     /// Handles are the points that describe a spline and its trajectory.
-    /// In out case, all handles (except the margin ones) will be interpolated.
+    /// In our case, all handles (except the margin ones) will be interpolated.
     [Serializable]
     public readonly struct SplineHandleIndex : IEquatable<SplineHandleIndex> {
         public static readonly SplineHandleIndex Zero = At(0);

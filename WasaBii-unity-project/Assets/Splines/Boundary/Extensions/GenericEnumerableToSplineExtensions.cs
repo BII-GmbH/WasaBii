@@ -5,7 +5,7 @@ using BII.WasaBii.Splines.Logic;
 namespace BII.WasaBii.Splines {
     
     /// Utilities from constructing generic splines.
-    /// For explicitly typed versions, see UnitySpline, LocalSpline and GlobalSpline.
+    /// For explicitly typed versions, see `UnitySpline`, `GlobalSpline` or `LocalSpline` in the Unity assembly
     public static class GenericEnumerableToSplineExtensions {
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace BII.WasaBii.Splines {
         /// When less than 2 handle positions were provided
         /// </exception>
         public static (TPos BeginHandle, TPos EndHandle) CalculateSplineMarginHandles<TPos, TDiff>(
-            this IEnumerable<TPos> handlePositions, PositionOperations<TPos, TDiff> ops
+            this IEnumerable<TPos> handlePositions, GeometricOperations<TPos, TDiff> ops
         ) where TPos : struct where TDiff : struct {
             var positions = handlePositions.AsReadOnlyList();
             if (positions.Count < 2)
@@ -44,7 +44,7 @@ namespace BII.WasaBii.Splines {
         /// When less than 2 handle positions were provided
         /// </exception>
         public static Spline<TPos, TDiff> ToSplineOrThrow<TPos, TDiff>(
-            this IEnumerable<TPos> source, PositionOperations<TPos, TDiff> ops, SplineType? splineType = null
+            this IEnumerable<TPos> source, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null
         ) where TPos : struct where TDiff : struct {
             var positions = source.AsReadOnlyCollection();
             if (positions.Count < 2)
@@ -63,7 +63,7 @@ namespace BII.WasaBii.Splines {
         /// 
         /// Returns None if too few positions are provided
         public static Option<Spline<TPos, TDiff>> ToSpline<TPos, TDiff>(
-            this IEnumerable<TPos> source, PositionOperations<TPos, TDiff> ops, SplineType? type = null
+            this IEnumerable<TPos> source, GeometricOperations<TPos, TDiff> ops, SplineType? type = null
         ) where TPos : struct where TDiff : struct {
             var positions = source.AsReadOnlyCollection();
             if (positions.Count < 2) return Option.None;
@@ -85,7 +85,7 @@ namespace BII.WasaBii.Splines {
         /// When less than 4 handle positions were provided
         /// </exception>
         public static Spline<TPos, TDiff> ToSplineWithMarginHandlesOrThrow<TPos, TDiff>(
-            this IEnumerable<TPos> source, PositionOperations<TPos, TDiff> ops, SplineType? type = null
+            this IEnumerable<TPos> source, GeometricOperations<TPos, TDiff> ops, SplineType? type = null
         ) where TPos : struct where TDiff : struct {
             var positions = source.AsReadOnlyCollection();
             if (positions.Count < 4)
@@ -94,7 +94,7 @@ namespace BII.WasaBii.Splines {
             return new ImmutableSpline<TPos, TDiff>(positions, ops, type);
         }
 
-        private static TPos pointReflect<TPos, TDiff>(this TPos self, TPos on, PositionOperations<TPos, TDiff> ops)
+        private static TPos pointReflect<TPos, TDiff>(this TPos self, TPos on, GeometricOperations<TPos, TDiff> ops)
             where TPos : struct where TDiff : struct 
             => ops.Add(on, ops.Sub(on, self));
     }

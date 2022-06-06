@@ -13,6 +13,7 @@ namespace BII.WasaBii.Core {
         [Pure] public static IEnumerable<double> Sample01(
             int count, bool includeZero, bool includeOne
         ) {
+            if(count < 2) throw new ArgumentException($"Cannot sample less than 2 values (tried to sample {count})");
             var normalizationFactor = 1 / (includeZero, includeOne) switch {
                 (false, false) => count + 1d,
                 (true, false) or (false, true) => count,

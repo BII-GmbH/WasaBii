@@ -82,9 +82,8 @@ namespace BII.WasaBii.Splines.Logic {
         private Length[] _cachedSegmentLengths;
 
         private Length cachedSegmentLengthOf(SplineSegmentIndex idx) {
-            LazyContract.Assert(
-                idx >= 0 && idx < _cachedSegmentLengths.Length,
-                () => $"Tried to access segment at index {idx}, but the spline" +
+            if(idx < 0 || idx >= _cachedSegmentLengths.Length) throw new ArgumentException(
+                $"Tried to access segment at index {idx}, but the spline" +
                 $" only has {_cachedSegmentLengths.Length} segments"
             );
                 

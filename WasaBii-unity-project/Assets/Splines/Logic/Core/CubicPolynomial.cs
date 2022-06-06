@@ -22,20 +22,20 @@ namespace BII.WasaBii.Splines.Logic {
         }
 
         public TPos Evaluate(double t) {
-            LazyContract.Assert(t is >= 0 and <= 1, () => $"The parameter 't' must be between 0 and 1 but it was {t}");
+            if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var tt = t * t;
             var ttt = tt * t;
             return Ops.Add(d, Ops.Mul(c, t), Ops.Mul(b, tt), Ops.Mul(a, ttt));
         }
 
         public TDiff EvaluateDerivative(double t) {
-            LazyContract.Assert(t is >= 0 and <= 1, () => $"The parameter 't' must be between 0 and 1 but it was {t}");
+            if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var tt = t * t;
             return Ops.Add(c, Ops.Mul(b, 2 * t), Ops.Mul(a, 3 * tt));
         }
 
         public TDiff EvaluateSecondDerivative(double t) {
-            LazyContract.Assert(t >= 0 && t <= 1, () => $"The parameter 't' must be between 0 and 1 but it was {t}");
+            if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             return Ops.Add(Ops.Mul(b, 2), Ops.Mul(a, 6 * t));
         }
 

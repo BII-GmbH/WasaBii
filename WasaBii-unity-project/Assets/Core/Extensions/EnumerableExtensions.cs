@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 namespace BII.WasaBii.Core {
     public static class EnumerableExtensions {
 
+        public static Stack<T> ToStack<T>(this IEnumerable<T> source) => new(source);
+        
+        public static Queue<T> ToQueue<T>(this IEnumerable<T> source) => new(source);
+
         /// <inheritdoc cref="System.Linq.Enumerable.ToDictionary()"/>
         public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(
             this IEnumerable<(TKey key, TValue value)> tupleCollection
@@ -25,6 +29,12 @@ namespace BII.WasaBii.Core {
 
         public static HashSet<T> AsHashSet<T>(this IEnumerable<T> source) =>
             source as HashSet<T> ?? new HashSet<T>(source);
+        
+        public static Stack<T> AsStack<T>(this IEnumerable<T> source) =>
+            source as Stack<T> ?? new Stack<T>(source);
+        
+        public static Queue<T> AsQueue<T>(this IEnumerable<T> source) =>
+            source as Queue<T> ?? new Queue<T>(source);
         
         public static T[] AsArray<T>(this IEnumerable<T> source)
             => source as T[] ?? source.ToArray();

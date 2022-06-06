@@ -113,6 +113,11 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static LocalOffset AsLocalOffset(this System.Numerics.Vector3 localOffset)
             => localOffset.ToUnityVector().AsLocalOffset();
 
+        /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3)"/>
+        [Pure] public static LocalOffset Reflect(
+            this LocalOffset self, LocalDirection planeNormal
+        ) => self.AsVector.Reflect(planeNormal.AsVector).AsLocalOffset();
+
     }
 
 }

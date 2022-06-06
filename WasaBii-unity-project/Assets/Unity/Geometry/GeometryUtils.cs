@@ -5,6 +5,7 @@ using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 using UnityEngine;
+using Range = BII.WasaBii.Core.Range;
 
 namespace BII.WasaBii.Unity.Geometry {
     
@@ -43,7 +44,7 @@ namespace BII.WasaBii.Unity.Geometry {
         // but until then, we use sampling.
         public static Length CalculateCirpingMovementLength(
             PositionProvider from, PositionProvider to, PositionProvider pivot, int sampleCount = 6
-        ) => EnumerableUtils.Range(t => Cirp(from, to, pivot, t), sampleCount, includeFrom: true, includeTo: true)
+        ) => Range.Sample(t => Cirp(from, to, pivot, t), sampleCount, includeFrom: true, includeTo: true)
             .Select(loc => loc.AsVector)
             .TotalPathLength();
 

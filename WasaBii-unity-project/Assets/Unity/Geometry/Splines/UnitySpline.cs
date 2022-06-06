@@ -32,22 +32,22 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         ) => GenericSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, PositionOperations.Instance, type);
         
 #region Extensions
-        /// <inheritdoc cref="BII.WasaBii.Splines.EnumerableToSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
         [Pure]
         public static Spline<Vector3, Vector3> ToSplineOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
             => source.ToSplineOrThrow(PositionOperations.Instance, splineType);
 
-        /// <inheritdoc cref="BII.WasaBii.Splines.EnumerableToSplineExtensions.ToSpline{TPos,TDiff}"/>
+        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSpline{TPos,TDiff}"/>
         [Pure]
         public static Option<Spline<Vector3, Vector3>> ToSpline(this IEnumerable<Vector3> source, SplineType? splineType = null)
             => source.ToSpline(PositionOperations.Instance, splineType);
 
-        /// <inheritdoc cref="BII.WasaBii.Splines.EnumerableToSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
         [Pure]
         public static Spline<Vector3, Vector3> ToSplineWithMarginHandlesOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
             => source.ToSplineWithMarginHandlesOrThrow(PositionOperations.Instance, splineType);
 
-        /// <inheritdoc cref="BII.WasaBii.Splines.EnumerableToSplineExtensions.CalculateSplineMarginHandles{TPos,TDiff}"/>
+        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.CalculateSplineMarginHandles{TPos,TDiff}"/>
         [Pure]
         public static (Vector3 BeginHandle, Vector3 EndHandle) CalculateSplineMarginHandles(
             this IEnumerable<Vector3> handlePositions

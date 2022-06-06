@@ -4,7 +4,9 @@ using BII.WasaBii.Splines.Logic;
 
 namespace BII.WasaBii.Splines {
     
-    public static class EnumerableToSplineExtensions {
+    /// Utilities from constructing generic splines.
+    /// For explicitly typed versions, see UnitySpline, LocalSpline and GlobalSpline.
+    public static class GenericEnumerableToSplineExtensions {
 
         /// <summary>
         /// Calculates margin handles for a spline that interpolates the given handle positions.

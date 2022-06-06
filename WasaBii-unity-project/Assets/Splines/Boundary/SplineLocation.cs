@@ -93,6 +93,9 @@ namespace BII.WasaBii.Splines {
 
         public static SplineLocation operator %(SplineLocation lhs, Length rhs) =>
             From(lhs.Value % rhs.AsMeters());
+        
+        [Pure] public static SplineLocation Lerp(SplineLocation from, SplineLocation to, float progress) =>
+            From(Mathd.Lerp(from.Value, to.Value, progress));
 
         public override string ToString() => $"(Absolute) Spline Location: {Value}";
 
@@ -148,7 +151,10 @@ namespace BII.WasaBii.Splines {
         public static bool operator >=(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value >= b.Value;
         public static bool operator ==(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value == b.Value;
         public static bool operator !=(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value != b.Value;
-
+        
+        [Pure] public static NormalizedSplineLocation Lerp(NormalizedSplineLocation a, NormalizedSplineLocation b, double t) =>
+            new(a.Value + t * (b.Value - a.Value));
+        
         public (SplineHandleIndex Index, double Overshoot) AsHandleIndex() {
             var index = SplineHandleIndex.At(Mathd.FloorToInt(Value));
             var overshoot = Value - index;

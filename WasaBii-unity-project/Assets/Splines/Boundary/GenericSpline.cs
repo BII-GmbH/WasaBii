@@ -57,7 +57,7 @@ namespace BII.WasaBii.Splines {
         
         /// Creates a spline builder for a spline that interpolates the given handles.
         /// The begin and end margin handles will be generated automatically
-        /// using <see cref="EnumerableToSplineExtensions.CalculateSplineMarginHandles{TPos,TDiff}"/>
+        /// using <see cref="GenericEnumerableToSplineExtensions.CalculateSplineMarginHandles{TPos,TDiff}"/>
         [Pure]
         public static Spline<TPos, TDiff> FromInterpolating<TPos, TDiff>(
             IEnumerable<TPos> handles, PositionOperations<TPos, TDiff> ops, SplineType? type = null

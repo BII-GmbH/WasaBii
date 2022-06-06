@@ -57,6 +57,39 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         public static Spline<GlobalPosition, GlobalOffset> ToGlobalWith(
             this Spline<LocalPosition, LocalOffset> local, TransformProvider parent
         ) => local.HandlesIncludingMargin.Select(l => l.ToGlobalWith(parent)).ToSplineWithMarginHandlesOrThrow();
+
+        /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineToOrThrow{TPos, TDiff}"/>
+        [Pure]
+        public static ClosestOnSplineQueryResult< LocalPosition, LocalOffset> QueryClosestPositionOnSplineToOrThrow(
+            this Spline<LocalPosition, LocalOffset> spline,
+            LocalPosition position,
+            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+        ) => spline.QueryClosestPositionOnSplineToOrThrow<LocalPosition, LocalOffset>(position, samples);
+        
+        /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineTo{TPos, TDiff}"/>
+        [Pure]
+        public static ClosestOnSplineQueryResult<LocalPosition, LocalOffset>? QueryClosestPositionOnSplineTo(
+            this Spline<LocalPosition, LocalOffset> spline,
+            LocalPosition position,
+            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+        ) => spline.QueryClosestPositionOnSplineTo<LocalPosition, LocalOffset>(position, samples);
+
+        /// <inheritdoc cref="EnumerableClosestOnSplineExtensions.QueryClosestPositionOnSplinesTo{TWithSpline, TPos, TDiff}"/>
+        [Pure] public static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<LocalPosition, LocalOffset> queryResult)> QueryClosestPositionOnSplinesTo<TWithSpline>(
+            this IEnumerable<TWithSpline> splines,
+            LocalPosition position,
+            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+        ) where TWithSpline : class, WithSpline<LocalPosition, LocalOffset>
+            => splines.QueryClosestPositionOnSplinesTo<TWithSpline, LocalPosition, LocalOffset>(position, samples);
+        
+        /// <inheritdoc cref="EnumerableClosestOnSplineExtensions.QueryClosestPositionOnSplinesToOrThrow{TWithSpline, TPos, TDiff}"/>
+        [Pure] public static (TWithSpline closestSpline, ClosestOnSplineQueryResult<LocalPosition, LocalOffset> queryResult) QueryClosestPositionOnSplinesToOrThrow<TWithSpline>(
+            this IEnumerable<TWithSpline> splines,
+            LocalPosition position,
+            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+        ) where TWithSpline : class, WithSpline<LocalPosition, LocalOffset>
+            => splines.QueryClosestPositionOnSplinesToOrThrow<TWithSpline, LocalPosition, LocalOffset>(position, samples);
+        
 #endregion
         
         [MustBeImmutable][MustBeSerializable]

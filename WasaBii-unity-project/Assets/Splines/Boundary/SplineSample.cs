@@ -21,7 +21,7 @@ namespace BII.WasaBii.Splines {
 
         [Pure]
         public static SplineSample<TPos, TDiff>? From(Spline<TPos, TDiff> spline, SplineLocation location) =>
-            From(spline, spline.NormalizedLocation(location));
+            From(spline, spline.Normalize(location));
 
         [Pure]
         public static SplineSample<TPos, TDiff>? From(Spline<TPos, TDiff> spline, NormalizedSplineLocation location) {

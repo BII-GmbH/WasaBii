@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
+using BII.WasaBii.Units;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -22,6 +23,8 @@ namespace BII.WasaBii.Unity.Geometry {
 
         public GlobalPosition Min => Center - Extends;
         public GlobalPosition Max => Center + Extends;
+
+        public Volume Volume => Size.X() * Size.Y() * Size.Z();
 
         [Pure] public static GlobalBounds FromMinMax(GlobalPosition min, GlobalPosition max) => 
             new GlobalBounds(max.LerpTo(min, 0.5f), (max - min));

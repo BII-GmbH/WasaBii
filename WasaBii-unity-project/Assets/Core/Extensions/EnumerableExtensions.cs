@@ -304,83 +304,32 @@ namespace BII.WasaBii.Core {
             return builder.ToImmutable();
         }
 
-        /// <summary>
-        /// Selects the element minT of the enumerable which has the minimal valueProvider(minT).
-        /// If multiple elements have the same minimal value, the first one will be selected.
-        /// Returns whether the enumerable contained any values.
-        /// </summary>
-        public static bool TryGetElementWithMinimalValue<T, TComparable>(
-            this IEnumerable<T> enumerable, Func<T, TComparable> valueProvider, out T minT
-        ) where TComparable : IComparable<TComparable> {
-            using (var en = enumerable.GetEnumerator()) {
-                if (!en.MoveNext()) {
-                    minT = default;
-                    return false;
-                }
-
-                minT = en.Current;
-                var minVal = valueProvider(minT);
-                while (en.MoveNext()) {
-                    var currentT = en.Current;
-                    var currentVal = valueProvider(currentT);
-                    if (currentVal.CompareTo(minVal) < 0) {
-                        minT = currentT;
-                        minVal = currentVal;
-                    }
-                }
-
-                return true;
-            }
-        }
-        
-        /// <inheritdoc cref="TryGetElementWithMinimalValue{T,TComparable}(System.Collections.Generic.IEnumerable{T},System.Func{T,TComparable},out T)"/>
-        public static Option<T> TryGetElementWithMinimalValue<T, TComparable>(
-            this IEnumerable<T> enumerable, Func<T, TComparable> valueProvider
-        ) where TComparable : IComparable<TComparable> =>
-            enumerable.TryGetElementWithMinimalValue(valueProvider, out T result) ? result.Some() : Option.None;
-
         /// Finds and returns the minimum element of <paramref name="source"/> by
         /// mapping each element to an <see cref="IComparable{T}"/>.
         /// If there are multiple minimum elements, the first one is returned.
-        /// <exception cref="InvalidOperationException">
-        /// When an empty sequence is passed to this function
-        /// </exception>
-        public static TSource MinBy<TSource, TComparable>(
-            this IEnumerable<TSource> source, Func<TSource, TComparable> fn
-        ) where TComparable : IComparable<TComparable> => minOrMaxBy(source, fn, compareResult => compareResult < 0);
+        /// Returns null if the <see cref="source"/> is empty.
+        public static Option<TSource> MinBy<TSource, TComparable>(
+            this IEnumerable<TSource> source, Func<TSource, TComparable> comparableSelector
+        ) where TComparable : IComparable<TComparable> => minOrMaxBy(source, comparableSelector, preferredComparisonResult: -1);
 
         /// Finds and returns the maximum element of <paramref name="source"/> by
         /// mapping each element to an <see cref="IComparable{T}"/>.
         /// If there are multiple maximum elements, the first one is returned.
-        /// <exception cref="InvalidOperationException">
-        /// When an empty sequence is passed to this function
-        /// </exception>
-        public static TSource MaxBy<TSource, TComparable>(
-            this IEnumerable<TSource> source, Func<TSource, TComparable> fn
-        ) where TComparable : IComparable<TComparable> => minOrMaxBy(source, fn, compareResult => compareResult > 0);
+        /// Returns null if the <see cref="source"/> is empty.
+        public static Option<TSource> MaxBy<TSource, TComparable>(
+            this IEnumerable<TSource> source, Func<TSource, TComparable> comparableSelector
+        ) where TComparable : IComparable<TComparable> => minOrMaxBy(source, comparableSelector, preferredComparisonResult: 1);
 
-        private static TSource minOrMaxBy<TSource, TComparable>(
-            IEnumerable<TSource> source, Func<TSource, TComparable> fn, Func<int, bool> comp
-        ) where TComparable : IComparable<TComparable> {
-            using var enumerator = source.GetEnumerator();
-
-            if (!enumerator.MoveNext())
-                throw new InvalidOperationException($"Cannot call {nameof(minOrMaxBy)} on an empty sequence");
-
-            var res = enumerator.Current;
-            var resComparable = fn(res);
-
-            while (enumerator.MoveNext()) {
-                var current = enumerator.Current;
-                var currentComparable = fn(current);
-                if (comp(currentComparable.CompareTo(resComparable))) {
-                    res = current;
-                    resComparable = currentComparable;
-                }
-            }
-
-            return res;
-        }
+        private static Option<TSource> minOrMaxBy<TSource, TComparable>(
+            IEnumerable<TSource> source, Func<TSource, TComparable> comparableSelector, int preferredComparisonResult
+        ) where TComparable : IComparable<TComparable>
+            => source.IfNotEmpty(
+                notEmpty => notEmpty
+                    .Select(t => (val: t, comp: comparableSelector(t)))
+                    .Aggregate((l, r) => l.comp.CompareTo(r.comp) == preferredComparisonResult ? l : r)
+                    .val.Some(),
+                elseResult: Option.None
+            );
 
         public static IEnumerable<T> OrIfEmpty<T>(this IEnumerable<T> enumerable, Func<IEnumerable<T>> thenReturn) =>
             IfNotEmpty(enumerable, v => v, thenReturn);

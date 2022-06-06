@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using BII.WasaBii.Splines.Logic;
 
 namespace BII.WasaBii.Splines {
     
@@ -40,8 +41,8 @@ namespace BII.WasaBii.Splines {
         public static IEnumerable<TPos> HandlesBetween<TPos, TDiff>(
             this Spline<TPos, TDiff> spline, SplineLocation start, SplineLocation end
         ) where TPos : struct where TDiff : struct {
-            var fromNormalized = spline.NormalizedLocation(start);
-            var toNormalized = spline.NormalizedLocation(end);
+            var fromNormalized = spline.Normalize(start);
+            var toNormalized = spline.Normalize(end);
 
             yield return spline[fromNormalized].Position;
 

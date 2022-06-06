@@ -31,6 +31,7 @@ namespace BII.WasaBii.Splines {
             var diff = Sub(p1, p0);
             return Math.Sqrt(Dot(diff, diff)).Meters();
         }
+        [Pure] TPos Lerp(TPos from, TPos to, double t) => Add(from, Mul(Sub(to, from), t));
     }
 
     public static class PositionOperationsExtensions {

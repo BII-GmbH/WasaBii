@@ -124,7 +124,8 @@ namespace BII.WasaBii.Core {
 
     public static class OptionQueryExtensions {
         public static bool IsNone<T>(this Option<T> opt) => !opt.HasValue;
-        public static T GetOrDefault<T>(this Option<T> opt) => opt.GetOrElse(elseResultGetter: () => default);
+        public static T? GetOrDefault<T>(this Option<T> opt) => opt.TryGetValue(out var val) ? val : default;
+        public static T? GetOrNull<T>(this Option<T> opt) where T : struct => opt.TryGetValue(out var val) ? val : default;
         
         public static T GetOrThrow<T>(this Option<T> opt, Func<Exception> exception) =>
             opt.GetOrElse(() => throw exception());

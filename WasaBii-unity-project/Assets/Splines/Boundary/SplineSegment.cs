@@ -1,4 +1,5 @@
 using System.Diagnostics.Contracts;
+using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Logic;
 using BII.WasaBii.Units;
 
@@ -6,23 +7,19 @@ namespace BII.WasaBii.Splines {
     public readonly struct SplineSegment<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
-        public readonly CubicPolynomial<TPos, TDiff> Polynomial;
+        internal readonly CubicPolynomial<TPos, TDiff> Polynomial;
         public readonly Length? CachedLength;
 
-        public static SplineSegment<TPos, TDiff>? From(Spline<TPos, TDiff> spline, SplineSegmentIndex idx, Length? cachedSegmentLength = null) {
-            var cubicPolynomial = SplineSegmentUtils.CubicPolynomialFor(spline, idx);
+        public static Option<SplineSegment<TPos, TDiff>> From(Spline<TPos, TDiff> spline, SplineSegmentIndex idx, Length? cachedSegmentLength = null) =>
+            SplineSegmentUtils.CubicPolynomialFor(spline, idx)
+                .Map(val => new SplineSegment<TPos, TDiff>(val, cachedSegmentLength));
 
-            return cubicPolynomial is { } val
-                ? new SplineSegment<TPos, TDiff>(val, cachedSegmentLength)
-                : null;
-        }
-
-        public SplineSegment(CubicPolynomial<TPos, TDiff> polynomial, Length? cachedLength) {
+        internal SplineSegment(CubicPolynomial<TPos, TDiff> polynomial, Length? cachedLength) {
             Polynomial = polynomial;
             CachedLength = cachedLength;
         }
         
-        public SplineSample<TPos, TDiff> SampleAt(float percentage) => new(this, percentage);
+        public SplineSample<TPos, TDiff> SampleAt(double percentage) => new(this, percentage);
     }
 
     public static class SplineSegmentUtils {
@@ -39,18 +36,18 @@ namespace BII.WasaBii.Splines {
         }
 
         [Pure]
-        public static CubicPolynomial<TPos, TDiff>? CubicPolynomialFor<TPos, TDiff>(Spline<TPos, TDiff> spline, SplineSegmentIndex idx) 
+        internal static Option<CubicPolynomial<TPos, TDiff>> CubicPolynomialFor<TPos, TDiff>(Spline<TPos, TDiff> spline, SplineSegmentIndex idx) 
         where TPos : struct 
         where TDiff : struct {
             var catmullRomSegment = CatmullRomSegment.CatmullRomSegmentAt(spline, NormalizedSplineLocation.From(idx));
 
             return catmullRomSegment is { } val 
                 ? CubicPolynomial.FromCatmullRomSegment(val.Segment, spline.Type.ToAlpha()) 
-                : null;
+                : Option.None;
         }
         
         [Pure]
-        public static Length LengthOfSegment<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int samples = DefaultLengthSamples) 
+        internal static Length LengthOfSegment<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int samples = DefaultLengthSamples) 
             where TPos : struct 
             where TDiff : struct {
             var length = Units.Length.Zero;

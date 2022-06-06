@@ -13,17 +13,15 @@ namespace BII.WasaBii.Splines {
         Chordal
     }
 
-    namespace Logic {
-        public static class SplineTypeUtils {
-            public static float ToAlpha(this SplineType type) =>
-                type switch {
-                    SplineType.Uniform => 0,
-                    SplineType.Centripetal => 0.5f,
-                    SplineType.Chordal => 1,
-                    _ => throw new InvalidEnumArgumentException(
-                        $"{nameof(SplineTypeUtils)}.{nameof(ToAlpha)} does not support the value {type}")
-                };
-        }
+    internal static class SplineTypeUtils {
+        public static float ToAlpha(this SplineType type) =>
+            type switch {
+                SplineType.Uniform => 0,
+                SplineType.Centripetal => 0.5f,
+                SplineType.Chordal => 1,
+                _ => throw new InvalidEnumArgumentException(
+                    $"{nameof(SplineTypeUtils)}.{nameof(ToAlpha)} does not support the value {type}")
+            };
     }
 }
 

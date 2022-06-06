@@ -10,7 +10,7 @@ namespace BII.WasaBii.Splines.Tests {
     using SplineSegment = SplineSegment<Vector3, Vector3>;
     using SplineSample = SplineSample<Vector3, Vector3>;
     
-    public class SplineTestUtils {
+    internal class SplineTestUtils {
 
         private const float splineTypeAlphaValue = 0.5f;
         public const double SplineLocationTolerance = 0.01;

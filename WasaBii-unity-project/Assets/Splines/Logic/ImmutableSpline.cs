@@ -13,16 +13,16 @@ namespace BII.WasaBii.Splines.Logic {
     [MustBeSerializable] 
     public sealed class ImmutableSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
         public ImmutableSpline(
-            TPos startHandlePosition, IEnumerable<TPos> handles, TPos endHandlePosition, 
+            TPos startHandle, IEnumerable<TPos> handles, TPos endHandle, 
             GeometricOperations<TPos, TDiff> ops,
             SplineType? splineType = null
-        ) : this(handles.Prepend(startHandlePosition).Append(endHandlePosition), ops, splineType){}
+        ) : this(handles.Prepend(startHandle).Append(endHandle), ops, splineType){}
 
         public ImmutableSpline(IEnumerable<TPos> allHandlesIncludingMarginHandles, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null) {
             handles = ImmutableArray.CreateRange(allHandlesIncludingMarginHandles);
             Type = splineType ?? SplineType.Centripetal;
             _cachedSegmentLengths = new Length[this.SegmentCount()];
-            _ops = ops;
+            this.ops = ops;
         }
         
         // The non-nullable fields are not set and thus null, but
@@ -39,13 +39,13 @@ namespace BII.WasaBii.Splines.Logic {
         
         public Spline<TPos, TDiff> Spline => this;
 
-        private readonly GeometricOperations<TPos, TDiff> _ops;
-        GeometricOperations<TPos, TDiff> Spline<TPos, TDiff>.Ops => _ops;
+        private readonly GeometricOperations<TPos, TDiff> ops;
+        GeometricOperations<TPos, TDiff> Spline<TPos, TDiff>.Ops => ops;
 
         public TPos this[SplineHandleIndex index] => handles[index];
 
-        public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => SplineSegment<TPos, TDiff>.From(this, index, cachedSegmentLengthOf(index)) ??
-            throw new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {this.SegmentCount()}");
+        public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => SplineSegment<TPos, TDiff>.From(this, index, cachedSegmentLengthOf(index)).GetOrThrow(() =>
+            new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {this.SegmentCount()}"));
         
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
             throw new ArgumentOutOfRangeException(
@@ -60,12 +60,8 @@ namespace BII.WasaBii.Splines.Logic {
             && Type == other.Type;
 
         public override bool Equals(object obj) => obj is Spline<TPos, TDiff> otherSpline && Equals(otherSpline);
-
-        public override int GetHashCode() {
-            unchecked {
-                return ((handles != null ? handles.GetHashCode() : 0) * 397) ^ (int) Type;
-            }
-        }
+        
+        public override int GetHashCode() => HashCode.Combine(handles, (int)Type);
         
 #region Segment Length Caching
         // The cached lengths for each segment,
@@ -91,11 +87,11 @@ namespace BII.WasaBii.Splines.Logic {
             if (cachedLength > Length.Zero) return cachedLength;
             // intentional assigment
             return _cachedSegmentLengths[idx.Value] = SplineSegmentUtils.LengthOfSegment(
-                SplineSegmentUtils.CubicPolynomialFor(this, idx) 
-                ?? throw new Exception(
-                    "Could not create a cubic polynomial for this spline. " +
-                    "This should not happen and indicates a bug in this method."
-                ));
+                SplineSegmentUtils.CubicPolynomialFor(this, idx).GetOrThrow(() => 
+                    new Exception(
+                        "Could not create a cubic polynomial for this spline. " +
+                        "This should not happen and indicates a bug in this method."
+                    )));
         }
         
         [OnDeserialized]

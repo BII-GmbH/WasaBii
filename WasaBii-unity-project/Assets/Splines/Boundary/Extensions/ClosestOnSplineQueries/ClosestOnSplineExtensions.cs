@@ -119,7 +119,7 @@ namespace BII.WasaBii.Splines {
 
             var res = NormalizedSplineLocation.From(
                 lower 
-                + spline[lower.AsSplineSegmentIndex()].Polynomial.EvaluateClosestPointTo(position, samples)
+                + spline[SplineSegmentIndex.At(lower)].Polynomial.EvaluateClosestPointTo(position, samples)
             );
 
             return computeResult(spline[res].Position, res);

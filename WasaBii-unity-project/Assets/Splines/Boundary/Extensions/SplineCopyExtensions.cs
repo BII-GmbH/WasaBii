@@ -5,12 +5,7 @@ using BII.WasaBii.Units;
 
 namespace BII.WasaBii.Splines {
     public static class SplineCopyExtensions {
-
-        /// Creates a deep-copy of the provided spline.
-        public static Spline<TPos, TDiff> Copy<TPos, TDiff>(this Spline<TPos, TDiff> spline) 
-            where TPos : struct where TDiff : struct =>
-            new ImmutableSpline<TPos, TDiff>(spline.HandlesIncludingMargin, spline.Ops, spline.Type);
-        
+    
         /// Creates a new spline with a similar trajectory as <paramref name="original"/>, but with all handle
         /// positions being moved by a certain offset which depends on the spline's tangent at these points.
         public static Spline<TPos, TDiff> CopyWithOffset<TPos, TDiff>(

@@ -4,7 +4,7 @@ using BII.WasaBii.Splines.Logic;
 
 namespace BII.WasaBii.Splines {
     
-    /// Utilities from constructing generic splines.
+    /// Utilities for constructing generic splines.
     /// For explicitly typed versions, see `UnitySpline`, `GlobalSpline` or `LocalSpline` in the Unity assembly
     public static class GenericEnumerableToSplineExtensions {
 

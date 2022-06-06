@@ -112,10 +112,4 @@ namespace BII.WasaBii.Splines {
 
         public override int GetHashCode() => Value.GetHashCode();
     }
-    
-    public static class SplineIndexExtensions {
-    
-        public static SplineHandleIndex AsSplineHandleIndex(this int index) => SplineHandleIndex.At(index);
-        public static SplineSegmentIndex AsSplineSegmentIndex(this int index) => SplineSegmentIndex.At(index);
-    }
 }

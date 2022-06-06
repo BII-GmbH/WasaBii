@@ -7,7 +7,7 @@ namespace BII.WasaBii.Splines {
     /// A location on a spline, measured in meters away from the beginning along the spline (and not flight distance)
     [Serializable]
     [MustBeSerializable]
-    public struct SplineLocation : IEquatable<SplineLocation>, IComparable<SplineLocation> {
+    public readonly struct SplineLocation : IEquatable<SplineLocation>, IComparable<SplineLocation> {
         public static readonly SplineLocation Zero = new(Length.Zero);
 
         public Length Value { get; }

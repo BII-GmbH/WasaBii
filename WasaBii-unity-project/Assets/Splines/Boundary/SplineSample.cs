@@ -7,14 +7,24 @@ namespace BII.WasaBii.Splines {
         where TDiff : struct {
         
         public readonly SplineSegment<TPos, TDiff> Segment;
+        
+        /// The percentage of the sample withing the segment.
         public readonly double T;
+
+        public TPos Position => Segment.Polynomial.Evaluate(T);
+
+        public TDiff Tangent => Segment.Polynomial.EvaluateDerivative(T);
+
+        public TDiff Curvature => Segment.Polynomial.EvaluateSecondDerivative(T);
+
+        public (TPos Position, TDiff Tangent) PositionAndTangent => (Position, Tangent);
 
         public SplineSample(SplineSegment<TPos, TDiff> segment, double t) {
             Segment = segment;
             T = t;
         }
 
-        public SplineSample(CubicPolynomial<TPos, TDiff> polynomial, double t) {
+        private SplineSample(CubicPolynomial<TPos, TDiff> polynomial, double t) {
             Segment = new SplineSegment<TPos, TDiff>(polynomial, cachedLength: null);
             T = t;
         }
@@ -34,13 +44,6 @@ namespace BII.WasaBii.Splines {
             return null;
         }
         
-        public TPos Position => Segment.Polynomial.Evaluate((float)T);
-
-        public TDiff Tangent => Segment.Polynomial.EvaluateDerivative((float)T);
-
-        public TDiff Curvature => Segment.Polynomial.EvaluateSecondDerivative((float)T);
-
-        public (TPos Position, TDiff Tangent) PositionAndTangent => (Position, Tangent);
     }
 
 }

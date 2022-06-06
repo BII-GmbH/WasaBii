@@ -1,12 +1,17 @@
-using System;
+
 #nullable enable
+
+using System;
+using System.Runtime.CompilerServices;
+
+[assembly:InternalsVisibleTo("BII_Splines_Tests")]
 
 namespace BII.WasaBii.Splines.Logic {
    
-    /// Internal data structure all supported spline data structures are converted to
+    /// Internal data structure all supported spline data structures are converted to.
     /// It is used for the calculations and describes the area between two spline handles (p1 and p2), 
     /// with the supporting handles p0 and p3
-    public readonly struct CatmullRomSegment<TPos, TDiff> 
+    internal readonly struct CatmullRomSegment<TPos, TDiff> 
         where TPos : struct 
         where TDiff : struct {
 
@@ -26,7 +31,7 @@ namespace BII.WasaBii.Splines.Logic {
 
     }
 
-    public static class CatmullRomSegment {
+    internal static class CatmullRomSegment {
         public const double EndOfSplineOvershootTolerance = 0.01;
         
         /// Given a SplineNode and a normalized location relative to that node,

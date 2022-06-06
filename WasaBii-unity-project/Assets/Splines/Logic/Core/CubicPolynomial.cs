@@ -3,7 +3,7 @@ using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
 namespace BII.WasaBii.Splines.Logic {
-    public readonly struct CubicPolynomial<TPos, TDiff> 
+    internal readonly struct CubicPolynomial<TPos, TDiff> 
         where TPos : struct 
         where TDiff : struct {
     
@@ -89,7 +89,7 @@ namespace BII.WasaBii.Splines.Logic {
         }
     }
 
-    public static class CubicPolynomial {
+    internal static class CubicPolynomial {
         
         public static CubicPolynomial<TPos, TDiff> FromCatmullRomSegment<TPos, TDiff>(CatmullRomSegment<TPos, TDiff> segment, float alpha) 
             where TPos : struct 

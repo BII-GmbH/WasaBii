@@ -4,7 +4,7 @@ using BII.WasaBii.Core;
 namespace BII.WasaBii.Splines {
     
     [Serializable]
-    public struct SplineInterval {
+    public readonly struct SplineInterval {
 
         public SplineLocation Start { get; }
         public SplineLocation End { get; }
@@ -23,5 +23,9 @@ namespace BII.WasaBii.Splines {
             start = this.Start;
             end = this.End;
         }
+        
+        public bool Equals(SplineInterval other) => Start.Equals(other.Start) && End.Equals(other.End);
+        public override bool Equals(object obj) => obj is SplineInterval other && Equals(other);
+        public override int GetHashCode() => HashCode.Combine(Start, End);
     }
 }

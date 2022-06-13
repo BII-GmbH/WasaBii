@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using BII.WasaBii.Core;
 
 namespace BII.WasaBii.Splines {
     public static class ClosestOnSplineExtensions {
@@ -27,10 +28,10 @@ namespace BII.WasaBii.Splines {
             TPos position,
             int samples = DefaultClosestOnSplineSamples
         ) where TPos : struct where TDiff : struct => 
-            spline.QueryClosestPositionOnSplineTo(position, samples) ??
-                throw new ArgumentException(
+            spline.QueryClosestPositionOnSplineTo(position, samples).GetOrThrow(() => 
+                new ArgumentException(
                     $"The spline given to {nameof(QueryClosestPositionOnSplineToOrThrow)} was not valid and a query could therefore not be performed!"
-                );
+                ));
 
         /// <summary>
         /// This function returns the closest location and position (with its distance to the provided position) 
@@ -49,7 +50,7 @@ namespace BII.WasaBii.Splines {
         /// Therefore differing distances between handles would lead to different
         /// querying accuracies on different points on the spline.
         /// </remarks> 
-        public static ClosestOnSplineQueryResult<TPos, TDiff>? QueryClosestPositionOnSplineTo<TPos, TDiff>(
+        public static Option<ClosestOnSplineQueryResult<TPos, TDiff>> QueryClosestPositionOnSplineTo<TPos, TDiff>(
             this WithSpline<TPos, TDiff> withSpline,
             TPos position,
             int samples = DefaultClosestOnSplineSamples
@@ -57,7 +58,7 @@ namespace BII.WasaBii.Splines {
 
             var spline = withSpline.Spline;
 
-            if (!spline.IsValid()) return null;
+            if (!spline.IsValid()) return Option.None;
 
             // 0: The position is on the plane,
             // > 0: The position is above the plane (in the direction of the normal)

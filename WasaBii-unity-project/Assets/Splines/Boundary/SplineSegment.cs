@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Logic;
@@ -8,15 +9,16 @@ namespace BII.WasaBii.Splines {
         where TPos : struct 
         where TDiff : struct {
         internal readonly CubicPolynomial<TPos, TDiff> Polynomial;
-        public readonly Length? CachedLength;
+        private readonly Lazy<Length> cachedLength;
+        public Length Length => cachedLength.Value;
 
         public static Option<SplineSegment<TPos, TDiff>> From(Spline<TPos, TDiff> spline, SplineSegmentIndex idx, Length? cachedSegmentLength = null) =>
             SplineSegmentUtils.CubicPolynomialFor(spline, idx)
                 .Map(val => new SplineSegment<TPos, TDiff>(val, cachedSegmentLength));
 
-        internal SplineSegment(CubicPolynomial<TPos, TDiff> polynomial, Length? cachedLength) {
+        internal SplineSegment(CubicPolynomial<TPos, TDiff> polynomial, Length? cachedLength = null) {
             Polynomial = polynomial;
-            CachedLength = cachedLength;
+            this.cachedLength = new Lazy<Length>(() => cachedLength ?? SplineSegmentUtils.LengthOfSegment(polynomial));
         }
         
         public SplineSample<TPos, TDiff> SampleAt(double percentage) => new(this, percentage);
@@ -25,16 +27,6 @@ namespace BII.WasaBii.Splines {
     public static class SplineSegmentUtils {
         public const int DefaultLengthSamples = 10;
         
-        [Pure]
-        public static Length Length<TPos, TDiff>(
-            this SplineSegment<TPos, TDiff> segment,
-            int samples = DefaultLengthSamples
-        ) 
-        where TPos : struct 
-        where TDiff : struct {
-            return segment.CachedLength ?? LengthOfSegment(segment.Polynomial, samples);
-        }
-
         [Pure]
         internal static Option<CubicPolynomial<TPos, TDiff>> CubicPolynomialFor<TPos, TDiff>(Spline<TPos, TDiff> spline, SplineSegmentIndex idx) 
         where TPos : struct 

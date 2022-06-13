@@ -21,10 +21,10 @@ namespace BII.WasaBii.Splines.Logic {
         public ImmutableSpline(IEnumerable<TPos> allHandlesIncludingMarginHandles, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null) {
             handles = ImmutableArray.CreateRange(allHandlesIncludingMarginHandles);
             Type = splineType ?? SplineType.Centripetal;
-            _cachedSegmentLengths = new Length[this.SegmentCount()];
+            cachedSegmentLengths = new Lazy<IReadOnlyList<Length>>(() => calculateSegmentLengths(this));
             this.ops = ops;
         }
-        
+
         // The non-nullable fields are not set and thus null, but
         // they should always be set via reflection, so this is fine.
     #pragma warning disable 8618
@@ -44,7 +44,7 @@ namespace BII.WasaBii.Splines.Logic {
 
         public TPos this[SplineHandleIndex index] => handles[index];
 
-        public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => SplineSegment<TPos, TDiff>.From(this, index, cachedSegmentLengthOf(index)).GetOrThrow(() =>
+        public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => SplineSegment<TPos, TDiff>.From(this, index, cachedSegmentLengths.Value[index]).GetOrThrow(() =>
             new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {this.SegmentCount()}"));
         
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
@@ -75,28 +75,25 @@ namespace BII.WasaBii.Splines.Logic {
         // this class is registered as an edge-case
         // since the array is only used for lazy caches.
         [NonSerialized] 
-        private Length[] _cachedSegmentLengths;
+        private Lazy<IReadOnlyList<Length>> cachedSegmentLengths;
 
-        private Length cachedSegmentLengthOf(SplineSegmentIndex idx) {
-            if(idx < 0 || idx >= _cachedSegmentLengths.Length) throw new ArgumentException(
-                $"Tried to access segment at index {idx}, but the spline" +
-                $" only has {_cachedSegmentLengths.Length} segments"
-            );
-                
-            var cachedLength = _cachedSegmentLengths[idx.Value];
-            if (cachedLength > Length.Zero) return cachedLength;
-            // intentional assigment
-            return _cachedSegmentLengths[idx.Value] = SplineSegmentUtils.LengthOfSegment(
-                SplineSegmentUtils.CubicPolynomialFor(this, idx).GetOrThrow(() => 
-                    new Exception(
-                        "Could not create a cubic polynomial for this spline. " +
-                        "This should not happen and indicates a bug in this method."
-                    )));
+        private static IReadOnlyList<Length> calculateSegmentLengths(ImmutableSpline<TPos, TDiff> spline) {
+            var ret = new Length[spline.SegmentCount()];
+            for (var i = 0; i < spline.SegmentCount(); i++) {
+                var idx = SplineSegmentIndex.At(i);
+                ret[idx] = SplineSegmentUtils.LengthOfSegment(
+                    SplineSegmentUtils.CubicPolynomialFor(spline, idx).GetOrThrow(() =>
+                        new Exception(
+                            "Could not create a cubic polynomial for this spline. " +
+                            "This should not happen and indicates a bug in this method."
+                        )));
+            }
+            return ret;
         }
         
         [OnDeserialized]
-        private void OnDeserialized(StreamingContext context) => _cachedSegmentLengths = new Length[this.SegmentCount()];
-
+        private void OnDeserialized(StreamingContext context) => cachedSegmentLengths = new Lazy<IReadOnlyList<Length>>(() => calculateSegmentLengths(this));
+        
         #endregion
 
     }

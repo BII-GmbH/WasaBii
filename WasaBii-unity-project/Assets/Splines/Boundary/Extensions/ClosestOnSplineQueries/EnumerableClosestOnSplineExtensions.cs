@@ -62,9 +62,9 @@ namespace BII.WasaBii.Splines {
         ));
 
         private static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff> queryResult)> queryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff>(
-            IEnumerable<TWithSpline> splines, Func<TWithSpline, ClosestOnSplineQueryResult<TPos, TDiff>?> queryFunction
+            IEnumerable<TWithSpline> splines, Func<TWithSpline, Option<ClosestOnSplineQueryResult<TPos, TDiff>>> queryFunction
         ) where TWithSpline : WithSpline<TPos, TDiff> where TPos : struct where TDiff : struct => 
-            splines.Collect(spline => queryFunction(spline) is { } queryResult ? (spline, queryResult).AsNullable() : null)
+            splines.Collect(spline => queryFunction(spline).Map(queryResult => (spline, queryResult)))
                 .MinBy(t => t.queryResult.Distance);
     }
 }

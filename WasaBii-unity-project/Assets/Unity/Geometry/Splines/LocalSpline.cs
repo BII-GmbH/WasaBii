@@ -47,12 +47,6 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         public static Spline<LocalPosition, LocalOffset> ToSplineWithMarginHandlesOrThrow(this IEnumerable<LocalPosition> source, SplineType? splineType = null)
             => source.ToSplineWithMarginHandlesOrThrow(GeometricOperations.Instance, splineType);
 
-        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.CalculateSplineMarginHandles{TPos,TDiff}"/>
-        [Pure]
-        public static (LocalPosition BeginHandle, LocalPosition EndHandle) CalculateSplineMarginHandles(
-            this IEnumerable<LocalPosition> handlePositions
-        ) => handlePositions.CalculateSplineMarginHandles(GeometricOperations.Instance);
-
         [Pure]
         public static Spline<GlobalPosition, GlobalOffset> ToGlobalWith(
             this Spline<LocalPosition, LocalOffset> local, TransformProvider parent
@@ -68,7 +62,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         
         /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineTo{TPos, TDiff}"/>
         [Pure]
-        public static ClosestOnSplineQueryResult<LocalPosition, LocalOffset>? QueryClosestPositionOnSplineTo(
+        public static Option<ClosestOnSplineQueryResult<LocalPosition, LocalOffset>> QueryClosestPositionOnSplineTo(
             this Spline<LocalPosition, LocalOffset> spline,
             LocalPosition position,
             int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples

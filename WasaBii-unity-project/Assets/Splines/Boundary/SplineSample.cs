@@ -25,7 +25,7 @@ namespace BII.WasaBii.Splines {
         }
 
         private SplineSample(CubicPolynomial<TPos, TDiff> polynomial, double t) {
-            Segment = new SplineSegment<TPos, TDiff>(polynomial, cachedLength: null);
+            Segment = new SplineSegment<TPos, TDiff>(polynomial);
             T = t;
         }
 

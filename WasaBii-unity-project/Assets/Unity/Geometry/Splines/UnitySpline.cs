@@ -47,12 +47,6 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         public static Spline<Vector3, Vector3> ToSplineWithMarginHandlesOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
             => source.ToSplineWithMarginHandlesOrThrow(GeometricOperations.Instance, splineType);
 
-        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.CalculateSplineMarginHandles{TPos,TDiff}"/>
-        [Pure]
-        public static (Vector3 BeginHandle, Vector3 EndHandle) CalculateSplineMarginHandles(
-            this IEnumerable<Vector3> handlePositions
-        ) => handlePositions.CalculateSplineMarginHandles(GeometricOperations.Instance);
-        
         /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineToOrThrow{TPos, TDiff}"/>
         [Pure]
         public static ClosestOnSplineQueryResult< Vector3, Vector3> QueryClosestPositionOnSplineToOrThrow(
@@ -63,7 +57,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         
         /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineTo{TPos, TDiff}"/>
         [Pure]
-        public static ClosestOnSplineQueryResult<Vector3, Vector3>? QueryClosestPositionOnSplineTo(
+        public static Option<ClosestOnSplineQueryResult<Vector3, Vector3>> QueryClosestPositionOnSplineTo(
             this Spline<Vector3, Vector3> spline,
             Vector3 position,
             int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples

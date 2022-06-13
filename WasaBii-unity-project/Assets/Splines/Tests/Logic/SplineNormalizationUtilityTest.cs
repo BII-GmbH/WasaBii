@@ -7,14 +7,14 @@ using static BII.WasaBii.Splines.Tests.SplineTestUtils;
 
 namespace BII.WasaBii.Splines.Tests {
     public class SplineNormalizationUtilityTest {
-        private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizaionSamples = new Dictionary<float, float>
-            {{0, 0}, {0.5f, 0.113f}, {1, 0.227f}, {2.6f, 0.590f}, {3, 0.681f}, {4.404f, 1f}}.ToDictionary(
+        private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizaionSamples = new Dictionary<double, double>
+            {{0, 0}, {0.5, 0.113}, {1, 0.227}, {2.6, 0.590}, {3, 0.681}, {4.404, 1}}.ToDictionary(
             kvp => SplineLocation.From(kvp.Key),
             kvp => NormalizedSplineLocation.From(kvp.Value)
         );
 
-        private static readonly Dictionary<NormalizedSplineLocation, SplineLocation> deNormalizaionSamples = new Dictionary<float, float>
-            {{0, 0}, {0.1f, 0.440f}, {0.3f, 1.321f}, {0.55f, 2.422f}, {0.7f, 3.083f}, {1f, 4.404f}}.ToDictionary(
+        private static readonly Dictionary<NormalizedSplineLocation, SplineLocation> deNormalizaionSamples = new Dictionary<double, double>
+            {{0, 0}, {0.1, 0.440}, {0.3, 1.321}, {0.55, 2.422}, {0.7, 3.083}, {1, 4.404}}.ToDictionary(
             kvp => NormalizedSplineLocation.From(kvp.Key),
             kvp => SplineLocation.From(kvp.Value)
         );
@@ -66,7 +66,7 @@ namespace BII.WasaBii.Splines.Tests {
         [Test]
         public void Normalize_WhenSegmentLengthAsLocation_ThenIntegerValueReturned() {
             var spline = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
-            var length = spline[SplineSegmentIndex.Zero].Length();
+            var length = spline[SplineSegmentIndex.Zero].Length;
             
             var uut = spline.Normalize(length);
         

@@ -34,13 +34,11 @@ namespace BII.WasaBii.Splines.Logic {
 
         /// Converts a location on the spline from <see cref="SplineLocation"/>
         /// to <see cref="NormalizedSplineLocation"/>.
-        /// <br/>
         /// Such a conversion is desirable when performance is relevant,
         /// since operations on <see cref="NormalizedSplineLocation"/> are faster.
         public static NormalizedSplineLocation Normalize<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
-            SplineLocation location,
-            int normalizationSamplesPerSegment = DefaultNormalizationSamples
+            SplineLocation location
         ) 
             where TPos : struct 
             where TDiff : struct {
@@ -52,7 +50,7 @@ namespace BII.WasaBii.Splines.Logic {
             // Once the location is no longer greater than the node's length, 
             // the remaining location relative to the length is the normalized value t
             while (currentSegmentIdx < spline.SegmentCount()) {
-                var segmentLength = spline[currentSegmentIdx].Length(normalizationSamplesPerSegment);
+                var segmentLength = spline[currentSegmentIdx].Length;
                 if (remainingDistanceToLocation > segmentLength) {
                     remainingDistanceToLocation -= segmentLength;
                     currentSegmentIdx += 1;
@@ -75,14 +73,12 @@ namespace BII.WasaBii.Splines.Logic {
 
         /// Converts a location on the spline from <see cref="NormalizedSplineLocation"/>
         /// to <see cref="SplineLocation"/>.
-        /// <br/>
         /// Such a conversion is desirable when the location value needs to be interpreted,
         /// since <see cref="SplineLocation"/> is equal to the distance
         /// from the beginning of the spline to the location, in meters.
         public static SplineLocation DeNormalize<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
-            NormalizedSplineLocation t,
-            int normalizationSamplesPerSegment = DefaultNormalizationSamples
+            NormalizedSplineLocation t
         )  
             where TPos : struct 
             where TDiff : struct {
@@ -90,7 +86,7 @@ namespace BII.WasaBii.Splines.Logic {
             var location = SplineLocation.Zero;
             var segmentIdx = SplineSegmentIndex.Zero;
             for (var remainingT = t; remainingT > 0 && segmentIdx < spline.SegmentCount(); remainingT -= 1) {
-                var length = spline[segmentIdx].Length(normalizationSamplesPerSegment);
+                var length = spline[segmentIdx].Length;
                 segmentIdx += 1;
                 location += length * Math.Min(1, remainingT);
             }
@@ -110,8 +106,7 @@ namespace BII.WasaBii.Splines.Logic {
         /// when normalizing multiple locations at once.
         public static IEnumerable<NormalizedSplineLocation> BulkNormalizeOrdered<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
-            IEnumerable<SplineLocation> locations,
-            int normalizationSamplesPerSegment = DefaultNormalizationSamples
+            IEnumerable<SplineLocation> locations
         ) 
             where TPos : struct 
             where TDiff : struct {
@@ -136,7 +131,7 @@ namespace BII.WasaBii.Splines.Logic {
             // Then the progress within that segment is added to the index,
             // and the result is the Normalized location.
 
-            Length segmentLengthAt(SplineSegmentIndex idx) => spline[idx].Length(normalizationSamplesPerSegment);
+            Length segmentLengthAt(SplineSegmentIndex idx) => spline[idx].Length;
 
             var currentSegmentIndex = SplineSegmentIndex.Zero;
             var segmentAbsoluteBegin = SplineLocation.Zero;

@@ -37,10 +37,10 @@ namespace BII.WasaBii.Splines {
         
         internal GeometricOperations<TPos, TDiff> Ops { get; }
 
-        Length Length(int samplesPerSegment = 10) => 
+        Length Length() => 
             this.WhenValidOrThrow(
                 _ => Enumerable.Range(0, this.SegmentCount())
-                    .Sum(idx => this[SplineSegmentIndex.At(idx)].Length(samplesPerSegment))
+                    .Sum(idx => this[SplineSegmentIndex.At(idx)].Length)
             );
     }
 
@@ -61,7 +61,7 @@ namespace BII.WasaBii.Splines {
             IEnumerable<TPos> handles, GeometricOperations<TPos, TDiff> ops, SplineType? type = null
         ) where TPos : struct where TDiff : struct {
             var interpolatedHandles = handles.AsReadOnlyList();
-            var (beginMarginHandle, endMarginHandle) = interpolatedHandles.CalculateSplineMarginHandles(ops);
+            var (beginMarginHandle, endMarginHandle) = interpolatedHandles.calculateSplineMarginHandles(ops);
             return FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, ops, type);
         }
 

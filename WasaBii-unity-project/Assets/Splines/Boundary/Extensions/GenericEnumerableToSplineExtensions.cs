@@ -20,7 +20,7 @@ namespace BII.WasaBii.Splines {
         /// <exception cref="InsufficientNodePositionsException">
         /// When less than 2 handle positions were provided
         /// </exception>
-        public static (TPos BeginHandle, TPos EndHandle) CalculateSplineMarginHandles<TPos, TDiff>(
+        internal static (TPos BeginHandle, TPos EndHandle) calculateSplineMarginHandles<TPos, TDiff>(
             this IEnumerable<TPos> handlePositions, GeometricOperations<TPos, TDiff> ops
         ) where TPos : struct where TDiff : struct {
             var positions = handlePositions.AsReadOnlyList();
@@ -35,7 +35,7 @@ namespace BII.WasaBii.Splines {
         /// <summary>
         /// Creates a spline that interpolates the provided positions.
         /// The margin handles of the spline are created automatically
-        /// using <see cref="CalculateSplineMarginHandles{TPos,TDiff}"/>.
+        /// using <see cref="calculateSplineMarginHandles{TPos,TDiff}"/>.
         ///
         /// This should be used when the trajectory at the spline's begin / end
         /// should just be similar to the trajectory of the rest of the spline.
@@ -50,13 +50,13 @@ namespace BII.WasaBii.Splines {
             if (positions.Count < 2)
                 throw new InsufficientNodePositionsException(positions.Count, 2);
 
-            var (beginHandle, endHandle) = positions.CalculateSplineMarginHandles(ops);
+            var (beginHandle, endHandle) = positions.calculateSplineMarginHandles(ops);
             return new ImmutableSpline<TPos, TDiff>(beginHandle, positions, endHandle, ops, splineType);
         }
 
         /// Creates a spline that interpolates the provided positions.
         /// The margin handles of the spline are created automatically
-        /// using <see cref="CalculateSplineMarginHandles{TPos,TDiff}"/>.
+        /// using <see cref="calculateSplineMarginHandles{TPos,TDiff}"/>.
         ///
         /// This should be used when the trajectory at the spline's begin / end
         /// should just be similar to the trajectory of the rest of the spline.
@@ -67,7 +67,7 @@ namespace BII.WasaBii.Splines {
         ) where TPos : struct where TDiff : struct {
             var positions = source.AsReadOnlyCollection();
             if (positions.Count < 2) return Option.None;
-            var (beginHandle, endHandle) = positions.CalculateSplineMarginHandles(ops);
+            var (beginHandle, endHandle) = positions.calculateSplineMarginHandles(ops);
             return new ImmutableSpline<TPos, TDiff>(beginHandle, positions, endHandle, ops, type);
         }
 

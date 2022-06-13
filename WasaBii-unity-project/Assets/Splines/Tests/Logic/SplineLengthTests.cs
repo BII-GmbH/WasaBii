@@ -9,7 +9,7 @@ namespace BII.WasaBii.Splines.Tests {
         public void LengthOfSplineSegment_WhenNormalizedNode_ThenReturnsCorrectly() {
             var uut = SplineTestUtils.ExampleCurvedSpline.Spline;
         
-            var length = uut[SplineSegmentIndex.Zero].Length();
+            var length = uut[SplineSegmentIndex.Zero].Length;
         
             Assert.That((double)length.AsMeters(), Is.EqualTo((double)SplineTestUtils.ExampleCurvedSpline.ExpectedSplineLength.AsMeters()).Within(SplineLocationTolerance));
         }

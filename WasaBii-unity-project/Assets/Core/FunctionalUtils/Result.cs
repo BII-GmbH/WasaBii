@@ -38,7 +38,7 @@ namespace BII.WasaBii.Core {
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public static Result<TValue, TError> Failure<TValue, TError>(this TError error) =>
-            Result<TValue, TError>.Failure(error);
+            Result<TValue, TError>.Error(error);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public static Failure<TError> Failure<TError>(this TError error) => new(error);
@@ -48,7 +48,7 @@ namespace BII.WasaBii.Core {
             bool predicate, Func<TValue> then, Func<TError> onError
         ) => predicate 
             ? Result<TValue, TError>.Success(then()) 
-            : Result<TValue, TError>.Failure(onError());
+            : Result<TValue, TError>.Error(onError());
 
         public static Result<TValue, TError> IfNotNull<TValue, TError>(
             TValue? value, Func<TError> whenNull
@@ -222,23 +222,36 @@ namespace BII.WasaBii.Core {
     /// <summary>
     /// Describes the result of a computation that can fail.
     /// Is either successful with a value of type <typeparamref name="TValue"/>
-    ///  or a failure with an error value of type <typeparamref name="TError"/>.
+    ///  or a an error with a value of type <typeparamref name="TError"/>.
     /// Unlike throwing an exception, the programmer must handle the error case of a <see cref="Result{T,E}"/>.
     /// When you consistently use Results for computations that can fail based on the parameters, then you can use
     ///  exceptions as "panics" - programmer errors that need to be caught at the top-level only.
     /// </summary>
     [MustBeSerializable]
-    public readonly struct Result<TValue, TError> : IResult<TValue, TError> {
-        public bool WasSuccessful { get; }
+    public readonly struct Result<TValue, TError> : IResult<TValue, TError>, IEquatable<Result<TValue, TError>> {
+
+        private enum ValueStatus { Default, Value, Error }
+
+        public static Result<TValue, TError> Null => default;
+        
+        private readonly ValueStatus status;
         private readonly TValue? result;
         private readonly TError? error;
 
-        private Result(TValue? result, TError? error, bool wasSuccessful)
-        {
-            this.WasSuccessful = wasSuccessful;
+        private Result(TValue result) {
             this.result = result;
-            this.error = error;
+            this.error = default;
+            this.status = ValueStatus.Value;
         }
+        
+        private Result(TError error) {
+            this.result = default;
+            this.error = error;
+            this.status = ValueStatus.Error;
+        }
+
+        public bool WasSuccessful => status == ValueStatus.Value;
+        public bool WasError => status == ValueStatus.Error;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue ResultOrThrow(ForInType<TValue>? _ = default) => 
@@ -256,12 +269,22 @@ namespace BII.WasaBii.Core {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TRes Match<TRes>(Func<TValue, TRes> onSuccess, Func<TError, TRes> onError) =>
-            WasSuccessful ? onSuccess(result!) : onError(error!);
+            status switch {
+                ValueStatus.Default => throw new InvalidOperationException("Cannot match on a default result."),
+                ValueStatus.Value => onSuccess(result!),
+                ValueStatus.Error => onError(error!),
+                _ => throw new UnsupportedEnumValueException(status, $"{nameof(Result<TValue,TError>)}.{nameof(Match)}")
+            };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Match(Action<TValue> onSuccess, Action<TError> onError) {
-            if (WasSuccessful) onSuccess(result!);
-            else onError(error!);
+            switch (status) {
+                case ValueStatus.Default: throw new InvalidOperationException("Cannot match on a default result.");
+                case ValueStatus.Value: onSuccess(result!); break;
+                case ValueStatus.Error: onError(error!); break;
+                default: 
+                    throw new UnsupportedEnumValueException(status, $"{nameof(Result<TValue, TError>)}.{nameof(Match)}");
+            };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -272,16 +295,39 @@ namespace BII.WasaBii.Core {
         public void MatchDynamic(Action<object> onSuccess, Action<TError> onError) =>
             Match(value => onSuccess(value!), onError);
 
-        public static implicit operator Result<TValue, TError>(Success<TValue> success) => new(success.Result, default, true);
-        public static implicit operator Result<TValue, TError>(Failure<TError> failure) => new(default, failure.Error, false);
+        public static implicit operator Result<TValue, TError>(Success<TValue> success) => new(success.Result);
+        public static implicit operator Result<TValue, TError>(Failure<TError> failure) => new(failure.Error);
         
-        public static implicit operator Result<TValue,TError>(TValue success) => new(success, default, true);
-        public static implicit operator Result<TValue,TError>(TError failure) => new(default, failure, false);
+        public static implicit operator Result<TValue,TError>(TValue success) => new(success);
+        public static implicit operator Result<TValue,TError>(TError failure) => new(failure);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Result<TValue, TError> Success(TValue value) => new(value, default, true);
+        public static Result<TValue, TError> Success(TValue value) => new(value);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Result<TValue, TError> Failure(TError error) => new(default, error, false);
+        public static Result<TValue, TError> Error(TError error) => new(error);
+
+        [Pure] public bool Equals(TValue other) => WasSuccessful && Equals(other, result!);
+        [Pure] public bool Equals(TError other) => WasError && Equals(other, error!);
+
+        [Pure] public bool Equals(Result<TValue, TError> other) => 
+            Equals(status, other.status) && Equals(result, other.result) && Equals(error, other.error);
+
+        [Pure] public override bool Equals(object obj) =>
+            obj is Result<TValue, TError> other && Equals(other) 
+            || obj is TValue otherValue && Equals(otherValue) 
+            || obj is TError otherError && Equals(otherError);
+
+        [Pure] public static bool operator ==(Result<TValue, TError> first, Result<TValue, TError> second) => first.Equals(second);
+        [Pure] public static bool operator !=(Result<TValue, TError> first, Result<TValue, TError> second) => !first.Equals(second);
+
+        [Pure] public override int GetHashCode() => HashCode.Combine(result, error, status);
+        
+        [Pure] public override string ToString() => status switch {
+            ValueStatus.Default => "Default Null-Result",
+            ValueStatus.Value => $"Success({result!})",
+            ValueStatus.Error => $"Error({error!})",
+            _ => throw new UnsupportedEnumValueException(status, $"{nameof(Result<TValue,TError>)}.{nameof(ToString)}")
+        };
     }
 }

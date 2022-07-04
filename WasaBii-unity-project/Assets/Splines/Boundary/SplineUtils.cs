@@ -7,11 +7,14 @@ namespace BII.WasaBii.Splines {
     
     public static class SplineUtils {
         
+        /// <returns>Whether the spline is valid, i.e. it has at least 4 handles (including the margin handles),
+        /// since this is the mathematically bound minimum required to define a catmull-rom spline</returns>
         [Pure]
         public static bool IsValid<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.HandleCountIncludingMargin >= 4;
 
+        /// Executes the <see cref="resultGetter"/> if the spline has enough handles to be valid or throws an exception otherwise.
         internal static T WhenValidOrThrow<T, TPos, TDiff>(this Spline<TPos, TDiff> spline, Func<Spline<TPos, TDiff>, T> resultGetter) 
             where TPos : struct where TDiff : struct =>
             spline.IsValid() ? resultGetter(spline) : throw new InvalidSplineException<TPos, TDiff>(spline, "Not enough handles");

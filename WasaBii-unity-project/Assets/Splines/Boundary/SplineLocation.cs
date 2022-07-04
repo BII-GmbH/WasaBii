@@ -4,7 +4,8 @@ using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
 namespace BII.WasaBii.Splines {
-    /// A location on a spline, measured in meters away from the beginning along the spline (and not flight distance)
+    
+    /// A location on a spline, represented as the distance away from the beginning along the spline (and not euclidean distance)
     [Serializable]
     [MustBeSerializable]
     public readonly struct SplineLocation : IEquatable<SplineLocation>, IComparable<SplineLocation> {

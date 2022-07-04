@@ -15,14 +15,6 @@ namespace BII.WasaBii.Splines.Logic {
     /// In general, using t is more performant, especially on splines with many nodes
     /// But location is generally used more
     public static class SplineNormalizationUtility {
-        /// The amount of measurements taken when normalizing / denormalizing values
-        /// Higher values yield higher accuracy at the cost of performance
-        /// 
-        /// Samples are needed during the (de)norminalization process, since in both cases
-        /// the length of the spline is needed as an operation.
-        /// Since calculating the length of a spline is only ever an approximation, a sample rate is needed
-        public const int DefaultNormalizationSamples = 10;
-
         /// Normalizing a spline location to calculate the normalized spline location for a given spline
         /// is normally not possible when the location is above the spline's length.
         /// This is the tolerance the location can be above the length and to be considered
@@ -30,7 +22,7 @@ namespace BII.WasaBii.Splines.Logic {
         ///
         /// Such a threshold is necessary since the normalization algorithm is inherently inaccurate
         /// because calculating a spline's length is always an approximation of its actual length.
-        private static readonly SplineLocation splineLocationOvershootTolerance = 0.1.Meters();
+        public static readonly SplineLocation DefaultSplineLocationOvershootTolerance = 0.1.Meters();
 
         /// Converts a location on the spline from <see cref="SplineLocation"/>
         /// to <see cref="NormalizedSplineLocation"/>.
@@ -38,7 +30,8 @@ namespace BII.WasaBii.Splines.Logic {
         /// since operations on <see cref="NormalizedSplineLocation"/> are faster.
         public static NormalizedSplineLocation Normalize<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
-            SplineLocation location
+            SplineLocation location,
+            SplineLocation? splineLocationOvershootTolerance = null
         ) 
             where TPos : struct 
             where TDiff : struct {
@@ -64,7 +57,7 @@ namespace BII.WasaBii.Splines.Logic {
                     return NormalizedSplineLocation.From(currentSegmentIdx) + progressToNextHandle;
                 }
             }
-            return remainingDistanceToLocation < splineLocationOvershootTolerance
+            return remainingDistanceToLocation < (splineLocationOvershootTolerance ?? DefaultSplineLocationOvershootTolerance)
                 ? NormalizedSplineLocation.From(currentSegmentIdx)
                 // The spline location is outside the spline's length,
                 // so an out-of-range normalized spline location is returned 
@@ -106,7 +99,8 @@ namespace BII.WasaBii.Splines.Logic {
         /// when normalizing multiple locations at once.
         public static IEnumerable<NormalizedSplineLocation> BulkNormalizeOrdered<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
-            IEnumerable<SplineLocation> locations
+            IEnumerable<SplineLocation> locations,
+            SplineLocation? splineLocationOvershootTolerance = null
         ) 
             where TPos : struct 
             where TDiff : struct {
@@ -146,7 +140,7 @@ namespace BII.WasaBii.Splines.Logic {
                         segmentAbsoluteBegin = segmentAbsoluteEnd;
                         segmentAbsoluteEnd += segmentLengthAt(currentSegmentIndex);
                     
-                    } else if (currentLocation - segmentAbsoluteEnd < splineLocationOvershootTolerance) {
+                    } else if (currentLocation - segmentAbsoluteEnd < (splineLocationOvershootTolerance ?? DefaultSplineLocationOvershootTolerance)) {
                         // If it is the last segment, but we are within overshoot tolerance
                         // treat the current location as if it were in the last segment
                         currentLocation = segmentAbsoluteEnd;

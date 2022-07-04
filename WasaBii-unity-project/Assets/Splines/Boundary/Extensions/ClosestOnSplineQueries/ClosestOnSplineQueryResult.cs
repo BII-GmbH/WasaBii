@@ -14,7 +14,7 @@ namespace BII.WasaBii.Splines {
             Spline = spline;
             ClosestOnSpline = position;
             NormalizedLocation = normalizedLocation;
-            __cachedLocation = new Lazy<SplineLocation>(() => spline.DeNormalize(normalizedLocation));
+            cachedLocation = new Lazy<SplineLocation>(() => spline.DeNormalize(normalizedLocation));
         }
 
         /// The normalized location on the spline whose position is closest to the queried position.
@@ -29,11 +29,11 @@ namespace BII.WasaBii.Splines {
         public Spline<TPos, TDiff> Spline { get; }
 
         // Since de-normalizing a location may be an expensive operation on long splines, the value is lazy & cached
-        private readonly Lazy<SplineLocation> __cachedLocation;
+        private readonly Lazy<SplineLocation> cachedLocation;
 
         
         /// The location on the spline whose position is closest to the queried position.
-        public SplineLocation Location => __cachedLocation.Value;
+        public SplineLocation Location => cachedLocation.Value;
 
         /// The spline's tangent at the location that is closest to the queried position
         public TDiff Tangent => Spline[NormalizedLocation].Tangent;

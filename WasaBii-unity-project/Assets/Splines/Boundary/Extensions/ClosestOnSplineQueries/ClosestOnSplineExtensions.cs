@@ -8,7 +8,7 @@ namespace BII.WasaBii.Splines {
 
         /// <summary>
         /// Equal to <see cref="QueryClosestPositionOnSplineTo{TPos, TDiff}"/>,
-        /// but a non-nullable result is returned.
+        /// but a non-<see cref="Option"/>al result is returned.
         /// Throws when the provided spline is invalid.
         /// </summary>
         /// <param name="samples">

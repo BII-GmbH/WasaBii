@@ -36,7 +36,7 @@ namespace BII.WasaBii.Splines {
 
         /// <summary>
         /// Similar to <see cref="QueryClosestPositionOnSplinesTo{TWithSpline, TPos, TDiff}"/>,
-        /// but a non-nullable result is returned.
+        /// but a non-<see cref="Option"/>al result is returned.
         /// Throws when all provided splines are not valid.
         /// </summary>
         /// <param name="samples">

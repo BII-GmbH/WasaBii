@@ -30,7 +30,7 @@ namespace BII.WasaBii.Unity.Geometry {
         ) where TRelativity : WithRelativity => 
             Vector3.SignedAngle(lhs.AsVector, rhs.AsVector, axis.AsVector).Degrees();
 
-        [Pure] public static float Dot<T>(this T a, T b) where T : struct, DirectionLike<T> => a.AsVector.Dot(b.AsVector);
+        [Pure] public static double Dot<T>(this T a, T b) where T : struct, DirectionLike<T> => a.AsVector.Dot(b.AsVector);
 
         [Pure] public static T Cross<T>(this T a, T b) where T : struct, DirectionLike<T> => a.CopyWithDifferentValue(a.AsVector.Cross(b.AsVector));
 

@@ -1,5 +1,5 @@
 using System.Diagnostics.Contracts;
-using BII.WasaBii.Splines.Logic;
+using BII.WasaBii.Splines.Maths;
 
 namespace BII.WasaBii.Splines {
     public readonly struct SplineSample<TPos, TDiff>

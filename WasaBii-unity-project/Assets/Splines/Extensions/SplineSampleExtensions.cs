@@ -4,7 +4,7 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using BII.WasaBii.Splines.Logic;
+using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Units;
 using Range = BII.WasaBii.Core.Range;
 

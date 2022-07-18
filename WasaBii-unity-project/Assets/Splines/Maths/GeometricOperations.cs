@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
-namespace BII.WasaBii.Splines {
+namespace BII.WasaBii.Splines.Maths {
     
     /// Our splines are representation-agnostic, meaning that you can define a spline using
     /// unity vectors, system vectors, 3D vectors, 2D vectors, 10D vectors, `LocalPosition`s,

@@ -1,5 +1,5 @@
 using System;
-using BII.WasaBii.Splines.Logic;
+using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Units;
 
 namespace BII.WasaBii.Splines {

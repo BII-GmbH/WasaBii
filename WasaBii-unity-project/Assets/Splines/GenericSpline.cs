@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using BII.WasaBii.Core;
-using BII.WasaBii.Splines.Logic;
+using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Units;
 
 namespace BII.WasaBii.Splines {

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using BII.WasaBii.Splines;
+using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 using JetBrains.Annotations;

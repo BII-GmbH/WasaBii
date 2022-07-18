@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using BII.WasaBii.Core;
-using BII.WasaBii.Splines.Logic;
+using BII.WasaBii.Splines.Maths;
 
 namespace BII.WasaBii.Splines {
     

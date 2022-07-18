@@ -1,4 +1,4 @@
-using BII.WasaBii.Splines.Logic;
+using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Units;
 using BII.WasaBii.Unity.Geometry.Splines;
 using NUnit.Framework;

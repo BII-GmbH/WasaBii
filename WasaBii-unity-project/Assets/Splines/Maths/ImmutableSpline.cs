@@ -4,14 +4,15 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
 using BII.WasaBii.Core;
+using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Units;
 using Newtonsoft.Json;
 
-namespace BII.WasaBii.Splines.Logic {
+namespace BII.WasaBii.Splines {
     
     [JsonObject(IsReference = false)] // Treat as value type for serialization
     [MustBeSerializable] 
-    public sealed class ImmutableSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
+    internal sealed class ImmutableSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
         public ImmutableSpline(
             TPos startHandle, IEnumerable<TPos> handles, TPos endHandle, 
             GeometricOperations<TPos, TDiff> ops,

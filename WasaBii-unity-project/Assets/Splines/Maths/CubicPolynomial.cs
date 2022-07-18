@@ -2,7 +2,7 @@ using System;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
-namespace BII.WasaBii.Splines.Logic {
+namespace BII.WasaBii.Splines.Maths {
     internal readonly struct CubicPolynomial<TPos, TDiff> 
         where TPos : struct 
         where TDiff : struct {

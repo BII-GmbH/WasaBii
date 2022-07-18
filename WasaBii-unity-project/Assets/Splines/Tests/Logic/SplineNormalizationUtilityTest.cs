@@ -2,7 +2,7 @@
 using System.Linq;
 using BII.WasaBii.Units;
 using NUnit.Framework;
-using static BII.WasaBii.Splines.Logic.SplineNormalizationUtility;
+using static BII.WasaBii.Splines.Maths.SplineNormalizationUtility;
 using static BII.WasaBii.Splines.Tests.SplineTestUtils;
 
 namespace BII.WasaBii.Splines.Tests {

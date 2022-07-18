@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 
-namespace BII.WasaBii.Splines.Logic {
+namespace BII.WasaBii.Splines.Maths {
     /// When querying positions, tangents etc on a spline, the parameters t or location can be used
     /// t is a normalized parameter, which means that the nodes of the spline are at 0, 1, 2, ..
     /// and 0.5 is for instance in the middle between node 0 and 1
@@ -14,7 +14,7 @@ namespace BII.WasaBii.Splines.Logic {
     /// 
     /// In general, using t is more performant, especially on splines with many nodes
     /// But location is generally used more
-    public static class SplineNormalizationUtility {
+    internal static class SplineNormalizationUtility {
         /// Normalizing a spline location to calculate the normalized spline location for a given spline
         /// is normally not possible when the location is above the spline's length.
         /// This is the tolerance the location can be above the length and to be considered

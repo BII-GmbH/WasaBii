@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 [assembly:InternalsVisibleTo("BII_Splines_Tests")]
 
-namespace BII.WasaBii.Splines.Logic {
+namespace BII.WasaBii.Splines.Maths {
    
     /// Internal data structure all supported spline data structures are converted to.
     /// It is used for the calculations and describes the area between two spline handles (p1 and p2), 

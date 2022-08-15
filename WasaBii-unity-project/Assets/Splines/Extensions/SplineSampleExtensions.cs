@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Splines.Maths;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using Range = BII.WasaBii.Core.Range;
 
 namespace BII.WasaBii.Splines {

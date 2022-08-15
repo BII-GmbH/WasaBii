@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
     
@@ -22,7 +22,7 @@ namespace BII.WasaBii.Splines {
             where TPos : struct where TDiff : struct {
             var length = cachedLength ?? spline.Length();
             var distanceFromEnd = length - Value;
-            return Value.Min(distanceFromEnd);
+            return Units.Min(Value, distanceFromEnd);
         }
 
         [Pure]
@@ -92,10 +92,10 @@ namespace BII.WasaBii.Splines {
         public static bool operator >=(SplineLocation a, Length b) => a.Value >= b;
 
         public static SplineLocation operator %(SplineLocation lhs, Length rhs) =>
-            From(lhs.Value % rhs);
+            From(lhs % rhs.AsMeters());
         
         [Pure] public static SplineLocation Lerp(SplineLocation from, SplineLocation to, float progress) =>
-            From(UnitUtils.Lerp(from.Value, to.Value, progress));
+            From(Units.Lerp(from.Value, to.Value, progress));
 
         public override string ToString() => $"(Absolute) Spline Location: {Value}";
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using UnityEngine;
 using Range = BII.WasaBii.Core.Range;
 
@@ -71,15 +71,15 @@ namespace BII.WasaBii.Unity.Geometry {
         /// <param name="b"> length of the second side</param>
         /// <param name="c"> length of the third side</param>
         /// <returns> returns the angles of the triangle (A is the opposing angle of side a, ect.)</returns>
-        [Pure] public static (Angle A, Angle B, Angle C) SolveTriangleFromSideLengths(Number a, Number b, Number c) {
+        [Pure] public static (Angle A, Angle B, Angle C) SolveTriangleFromSideLengths(double a, double b, double c) {
             Contract.Assert(
                 a + b > c && a + c > b && b + c > a,
                 "Can only solve triangle if lengths can form a valid triangle" +
                 "\n Lengths are: \n A: {a}\n B: {b}\n C: {c}"
             );
-            var aAngle = Angle.Acos((b * b + c * c - a * a) / (2 * b * c));
-            var bAngle = Angle.Acos((a * a + c * c - b * b) / (2 * a * c));
-            var cAngle = 180.Degrees() - (aAngle + bAngle);
+            var aAngle = Angles.Acos((b * b + c * c - a * a) / (2 * b * c));
+            var bAngle = Angles.Acos((a * a + c * c - b * b) / (2 * a * c));
+            var cAngle = 180d.Degrees() - (aAngle + bAngle);
 
             return (A: aAngle, B: bAngle, C: cAngle);
         }
@@ -320,8 +320,8 @@ namespace BII.WasaBii.Unity.Geometry {
         public readonly Angle MaxAngle;
         public Pie(Circle circle, Angle minAngle, Angle maxAngle) {
             Circle = circle;
-            MinAngle = minAngle.Normalized360;
-            MaxAngle = maxAngle.Normalized360;
+            MinAngle = minAngle.Normalized360();
+            MaxAngle = maxAngle.Normalized360();
         }
 
         [Pure] public IEnumerable<Line2D> Edges() {
@@ -350,7 +350,7 @@ namespace BII.WasaBii.Unity.Geometry {
                 .From(GlobalDirection.Forward)
                 .To(GlobalOffset.From(Circle.Center.xxy()).To(point.xxy()).Normalized, 
                     axis: GlobalDirection.Up)
-                .Normalized360;
+                .Normalized360();
             return MinAngle < MaxAngle
                 ? MinAngle <= angle && angle <= MaxAngle
                 : MinAngle <= angle || angle <= MaxAngle;

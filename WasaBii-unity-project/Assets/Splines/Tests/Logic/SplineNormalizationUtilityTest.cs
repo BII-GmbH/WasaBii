@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using NUnit.Framework;
 using static BII.WasaBii.Splines.Maths.SplineNormalizationUtility;
 using static BII.WasaBii.Splines.Tests.SplineTestUtils;
@@ -25,7 +25,7 @@ namespace BII.WasaBii.Splines.Tests {
         
             foreach (var kvp in deNormalizaionSamples) {
                 var location = uut.DeNormalize(kvp.Key);
-                Assert.That(location.Value.SIValue, Is.EqualTo(kvp.Value.Value.SIValue).Within(SplineLocationTolerance));
+                Assert.That(location.Value.SiValue, Is.EqualTo(kvp.Value.Value.SiValue).Within(SplineLocationTolerance));
             }
         }
         

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines.Maths {
     /// When querying positions, tangents etc on a spline, the parameters t or location can be used

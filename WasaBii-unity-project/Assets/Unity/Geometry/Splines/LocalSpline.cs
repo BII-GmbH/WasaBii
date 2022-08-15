@@ -3,7 +3,7 @@ using System.Linq;
 using BII.WasaBii.Splines;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 
 namespace BII.WasaBii.Unity.Geometry.Splines {
@@ -105,9 +105,9 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
 
             public LocalOffset Add(LocalOffset d1, LocalOffset d2) => d1 + d2;
 
-            public LocalOffset Div(LocalOffset diff, double d) => diff / d.Number();
+            public LocalOffset Div(LocalOffset diff, double d) => diff / d;
 
-            public LocalOffset Mul(LocalOffset diff, double f) => diff * f.Number();
+            public LocalOffset Mul(LocalOffset diff, double f) => diff * f;
 
             public double Dot(LocalOffset a, LocalOffset b) => a.Dot(b);
         }

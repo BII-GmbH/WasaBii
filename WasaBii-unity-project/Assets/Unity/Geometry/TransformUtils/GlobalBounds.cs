@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -18,8 +18,8 @@ namespace BII.WasaBii.Unity.Geometry {
         public readonly GlobalOffset Size;
         public GlobalOffset Extends => Size / 2.0f;
 
-        public GlobalPosition BottomCenter => Center.WithY(Center.Y() - Size.Y() / 2.0f);
-        public GlobalPosition TopCenter => Center.WithY(Center.Y() + Size.Y() / 2.0f);
+        public GlobalPosition BottomCenter => Center.WithY(Center.Y() - Size.Y() / 2.0);
+        public GlobalPosition TopCenter => Center.WithY(Center.Y() + Size.Y() / 2.0);
 
         public GlobalPosition Min => Center - Extends;
         public GlobalPosition Max => Center + Extends;
@@ -38,7 +38,7 @@ namespace BII.WasaBii.Unity.Geometry {
         }
 
         /// Returns the smallest possible bounds in local space relative to <see cref="parent"/> that completely
-        /// wraps <see cref="global"/>. Will most likely be larger than the original if rotations of any angles
+        /// wraps this set of bounds. Will most likely be larger than the original if rotations of any angles
         /// other than 90°-multiples are involved. 
         [Pure] public LocalBounds RelativeTo(TransformProvider parent)
             => this.Vertices().Select(p => p.RelativeTo(parent)).Bounds();
@@ -89,17 +89,19 @@ namespace BII.WasaBii.Unity.Geometry {
             return GlobalBounds.FromMinMax(min, max);
         }
 
-        [Pure] public static IEnumerable<GlobalPosition> Vertices(this GlobalBounds globalBounds) {
+        [Pure] public static GlobalPosition[] Vertices(this GlobalBounds globalBounds) {
             var min = globalBounds.Min;
             var max = globalBounds.Max;
-            yield return min;
-            yield return min.WithX(max.X());
-            yield return min.WithY(max.Y());
-            yield return min.WithZ(max.Z());
-            yield return max.WithX(min.X());
-            yield return max.WithY(min.Y());
-            yield return max.WithZ(min.Z());
-            yield return max;
+            return new[] {
+                min,
+                min.WithX(max.X()),
+                min.WithY(max.Y()),
+                min.WithZ(max.Z()),
+                max.WithX(min.X()),
+                max.WithY(min.Y()),
+                max.WithZ(min.Z()),
+                max
+            };
         }
         
         [Pure] public static GlobalBounds WithCenter(this GlobalBounds globalBounds, GlobalPosition center) =>

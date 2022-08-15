@@ -4,7 +4,8 @@ namespace BII.WasaBii.UnitSystem;
 
 public static class UnitCodeGeneration {
     
-    private static string GenerateUnit(string name, IUnitDef unit, UnitConversions conversions, string unitBase, string extensions) {
+    private static string GenerateUnit(IUnitDef unit, UnitConversions conversions, string unitBase, string extensions) {
+        var name = unit.TypeName;
         return $@"#region {name}
 
 public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
@@ -85,7 +86,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 #region Base Units
 
     public static string GenerateBaseUnit(BaseUnitDef unit, UnitConversions conversions) => 
-        GenerateUnit(unit.TypeName, unit, conversions, unitBase: "Base", extensions: $"{GenerateToDoubleExtensions(unit)}{GenerateConstructionExtensions(unit)}");
+        GenerateUnit(unit, conversions, unitBase: "Base", extensions: $"{GenerateToDoubleExtensions(unit)}{GenerateConstructionExtensions(unit)}");
 
     private static string GenerateToDoubleExtensions(BaseUnitDef unit) {
         if (!unit.GenerateExtensions) return "";
@@ -122,7 +123,7 @@ public static class {name}ConstructionExtensions {{
 #region Derived Units
 
     public static string GenerateDerivedUnit(DerivedUnitDef unit, UnitConversions conversions, bool isMul) => 
-        GenerateUnit(unit.TypeName, unit, conversions,
+        GenerateUnit(unit, conversions,
             unitBase: $"{(isMul ? "Mul" : "Div")}<{unit.Primary}.Unit, {unit.Secondary}.Unit>",
             extensions: $"{GenerateDerivedToDoubleExtensions(unit)}{GenerateDerivedConstructionExtensions(unit)}"
         );
@@ -171,7 +172,8 @@ public static class {name}ConstructionExtensions {{
 
         string GenerateCommonOps() {
             var name = unit.TypeName;
-            return $@"    public static {name} operator -({name} self) => new {name}{{SiValue = -self.SiValue}};
+            return $@"    public static {name} operator +({name} self) => self;
+    public static {name} operator -({name} self) => new {name}{{SiValue = -self.SiValue}};
 
     public static {name} operator +({name} first, {name} second) => new {name}{{SiValue = first.SiValue + second.SiValue}};
     public static {name} operator -({name} first, {name} second) => new {name}{{SiValue = first.SiValue - second.SiValue}};

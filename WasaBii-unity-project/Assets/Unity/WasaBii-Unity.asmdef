@@ -3,6 +3,7 @@
     "rootNamespace": "BII.WasaBii.Unity",
     "references": [
         "WasaBii-Core",
+        "WasaBii-Splines",
         "WasaBii-Units"
     ],
     "includePlatforms": [],

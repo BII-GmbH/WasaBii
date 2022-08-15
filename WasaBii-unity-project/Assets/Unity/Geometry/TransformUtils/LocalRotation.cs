@@ -54,13 +54,13 @@ namespace BII.WasaBii.Unity.Geometry {
 
         [Pure] public LocalRotation Map(Func<Quaternion, Quaternion> f) => LocalRotation.FromLocal(f(AsQuaternion));
 
-        [Pure] public static Builder From(LocalDirectionLike from) => new Builder(from);
+        [Pure] public static Builder From(RelativeDirectionLike<IsLocal> from) => new Builder(from);
         public readonly struct Builder {
 
-            private readonly LocalDirectionLike from;
-            public Builder(LocalDirectionLike from) => this.from = from;
+            private readonly RelativeDirectionLike<IsLocal> from;
+            public Builder(RelativeDirectionLike<IsLocal> from) => this.from = from;
 
-            [Pure] public LocalRotation To(LocalDirectionLike to) => LocalRotation.FromLocal(
+            [Pure] public LocalRotation To(RelativeDirectionLike<IsLocal> to) => LocalRotation.FromLocal(
                 Quaternion.FromToRotation(from.AsVector, to.AsVector)
             );
         }

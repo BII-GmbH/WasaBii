@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Units;
 using JetBrains.Annotations;
@@ -11,8 +13,8 @@ namespace BII.WasaBii.Unity.Geometry {
     [MustBeImmutable]
     [MustBeSerializable]
     public readonly struct LocalOffset : 
-        VectorLike<LocalOffset>, HasMagnitude<LocalOffset>, 
-        LocalDirectionLike, 
+        LocalDirectionLike<LocalOffset>, 
+        HasMagnitude<LocalOffset>, 
         IsLocalVariant<LocalOffset, GlobalOffset>,
         IEquatable<LocalOffset> {
         
@@ -117,7 +119,7 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static LocalOffset Reflect(
             this LocalOffset self, LocalDirection planeNormal
         ) => self.AsVector.Reflect(planeNormal.AsVector).AsLocalOffset();
-
+        
     }
 
 }

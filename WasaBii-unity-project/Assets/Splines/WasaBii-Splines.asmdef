@@ -1,0 +1,17 @@
+{
+    "name": "WasaBii-Splines",
+    "rootNamespace": "BII.WasaBii.Splines",
+    "references": [
+        "WasaBii-Core",
+        "WasaBii-Units"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

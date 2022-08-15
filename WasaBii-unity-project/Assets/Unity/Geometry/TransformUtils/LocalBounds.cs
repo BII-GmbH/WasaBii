@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
+using BII.WasaBii.Units;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -23,6 +24,8 @@ namespace BII.WasaBii.Unity.Geometry {
         public LocalPosition Min => Center - Extends;
         public LocalPosition Max => Center + Extends;
 
+        public Volume Volume => Size.X() * Size.Y() * Size.Z();
+        
         [Pure] public static LocalBounds FromMinMax(LocalPosition min, LocalPosition max) => 
             new LocalBounds(max.LerpTo(min, 0.5f), (max - min));
 
@@ -54,6 +57,7 @@ namespace BII.WasaBii.Unity.Geometry {
             Center.SlerpTo(target.Center, progress, shouldClamp),
             Size.SlerpTo(target.Size, progress, shouldClamp)
         );
+
     }
     
 

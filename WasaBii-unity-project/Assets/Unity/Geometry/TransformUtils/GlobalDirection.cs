@@ -11,8 +11,7 @@ namespace BII.WasaBii.Unity.Geometry {
     [MustBeImmutable]
     [MustBeSerializable]
     public readonly struct GlobalDirection : 
-        VectorLike<GlobalDirection>,
-        GlobalDirectionLike,
+        GlobalDirectionLike<GlobalDirection>,
         IsGlobalVariant<GlobalDirection, LocalDirection>,
         IEquatable<GlobalDirection> {
 

@@ -10,9 +10,8 @@ namespace BII.WasaBii.Unity.Geometry {
     /// Can also be viewed as a normalized <see cref="LocalOffset"/>.
     [MustBeImmutable]
     [MustBeSerializable]
-    public readonly struct LocalDirection : 
-        VectorLike<LocalDirection>, 
-        LocalDirectionLike, 
+    public readonly struct LocalDirection :
+        LocalDirectionLike<LocalDirection>,
         IsLocalVariant<LocalDirection, GlobalDirection>,
         IEquatable<LocalDirection> {
 

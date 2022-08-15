@@ -60,7 +60,7 @@ namespace BII.WasaBii.Splines {
         ) where TPos : struct where TDiff : struct =>
             new ImmutableSpline<TPos, TDiff>(
                 original.Ops.Lerp(original.Handles[0], original.BeginMarginHandle(), desiredHandleDistance / original.Ops.Distance(original.Handles[0], original.BeginMarginHandle())),
-                original.SampleSplineEvery(desiredHandleDistance, sample => sample.Position),
+                original.SampleSplineEvery(desiredHandleDistance).Select(t => t.Position),
                 original.Ops.Lerp(original.Handles[^1], original.EndMarginHandle(), desiredHandleDistance / original.Ops.Distance(original.Handles[^1], original.EndMarginHandle())),
                 original.Ops,
                 original.Type

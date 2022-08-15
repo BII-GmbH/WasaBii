@@ -7,17 +7,17 @@ using NUnit.Framework;
 
 namespace BII.WasaBii.Undo.Tests {
 
-    public class TrivialUndoBuffer : DefaultUndoBuffer {
-        public TrivialUndoBuffer() : base(1024) { }
+    public class TrivialUndoBuffer : DefaultUndoBuffer<string> {
+        public TrivialUndoBuffer() : base(100) { }
         public override void OnBeforeAttach() { }
         public override void OnAfterDetach() { }
     }
 
-    public class MockUndoBuffer : UndoBuffer {
-        private readonly UndoBuffer backing = new TrivialUndoBuffer();
+    public class MockUndoBuffer : UndoBuffer<string> {
+        private readonly UndoBuffer<string> backing = new TrivialUndoBuffer();
 
         public int RegisterUndoCalled { get; private set; }
-        public override void RegisterUndo(UndoAction res) {
+        public override void RegisterUndo(UndoAction<string> res) {
             RegisterUndoCalled += 1;
             backing.RegisterUndo(res);
         }
@@ -58,12 +58,12 @@ namespace BII.WasaBii.Undo.Tests {
             backing.OnAfterDetach();
         }
 
-        public override IEnumerable<UndoAction> UndoStack => backing.UndoStack;
-        public override IEnumerable<RedoAction> RedoStack => backing.RedoStack;
+        public override IEnumerable<UndoAction<string>> UndoStack => backing.UndoStack;
+        public override IEnumerable<RedoAction<string>> RedoStack => backing.RedoStack;
     }
 
     public class UndoManagerTest {
-        private UndoManager undoManager;
+        private UndoManager<string> undoManager;
 
         private static void fail() => Assert.Fail();
 
@@ -77,7 +77,7 @@ namespace BII.WasaBii.Undo.Tests {
         }
 
         [SetUp]
-        public void Setup() { undoManager = new UndoManager(100); }
+        public void Setup() { undoManager = new UndoManager<string>(100); }
 
         [Test]
         public void WhenRegistering_ThenExecuted() {
@@ -409,7 +409,7 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.StartRecordingAction(topLevelActionName);
 
             Assert.That(undoManager.IsRecording, Is.True);
-            Assert.That(undoManager.CurrentActionName, Is.EqualTo(topLevelActionName));
+            Assert.That(undoManager.CurrentActionLabel, Is.EqualTo(topLevelActionName));
 
             var topLevelUndone = false;
             undoManager.RegisterAndExecute(() => {}, () => topLevelUndone = true);
@@ -418,25 +418,25 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(() => undoManager.PushUndoBuffer(uut), Throws.Nothing);
 
             Assert.That(undoManager.IsRecording, Is.False);
-            Assert.That(undoManager.CurrentActionName, Is.Null);
+            Assert.That(undoManager.CurrentActionLabel, Is.Null);
             Assert.That(() => undoManager.StopRecordingAction(), Throws.Exception);
 
             var uutActionName = "uutActionName";
             undoManager.StartRecordingAction(uutActionName);
 
             Assert.That(undoManager.IsRecording, Is.True);
-            Assert.That(undoManager.CurrentActionName, Is.EqualTo(uutActionName));
+            Assert.That(undoManager.CurrentActionLabel, Is.EqualTo(uutActionName));
 
             undoManager.RegisterAndExecute(() => {}, () => Assert.Fail("Invalid undo called."));
             undoManager.StopRecordingAction();
 
             Assert.That(undoManager.IsRecording, Is.False);
-            Assert.That(undoManager.CurrentActionName, Is.Null);
+            Assert.That(undoManager.CurrentActionLabel, Is.Null);
 
             undoManager.PopUndoBuffer();
 
             Assert.That(undoManager.IsRecording, Is.True);
-            Assert.That(undoManager.CurrentActionName, Is.EqualTo(topLevelActionName));
+            Assert.That(undoManager.CurrentActionLabel, Is.EqualTo(topLevelActionName));
 
             var cancelUut = new MockUndoBuffer();
             undoManager.PushUndoBuffer(cancelUut);
@@ -747,7 +747,7 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(invokeCount, Is.EqualTo(1));
         }
 
-        private class SingleElementUndoBuffer : DefaultUndoBuffer {
+        private class SingleElementUndoBuffer : DefaultUndoBuffer<string> {
             private readonly Action onBeforeAttach;
             private readonly Action onAfterAttach;
 

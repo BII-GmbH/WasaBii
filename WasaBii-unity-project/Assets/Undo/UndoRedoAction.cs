@@ -6,12 +6,12 @@ using BII.WasaBii.Undos;
 
 namespace BII.WasaBii.Undo {
 
-    public class UndoAction : IDisposable {
-        public string Name { get; }
+    public class UndoAction<TLabel> : IDisposable {
+        public TLabel Label { get; }
         private readonly Stack<SymmetricOperation> undos;
 
-        public UndoAction(string name, Stack<SymmetricOperation> undos) {
-            this.Name = name;
+        public UndoAction(TLabel label, Stack<SymmetricOperation> undos) {
+            this.Label = label;
             this.undos = undos;
         }
 
@@ -39,7 +39,7 @@ namespace BII.WasaBii.Undo {
         /// the exception is rethrown.
         /// Calling this after invalidation has no effect.
         /// </summary>
-        public RedoAction ExecuteUndo() {
+        public RedoAction<TLabel> ExecuteUndo() {
             var redoStack = new Stack<SymmetricOperation>();
             while (undos.Count > 0) {
                 var undo = undos.Pop();
@@ -59,16 +59,16 @@ namespace BII.WasaBii.Undo {
                 }
                 redoStack.Push(undo);
             }
-            return new RedoAction(Name, redoStack);
+            return new RedoAction<TLabel>(Label, redoStack);
         }
     }
 
-    public class RedoAction : IDisposable {
-        public string Name { get; }
+    public class RedoAction<TLabel> : IDisposable {
+        public TLabel Label { get; }
         private readonly Stack<SymmetricOperation> redos;
 
-        public RedoAction(string name, Stack<SymmetricOperation> redos) {
-            this.Name = name;
+        public RedoAction(TLabel label, Stack<SymmetricOperation> redos) {
+            this.Label = label;
             this.redos = redos;
         }
 
@@ -94,7 +94,7 @@ namespace BII.WasaBii.Undo {
         /// the exception is rethrown.
         /// Calling this after invalidation has no effect.
         /// </summary>
-        public UndoAction ExecuteRedo() {
+        public UndoAction<TLabel> ExecuteRedo() {
             var undoStack = new Stack<SymmetricOperation>();
             while (redos.Count > 0) {
                 var redo = redos.Pop();
@@ -114,7 +114,7 @@ namespace BII.WasaBii.Undo {
                 }
                 undoStack.Push(redo);
             }
-            return new UndoAction(Name, undoStack);
+            return new UndoAction<TLabel>(Label, undoStack);
         }
     }
     public class SummaryException : Exception {

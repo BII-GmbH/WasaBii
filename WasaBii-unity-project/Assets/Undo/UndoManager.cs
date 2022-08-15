@@ -9,13 +9,20 @@ using JetBrains.Annotations;
 using UnityEngine;
 
 namespace BII.WasaBii.Undo {
-
-    // TODO CR: not just a `string name`, but any generic object with undo operation metadata.
-    // The user might want images or other associations in there.
-    // Note: also adjust docs!
+    
+    /// Can be used to inject undo logic into a specific point in the undo stack.
+    /// Get one by calling <see cref="UndoManager{TLabel}.RegisterUndoPlaceholder"/>.
+    /// Call `UndoManager.RegisterAndExecute` and pass the placeholder to execute
+    /// the undo at the point when the placeholder has been inserted rather than
+    /// later. This invalidates the placeholder.
+    public sealed class UndoPlaceholder {
+        internal readonly LinkedListNode<SymmetricOperation> placeholderNode;
+        internal UndoPlaceholder(LinkedListNode<SymmetricOperation> placeholderNode) =>
+            this.placeholderNode = placeholderNode;
+    }
 
     [CannotBeSerialized("Undos are closure-based. Do not serialize closures.")]
-    public class UndoManager {
+    public class UndoManager<TLabel> {
 
         public event Action OnAfterActionRecorded;
         public event Action<int> OnAfterUndo;
@@ -24,15 +31,15 @@ namespace BII.WasaBii.Undo {
         public event Action OnUndoBufferPopped;
 
         private bool _currentlyRegistering = false;
-        private readonly UndoManagerState state;
+        private readonly UndoManagerState<TLabel> state;
 
         /// <param name="maxUndoStackSize">
-        /// The default <see cref="UndoBuffer"/> will only store up to this many undo or redo operations.
+        /// The default <see cref="UndoBuffer{TLabel}"/> will only store up to this many undo or redo operations.
         /// When the number of operations would exceed that number, the oldest operation is removed and freed.
         /// </param>
-        public UndoManager(int maxUndoStackSize) => state = new UndoManagerState(maxUndoStackSize);
+        public UndoManager(int maxUndoStackSize) => state = new UndoManagerState<TLabel>(maxUndoStackSize);
 
-        public void PushUndoBuffer([NotNull] UndoBuffer customBuffer) {
+        public void PushUndoBuffer([NotNull] UndoBuffer<TLabel> customBuffer) {
             state.pushUndoBuffer(customBuffer);
             OnUndoBufferPushed?.Invoke();
         }
@@ -42,29 +49,18 @@ namespace BII.WasaBii.Undo {
             OnUndoBufferPopped?.Invoke();
         }
 
-        public IEnumerable<string> UndoLabels => state.currentUndoBuffer.UndoStack.Select(a => a.Name);
-        public IEnumerable<string> RedoLabels => state.currentUndoBuffer.RedoStack.Select(a => a.Name);
+        public IEnumerable<TLabel> UndoLabels => state.currentUndoBuffer.UndoStack.Select(a => a.Label);
+        public IEnumerable<TLabel> RedoLabels => state.currentUndoBuffer.RedoStack.Select(a => a.Label);
 
-        public bool IsRecording => state._currentActionName != null;
+        public bool IsRecording => state._currentActionLabel != null;
 
         [CanBeNull]
-        public string CurrentActionName {
-            get => state._currentActionName; set {
-                if (state._currentActionName == null) throw new InvalidOperationException(
+        public TLabel CurrentActionLabel {
+            get => state._currentActionLabel; set {
+                if (state._currentActionLabel == null) throw new InvalidOperationException(
                     "Cannot set an undo action name when there is no action running.");
-                state._currentActionName = value;
+                state._currentActionLabel = value;
             }
-        }
-
-        /// Can be used to inject undo logic into a specific point in the undo stack.
-        /// Get one by calling <see cref="UndoManager.RegisterUndoPlaceholder"/>.
-        /// Call `UndoManager.RegisterAndExecute` and pass the placeholder to execute
-        /// the undo at the point when the placeholder has been inserted rather than
-        /// later. This invalidates the placeholder.
-        public sealed class UndoPlaceholder {
-            internal readonly LinkedListNode<SymmetricOperation> placeholderNode;
-            internal UndoPlaceholder(LinkedListNode<SymmetricOperation> placeholderNode) =>
-                this.placeholderNode = placeholderNode;
         }
 
         /// Appends a placeholder to the undo stack. This placeholder can later be used
@@ -224,16 +220,15 @@ namespace BII.WasaBii.Undo {
         /// Starts recording an undoable action with the specified name.
         /// Logs a warning if a recording is already running and stops and saves that recording.
         /// </summary>
-        public void StartRecordingAction(string initialName) {
+        public void StartRecordingAction(TLabel initialLabel) {
             if (IsRecording) {
-                Debug.LogWarning($"Started recording undo action {initialName} while the action " +
-                                 $"{state._currentActionName} was still recording. Stopping running recording...");
+                Debug.LogWarning($"Started recording undo action {initialLabel} while the action " +
+                                 $"{state._currentActionLabel} was still recording. Stopping running recording...");
                 StopRecordingAction();
             }
 
             state._wasAborted = false;
-            state._currentActionName = initialName 
-                ?? throw new ArgumentNullException(nameof(initialName));
+            state._currentActionLabel = initialLabel ?? throw new ArgumentNullException(nameof(initialLabel));
         }
 
         /// <summary>
@@ -243,7 +238,7 @@ namespace BII.WasaBii.Undo {
         /// Returns null when the action was aborted before calling this.
         /// </summary>
         [CanBeNull]
-        public UndoAction StopRecordingAction(string finalName = null) {
+        public UndoAction<TLabel> StopRecordingAction(TLabel finalLabel = default) {
             if (!IsRecording) throw new InvalidOperationException(
                 "Tried to stop recording an undo action without starting one.");
 
@@ -252,12 +247,13 @@ namespace BII.WasaBii.Undo {
                 return null;
             }
 
-            if (finalName != null) state._currentActionName = finalName;
+            if (!Equals(finalLabel, default(TLabel))) 
+                state._currentActionLabel = finalLabel;
 
             if (state.recordedOperations.IsEmpty()) Debug.LogWarning(
-                $"Operation {state._currentActionName} saved without anything to undo.");
+                $"Operation {state._currentActionLabel} saved without anything to undo.");
 
-            var res = new UndoAction(state._currentActionName, new Stack<SymmetricOperation>(state.recordedOperations));
+            var res = new UndoAction<TLabel>(state._currentActionLabel, new Stack<SymmetricOperation>(state.recordedOperations));
 
             state.currentUndoBuffer.RegisterUndo(res);
 
@@ -272,8 +268,8 @@ namespace BII.WasaBii.Undo {
         /// <summary>
         /// Executes the passed action between starting and stopping the recording of the action. 
         /// </summary>
-        public async Task RecordCompleteAction(string actionName, Func<Task> action) {
-            StartRecordingAction(actionName);
+        public async Task RecordCompleteAction(TLabel actionLabel, Func<Task> action) {
+            StartRecordingAction(actionLabel);
             try {
                 await action();
             } catch (Exception) {
@@ -287,8 +283,8 @@ namespace BII.WasaBii.Undo {
         /// <summary>
         /// Executes the passed action between starting and stopping the recording of the action. 
         /// </summary>
-        public void RecordCompleteAction(string actionName, Action action) {
-            StartRecordingAction(actionName);
+        public void RecordCompleteAction(TLabel actionLabel, Action action) {
+            StartRecordingAction(actionLabel);
             try {
                 action();
             } catch (Exception) {
@@ -303,8 +299,8 @@ namespace BII.WasaBii.Undo {
         /// Executes the passed func between starting and stopping the recording of the action.
         /// The result of the func is returned when the recording is stopped. 
         /// </summary>
-        public T RecordCompleteAction<T>(string actionName, Func<T> func) {
-            StartRecordingAction(actionName);
+        public T RecordCompleteAction<T>(TLabel actionInfo, Func<T> func) {
+            StartRecordingAction(actionInfo);
             T res;
             try {
                 res = func();
@@ -328,9 +324,13 @@ namespace BII.WasaBii.Undo {
                "Tried to abort recording an undo action without starting one.");
 
             if (state.recordedOperations.IsNotEmpty()) Debug.LogWarning(
-                $"Operation {state._currentActionName} aborted with registered undos. These undos are discarded");
+                $"Operation {state._currentActionLabel} aborted with registered undos. These undos are discarded");
 
-            var undoAction = new UndoAction("abort", new Stack<SymmetricOperation>(state.recordedOperations));
+            var undoAction = new UndoAction<string>(
+                "Abort Recording", 
+                new Stack<SymmetricOperation>(state.recordedOperations)
+            );
+            
             var redoAction = undoAction.ExecuteUndo();
             redoAction.Dispose();
 
@@ -342,7 +342,7 @@ namespace BII.WasaBii.Undo {
         public int Undo(int n = 1) {
             if (IsRecording)
                 throw new InvalidOperationException(
-                    $"Cannot undo: currently recording {state._currentActionName}.");
+                    $"Cannot undo: currently recording {state._currentActionLabel}.");
             var undoCount = state.currentUndoBuffer.Undo(n);
             OnAfterUndo?.Invoke(undoCount);
             return undoCount;
@@ -351,7 +351,7 @@ namespace BII.WasaBii.Undo {
         /// Redos at most n actions. Returns the number of actions actually redone.
         public int Redo(int n = 1) {
             if (IsRecording) throw new InvalidOperationException(
-                $"Cannot redo: currently recording {state._currentActionName}.");
+                $"Cannot redo: currently recording {state._currentActionLabel}.");
             var redoCount =  state.currentUndoBuffer.Redo(n);
             OnAfterRedo?.Invoke(redoCount);
             return redoCount;

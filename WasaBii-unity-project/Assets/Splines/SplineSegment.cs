@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
     public readonly struct SplineSegment<TPos, TDiff>
@@ -42,7 +42,7 @@ namespace BII.WasaBii.Splines {
         internal static Length LengthOfSegment<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int samples = DefaultLengthSamples) 
             where TPos : struct 
             where TDiff : struct {
-            var length = Units.Length.Zero;
+            var length = Length.Zero;
             var current = polynomial.Evaluate(t: 0);
             var increment = 1f / samples;
 

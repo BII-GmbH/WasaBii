@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using BII.WasaBii.Units;
+using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -22,10 +22,10 @@ namespace BII.WasaBii.Unity.Geometry {
 
     public static class DirectionLikeExtensions {
         
-        [Pure] public static Units.Angle AngleTo<TRelativity>(this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs) 
+        [Pure] public static Angle AngleTo<TRelativity>(this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs) 
             where TRelativity : WithRelativity => Vector3.Angle(lhs.AsVector, rhs.AsVector).Degrees();
 
-        [Pure] public static Units.Angle SignedAngleTo<TRelativity>(
+        [Pure] public static Angle SignedAngleTo<TRelativity>(
             this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs, RelativeDirectionLike<TRelativity> axis
         ) where TRelativity : WithRelativity => 
             Vector3.SignedAngle(lhs.AsVector, rhs.AsVector, axis.AsVector).Degrees();

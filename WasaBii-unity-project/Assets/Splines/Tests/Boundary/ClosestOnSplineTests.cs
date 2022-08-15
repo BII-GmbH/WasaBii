@@ -36,12 +36,12 @@ namespace BII.WasaBii.Splines.Tests {
                 );
         
                 Assert.That(
-                    queryResult.Location.Value.SIValue,
+                    queryResult.Location.Value.SiValue,
                     Is.EqualTo(expectedLocationOnSpline).Within(0.01d),
                     $"The actual location {queryResult.Location} didn't match the expected {expectedLocationOnSpline} for Position {position}"
                 );
                 Assert.That(
-                    queryResult.Distance.SIValue,
+                    queryResult.Distance.SiValue,
                     Is.EqualTo(expectedPositionToNodeDistance).Within(0.01d),
                     $"The actual distance {queryResult.Distance} didn't match the expected {expectedPositionToNodeDistance} for Position {position}"
                 );

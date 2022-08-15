@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace BII.WasaBii.Core {
-    
+
     /// Special stack implementation which limits its size
     /// to the given value. If a push causes the content to
     /// exceed that size, then the oldest entry is disposed
@@ -11,7 +11,7 @@ namespace BII.WasaBii.Core {
     public class MaxSizeStack<T> : IEnumerable<T> where T : IDisposable {
 
         private readonly LinkedList<T> underlying = new LinkedList<T>();
-        
+
         private readonly int maxSize;
         public MaxSizeStack(int maxSize) => this.maxSize = maxSize;
 

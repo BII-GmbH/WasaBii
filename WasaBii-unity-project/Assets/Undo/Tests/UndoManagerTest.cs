@@ -1,17 +1,72 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Undos;
-using NSubstitute;
 using NUnit.Framework;
 
 namespace BII.WasaBii.Undo.Tests {
 
+    public class TrivialUndoBuffer : DefaultUndoBuffer<string> {
+        public TrivialUndoBuffer() : base(100) { }
+        public override void OnBeforeAttach() { }
+        public override void OnAfterDetach() { }
+    }
+
+    public class MockUndoBuffer : UndoBuffer<string> {
+        private readonly UndoBuffer<string> backing = new TrivialUndoBuffer();
+
+        public int RegisterUndoCalled { get; private set; }
+        public override void RegisterUndo(UndoAction<string> res) {
+            RegisterUndoCalled += 1;
+            backing.RegisterUndo(res);
+        }
+
+        public int UndoCalled { get; private set; }
+        public override int Undo(int n) {
+            UndoCalled += 1;
+            return backing.Undo(n);
+        }
+
+        public int RedoCalled { get; private set; }
+        public override int Redo(int n) {
+            RedoCalled += 1;
+            return backing.Redo(n);
+        }
+
+        public int ClearUndoStackCalled { get; private set; }
+        public override void ClearUndoStack() {
+            ClearUndoStackCalled += 1;
+            backing.ClearUndoStack();
+        }
+
+        public int ClearRedoStackCalled { get; private set; }
+        public override void ClearRedoStack() {
+            ClearRedoStackCalled += 1;
+            backing.ClearRedoStack();
+        }
+
+        public int OnBeforeAttachCalled { get; private set; }
+        public override void OnBeforeAttach() {
+            OnBeforeAttachCalled += 1;
+            backing.OnBeforeAttach();
+        }
+
+        public int OnAfterDetachCalled { get; private set; }
+        public override void OnAfterDetach() {
+            OnAfterDetachCalled += 1;
+            backing.OnAfterDetach();
+        }
+
+        public override IEnumerable<UndoAction<string>> UndoStack => backing.UndoStack;
+        public override IEnumerable<RedoAction<string>> RedoStack => backing.RedoStack;
+    }
+
     public class UndoManagerTest {
-        private UndoManager undoManager;
-        
+        private UndoManager<string> undoManager;
+
         private static void fail() => Assert.Fail();
-        
+
         private void registerUndos(int n, Action Do = null, Action Undo = null) {
             static void DoNothing() { }
             for (var i = 0; i < n; ++i) {
@@ -20,9 +75,9 @@ namespace BII.WasaBii.Undo.Tests {
                 undoManager.StopRecordingAction();
             }
         }
-        
+
         [SetUp]
-        public void Setup() { undoManager = new UndoManager(100); }
+        public void Setup() { undoManager = new UndoManager<string>(100); }
 
         [Test]
         public void WhenRegistering_ThenExecuted() {
@@ -73,19 +128,19 @@ namespace BII.WasaBii.Undo.Tests {
         public void WhenUndoingAndRedoing_ThenInProperOrder() {
             // Test with non-associative operations
             var sum = 0;
-            
+
             undoManager.StartRecordingAction("test");
             undoManager.RegisterAndExecute(() => sum += 2, () => sum -= 2);
             undoManager.RegisterAndExecute(() => sum /= 2, () => sum *= 2);
             undoManager.StopRecordingAction();
-            
+
             Assert.That(sum, Is.EqualTo(1));
 
             // Just in case something breaks after multiple applications
             for (var i = 0; i < 10; ++i) {
                 undoManager.Undo();
                 Assert.That(sum, Is.Zero);
-                
+
                 undoManager.Redo();
                 Assert.That(sum, Is.EqualTo(1));
             }
@@ -213,7 +268,7 @@ namespace BII.WasaBii.Undo.Tests {
 
             Assert.That(done, Is.False);
         }
-        
+
         #region Exception Handling
 
         public class TestException : Exception { }
@@ -289,61 +344,61 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(lastOperationDone, Is.True);
             Assert.That(doThrow, Is.True);
         }
-        
+
         #endregion
-        
+
         #region Buffer
 
         [Test]
         public void WhenPushingCustomBuffer_ThenProperlyForwarded() {
-            var uut = Substitute.For<UndoBuffer>();
-            
+            var uut = new MockUndoBuffer();
+
             var didOrig = false;
             var undidOrig = false;
             undoManager.RecordCompleteAction("Test action", () => 
                 undoManager.RegisterAndExecute(() => didOrig = true, () => undidOrig = true));
-            
+
             Assert.That(didOrig, Is.True);
             Assert.That(undidOrig, Is.False);
-            
+
             undoManager.PushUndoBuffer(uut);
-            
-            uut.Received().OnBeforeAttach();
+
+            Assert.That(uut.OnBeforeAttachCalled, Is.EqualTo(1));
 
             Assert.That(undoManager.Undo(3), Is.Zero);
             Assert.That(undidOrig, Is.False);
-            uut.Received().Undo(3);
+
+            Assert.That(uut.UndoCalled, Is.EqualTo(1));
 
             // ensure that recording is forwarded to custom buffer
-            
+
             var customUndoneReceivedCheck = false;
             undoManager.RecordCompleteAction("Custom action", () => 
                 undoManager.RegisterAndExecute(() => { }, () => customUndoneReceivedCheck = true));
 
-            uut.Received(requiredNumberOfCalls: 1).RegisterUndo(Arg.Any<UndoAction>());
-            Assert.That(uut.ReceivedCalls().Any(c => {
-                if (c.GetMethodInfo() != typeof(UndoBuffer).GetMethod("RegisterUndo")) return false;
-                (c.GetArguments()[0] as UndoAction)?.ExecuteUndo();
-                return customUndoneReceivedCheck;
-            }), Is.True);
-            
+            Assert.That(uut.RegisterUndoCalled, Is.EqualTo(1));
+            Assert.That(uut.UndoStack.Count(), Is.EqualTo(1));
+
+            uut.UndoStack.Single().ExecuteUndo();
+            Assert.That(customUndoneReceivedCheck, Is.True);
+
             // ensure that no random undos happen during push or pop
             undoManager.RecordCompleteAction("Fail action", () => 
                 undoManager.RegisterAndExecute(() => { }, () => Assert.Fail("Invalid undo called.")));
-            
-            var above = Substitute.For<UndoBuffer>();
+
+            var above = new MockUndoBuffer();
 
             undoManager.PushUndoBuffer(above);
-            above.Received().OnBeforeAttach();
-            
+            Assert.That(above.OnBeforeAttachCalled, Is.EqualTo(1));
+
             Assert.That(undoManager.Undo(3), Is.EqualTo(0));
 
             undoManager.PopUndoBuffer();
-            above.Received().OnAfterDetach();
-            
+            Assert.That(above.OnAfterDetachCalled, Is.EqualTo(1));
+
             undoManager.PopUndoBuffer();
-            uut.Received().OnAfterDetach();
-            
+            Assert.That(uut.OnAfterDetachCalled, Is.EqualTo(1));
+
             Assert.That(undoManager.Undo(2), Is.EqualTo(1));
             Assert.That(undidOrig, Is.True);
         }
@@ -352,57 +407,57 @@ namespace BII.WasaBii.Undo.Tests {
         public void WhenPushingDuringRecording_ThenStateSavedUntilPopped() {
             var topLevelActionName = "topLevelActionName";
             undoManager.StartRecordingAction(topLevelActionName);
-            
+
             Assert.That(undoManager.IsRecording, Is.True);
-            Assert.That(undoManager.CurrentActionName, Is.EqualTo(topLevelActionName));
+            Assert.That(undoManager.CurrentActionLabel, Is.EqualTo(topLevelActionName));
 
             var topLevelUndone = false;
             undoManager.RegisterAndExecute(() => {}, () => topLevelUndone = true);
-            
-            var uut = Substitute.For<UndoBuffer>();
+
+            var uut = new MockUndoBuffer();
             Assert.That(() => undoManager.PushUndoBuffer(uut), Throws.Nothing);
 
             Assert.That(undoManager.IsRecording, Is.False);
-            Assert.That(undoManager.CurrentActionName, Is.Null);
+            Assert.That(undoManager.CurrentActionLabel, Is.Null);
             Assert.That(() => undoManager.StopRecordingAction(), Throws.Exception);
 
             var uutActionName = "uutActionName";
             undoManager.StartRecordingAction(uutActionName);
-            
+
             Assert.That(undoManager.IsRecording, Is.True);
-            Assert.That(undoManager.CurrentActionName, Is.EqualTo(uutActionName));
-            
+            Assert.That(undoManager.CurrentActionLabel, Is.EqualTo(uutActionName));
+
             undoManager.RegisterAndExecute(() => {}, () => Assert.Fail("Invalid undo called."));
             undoManager.StopRecordingAction();
-            
-            Assert.That(undoManager.IsRecording, Is.False);
-            Assert.That(undoManager.CurrentActionName, Is.Null);
-            
-            undoManager.PopUndoBuffer();
-            
-            Assert.That(undoManager.IsRecording, Is.True);
-            Assert.That(undoManager.CurrentActionName, Is.EqualTo(topLevelActionName));
 
-            var cancelUut = Substitute.For<UndoBuffer>();
+            Assert.That(undoManager.IsRecording, Is.False);
+            Assert.That(undoManager.CurrentActionLabel, Is.Null);
+
+            undoManager.PopUndoBuffer();
+
+            Assert.That(undoManager.IsRecording, Is.True);
+            Assert.That(undoManager.CurrentActionLabel, Is.EqualTo(topLevelActionName));
+
+            var cancelUut = new MockUndoBuffer();
             undoManager.PushUndoBuffer(cancelUut);
-            
+
             undoManager.StartRecordingAction("to be cancelled by popping");
             undoManager.RegisterAndExecute(() => {}, () => Assert.Fail("Invalid undo called."));
-            
+
             // we expect abort with a warning
             Assert.That(() => undoManager.PopUndoBuffer(), Throws.Nothing);
             Assert.That(cancelUut.Undo(1), Is.EqualTo(0));
 
             undoManager.StopRecordingAction();
-            
+
             Assert.That(undoManager.Undo(2), Is.EqualTo(1));
             Assert.That(topLevelUndone, Is.True);
         }
-        
+
         #endregion
-        
+
         #region Placeholder
-        
+
         [Test]
         public void WhenRegisteringPlaceholderWithoutRecording_ThenException() {
             Assert.That(undoManager.RegisterUndoPlaceholder, Throws.InvalidOperationException);
@@ -411,16 +466,16 @@ namespace BII.WasaBii.Undo.Tests {
         [Test]
         public void WhenRegisteringPlaceholderAndNotUsed_ThenIgnored() {
             undoManager.StartRecordingAction("test");
-            
+
             var unusedPlaceholder = undoManager.RegisterUndoPlaceholder();
-            
+
             bool? done = null;
             undoManager.RegisterAndExecute(() => done = true, () => done = false);
 
             undoManager.StopRecordingAction();
 
             Assert.That(done, Is.True);
-            
+
             undoManager.Undo();
 
             Assert.That(done, Is.False);
@@ -433,12 +488,12 @@ namespace BII.WasaBii.Undo.Tests {
         [Test]
         public void WhenRegisteringPlaceholderAndUsed_ThenProperlyUndoneAndRedone() {
             undoManager.StartRecordingAction("test");
-            
+
             var placeholder = undoManager.RegisterUndoPlaceholder();
-            
+
             bool? done = null;
             bool? placeholderDone = null;
-            
+
             undoManager.RegisterAndExecute(() => done = true, () => done = false);
             undoManager.RegisterAndExecute(
                 () => {
@@ -463,7 +518,7 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(placeholderDone, Is.True);
 
             undoManager.Redo();
-            
+
             Assert.That(done, Is.True);
             Assert.That(placeholderDone, Is.False);
         }
@@ -480,37 +535,37 @@ namespace BII.WasaBii.Undo.Tests {
                 Throws.ArgumentException
             );
         }
-        
+
         [Test]
         public void WhenUsingPlaceholderAfterRecordingStop_ThenException() {
             undoManager.StartRecordingAction("test");
             var placeholder = undoManager.RegisterUndoPlaceholder();
             undoManager.StopRecordingAction();
-            
+
             undoManager.StartRecordingAction("test2");
-            
+
             Assert.That(
                 () => undoManager.RegisterAndExecute(SymmetricOperation.Empty, saveUndoAt: placeholder),
                 Throws.ArgumentException
             );
         }
-        
+
         [Test]
         public void WhenUsingPlaceholderAfterRecordingAbort_ThenException() {
             undoManager.StartRecordingAction("test");
             var placeholder = undoManager.RegisterUndoPlaceholder();
             undoManager.AbortRecordingAction();
-            
+
             undoManager.StartRecordingAction("test2");
-            
+
             Assert.That(
                 () => undoManager.RegisterAndExecute(SymmetricOperation.Empty, saveUndoAt: placeholder),
                 Throws.ArgumentException
             );
         }
-        
+
         #endregion
-        
+
         #region Labels
 
         [Test]
@@ -533,7 +588,7 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(labels[1], Is.EqualTo(firstLabel));
             Assert.That(undoManager.RedoLabels.IsEmpty());
         }
-        
+
         [Test]
         public void WhenRecordingActionsAndUndoing_ThenRedoLabelOrderCorrect() {
             const string firstLabel = "first";
@@ -555,9 +610,9 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(labels[1], Is.EqualTo(secondLabel));
             Assert.That(undoManager.UndoLabels.IsEmpty());
         }
-        
+
         #endregion
-        
+
         #region Events
 
         [Test]
@@ -567,16 +622,16 @@ namespace BII.WasaBii.Undo.Tests {
             void onActionRecorded() => invokeCount++;
 
             undoManager.OnAfterActionRecorded += onActionRecorded;
-            
+
             registerUndos(1);
 
             Assert.That(invokeCount, Is.EqualTo(1));
-            
+
             registerUndos(2);
-            
+
             Assert.That(invokeCount, Is.EqualTo(3));
         }
-        
+
         [Test]
         public void WhenUndoing_ThenEventInvokedWithCorrectUndoCount() {
             int invokeCount = 0;
@@ -588,11 +643,11 @@ namespace BII.WasaBii.Undo.Tests {
             }
 
             undoManager.OnAfterUndo += onUndo;
-            
+
             registerUndos(1);
             Assert.That(invokeCount, Is.EqualTo(0));
             undoManager.Undo();
-            
+
             Assert.That(invokeCount, Is.EqualTo(1));
             Assert.That(totalUndoCount, Is.EqualTo(1));
         }
@@ -608,14 +663,14 @@ namespace BII.WasaBii.Undo.Tests {
             }
 
             undoManager.OnAfterUndo += onUndo;
-            
+
             registerUndos(2);
             undoManager.Undo(3);
-            
+
             Assert.That(invokeCount, Is.EqualTo(1));
             Assert.That(totalUndoCount, Is.EqualTo(2));
         }
-        
+
         [Test]
         public void WhenRedoing_ThenEventInvokedWithCorrectUndoCount() {
             int invokeCount = 0;
@@ -627,12 +682,12 @@ namespace BII.WasaBii.Undo.Tests {
             }
 
             undoManager.OnAfterRedo += onRedo;
-            
+
             registerUndos(1);
             undoManager.Undo();
             Assert.That(invokeCount, Is.EqualTo(0));
             undoManager.Redo();
-            
+
             Assert.That(invokeCount, Is.EqualTo(1));
             Assert.That(totalRedoCount, Is.EqualTo(1));
         }
@@ -648,12 +703,12 @@ namespace BII.WasaBii.Undo.Tests {
             }
 
             undoManager.OnAfterRedo += onRedo;
-            
+
             registerUndos(2);
             undoManager.Undo(2);
             Assert.That(invokeCount, Is.EqualTo(0));
             undoManager.Redo(3);
-            
+
             Assert.That(invokeCount, Is.EqualTo(1));
             Assert.That(totalRedoCount, Is.EqualTo(2));
         }
@@ -665,14 +720,14 @@ namespace BII.WasaBii.Undo.Tests {
             void onUndoBufferPushed() => invokeCount++;
 
             undoManager.OnUndoBufferPushed += onUndoBufferPushed;
-            
-            var uut = Substitute.For<UndoBuffer>();
-            
+
+            var uut = new MockUndoBuffer();
+
             undoManager.PushUndoBuffer(uut);
 
             Assert.That(invokeCount, Is.EqualTo(1));
         }
-        
+
         [Test]
         public void WhenPoppingUndoBuffer_ThenEventInvoked() {
             int invokeCount = 0;
@@ -680,19 +735,19 @@ namespace BII.WasaBii.Undo.Tests {
             void onUndoBufferPopped() => invokeCount++;
 
             undoManager.OnUndoBufferPopped += onUndoBufferPopped;
-            
-            var uut = Substitute.For<UndoBuffer>();
-            
+
+            var uut = new MockUndoBuffer();
+
             undoManager.PushUndoBuffer(uut);
-            
+
             Assert.That(invokeCount, Is.EqualTo(0));
-            
+
             undoManager.PopUndoBuffer();
 
             Assert.That(invokeCount, Is.EqualTo(1));
         }
 
-        private class SingleElementUndoBuffer : DefaultUndoBuffer {
+        private class SingleElementUndoBuffer : DefaultUndoBuffer<string> {
             private readonly Action onBeforeAttach;
             private readonly Action onAfterAttach;
 
@@ -713,14 +768,14 @@ namespace BII.WasaBii.Undo.Tests {
                 () => onBeforeAttachCalled = true, 
                 () => onAfterDetachCalled = true
             );
-            
+
             undoManager.PushUndoBuffer(buffer);
 
             var action1Done = false;
             var action2Done = false;
             var action1Undone = false;
             var action2Undone = false;
-            
+
             undoManager.StartRecordingAction("Test action 1");
             undoManager.RegisterAndExecute(
                 () => action1Done = true, 
@@ -730,10 +785,10 @@ namespace BII.WasaBii.Undo.Tests {
                 }
             );
             undoManager.StopRecordingAction();
-            
+
             Assert.That(action1Done, Is.True);
             Assert.That(action1Undone, Is.False);
-            
+
             undoManager.StartRecordingAction("Test action 2");
             undoManager.RegisterAndExecute(
                 () => action2Done = true, 
@@ -743,25 +798,25 @@ namespace BII.WasaBii.Undo.Tests {
                 }
             );
             undoManager.StopRecordingAction();
-            
+
             Assert.That(action2Done, Is.True);
             Assert.That(action2Undone, Is.False);
-            
+
             Assert.That(undoManager.Undo(2), Is.EqualTo(1));
-            
+
             // only 2 should be undone; action 1 should still be done
-            
+
             Assert.That(action2Done, Is.False);
             Assert.That(action2Undone, Is.True);
-            
+
             Assert.That(action1Done, Is.True);
             Assert.That(action1Undone, Is.False);
-            
+
             Assert.That(undoManager.Redo(2), Is.EqualTo(1));
-            
+
             Assert.That(action1Done, Is.True);
             Assert.That(action1Undone, Is.False);
-            
+
             Assert.That(action2Done, Is.True);
             Assert.That(action2Undone, Is.False);
         }

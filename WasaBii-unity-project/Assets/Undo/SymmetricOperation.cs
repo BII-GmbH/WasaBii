@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using BII.WasaBii.Core;
 
 namespace BII.WasaBii.Undos {
-    
+
     // ReSharper disable all InvalidXmlDocComment // for the caller arguments which are explicitly not documented
 
     /// Contains debug data that specifies where a <see cref="SymmetricOperation"/> has been constructed.
@@ -16,7 +16,7 @@ namespace BII.WasaBii.Undos {
         public readonly string CallerMemberName;
         public readonly string SourceFilePath;
         public readonly int SourceLineNumber;
-        
+
         public SymmetricOperationDebugInfo(
             string callerMemberName, 
             string sourceFilePath, 
@@ -27,12 +27,12 @@ namespace BII.WasaBii.Undos {
             SourceLineNumber = sourceLineNumber;
         }
     }
-    
+
     [CannotBeSerialized("Based on function references which cannot be serialized.")]
     public sealed class SymmetricOperation {
         internal readonly Action lastDo;
         internal readonly Action lastUndo;
-        
+
         // Note CR: Composition can lead to thousands of symmetric operations that are composed before being used.
         //   Simply using function composition will lead to huge recursive call stacks, which can cause stack overflows.
         // Instead, once a SymOp is built using composition, we use immutable lists to keep track of the additional operations,
@@ -41,14 +41,14 @@ namespace BII.WasaBii.Undos {
 
         internal readonly ImmutableList<Action>? doInOrder;
         internal readonly ImmutableList<Action>? undoInOrder;
-        
+
         internal readonly ImmutableList<Action>? disposeAfterDoInOrder;
         internal readonly ImmutableList<Action>? disposeAfterUndoInOrder;
 
         public readonly ImmutableList<SymmetricOperationDebugInfo> DebugInfo;
-        
+
         public static readonly Action DoNothingOperation = () => { };
-        
+
         private static readonly SymmetricOperation empty = new(DoNothingOperation, DoNothingOperation);
         public static ref readonly SymmetricOperation Empty => ref empty;
 
@@ -98,23 +98,23 @@ namespace BII.WasaBii.Undos {
         ) {
             this.lastDo = action;
             this.lastUndo = undo;
-            
+
             // these values are only set when using composition
             // through the internal constructor
             doInOrder = null;
             undoInOrder = null;
-            
+
             // optionally overwritten afterwards
             disposeAfterDoInOrder = null;
             disposeAfterUndoInOrder = null;
             if (disposeAfterDo != null) this.disposeAfterDoInOrder = ImmutableList.Create(disposeAfterDo);
             if (disposeAfterUndo != null) this.disposeAfterUndoInOrder = ImmutableList.Create(disposeAfterUndo);
-            
+
             this.DebugInfo = ImmutableList.Create(
                 new SymmetricOperationDebugInfo(__callerMemberName, __sourceFilePath, __sourceLineNumber)
             );
         }
-        
+
         internal SymmetricOperation(
             Action lastAction, 
             Action lastUndo, 
@@ -128,31 +128,31 @@ namespace BII.WasaBii.Undos {
             this.lastUndo = lastUndo;
             this.doInOrder = doInOrder;
             this.undoInOrder = undoInOrder;
-            
+
             this.disposeAfterDoInOrder = disposeAfterDoInOrder;
             this.disposeAfterUndoInOrder = disposeAfterUndoInOrder;
-            
+
             this.DebugInfo = debugInfo;
         }
     }
 
     [CannotBeSerialized("Based on function references which cannot be serialized.")]
     public readonly struct SymmetricOperation<T> {
-        
+
         // Note CR: we still use function composition for this type, as there is usually
         //   only one final typed SymOp after a chain of untyped SymOps.
         //  => Composition of typed SymOps is unlikely, so recursive calls are fine.
         //   In particular, one would
         //     either need to call `.WithoutResult` and then compose untyped which shouldn't happen a lot,
         //     or use `.Map` which would require recursive calls either way. 
-        
+
         public readonly Func<T> Do;
         public readonly Action Undo;
         public readonly Action DisposeAfterDo;  
         public readonly Action DisposeAfterUndo;
 
         public readonly ImmutableList<SymmetricOperationDebugInfo> DebugInfo;
-            
+
         /// <summary>
         /// Describes how to both do something and undo it again. The action
         /// and its symmetric undo action should be able to be called multiple
@@ -190,7 +190,7 @@ namespace BII.WasaBii.Undos {
                 new SymmetricOperationDebugInfo(__callerMemberName, __sourceFilePath, __sourceLineNumber)
             );
         }
-        
+
         internal SymmetricOperation(
             Func<T> action, 
             Action undo, 
@@ -206,16 +206,16 @@ namespace BII.WasaBii.Undos {
             this.DebugInfo = debugInfo;
         }
     }
-    
+
     public static class SymmetricOperationExtensions {
-        
+
         // TODO CR: further optimize using a collection that allows efficient immutable *merging* of two instances
         //          We currently do `immutableList.AddRange(otherList)`, but there must be a way to just merge both efficiently
 
         /// Discards the result of a <see cref="SymmetricOperation{T}"/>,
         public static SymmetricOperation WithoutResult<T>(this SymmetricOperation<T> src) => 
             new SymmetricOperation(() => src.Do(), src.Undo, src.DisposeAfterDo, src.DisposeAfterUndo);
-        
+
         /// Result will be immediately captured by value.
         public static SymmetricOperation<T> WithResult<T>(this SymmetricOperation src, T result) => 
             new SymmetricOperation<T>(() => {
@@ -259,7 +259,7 @@ namespace BII.WasaBii.Undos {
                 __sourceLineNumber
             ))
         );
-        
+
         public static SymmetricOperation<TRes> FlatMap<T, TRes>(
             this SymmetricOperation<T> src,
             Func<T, SymmetricOperation<TRes>> mapping,
@@ -293,12 +293,12 @@ namespace BII.WasaBii.Undos {
             if (src.doInOrder != null) newDo.AddRange(src.doInOrder);
             newDo.Add(src.lastDo);
             if (then.doInOrder != null) newDo.AddRange(then.doInOrder);
-            
+
             var newUndo = ImmutableList.CreateBuilder<Action>();
             newUndo.Add(then.lastUndo);
             if (then.undoInOrder != null) newUndo.AddRange(then.undoInOrder);
             if (src.undoInOrder != null) newUndo.AddRange(src.undoInOrder);
-            
+
             // then-dispose can depend on resources of src-dispose
 
             var newDispose = (then.disposeAfterDoInOrder, src.disposeAfterDoInOrder) switch {
@@ -306,13 +306,13 @@ namespace BII.WasaBii.Undos {
                 ({} thenD, null) => thenD,
                 ({} thenD, {} srcD) => thenD.AddRange(srcD)
             };
-            
+
             var newUndoDispose = (then.disposeAfterUndoInOrder, src.disposeAfterUndoInOrder) switch {
                 (null, var sourceD) => sourceD,
                 ({} thenD, null) => thenD,
                 ({} thenD, {} sourceD) => thenD.AddRange(sourceD)
             };
-            
+
             return new SymmetricOperation(
                 then.lastDo, 
                 src.lastUndo, 
@@ -367,7 +367,7 @@ namespace BII.WasaBii.Undos {
             var newUndo = src.undoInOrder != null
                 ? src.undoInOrder.Insert(0, undoThen)
                 : ImmutableList.Create(undoThen);
-            
+
             // then-dispose can depend on resources of src-dispose
 
             var newDispose = (disposeAfterDoThen, src.disposeAfterDoInOrder) switch {
@@ -375,13 +375,13 @@ namespace BII.WasaBii.Undos {
                 ({} thenD, null) => ImmutableList.Create(thenD),
                 ({} thenD, {} sourceD) => sourceD.Insert(0, thenD)
             };
-            
+
             var newUndoDispose = (disposeAfterUndoThen, src.disposeAfterUndoInOrder) switch {
                 (null, var sourceD) => sourceD,
                 ({} thenD, null) => ImmutableList.Create(thenD),
                 ({} thenD, {} sourceD) => sourceD.Insert(0, thenD)
             };
-            
+
             return new SymmetricOperation(
                 doThen, 
                 src.lastUndo, 

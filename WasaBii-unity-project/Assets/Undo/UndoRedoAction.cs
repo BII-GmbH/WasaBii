@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
@@ -6,15 +6,15 @@ using BII.WasaBii.Undos;
 
 namespace BII.WasaBii.Undo {
 
-    public class UndoAction : IDisposable {
-        public string Name { get; }
+    public class UndoAction<TLabel> : IDisposable {
+        public TLabel Label { get; }
         private readonly Stack<SymmetricOperation> undos;
 
-        public UndoAction(string name, Stack<SymmetricOperation> undos) {
-            this.Name = name;
+        public UndoAction(TLabel label, Stack<SymmetricOperation> undos) {
+            this.Label = label;
             this.undos = undos;
         }
-        
+
         /// <summary>
         /// Used when the undo stack is cleared in order to
         /// free resources of operations which could not have
@@ -39,13 +39,16 @@ namespace BII.WasaBii.Undo {
         /// the exception is rethrown.
         /// Calling this after invalidation has no effect.
         /// </summary>
-        public RedoAction ExecuteUndo() {
+        public RedoAction<TLabel> ExecuteUndo() {
             var redoStack = new Stack<SymmetricOperation>();
             while (undos.Count > 0) {
                 var undo = undos.Pop();
                 try {
                     undo.Undo();
                 } catch (Exception e) {
+                    // Roll back as much as we can before we "rethrow" with additional data,
+                    //  in order to get back into a consistent state.
+                    // Note that this still fails if the current `.Undo()` caused effects before throwing.
                     undos.Push(undo);
                     while (redoStack.Count > 0) {
                         var redo = redoStack.Pop();
@@ -56,16 +59,16 @@ namespace BII.WasaBii.Undo {
                 }
                 redoStack.Push(undo);
             }
-            return new RedoAction(Name, redoStack);
+            return new RedoAction<TLabel>(Label, redoStack);
         }
     }
 
-    public class RedoAction : IDisposable {
-        public string Name { get; }
+    public class RedoAction<TLabel> : IDisposable {
+        public TLabel Label { get; }
         private readonly Stack<SymmetricOperation> redos;
 
-        public RedoAction(string name, Stack<SymmetricOperation> redos) {
-            this.Name = name;
+        public RedoAction(TLabel label, Stack<SymmetricOperation> redos) {
+            this.Label = label;
             this.redos = redos;
         }
 
@@ -91,13 +94,16 @@ namespace BII.WasaBii.Undo {
         /// the exception is rethrown.
         /// Calling this after invalidation has no effect.
         /// </summary>
-        public UndoAction ExecuteRedo() {
+        public UndoAction<TLabel> ExecuteRedo() {
             var undoStack = new Stack<SymmetricOperation>();
             while (redos.Count > 0) {
                 var redo = redos.Pop();
                 try {
                     redo.Do();
                 } catch (Exception e) {
+                    // Roll back as much as we can before we "rethrow" with additional data,
+                    //  in order to get back into a consistent state.
+                    // Note that this still fails if the current `.Redo()` caused effects before throwing.
                     redos.Push(redo);
                     while (undoStack.Count > 0) {
                         var undo = undoStack.Pop();
@@ -108,7 +114,7 @@ namespace BII.WasaBii.Undo {
                 }
                 undoStack.Push(redo);
             }
-            return new UndoAction(Name, undoStack);
+            return new UndoAction<TLabel>(Label, undoStack);
         }
     }
     public class SummaryException : Exception {

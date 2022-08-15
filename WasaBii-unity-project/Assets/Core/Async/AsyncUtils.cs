@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 
 namespace BII.WasaBii.Core {
-    
     public static class AsyncUtils {
         public static async Task RepeatUntilCancelled(Func<Task> toRepeat, Action afterEachIteration = null) {
             while (true) {
@@ -23,6 +22,7 @@ namespace BII.WasaBii.Core {
                 return cancelResult();
             }
         }
+
 
         /// <param name="disposeAction">
         /// Code that is executed either if task of <paramref name="toExecute"/>

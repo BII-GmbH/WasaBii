@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="da67c9df-24f8-4564-bfab-78b59098d2b3" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="mock://C:/Users/Reusc/Desktop/bii/WasaBii/WasaBii-unity-project/Assets/Splines/Boundary/Extensions/ClosestOnSplineQueries/ClosestOnSplineQueryResult.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Reusc/Desktop/bii/WasaBii/WasaBii-unity-project/Assets/Splines/Boundary/Extensions/ClosestOnSplineQueries/ClosestOnSplineQueryResult.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../Unity/Geometry/TransformUtils/WithDirection.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Reusc/Desktop/bii/WasaBii/WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/WithDirection.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Reusc/Desktop/bii/WasaBii/WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/WithDirection.cs" root0="SKIP_HIGHLIGHTING" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2DOkrfkWLCqJUqXl03iKISm6KOY" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="da67c9df-24f8-4564-bfab-78b59098d2b3" name="Changes" comment="" />
+      <created>1660577747809</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1660577747809</updated>
+      <workItem from="1660577748872" duration="273000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+</project>

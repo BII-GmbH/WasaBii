@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 
 using BII.WasaBii.Core;
-using NSubstitute.Exceptions;
 
 namespace BII.WasaBii.UnitSystem {
 
@@ -138,10 +137,10 @@ namespace BII.WasaBii.UnitSystem {
             bool areUnitsSorted = false
         ) where TUnit : IUnit {
             var allowed = allowedUnits?.If(!areUnitsSorted, 
-                units => (IEnumerable<TUnit>) units.SortedBy(u => u.SiFactor)
+                units => (IEnumerable<TUnit>) units.OrderBy(u => u.SiFactor)
             ).AsReadOnlyList() ?? AllUnitsOf<TUnit>();
 
-            if (!allowed.Any()) throw new ArgumentNotFoundException($"No allowed units given for {typeof(TUnit)}.");
+            if (!allowed.Any()) throw new ArgumentException($"No allowed units given for {typeof(TUnit)}.");
             
             var displayUnit = allowed[0];
             foreach (var unit in allowed.Skip(1)) {

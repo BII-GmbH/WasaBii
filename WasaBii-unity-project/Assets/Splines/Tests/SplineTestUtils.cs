@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BII.WasaBii.Splines.Logic;
-using BII.WasaBii.UnitSystem;
+using BII.WasaBii.Splines.Maths;
+using BII.WasaBii.Units;
 using BII.WasaBii.Unity.Geometry.Splines;
-using NSubstitute;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -14,37 +10,15 @@ namespace BII.WasaBii.Splines.Tests {
     using SplineSegment = SplineSegment<Vector3, Vector3>;
     using SplineSample = SplineSample<Vector3, Vector3>;
     
-    public class SplineTestUtils {
+    internal class SplineTestUtils {
 
         private const float splineTypeAlphaValue = 0.5f;
-        public const float SplineLocationTolerance = 0.01f;
+        public const double SplineLocationTolerance = 0.01;
         private const float accuracy = 0.01f;
 
         public static void AssertVectorEquality(Vector3 actual, Vector3 expected) {
             if(Vector3.Distance(actual, expected) >= accuracy)
                 throw new AssertionException($"The vectors were not equal.\n Expected: {expected} +/- {accuracy}\n But was: {actual}");
-        }
-
-        public static Spline CreateMockedSpline(IEnumerable<Vector3> handlesIncludingMargin, SplineType type = SplineType.Centripetal) {
-            var handles = handlesIncludingMargin.ToArray();
-            var res = Substitute.For<Spline>();
-            res.Type.Returns(type);
-            res.HandleCountIncludingMargin.Returns(handles.Length);
-            res.Spline.Returns(res);
-            
-            res[Arg.Any<SplineHandleIndex>()].ReturnsForAnyArgs(info => handles[info.Arg<SplineHandleIndex>()]);
-            
-            res[Arg.Any<SplineSegmentIndex>()].ReturnsForAnyArgs(
-                info => SplineSegment.From(res, info.Arg<SplineSegmentIndex>()) ?? throw new ArgumentOutOfRangeException()
-            );
-            res[Arg.Any<SplineLocation>()].ReturnsForAnyArgs(
-                info => SplineSample.From(res, info.Arg<SplineLocation>()) ?? throw new ArgumentOutOfRangeException()
-            );
-            res[Arg.Any<NormalizedSplineLocation>()].ReturnsForAnyArgs(
-                info => SplineSample.From(res, info.Arg<NormalizedSplineLocation>()) ?? throw new ArgumentOutOfRangeException()
-            );
-        
-            return res;
         }
 
         [Test]
@@ -75,7 +49,7 @@ namespace BII.WasaBii.Splines.Tests {
             public static Vector3 SecondHandle = new Vector3(0, 0, 2);
 
             public const int HandleCount = 2;
-            public static Spline Spline => CreateMockedSpline(
+            public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
                 new []{FirstHandle, SecondHandle},
                 SplineType.Centripetal
             );
@@ -102,11 +76,11 @@ namespace BII.WasaBii.Splines.Tests {
             public static Vector3 Expected1Curvature = Vector3.zero;
             
             public static CubicPolynomial<Vector3, Vector3> Polynomial => CubicPolynomial.FromCatmullRomSegment(
-                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.PositionOperations.Instance),
+                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance),
                 splineTypeAlphaValue
             );
 
-            public static Spline Spline => CreateMockedSpline(
+            public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle},
                 SplineType.Centripetal
             );
@@ -121,7 +95,7 @@ namespace BII.WasaBii.Splines.Tests {
             public static Vector3 FourthHandle = new Vector3(0, 0, 4);
             public static Vector3 FifthHandle = new Vector3(0, 0, 5);
             
-            public static Spline Spline => CreateMockedSpline(
+            public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle, FifthHandle},
                 SplineType.Centripetal
             );
@@ -152,11 +126,11 @@ namespace BII.WasaBii.Splines.Tests {
             public static Length ExpectedSplineLength => 4.404f.Meters();
 
             public static CubicPolynomial<Vector3, Vector3> Polynomial => CubicPolynomial.FromCatmullRomSegment(
-                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.PositionOperations.Instance),
+                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance),
                 splineTypeAlphaValue
             );
             
-            public static Spline Spline => CreateMockedSpline(
+            public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle},
                 SplineType.Centripetal
             );

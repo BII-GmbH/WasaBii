@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
@@ -117,7 +119,7 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static LocalOffset Reflect(
             this LocalOffset self, LocalDirection planeNormal
         ) => self.AsVector.Reflect(planeNormal.AsVector).AsLocalOffset();
-
+        
     }
 
 }

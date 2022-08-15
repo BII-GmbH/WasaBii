@@ -1,7 +1,7 @@
-﻿using BII.WasaBii.Splines.Logic;
+﻿using BII.WasaBii.Splines.Maths;
 using NUnit.Framework;
 using UnityEngine;
-using static BII.WasaBii.Splines.Logic.CatmullRomSegment;
+using static BII.WasaBii.Splines.Maths.CatmullRomSegment;
 using static BII.WasaBii.Splines.Tests.SplineTestUtils;
 
 namespace BII.WasaBii.Splines.Tests {

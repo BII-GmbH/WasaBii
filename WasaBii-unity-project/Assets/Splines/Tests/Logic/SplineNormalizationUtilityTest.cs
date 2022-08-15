@@ -1,19 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using BII.WasaBii.Units;
 using NUnit.Framework;
-using static BII.WasaBii.Splines.Logic.SplineNormalizationUtility;
+using static BII.WasaBii.Splines.Maths.SplineNormalizationUtility;
 using static BII.WasaBii.Splines.Tests.SplineTestUtils;
 
 namespace BII.WasaBii.Splines.Tests {
     public class SplineNormalizationUtilityTest {
-        private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizaionSamples = new Dictionary<float, float>
-            {{0, 0}, {0.5f, 0.113f}, {1, 0.227f}, {2.6f, 0.590f}, {3, 0.681f}, {4.404f, 1f}}.ToDictionary(
+        private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizaionSamples = new Dictionary<double, double>
+            {{0, 0}, {0.5, 0.113}, {1, 0.227}, {2.6, 0.590}, {3, 0.681}, {4.404, 1}}.ToDictionary(
             kvp => SplineLocation.From(kvp.Key),
             kvp => NormalizedSplineLocation.From(kvp.Value)
         );
 
-        private static readonly Dictionary<NormalizedSplineLocation, SplineLocation> deNormalizaionSamples = new Dictionary<float, float>
-            {{0, 0}, {0.1f, 0.440f}, {0.3f, 1.321f}, {0.55f, 2.422f}, {0.7f, 3.083f}, {1f, 4.404f}}.ToDictionary(
+        private static readonly Dictionary<NormalizedSplineLocation, SplineLocation> deNormalizaionSamples = new Dictionary<double, double>
+            {{0, 0}, {0.1, 0.440}, {0.3, 1.321}, {0.55, 2.422}, {0.7, 3.083}, {1, 4.404}}.ToDictionary(
             kvp => NormalizedSplineLocation.From(kvp.Key),
             kvp => SplineLocation.From(kvp.Value)
         );
@@ -24,7 +25,7 @@ namespace BII.WasaBii.Splines.Tests {
         
             foreach (var kvp in deNormalizaionSamples) {
                 var location = uut.DeNormalize(kvp.Key);
-                Assert.That(location.Value, Is.EqualTo(kvp.Value.Value).Within(SplineLocationTolerance));
+                Assert.That(location.Value.SIValue, Is.EqualTo(kvp.Value.Value.SIValue).Within(SplineLocationTolerance));
             }
         }
         
@@ -33,7 +34,7 @@ namespace BII.WasaBii.Splines.Tests {
             var uut = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
         
             foreach (var t in new[] {0, 0.1, 0.3, 0.5, 0.77, 1, 1.5, 1.99, 2}.Select(SplineLocation.From)) {
-                var location = uut.DeNormalize(NormalizedSplineLocation.From(t.Value));
+                var location = uut.DeNormalize(NormalizedSplineLocation.From(t));
         
                 Assert.That(location, Is.EqualTo(t), $"Equidistant DeNormalization for t={t} did not work");
             }
@@ -57,7 +58,7 @@ namespace BII.WasaBii.Splines.Tests {
             foreach (var t in new[] {0, 0.1, 0.3, 0.5, 0.77, 1, 1.5, 1.87, 2}.Select(SplineLocation.From)) {
                 var location = uut.Normalize(t);
         
-                Assert.That(location, Is.EqualTo(NormalizedSplineLocation.From(t.Value)), $"Equidistant Normalization for t={t} did not work");
+                Assert.That(location, Is.EqualTo(NormalizedSplineLocation.From(t)), $"Equidistant Normalization for t={t} did not work");
             }
         }
         
@@ -65,7 +66,7 @@ namespace BII.WasaBii.Splines.Tests {
         [Test]
         public void Normalize_WhenSegmentLengthAsLocation_ThenIntegerValueReturned() {
             var spline = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
-            var length = spline[SplineSegmentIndex.Zero].Length();
+            var length = spline[SplineSegmentIndex.Zero].Length;
             
             var uut = spline.Normalize(length);
         

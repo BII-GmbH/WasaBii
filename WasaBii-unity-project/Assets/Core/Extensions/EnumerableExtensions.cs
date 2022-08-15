@@ -307,26 +307,30 @@ namespace BII.WasaBii.Core {
         /// Finds and returns the minimum element of <paramref name="source"/> by
         /// mapping each element to an <see cref="IComparable{T}"/>.
         /// If there are multiple minimum elements, the first one is returned.
-        /// Returns null if the <see cref="source"/> is empty.
+        /// Returns None if the <see cref="source"/> is empty.
         public static Option<TSource> MinBy<TSource, TComparable>(
             this IEnumerable<TSource> source, Func<TSource, TComparable> comparableSelector
-        ) where TComparable : IComparable<TComparable> => minOrMaxBy(source, comparableSelector, preferredComparisonResult: -1);
+        ) where TComparable : IComparable<TComparable> => minOrMaxBy(source, comparableSelector, prefersPositiveComparisonResult: false);
 
         /// Finds and returns the maximum element of <paramref name="source"/> by
         /// mapping each element to an <see cref="IComparable{T}"/>.
         /// If there are multiple maximum elements, the first one is returned.
-        /// Returns null if the <see cref="source"/> is empty.
+        /// Returns None if the <see cref="source"/> is empty.
         public static Option<TSource> MaxBy<TSource, TComparable>(
             this IEnumerable<TSource> source, Func<TSource, TComparable> comparableSelector
-        ) where TComparable : IComparable<TComparable> => minOrMaxBy(source, comparableSelector, preferredComparisonResult: 1);
+        ) where TComparable : IComparable<TComparable> => minOrMaxBy(source, comparableSelector, prefersPositiveComparisonResult: true);
 
         private static Option<TSource> minOrMaxBy<TSource, TComparable>(
-            IEnumerable<TSource> source, Func<TSource, TComparable> comparableSelector, int preferredComparisonResult
+            IEnumerable<TSource> source, Func<TSource, TComparable> comparableSelector, bool prefersPositiveComparisonResult
         ) where TComparable : IComparable<TComparable>
             => source.IfNotEmpty(
                 notEmpty => notEmpty
                     .Select(t => (val: t, comp: comparableSelector(t)))
-                    .Aggregate((l, r) => l.comp.CompareTo(r.comp) == preferredComparisonResult ? l : r)
+                    .Aggregate((l, r) => l.comp.CompareTo(r.comp) switch {
+                        > 0 => prefersPositiveComparisonResult ? l : r,
+                        0 => l,
+                        < 0 => prefersPositiveComparisonResult ? r : l
+                    })
                     .val.Some(),
                 elseResult: Option.None
             );

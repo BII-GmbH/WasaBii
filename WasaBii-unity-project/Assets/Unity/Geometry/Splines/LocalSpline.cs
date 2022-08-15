@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Splines;
+using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
@@ -13,7 +14,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         [Pure]
         public static Spline<LocalPosition, LocalOffset> FromInterpolating(
             IEnumerable<LocalPosition> handles, SplineType? type = null
-        ) => GenericSpline.FromInterpolating(handles, PositionOperations.Instance, type);
+        ) => GenericSpline.FromInterpolating(handles, GeometricOperations.Instance, type);
         
         /// <inheritdoc cref="GenericSpline.FromHandles{TPos,TDiff}"/>
         [Pure]
@@ -22,36 +23,30 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
             IEnumerable<LocalPosition> interpolatedHandles, 
             LocalPosition endMarginHandle, 
             SplineType? type = null
-        ) => GenericSpline.FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, PositionOperations.Instance, type);
+        ) => GenericSpline.FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, GeometricOperations.Instance, type);
 
         /// <inheritdoc cref="GenericSpline.FromHandlesIncludingMargin{TPos,TDiff}"/>
         [Pure]
         public static Spline<LocalPosition, LocalOffset> FromHandlesIncludingMargin(
             IEnumerable<LocalPosition> allHandlesIncludingMargin,
             SplineType? type = null
-        ) => GenericSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, PositionOperations.Instance, type);
+        ) => GenericSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, GeometricOperations.Instance, type);
 
 #region Extensions
-        /// <inheritdoc cref="BII.WasaBii.Splines.EnumerableToSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
         [Pure]
         public static Spline<LocalPosition, LocalOffset> ToSplineOrThrow(this IEnumerable<LocalPosition> source, SplineType? splineType = null)
-            => source.ToSplineOrThrow(PositionOperations.Instance, splineType);
+            => source.ToSplineOrThrow(GeometricOperations.Instance, splineType);
 
-        /// <inheritdoc cref="BII.WasaBii.Splines.EnumerableToSplineExtensions.ToSpline{TPos,TDiff}"/>
+        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSpline{TPos,TDiff}"/>
         [Pure]
         public static Option<Spline<LocalPosition, LocalOffset>> ToSpline(this IEnumerable<LocalPosition> source, SplineType? splineType = null)
-            => source.ToSpline(PositionOperations.Instance, splineType);
+            => source.ToSpline(GeometricOperations.Instance, splineType);
 
-        /// <inheritdoc cref="BII.WasaBii.Splines.EnumerableToSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
         [Pure]
         public static Spline<LocalPosition, LocalOffset> ToSplineWithMarginHandlesOrThrow(this IEnumerable<LocalPosition> source, SplineType? splineType = null)
-            => source.ToSplineWithMarginHandlesOrThrow(PositionOperations.Instance, splineType);
-
-        /// <inheritdoc cref="BII.WasaBii.Splines.EnumerableToSplineExtensions.CalculateSplineMarginHandles{TPos,TDiff}"/>
-        [Pure]
-        public static (LocalPosition BeginHandle, LocalPosition EndHandle) CalculateSplineMarginHandles(
-            this IEnumerable<LocalPosition> handlePositions
-        ) => handlePositions.CalculateSplineMarginHandles(PositionOperations.Instance);
+            => source.ToSplineWithMarginHandlesOrThrow(GeometricOperations.Instance, splineType);
 
         [Pure]
         public static Spline<GlobalPosition, GlobalOffset> ToGlobalWith(
@@ -68,7 +63,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         
         /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineTo{TPos, TDiff}"/>
         [Pure]
-        public static ClosestOnSplineQueryResult<LocalPosition, LocalOffset>? QueryClosestPositionOnSplineTo(
+        public static Option<ClosestOnSplineQueryResult<LocalPosition, LocalOffset>> QueryClosestPositionOnSplineTo(
             this Spline<LocalPosition, LocalOffset> spline,
             LocalPosition position,
             int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
@@ -93,11 +88,11 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
 #endregion
         
         [MustBeImmutable][MustBeSerializable]
-        public sealed class PositionOperations : PositionOperations<LocalPosition, LocalOffset> {
+        public sealed class GeometricOperations : GeometricOperations<LocalPosition, LocalOffset> {
 
-            public static readonly PositionOperations Instance = new();
+            public static readonly GeometricOperations Instance = new();
             
-            private PositionOperations() { }
+            private GeometricOperations() { }
 
             public Length Distance(LocalPosition p0, LocalPosition p1) => p0.DistanceTo(p1);
 

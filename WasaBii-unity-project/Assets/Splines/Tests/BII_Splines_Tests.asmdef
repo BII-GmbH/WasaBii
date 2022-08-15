@@ -1,5 +1,6 @@
 {
     "name": "BII_Splines_Tests",
+    "rootNamespace": "",
     "references": [
         "WasaBii-Core",
         "WasaBii-Splines",
@@ -16,13 +17,12 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll",
-        "NSubstitute.dll",
-        "System.Threading.Tasks.Extensions.dll",
         "WasaBii-Units-Shared.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }

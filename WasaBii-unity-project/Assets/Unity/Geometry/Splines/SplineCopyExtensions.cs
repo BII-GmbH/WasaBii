@@ -9,7 +9,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
     public static class SplineCopyExtensions {
 
         /// Creates a new spline with a similar trajectory as <paramref name="original"/>, but with all handle
-        /// positions being moved by a certain offset to the right of the tangent at that point.
+        /// positions being moved by a certain offset to the right of the tangent at that handle.
         public static Spline<Vector3, Vector3> CopyWithOffsetToTheRight(
             this Spline<Vector3, Vector3> original, Length diff, Vector3? up = null
         ) => original.CopyWithOffset(tangent =>

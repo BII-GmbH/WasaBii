@@ -214,6 +214,9 @@ namespace BII.WasaBii.Core {
         public static IEnumerable<S> Collect<T, S>(this IEnumerable<T> input, Func<T, Option<S>> mapping) =>
             input.Select(mapping).Collect();
         
+        public static IEnumerable<S> CollectMany<T, S>(this IEnumerable<T> input, Func<T, IEnumerable<Option<S>>> mapping) =>
+            input.SelectMany(mapping).Collect();
+        
         public static Option<T> FirstSomeOrNone<T>(this IEnumerable<Option<T>> options)
             => options.Collect().FirstOrNone();
 

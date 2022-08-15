@@ -90,43 +90,6 @@ namespace BII.WasaBii.Core {
             yield return tuple.Item5;
         }
 
-        /// <summary>
-        /// Sorts the enumerable by comparing the values produced by `valueProvider`.
-        /// With `thenBy`, more valueProviders can be specified to define the order
-        /// when the original valueProvider produces equal values. `thenBy` will be
-        /// iterated until distinct values are found. If all values are equal, the
-        /// order between the two elements remains unchanged (just like normal sorting
-        /// when the comparison returns 0).
-        /// </summary>
-        public static List<T> SortedBy<T>(
-            this IEnumerable<T> enumerable, Func<T, IComparable> valueProvider, params Func<T, IComparable>[] thenBy
-        ) =>
-            enumerable.Sorted(
-                (t1, t2) => thenBy.Prepend(valueProvider)
-                    .Select(vP => vP(t1).CompareTo(vP(t2)))
-                    .FirstOrDefault(result => result != 0)
-            );
-
-        public static List<T> SortedBy<T, S>(this IEnumerable<T> enumerable, Func<T, S> valueProvider, bool descending = false)
-        where S : IComparable<S> =>
-            enumerable.Sorted(
-                (t1, t2) => 
-                    valueProvider(t1).CompareTo(valueProvider(t2))
-                        .NegateIf(descending));
-        
-        public static List<T> Sorted<T>(this IEnumerable<T> enumerable, System.Comparison<T> comparison) {
-            var ret = new List<T>(enumerable);
-            ret.Sort(comparison);
-            return ret;
-        }
-
-        public static List<T> Sorted<T>(this IEnumerable<T> enumerable)
-        where T : IComparable<T> {
-            var ret = new List<T>(enumerable);
-            ret.Sort();
-            return ret;
-        }
-
         public static IEnumerable<TRes> SelectTuple<T1, T2, TRes>(
             this IEnumerable<(T1, T2)> source, Func<T1, T2, TRes> fn
         ) => source.Select(t => fn(t.Item1, t.Item2));
@@ -140,23 +103,6 @@ namespace BII.WasaBii.Core {
         ) => source.Select(t => fn(t.Item1, t.Item2, t.Item3, t.Item4));
 
         public static IEnumerable<T> Flatten<T>(this IEnumerable<IEnumerable<T>> source) => source.SelectMany(s => s);
-
-        public static T Second<T>(this IEnumerable<T> enumerable) => enumerable.ElementAt(1);
-
-        public static T SecondFromLast<T>(this IEnumerable<T> enumerable) {
-            var iterations = 0;
-            T? current = default(T);
-            T? before = default(T);
-            foreach (var item in enumerable) {
-                ++iterations;
-                before = current;
-                current = item;
-            }
-
-            if (iterations < 2)
-                throw new ArgumentOutOfRangeException(nameof(enumerable));
-            return before!;
-        }
 
         public static bool AnyAdjacent<T>(this IEnumerable<T> enumerable, Func<T, T, bool> predicate) {
             var it = enumerable.GetEnumerator();
@@ -600,8 +546,12 @@ namespace BII.WasaBii.Core {
             using var e = enumerator;
             while (e.MoveNext()) yield return e.Current;
         }
-// TODO: Sort and stuff
-#region CoreLibrary 
+
+        /// <returns>True if the specified sequence contains no elements, false otherwise.</returns>
+        public static bool IsEmpty<T>(this IEnumerable<T> sequence) => !sequence.Any();
+
+        /// <returns>False if the specified sequence contains no elements, true otherwise.</returns>
+        public static bool IsNotEmpty<T>(this IEnumerable<T> sequence) => sequence.Any();
 
         /// Executes the specified action with side effects for each element in this sequence,
         /// thereby consuming the sequence if it was only iterable once.
@@ -657,21 +607,11 @@ namespace BII.WasaBii.Core {
             this IEnumerable<T> sequence, Func<T, IEnumerable<TRes?>> mapping
         ) where TRes : struct => sequence.SelectMany(mapping).WithoutNull();
 
-        public static IEnumerable<T> AfterwardsDo<T>(this IEnumerable<T> enumerable, Action afterwards) {
-            try {
-                foreach (var value in enumerable) yield return value;
-            } finally {
-                afterwards();
-            }
-        }
-
-        private static readonly System.Random Rng = new System.Random();
-
         /// Shuffles this sequence, yielding a <b>new</b> IEnumerable with all elements in random order.
         /// Uses the <a href="https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle">Fisher–Yates algorithm</a>.
         /// <br/>If the passed IEnumerable is only iterable once it is consumed in the process.
         public static List<T> Shuffled<T>(this IEnumerable<T> l, System.Random? random = null) {
-            random ??= Rng;
+            random ??= new System.Random();
             var list = new List<T>(l);
             var n = list.Count;
             while (n > 1) {
@@ -682,7 +622,6 @@ namespace BII.WasaBii.Core {
 
             return list;
         }
-#endregion CoreLibrary
         
     }
 }

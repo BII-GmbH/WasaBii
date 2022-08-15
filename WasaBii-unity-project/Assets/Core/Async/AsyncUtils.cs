@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace BII.Utilities.Independent {
+namespace BII.WasaBii.Core {
     public static class AsyncUtils {
         public static async Task RepeatUntilCancelled(Func<Task> toRepeat, Action afterEachIteration = null) {
             while (true) {

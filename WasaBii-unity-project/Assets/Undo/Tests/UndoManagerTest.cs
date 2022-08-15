@@ -1,11 +1,66 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Undos;
-using NSubstitute;
 using NUnit.Framework;
 
 namespace BII.WasaBii.Undo.Tests {
+
+    public class TrivialUndoBuffer : DefaultUndoBuffer {
+        public TrivialUndoBuffer() : base(1024) { }
+        public override void OnBeforeAttach() { }
+        public override void OnAfterDetach() { }
+    }
+
+    public class MockUndoBuffer : UndoBuffer {
+        private readonly UndoBuffer backing = new TrivialUndoBuffer();
+        
+        public int RegisterUndoCalled { get; private set; }
+        public override void RegisterUndo(UndoAction res) {
+            RegisterUndoCalled += 1;
+            backing.RegisterUndo(res);
+        }
+
+        public int UndoCalled { get; private set; }
+        public override int Undo(int n) {
+            UndoCalled += 1;
+            return backing.Undo(n);
+        }
+
+        public int RedoCalled { get; private set; }
+        public override int Redo(int n) {
+            RedoCalled += 1;
+            return backing.Redo(n);
+        }
+
+        public int ClearUndoStackCalled { get; private set; }
+        public override void ClearUndoStack() {
+            ClearUndoStackCalled += 1;
+            backing.ClearUndoStack();
+        }
+
+        public int ClearRedoStackCalled { get; private set; }
+        public override void ClearRedoStack() {
+            ClearRedoStackCalled += 1;
+            backing.ClearRedoStack();
+        }
+
+        public int OnBeforeAttachCalled { get; private set; }
+        public override void OnBeforeAttach() {
+            OnBeforeAttachCalled += 1;
+            backing.OnBeforeAttach();
+        }
+
+        public int OnAfterDetachCalled { get; private set; }
+        public override void OnAfterDetach() {
+            OnAfterDetachCalled += 1;
+            backing.OnAfterDetach();
+        }
+
+        public override IEnumerable<UndoAction> UndoStack => backing.UndoStack;
+        public override IEnumerable<RedoAction> RedoStack => backing.RedoStack;
+    }
 
     public class UndoManagerTest {
         private UndoManager undoManager;
@@ -296,7 +351,7 @@ namespace BII.WasaBii.Undo.Tests {
 
         [Test]
         public void WhenPushingCustomBuffer_ThenProperlyForwarded() {
-            var uut = Substitute.For<UndoBuffer>();
+            var uut = new MockUndoBuffer();
             
             var didOrig = false;
             var undidOrig = false;
@@ -308,11 +363,12 @@ namespace BII.WasaBii.Undo.Tests {
             
             undoManager.PushUndoBuffer(uut);
             
-            uut.Received().OnBeforeAttach();
+            Assert.That(uut.OnBeforeAttachCalled, Is.EqualTo(1));
 
             Assert.That(undoManager.Undo(3), Is.Zero);
             Assert.That(undidOrig, Is.False);
-            uut.Received().Undo(3);
+            
+            Assert.That(uut.UndoCalled, Is.EqualTo(1));
 
             // ensure that recording is forwarded to custom buffer
             
@@ -320,29 +376,28 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.RecordCompleteAction("Custom action", () => 
                 undoManager.RegisterAndExecute(() => { }, () => customUndoneReceivedCheck = true));
 
-            uut.Received(requiredNumberOfCalls: 1).RegisterUndo(Arg.Any<UndoAction>());
-            Assert.That(uut.ReceivedCalls().Any(c => {
-                if (c.GetMethodInfo() != typeof(UndoBuffer).GetMethod("RegisterUndo")) return false;
-                (c.GetArguments()[0] as UndoAction)?.ExecuteUndo();
-                return customUndoneReceivedCheck;
-            }), Is.True);
+            Assert.That(uut.RegisterUndoCalled, Is.EqualTo(1));
+            Assert.That(uut.UndoStack.Count(), Is.EqualTo(1));
+
+            uut.UndoStack.Single().ExecuteUndo();
+            Assert.That(customUndoneReceivedCheck, Is.True);
             
             // ensure that no random undos happen during push or pop
             undoManager.RecordCompleteAction("Fail action", () => 
                 undoManager.RegisterAndExecute(() => { }, () => Assert.Fail("Invalid undo called.")));
             
-            var above = Substitute.For<UndoBuffer>();
+            var above = new MockUndoBuffer();
 
             undoManager.PushUndoBuffer(above);
-            above.Received().OnBeforeAttach();
+            Assert.That(above.OnBeforeAttachCalled, Is.EqualTo(1));
             
             Assert.That(undoManager.Undo(3), Is.EqualTo(0));
 
             undoManager.PopUndoBuffer();
-            above.Received().OnAfterDetach();
+            Assert.That(above.OnAfterDetachCalled, Is.EqualTo(1));
             
             undoManager.PopUndoBuffer();
-            uut.Received().OnAfterDetach();
+            Assert.That(uut.OnAfterDetachCalled, Is.EqualTo(1));
             
             Assert.That(undoManager.Undo(2), Is.EqualTo(1));
             Assert.That(undidOrig, Is.True);
@@ -359,7 +414,7 @@ namespace BII.WasaBii.Undo.Tests {
             var topLevelUndone = false;
             undoManager.RegisterAndExecute(() => {}, () => topLevelUndone = true);
             
-            var uut = Substitute.For<UndoBuffer>();
+            var uut = new MockUndoBuffer();
             Assert.That(() => undoManager.PushUndoBuffer(uut), Throws.Nothing);
 
             Assert.That(undoManager.IsRecording, Is.False);
@@ -383,7 +438,7 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(undoManager.IsRecording, Is.True);
             Assert.That(undoManager.CurrentActionName, Is.EqualTo(topLevelActionName));
 
-            var cancelUut = Substitute.For<UndoBuffer>();
+            var cancelUut = new MockUndoBuffer();
             undoManager.PushUndoBuffer(cancelUut);
             
             undoManager.StartRecordingAction("to be cancelled by popping");
@@ -666,7 +721,7 @@ namespace BII.WasaBii.Undo.Tests {
 
             undoManager.OnUndoBufferPushed += onUndoBufferPushed;
             
-            var uut = Substitute.For<UndoBuffer>();
+            var uut = new MockUndoBuffer();
             
             undoManager.PushUndoBuffer(uut);
 
@@ -681,7 +736,7 @@ namespace BII.WasaBii.Undo.Tests {
 
             undoManager.OnUndoBufferPopped += onUndoBufferPopped;
             
-            var uut = Substitute.For<UndoBuffer>();
+            var uut = new MockUndoBuffer();
             
             undoManager.PushUndoBuffer(uut);
             

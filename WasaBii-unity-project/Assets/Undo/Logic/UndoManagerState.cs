@@ -9,7 +9,7 @@ namespace BII.WasaBii.Undo.Logic {
     internal sealed class UndoManagerState {
         
         // Naming conventions are private-based, as they are private to all but the 
-        //   UndoManager and the respective names reflect the mutability of the fields
+        //  UndoManager and the respective names reflect the mutability of the fields
 
         private sealed class BackingUndoBuffer : DefaultUndoBuffer {
             public BackingUndoBuffer(int maxStackSize) : base(maxStackSize) { }

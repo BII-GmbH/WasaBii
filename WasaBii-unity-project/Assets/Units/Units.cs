@@ -138,7 +138,7 @@ namespace BII.WasaBii.UnitSystem {
             bool areUnitsSorted = false
         ) where TUnit : IUnit {
             var allowed = allowedUnits?.If(!areUnitsSorted, 
-                units => (IEnumerable<TUnit>) units.SortedBy(u => u.SiFactor)
+                units => (IEnumerable<TUnit>) units.OrderBy(u => u.SiFactor)
             ).AsReadOnlyList() ?? AllUnitsOf<TUnit>();
 
             if (!allowed.Any()) throw new ArgumentNotFoundException($"No allowed units given for {typeof(TUnit)}.");

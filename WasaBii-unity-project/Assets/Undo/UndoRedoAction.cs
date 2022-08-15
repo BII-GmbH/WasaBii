@@ -46,6 +46,9 @@ namespace BII.WasaBii.Undo {
                 try {
                     undo.Undo();
                 } catch (Exception e) {
+                    // Roll back as much as we can before we "rethrow" with additional data,
+                    //  in order to get back into a consistent state.
+                    // Note that this still fails if the current `.Undo()` caused effects before throwing.
                     undos.Push(undo);
                     while (redoStack.Count > 0) {
                         var redo = redoStack.Pop();
@@ -98,6 +101,9 @@ namespace BII.WasaBii.Undo {
                 try {
                     redo.Do();
                 } catch (Exception e) {
+                    // Roll back as much as we can before we "rethrow" with additional data,
+                    //  in order to get back into a consistent state.
+                    // Note that this still fails if the current `.Redo()` caused effects before throwing.
                     redos.Push(redo);
                     while (undoStack.Count > 0) {
                         var undo = undoStack.Pop();

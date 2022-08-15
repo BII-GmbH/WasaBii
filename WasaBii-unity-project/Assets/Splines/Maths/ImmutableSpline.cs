@@ -12,12 +12,13 @@ namespace BII.WasaBii.Splines {
     
     [JsonObject(IsReference = false)] // Treat as value type for serialization
     [MustBeSerializable] 
-    internal sealed class ImmutableSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
+    public sealed class ImmutableSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
         public ImmutableSpline(
             TPos startHandle, IEnumerable<TPos> handles, TPos endHandle, 
             GeometricOperations<TPos, TDiff> ops,
             SplineType? splineType = null
-        ) : this(handles.Prepend(startHandle).Append(endHandle), ops, splineType){}
+        ) : this(handles.Prepend(startHandle).Append(endHandle), ops, splineType)
+            => cachedSegmentLengths = new Lazy<IReadOnlyList<Length>>(() => calculateSegmentLengths(this));
 
         public ImmutableSpline(IEnumerable<TPos> allHandlesIncludingMarginHandles, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null) {
             handles = ImmutableArray.CreateRange(allHandlesIncludingMarginHandles);
@@ -76,7 +77,7 @@ namespace BII.WasaBii.Splines {
         // this class is registered as an edge-case
         // since the array is only used for lazy caches.
         [NonSerialized] 
-        private Lazy<IReadOnlyList<Length>> cachedSegmentLengths;
+        private readonly Lazy<IReadOnlyList<Length>> cachedSegmentLengths;
 
         private static IReadOnlyList<Length> calculateSegmentLengths(ImmutableSpline<TPos, TDiff> spline) {
             var ret = new Length[spline.SegmentCount()];
@@ -91,9 +92,6 @@ namespace BII.WasaBii.Splines {
             }
             return ret;
         }
-        
-        [OnDeserialized]
-        private void OnDeserialized(StreamingContext context) => cachedSegmentLengths = new Lazy<IReadOnlyList<Length>>(() => calculateSegmentLengths(this));
         
         #endregion
 

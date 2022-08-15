@@ -46,7 +46,9 @@ namespace BII.WasaBii.Core {
     [MustBeSerializable]
     public readonly struct Option<T> : UntypedOption, IEquatable<T>, IEquatable<Option<T>> {
 
-        private readonly T? value;
+        // This is a C#8 nullable: it's equal to adding a `[CanBeNull]`.
+        // Value types will not be boxed. So we still need `HasValue` for when T is a value type.
+        private readonly T? value; 
         public readonly bool HasValue;
 
         private Option(T value) {

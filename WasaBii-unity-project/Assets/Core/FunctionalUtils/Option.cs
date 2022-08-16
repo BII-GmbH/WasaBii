@@ -1,25 +1,27 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace BII.WasaBii.Core {
 
-    // TODO: consistent nullability etc
-
     public static class Option {
-
         public static Option<T> Some<T>(T value) => Option<T>.Some(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public static Option<T> SomeIfNotNull<T>(T? value) where T : class =>
+            value != null ? Some(value) : None;
         
-        public static Option<T> SomeIfNotNull<T>(T? value) where T : class =>
-            value?.Some() ?? Option<T>.None;
-        
-        public static Option<T> SomeIfNotNull<T>(T? value) where T : struct =>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public static Option<T> SomeIfNotNull<T>(T? value) where T : struct =>
             value.HasValue ? Some(value.Value) : None;
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Option<T> If<T>(bool predicate, Func<T> then) => predicate ? Some(then()) : Option<T>.None;
-
+        
         public static Option<T> Try<T>(Func<T> valueConstructor) {
             try {
                 return Some(valueConstructor());
@@ -39,203 +41,183 @@ namespace BII.WasaBii.Core {
     public interface UntypedOption { }
     
     /// A class that potentially wraps a value.
-    /// Only used for cases when absence of a value might have different semantic than the presence of a null-value.
-    [MustBeSerializable]//[CannotApplyEqualityOperator]
-    public abstract class Option<T> : UntypedOption, IEquatable<T>, IEquatable<Option<T>> {
-        private Option() { }
-
-        public static Option<T> Some(T value) => new SomeImpl(value);
-        public static Option<T> None => new NoneImpl();
-
-        public abstract bool HasValue { get; }
-        public abstract Option<TRes> Map<TRes>(Func<T, TRes> mapping);
-        public abstract Task<Option<TRes>> AsyncMap<TRes>(Func<T, Task<TRes>> mapping);
-        public abstract Option<TRes> FlatMap<TRes>(Func<T, Option<TRes>> mapping);
-        public abstract Task<Option<TRes>> AsyncFlatMap<TRes>(Func<T, Task<Option<TRes>>> mapping);
-        public abstract T GetOrElse(Func<T> elseResultGetter);
-        public abstract void WhenPresentDo(Action<T> fn);
-
-        public Option<TRes> AsOrNone<TRes>() => FlatMap(val => val is TRes res ? res.Some() : Option<TRes>.None);
-        public Option<T> Filter(Func<T, bool> predicate) => FlatMap(val => predicate(val) ? val.Some() : Option.None);
+    /// Can be either Some(value) or None.
+    [MustBeSerializable]
+    public readonly struct Option<T> : UntypedOption, IEquatable<T>, IEquatable<Option<T>> {
         
-        public static implicit operator Option<T>(Option.UniversalNone _) => new NoneImpl();
+        // Fields are public for convenient support for pattern matching syntax
+
+        // This is a C#8 nullable: it's equal to adding a `[CanBeNull]`.
+        // Value types will not be boxed. So we still need `HasValue` for when T is a value type.
+        public readonly T? ValueOrDefault; 
+        public readonly bool HasValue;
+
+        private Option(T value) {
+            if (value == null) throw new ArgumentNullException(nameof(value));
+            this.ValueOrDefault = value;
+            this.HasValue = true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public static Option<T> Some(T value) => new(value);
+        public static readonly Option<T> None = default;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public Option<TRes> Map<TRes>(Func<T, TRes> mapping) => 
+            HasValue ? new(mapping(ValueOrDefault!)) : default;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public async Task<Option<TRes>> AsyncMap<TRes>(Func<T, Task<TRes>> mapping) => 
+            HasValue ? new(await mapping(ValueOrDefault!)) : default;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public Option<TRes> FlatMap<TRes>(Func<T, Option<TRes>> mapping) => 
+            HasValue ? mapping(ValueOrDefault!) : default;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public Task<Option<TRes>> AsyncFlatMap<TRes>(Func<T, Task<Option<TRes>>> mapping) =>
+            HasValue ? mapping(ValueOrDefault!) : Task.FromResult<Option<TRes>>(default);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public T GetOrElse(Func<T> elseResultGetter) => HasValue ? ValueOrDefault! : elseResultGetter();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public T? GetOrDefault() => ValueOrDefault;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WhenPresentDo(Action<T> fn) { if (HasValue) fn(ValueOrDefault!); }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public Option<TRes> AsOrNone<TRes>() => HasValue && ValueOrDefault is TRes res ? res.Some() : Option<TRes>.None;
+        
+        public static implicit operator Option<T>(Option.UniversalNone _) => default;
 
         public static implicit operator Option<T>(T value) {
-            if (value == null) return new NoneImpl();
-            else return new SomeImpl(value);
+            if (value == null) return default;
+            else return new Option<T>(value);
         }
 
-        public abstract bool Equals(T other);
-        public abstract bool Equals(Option<T> other);
-     
-        [MustBeSerializable]
-        private sealed class SomeImpl : Option<T> {
-            private readonly T value;
-            public SomeImpl(T value) => this.value = value;
+        [Pure] public bool Equals(T other) => HasValue && EqualityComparer<T>.Default.Equals(other, ValueOrDefault!);
 
-            public override bool HasValue => true;
-            public override Option<TRes> Map<TRes>(Func<T, TRes> mapping) => new Option<TRes>.SomeImpl(mapping(value));
-            public override async Task<Option<TRes>> AsyncMap<TRes>(Func<T, Task<TRes>> mapping) =>
-                new Option<TRes>.SomeImpl(await mapping(value));
-            public override Option<TRes> FlatMap<TRes>(Func<T, Option<TRes>> mapping) => mapping(value);
-            public override Task<Option<TRes>> AsyncFlatMap<TRes>(Func<T, Task<Option<TRes>>> mapping) =>
-                mapping(value);
-            public override T GetOrElse(Func<T> elseResultGetter) => value;
-            public override void WhenPresentDo(Action<T> fn) => fn(value);
-            public override bool Equals(T other) => EqualityComparer<T>.Default.Equals(other, value);
-            public override bool Equals(Option<T> other) => 
-                ReferenceEquals(this, other) || other is SomeImpl some && equals(some);
-            public override bool Equals(object obj) => 
-                ReferenceEquals(this, obj) || obj is SomeImpl other && equals(other);
-            public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode(value);
-            
-            private bool equals(SomeImpl other) => EqualityComparer<T>.Default.Equals(value, other.value);
+        [Pure] public bool Equals(Option<T> other) =>
+            (other.HasValue, HasValue) switch {
+                (true, false) => false,
+                (false, true) => false,
+                (false, false) => true,
+                (true, true) => EqualityComparer<T>.Default.Equals(other.ValueOrDefault!, ValueOrDefault!)
+            };
 
-            public override string ToString() => $"Some<{typeof(T)}> {value.ToString()}";
+        [Pure] public override bool Equals(object obj) =>
+            obj is Option<T> other && Equals(other) || obj is T otherValue && Equals(otherValue);
+
+        [Pure] public static bool operator ==(Option<T> first, Option<T> second) => first.Equals(second);
+        [Pure] public static bool operator !=(Option<T> first, Option<T> second) => !first.Equals(second);
+        
+        [Pure] public override int GetHashCode() => HasValue ? EqualityComparer<T>.Default.GetHashCode(ValueOrDefault!) : 0;
+        
+        [Pure] public override string ToString() => HasValue ? $"Some<{typeof(T)}>({ValueOrDefault!.ToString()})" : $"None<{typeof(T)}>";
+        
+#region Additional Methods
+        
+        // These are members and not extensions in order to avoid potential problems
+        //  with extension method resolution and reduce the number of required generics in some cases.
+        // There is really no need for these to be extension methods.
+        
+        [Pure] public bool IsNone => !HasValue;
+
+        public T GetOrThrow(Func<Exception>? exception = null) =>
+            GetOrElse(() => throw exception?.Invoke() ?? new InvalidOperationException("No value present."));
+        
+        [Pure] public Option<T> OrWhenNone(Func<Option<T>> noneResultGetter) => HasValue ? this : noneResultGetter();
+
+        [Pure] public Option<T> Where(Func<T, bool> predicate) =>
+            FlatMap(v => Option.If(predicate(v), () => v));
+
+        [Pure] public bool TryGetValue(out T result) {
+            result = GetOrElse(elseResultGetter: () => default!);
+            return HasValue;
         }
 
-        [MustBeSerializable]
-        private sealed class NoneImpl : Option<T> {
-            public override bool HasValue => false;
-            public override Option<TRes> Map<TRes>(Func<T, TRes> mapping) => new Option<TRes>.NoneImpl();
-            public override Task<Option<TRes>> AsyncMap<TRes>(Func<T, Task<TRes>> mapping) =>
-                new Option<TRes>.NoneImpl().AsCompletedTask<Option<TRes>>();
-            public override Option<TRes> FlatMap<TRes>(Func<T, Option<TRes>> mapping) => new Option<TRes>.NoneImpl();
-            public override Task<Option<TRes>> AsyncFlatMap<TRes>(Func<T, Task<Option<TRes>>> mapping) =>
-                new Option<TRes>.NoneImpl().AsCompletedTask<Option<TRes>>();
-            public override T GetOrElse(Func<T> elseResultGetter) => elseResultGetter();
-            public override void WhenPresentDo(Action<T> fn) { }
-            public override bool Equals(T other) => false;
-            public override bool Equals(Option<T> other) => ReferenceEquals(this, other) || other is NoneImpl;
-            public override bool Equals(object obj) => ReferenceEquals(this, obj) || obj is NoneImpl;
-            public override int GetHashCode() => typeof(T).GetHashCode();
-
-            public override string ToString() => $"None<{typeof(T)}>";
+        public void Match(Action<T> onHasValue, Action onNone) {
+            if (TryGetValue(out var res)) onHasValue(res);
+            else onNone();
         }
-
+        
+        public TRes Match<TRes>(Func<T, TRes> onHasValue, Func<TRes> onNone) {
+            if (TryGetValue(out var res)) return onHasValue(res);
+            else return onNone();
+        }
+        
+#endregion
     }
 
     public static class OptionConstructionExtensions {
         public static Option<T> Some<T>(this T value) => Option<T>.Some(value);
-
-        public static Option<T> ToOption<T>(this bool cond, Func<T> whenTrue) =>
-            cond ? Option.Some(whenTrue()) : Option.None;
     }
 
     public static class OptionQueryExtensions {
-        public static bool IsNone<T>(this Option<T> opt) => !opt.HasValue;
-        public static T? GetOrDefault<T>(this Option<T> opt) => opt.TryGetValue(out var val) ? val : default;
-        public static T? GetOrNull<T>(this Option<T> opt) where T : struct => opt.TryGetValue(out var val) ? val : default;
+        [Pure] public static T? GetOrNull<T>(this Option<T> option) where T : struct => 
+            option.TryGetValue(out var val) ? val : null;
         
-        public static T GetOrThrow<T>(this Option<T> opt, Func<Exception> exception) =>
-            opt.GetOrElse(() => throw exception());
-        
-        // Note DS: Intentionally an overload instead of making the exception optional so that 
-        // Func<T> get = option.GetOrThrow;
-        // works.
-        public static T GetOrThrow<T>(this Option<T> opt) => opt.GetOrThrow(
-            () => new InvalidOperationException("No value present."));
-        
-        public static Option<T> OrWhenNone<T>(this Option<T> opt, Func<Option<T>> noneResultGetter) => opt.HasValue ? opt : noneResultGetter();
-
-        public static Option<T> Where<T>(this Option<T> opt, Func<T, bool> predicate) =>
-            opt.FlatMap(v => Option.If(predicate(v), () => v));
-
-        public static bool TryGetValue<T>(this Option<T> opt, out T result) {
-            result = opt.GetOrElse(elseResultGetter: () => default);
-            return opt.HasValue;
-        }
-
-        public static void Match<T>(this Option<T> opt, Action<T> onHasValue, Action onNone) {
-            if (opt.TryGetValue(out var res)) onHasValue(res);
-            else onNone();
-        }
-        
-        public static TRes Match<T, TRes>(this Option<T> opt, Func<T, TRes> onHasValue, Func<TRes> onNone) {
-            if (opt.TryGetValue(out var res)) return onHasValue(res);
-            else return onNone();
-        }
-
-        public static Result<TSuccess, TFailure> AsSuccess<TSuccess, TFailure>(
-            this Option<TSuccess> opt, Func<TFailure> failureIfNotPresent
-        ) => Result.If(
-            opt.HasValue,
-            opt.GetOrThrow,
-            failureIfNotPresent
-        );
-
-        public static Result<TSuccess, TFailure> AsFailure<TSuccess, TFailure>(
-            this Option<TFailure> opt, Func<TSuccess> successIfNotPresent
-        ) => Result.If(
-            !opt.HasValue,
-            successIfNotPresent,
-            opt.GetOrThrow
-        );
-
-        public static IEnumerable<Option<T>> Sequence<T>(this Option<IEnumerable<T>> option, int sizeIfNone)
-            => option.Map(enumerable => enumerable.Select(Option.Some))
+        [Pure] public static IEnumerable<Option<T>> Sequence<T>(this Option<IEnumerable<T>> option, int sizeIfNone) => 
+            option.Map(enumerable => enumerable.Select(Option.Some))
                 .GetOrElse(() => Enumerable.Repeat(Option<T>.None, sizeIfNone));
 
-        public static IReadOnlyCollection<Option<T>> Sequence<T>(this Option<IReadOnlyCollection<T>> option, int sizeIfNone)
-            => option.Map(enumerable => enumerable.Select(Option.Some))
+        [Pure] public static IReadOnlyCollection<Option<T>> Sequence<T>(this Option<IReadOnlyCollection<T>> option, int sizeIfNone) => 
+            option.Map(enumerable => enumerable.Select(Option.Some))
                 .GetOrElse(() => Enumerable.Repeat(Option<T>.None, sizeIfNone)).AsReadOnlyCollection();
 
-        public static IReadOnlyList<Option<T>> Sequence<T>(this Option<IReadOnlyList<T>> option, int sizeIfNone)
-            => option.Map(enumerable => enumerable.Select(Option.Some))
+        [Pure] public static IReadOnlyList<Option<T>> Sequence<T>(this Option<IReadOnlyList<T>> option, int sizeIfNone) => 
+            option.Map(enumerable => enumerable.Select(Option.Some))
                 .GetOrElse(() => Enumerable.Repeat(Option<T>.None, sizeIfNone)).AsReadOnlyList();
 
-        public static Option<IEnumerable<T>> Sequence<T>(this IEnumerable<Option<T>> enumerable)
-            => enumerable.Aggregate(
+        [Pure] public static Option<IEnumerable<T>> Sequence<T>(this IEnumerable<Option<T>> enumerable) => 
+            enumerable.Aggregate(
                 Option.Some(Enumerable.Empty<T>()), 
-                (resO, nowO) => resO.FlatMap(res => nowO.Map(res.Append)));
-
-        public static Option<IEnumerable<T>> Traverse<T>(this IEnumerable<T> enumerable, Func<T, Option<T>>? f = null) =>
-            enumerable.Select(element => f == null ? Option.Some(element) : f(element)).Sequence();
-        
-        
-        public static Option<IEnumerable<T>> TraverseNoneIfEmpty<T>(this IEnumerable<T> enumerable, Func<T, Option<T>>? f = null) =>
-            enumerable.Select(element => f == null ? Option.Some(element) : f(element)).OrIfEmpty(() => Option<T>.None.WrapAsEnumerable()).Sequence();
-        
-        public static Option<T> Flatten<T>(this Option<Option<T>> option)
-            => option.FlatMap(o => o);
-
-        public static Result<T, TErr> OrError<T, TErr>(this Option<T> opt, Func<TErr> errorGetter) =>
-            opt.Match<T, Result<T,TErr>>(
-                arg => Result.Success(arg),
-                () => Result.Failure(errorGetter())
+                (resO, nowO) => resO.FlatMap(res => nowO.Map(res.Append))
             );
 
-        public static IEnumerable<T> Collect<T>(this IEnumerable<Option<T>> options) {
+        [Pure] public static Option<IEnumerable<T>> Traverse<T>(this IEnumerable<T> enumerable, Func<T, Option<T>>? f = null) =>
+            enumerable.Select(element => f?.Invoke(element) ?? Option.Some(element)).Sequence();
+        
+        
+        [Pure] public static Option<IEnumerable<T>> TraverseNoneIfEmpty<T>(this IEnumerable<T> enumerable, Func<T, Option<T>>? f = null) =>
+            enumerable.Select(element => f?.Invoke(element) ?? Option.Some(element)).OrIfEmpty(() => Option<T>.None.WrapAsEnumerable()).Sequence();
+        
+        [Pure] public static Option<T> Flatten<T>(this Option<Option<T>> option)
+            => option.FlatMap(o => o);
+
+        [Pure] public static IEnumerable<T> Collect<T>(this IEnumerable<Option<T>> options) {
             foreach (var element in options)
                 if (element.TryGetValue(out var val))
                     yield return val;
         }
 
-        public static IEnumerable<S> Collect<T, S>(this IEnumerable<T> input, Func<T, Option<S>> mapping) =>
+        [Pure] public static IEnumerable<S> Collect<T, S>(this IEnumerable<T> input, Func<T, Option<S>> mapping) =>
             input.Select(mapping).Collect();
         
-        public static IEnumerable<S> CollectMany<T, S>(this IEnumerable<T> input, Func<T, IEnumerable<Option<S>>> mapping) =>
+        [Pure] public static IEnumerable<S> CollectMany<T, S>(this IEnumerable<T> input, Func<T, IEnumerable<Option<S>>> mapping) =>
             input.SelectMany(mapping).Collect();
         
-        public static Option<T> FirstSomeOrNone<T>(this IEnumerable<Option<T>> options)
+        [Pure] public static Option<T> FirstSomeOrNone<T>(this IEnumerable<Option<T>> options)
             => options.Collect().FirstOrNone();
 
-        public static IEnumerable<T> Flatten<T>(IEnumerable<Option<T>> source) =>
+        [Pure] public static IEnumerable<T> Flatten<T>(IEnumerable<Option<T>> source) =>
             source.Where(opt => opt.HasValue).Select(opt => opt.GetOrThrow());
 
-        public static Result<Option<TVal>, TErr> Flip<TVal, TErr>(this Option<Result<TVal, TErr>> option) =>
+        [Pure] public static Result<Option<TVal>, TErr> Flip<TVal, TErr>(this Option<Result<TVal, TErr>> option) =>
             option.Match(
                 value => value.Map(val => val.Some()),
                 () => Option<TVal>.None.Success()
             );
 
-        public static Task<Option<TVal>> Flip<TVal>(this Option<Task<TVal>> option) =>
+        [Pure] public static Task<Option<TVal>> Flip<TVal>(this Option<Task<TVal>> option) =>
             option.Match(
                 value => value.Map(val => val.Some()),
                 () => Option<TVal>.None.AsCompletedTask()
             );
 
-        public static IEnumerable<T> AsEnumerable<T>(this Option<T> option) => option.Match(
+        [Pure] public static IEnumerable<T> AsEnumerable<T>(this Option<T> option) => option.Match(
             onHasValue: value => value.WrapAsEnumerable(),
             onNone: Enumerable.Empty<T>
         );

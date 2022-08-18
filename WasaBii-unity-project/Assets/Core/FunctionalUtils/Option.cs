@@ -93,7 +93,7 @@ namespace BII.WasaBii.Core {
         public static implicit operator Option<T>(Option.UniversalNone _) => default;
 
         public static implicit operator Option<T>(T value) {
-            if (value == null) return default;
+            if (value == null) return Option.None;
             else return new Option<T>(value);
         }
 

@@ -8,7 +8,7 @@ namespace BII.WasaBii.Unity {
             this GameObject go, Action<T> onAdd = null, 
             Search where = Search.InObjectOnly, bool includeInactive = false
         ) where T : Component {
-            var res = go.As<T>(where, includeInactive);
+            var res = go.AsComponent<T>(where, includeInactive);
             if (res == null) {
                 res = go.AddComponent<T>();
                 onAdd?.Invoke(res);
@@ -28,7 +28,7 @@ namespace BII.WasaBii.Unity {
             this GameObject go, ref T t,
             Search where = Search.InObjectOnly, bool includeInactive = false
         ) where T : Component {
-            if (t.IsNull()) t = go.As<T>(where, includeInactive);
+            if (t.IsNull()) t = go.AsComponent<T>(where, includeInactive);
             return t;
         }
 

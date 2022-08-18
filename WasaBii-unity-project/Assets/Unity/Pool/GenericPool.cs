@@ -107,7 +107,7 @@ namespace BII.WasaBii.Unity {
                 Debug.LogWarning("You cannot change a pool's template or capacity after it has been initialized.");
             }
             else if (TemplateObject != null) {
-                Template = TemplateObject.As<Reusable>(Search.InChildren);
+                Template = TemplateObject.AsComponent<Reusable>(Search.InChildren);
                 if (Template == null) {
                     TemplateObject = null;
                     Debug.LogWarning(

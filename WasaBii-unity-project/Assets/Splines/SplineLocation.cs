@@ -149,8 +149,8 @@ namespace BII.WasaBii.Splines {
         public static bool operator >(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value > b.Value;
         public static bool operator <=(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value <= b.Value;
         public static bool operator >=(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value >= b.Value;
-        public static bool operator ==(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value == b.Value;
-        public static bool operator !=(NormalizedSplineLocation a, NormalizedSplineLocation b) => a.Value != b.Value;
+        public static bool operator ==(NormalizedSplineLocation a, NormalizedSplineLocation b) => Math.Abs(a.Value - b.Value) < double.Epsilon;
+        public static bool operator !=(NormalizedSplineLocation a, NormalizedSplineLocation b) => Math.Abs(a.Value - b.Value) > double.Epsilon;
         
         [Pure] public static NormalizedSplineLocation Lerp(NormalizedSplineLocation a, NormalizedSplineLocation b, double t) =>
             new(a.Value + t * (b.Value - a.Value));

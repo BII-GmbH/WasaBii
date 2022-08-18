@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -125,7 +127,7 @@ namespace BII.WasaBii.Unity {
                 case Component component:   return component.IsComponent<T>(out ret, where, includeInactive);
                 case GameObject gameObject: return gameObject.IsComponent<T>(out ret, where, includeInactive);
                 default:
-                    ret = null;
+                    ret = null!;
                     return false;
             }
         }

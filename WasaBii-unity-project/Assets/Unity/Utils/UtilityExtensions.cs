@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -66,7 +68,7 @@ namespace BII.WasaBii.Unity {
         public static void IfNotNull<T>(
             this T value,
             Action<T> action,
-            Action elseAction = null
+            Action? elseAction = null
         ) where T : class {
             if (!value.IsNull()) action(value);
             else elseAction?.Invoke();
@@ -83,11 +85,11 @@ namespace BII.WasaBii.Unity {
         /// this blog post</a> for more details about Unity's custom null handling. 
         /// </summary>
         public static TResult IfNotNull<T, TResult>(
-            this T value,
+            this T? value,
             Func<T, TResult> action,
             Func<TResult> elseAction
         ) where T : class =>
-            value.IsNotNull() && action(value).IsNotNull(out var res) 
+            value.IsNotNull() && action(value!).IsNotNull(out var res) 
                 ? res : elseAction();
 
         /// <summary>
@@ -100,10 +102,10 @@ namespace BII.WasaBii.Unity {
         /// See <a href="https://blogs.unity3d.com/2014/05/16/custom-operator-should-we-keep-it/">
         /// this blog post</a> for more details about Unity's custom null handling. 
         /// </summary>
-        public static TResult IfNotNull<T, TResult>(
-            this T value,
+        public static TResult? IfNotNull<T, TResult>(
+            this T? value,
             Func<T, TResult> action,
-            TResult elseResult = default
+            TResult? elseResult = default
         ) where T : class =>
             IfNotNull(value, action, () => elseResult);
 

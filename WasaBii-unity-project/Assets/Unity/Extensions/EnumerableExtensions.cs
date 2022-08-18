@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
@@ -7,6 +9,7 @@ using BII.WasaBii.Unity.Geometry;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {
+    
     public static class EnumerableExtensions {
         
         public static Vector3 Sum(this IEnumerable<Vector3> enumerable)
@@ -33,10 +36,10 @@ namespace BII.WasaBii.Unity {
             this IEnumerable<T> enumerable,
             Func<T, T, T> addition,
             Func<T, int, T> division
-        ) => Average(enumerable, seed: default(T), addition, division);
+        ) where T : struct => Average(enumerable, seed: default, addition, division);
 
-        public static Vector3 Average(this IEnumerable<Vector3> enumerable)
-            => enumerable.Average(
+        public static Vector3 Average(this IEnumerable<Vector3> enumerable) =>
+            enumerable.Average(
                 addition: (vec1, vec2) => vec1 + vec2,
                 division: (vec, i) => vec / i
             );

@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections;
 using BII.WasaBii.Core;
@@ -86,7 +88,7 @@ namespace BII.WasaBii.Extra {
         
         private readonly float? _updateDelay;
         private float lastUpdateTime;
-        private Coroutine _coroutine;
+        private Coroutine? _coroutine;
 
         protected Smoothed(T startValue, Func<T> targetGetter, T smoothness, float? updateDelay = null) {
             CurrentValue = startValue;
@@ -96,7 +98,7 @@ namespace BII.WasaBii.Extra {
         }
 
         public void Start() => _coroutine = updateValue().Start();
-        public void Stop() => _coroutine.Stop();
+        public void Stop() => _coroutine?.Stop();
 
         private IEnumerator updateValue() {
             lastUpdateTime = Time.time;

@@ -1,7 +1,8 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using BII.WasaBii.Unity.Exceptions;
-using JetBrains.Annotations;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {
@@ -62,6 +63,9 @@ namespace BII.WasaBii.Unity {
     /// to the pool's <see cref="Capacity"/>. 
     /// </summary>
     public class GenericPool : MonoBehaviour {
+        
+        // ReSharper disable all InconsistentNaming
+        
         [Range(0, 1)]
         [Tooltip("When no items are available the pool Capacity increases by (Capacity * (GrowRate + 1)). " +
                  "\nWhen this equals zero the pool throws an error instead of growing on demand.")]
@@ -75,12 +79,12 @@ namespace BII.WasaBii.Unity {
         /// </summary>
         [Tooltip(
             "The game object or prefab that is duplicated for use in this pool. Must have a 'Reusable' component.")]
-        public GameObject TemplateObject;
+        public GameObject? TemplateObject;
 
         // Needs to be serialized since OnValidate() is not called in a deployed application
-        [SerializeField] [HideInInspector] private Reusable _template;
+        [SerializeField][HideInInspector] private Reusable? _template;
 
-        public Reusable Template {
+        public Reusable? Template {
             get => _template;
             set {
                 if (_didInit)
@@ -97,26 +101,26 @@ namespace BII.WasaBii.Unity {
         [Tooltip("The maximum number of objects in this pool.")]
         public int Capacity;
 
-        private List<Reusable> _buffer;
+        private List<Reusable> _buffer = default!; // initialized in Init()
         private int _lastIndex = 0;
 
         private void OnValidate() {
             if (_didInit) {
-                Capacity = _buffer.Capacity;
-                TemplateObject = Template.gameObject;
+                Capacity = _buffer!.Capacity;
+                TemplateObject = Template.IfNotNull(t => t.gameObject);
                 Debug.LogWarning("You cannot change a pool's template or capacity after it has been initialized.");
             }
             else if (TemplateObject != null) {
-                Template = TemplateObject.AsComponent<Reusable>(Search.InChildren);
-                if (Template == null) {
+                if (!TemplateObject.AsComponent<Reusable>(Search.InChildren).TryGetValue(out var template)) {
                     TemplateObject = null;
                     Debug.LogWarning(
                         "The specified template object must have a component that extends 'Reusable'.");
                 }
+                else Template = template;
             }
         }
 
-        private bool _didInit = false;
+        private bool _didInit;
 
         /// <summary>
         /// Call to initialize the pool manually.
@@ -148,9 +152,12 @@ namespace BII.WasaBii.Unity {
             if (_buffer.Count < Capacity) AddItem();
         }
 
-        private int _numAddedItems = 0;
+        private int _numAddedItems;
 
-        private Reusable AddItem() {
+        private Reusable AddItem()
+        {
+            if (Template == null) throw new InvalidOperationException(
+                $"Cannot add item to pool {gameObject.name}: {nameof(Template)} is not assigned.");
             var curr = Instantiate(Template);
             curr.gameObject.name = Template.name + " (Pool Item #" + ++_numAddedItems + ")";
             curr.FreeForReuse();
@@ -165,7 +172,6 @@ namespace BII.WasaBii.Unity {
         /// </exception>
         /// <seealso cref="RequestItem(Vector3)"/>
         /// <seealso cref="RequestItem(Vector3, Quaternion)"/>
-        [NotNull]
         public GameObject RequestItem() => RequestItem(Vector3.zero, Quaternion.identity);
 
         /// <returns>An instance of the <see cref="TemplateObject"/> prefab, active and at the specified position.</returns>
@@ -174,7 +180,6 @@ namespace BII.WasaBii.Unity {
         /// </exception>
         /// <seealso cref="RequestItem()"/>
         /// <seealso cref="RequestItem(Vector3, Quaternion)"/>
-        [NotNull]
         public GameObject RequestItem(Vector3 position) => RequestItem(position, Quaternion.identity);
 
         /// <returns>
@@ -185,7 +190,6 @@ namespace BII.WasaBii.Unity {
         /// </exception>
         /// <seealso cref="RequestItem()"/>
         /// <seealso cref="RequestItem(Vector3)"/>
-        [NotNull]
         public GameObject RequestItem(Vector3 position, Quaternion rotation) {
             if (!_didInit) {
                 Debug.LogWarning(
@@ -239,7 +243,7 @@ namespace BII.WasaBii.Unity {
                 Capacity = Capacity + Math.Max((int)(Capacity * GrowRate), 1);
                 _buffer.Capacity = Capacity;
 
-                Debug.LogWarning(this + ": Requesting a " + Template.GetType() +
+                Debug.LogWarning(this + ": Requesting a " + Template?.GetType() +
                                  " with buffer capacity " + origCapacity +
                                  " failed! No more items available. Increasing capacity to " + Capacity, this);
             }

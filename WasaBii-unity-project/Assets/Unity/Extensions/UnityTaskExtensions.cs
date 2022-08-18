@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -10,25 +12,24 @@ namespace BII.WasaBii.Unity {
         /// Throws an exception if the provided resource is not of the given type.
         public static Task<T> AsTask<T>(
             this ResourceRequest request, 
-            Action<float> reportProgressEachFrame = null
+            Action<float>? reportProgressEachFrame = null
         ) where T : Object {
             var res = new TaskCompletionSource<T>();
 
-            if(reportProgressEachFrame != null)
+            if (reportProgressEachFrame != null)
                 Coroutines.RepeatWhile(
                     condition: () => !request.isDone, 
                     action: () => reportProgressEachFrame.Invoke(request.progress)
                 ).Start();
             
-            request.completed += op => {
+            request.completed += _ => {
                 Contract.Assert(request.asset != null);
                 res.SetResult(
-                    request.asset as T ??
-                    throw new Exception(
-                        $"The result of the operation {request.asset} was not of the expected type {typeof(T)}"
-                    )
+                    request.asset as T ?? throw new Exception(
+                        $"The result of the operation {request.asset} was not of the expected type {typeof(T)}")
                 );
             };
+            
             return res.Task;
         } 
     }

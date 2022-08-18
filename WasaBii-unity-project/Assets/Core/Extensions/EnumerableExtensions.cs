@@ -7,19 +7,21 @@ using System.Threading.Tasks;
 
 namespace BII.WasaBii.Core {
     public static class EnumerableExtensions {
+        
+        // ReSharper disable all InconsistentNaming
 
         public static Stack<T> ToStack<T>(this IEnumerable<T> source) => new(source);
         
         public static Queue<T> ToQueue<T>(this IEnumerable<T> source) => new(source);
-
-        /// <inheritdoc cref="System.Linq.Enumerable.ToDictionary()"/>
+        
         public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(
             this IEnumerable<(TKey key, TValue value)> tupleCollection
         ) => tupleCollection.ToDictionary(tuple => tuple.key, tuple => tuple.value);
 
         public static ImmutableDictionary<TKey, TValue> ToImmutableDictionary<TKey, TValue>(
             this IEnumerable<(TKey, TValue)> entries
-        ) => ImmutableDictionary.CreateRange(entries.Select(e => new KeyValuePair<TKey, TValue>(e.Item1, e.Item2)));
+        ) where TKey : notnull => 
+            ImmutableDictionary.CreateRange(entries.Select(e => new KeyValuePair<TKey, TValue>(e.Item1, e.Item2)));
 
         public static IReadOnlyCollection<T> AsReadOnlyCollection<T>(this IEnumerable<T> source)
             => source as IReadOnlyCollection<T> ?? source.ToList();
@@ -105,7 +107,7 @@ namespace BII.WasaBii.Core {
         public static IEnumerable<T> Flatten<T>(this IEnumerable<IEnumerable<T>> source) => source.SelectMany(s => s);
 
         public static bool AnyAdjacent<T>(this IEnumerable<T> enumerable, Func<T, T, bool> predicate) {
-            var it = enumerable.GetEnumerator();
+            using var it = enumerable.GetEnumerator();
             if (!it.MoveNext()) return false;
             for (var prev = it.Current; it.MoveNext(); prev = it.Current)
                 if (predicate(prev, it.Current))
@@ -124,7 +126,7 @@ namespace BII.WasaBii.Core {
             this IEnumerable<A> first, IEnumerable<B> second, IEnumerable<C> third
         ) =>
             first.Zip<A, (B, C), (A, B, C)>(second.Zip(third), (a, tuple) => (a, tuple.Item1, tuple.Item2));
-
+        
         public static IEnumerable<(A, B, C, D)> Zip<A, B, C, D>(
             this IEnumerable<A> first, IEnumerable<B> second, IEnumerable<C> third, IEnumerable<D> fourth
         ) =>
@@ -221,7 +223,7 @@ namespace BII.WasaBii.Core {
         public static T LastOrThrow<T>(
             this IEnumerable<T> enumerable,
             Func<Exception> elseException,
-            Predicate<T> predicate = null
+            Predicate<T>? predicate = null
         ) => enumerable.LastOrNone(predicate).GetOrThrow(elseException);
         
         public static bool SameAs<T>(this IEnumerable<T> lhs, IEnumerable<T> rhs) where T : IEquatable<T> {
@@ -475,7 +477,7 @@ namespace BII.WasaBii.Core {
                 t = stack.Peek();
                 return true;
             } else {
-                t = default;
+                t = default!;
                 return false;
             }
         }
@@ -532,7 +534,7 @@ namespace BII.WasaBii.Core {
             areEqual ??= (t1, t2) => Equals(t1, t2);
             while (enumerator2.MoveNext()) {
                 if (!(enumerator1.MoveNext() && areEqual(enumerator1.Current, enumerator2.Current))) {
-                    tail = null;
+                    tail = Enumerable.Empty<T>();
                     return false;
                 }
             }

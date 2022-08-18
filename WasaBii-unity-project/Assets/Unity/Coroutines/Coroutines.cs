@@ -1,11 +1,14 @@
+#nullable enable
+
 using System;
 using System.Collections;
 using BII.WasaBii.UnitSystem;
-using System.ComponentModel;
 using JetBrains.Annotations;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {
+    
+    // ReSharper disable all InvalidXmlDocComment
     
     /// <summary>
     /// Author: Cameron Reuschel
@@ -38,7 +41,7 @@ namespace BII.WasaBii.Unity {
         /// <seealso cref="Action"/>
         /// <example><code>
         /// // a custom implementation of an until-loop using tail recursion
-        /// public void Until([NotNull] Condition cond, [NotNull] CodeBlock code)
+        /// public void Until(Condition cond, CodeBlock code)
         /// {
         ///     if (!cond)
         ///     {
@@ -94,7 +97,6 @@ namespace BII.WasaBii.Unity {
         ///   yield return flattened.Current;
         /// }
         /// </code></example>
-        [NotNull]
         public static IEnumerator Flatten(this IEnumerator coroutine) {
             while (coroutine.MoveNext()) {
                 if (coroutine.Current is IEnumerator curr) {
@@ -111,8 +113,7 @@ namespace BII.WasaBii.Unity {
         /// specified condition holds true. Once it fails, cancel the coroutine immediately.
         /// One can use <see cref="Afterwards"/> to execute code regardless of interruption.
         /// This checks the condition once <b>before</b> executing any code.
-        [NotNull]
-        public static IEnumerator YieldWhile(this IEnumerator coroutine, [NotNull] Condition condition) {
+        public static IEnumerator YieldWhile(this IEnumerator coroutine, Condition condition) {
             var flattened = coroutine.Flatten();
             while (condition() && flattened.MoveNext())
                 yield return flattened.Current;
@@ -130,8 +131,7 @@ namespace BII.WasaBii.Unity {
         /// The coroutine to execute after this coroutine is done.
         /// </param>
         // ReSharper disable once InvalidXmlDocComment
-        [NotNull]
-        public static IEnumerator AndThen(this IEnumerator coroutine, [NotNull] IEnumerator afterwards) {
+        public static IEnumerator AndThen(this IEnumerator coroutine, IEnumerator afterwards) {
             yield return coroutine;
             yield return afterwards;
         }
@@ -142,8 +142,7 @@ namespace BII.WasaBii.Unity {
         /// </summary>
         /// <param name="afterwards">The block of code to be executed once the execution of this coroutine ends.</param>
         // ReSharper disable once InvalidXmlDocComment
-        [NotNull]
-        public static IEnumerator Afterwards(this IEnumerator coroutine, [NotNull] Action afterwards) {
+        public static IEnumerator Afterwards(this IEnumerator coroutine, Action afterwards) {
             var flattened = coroutine.Flatten();
             try {
                 while (flattened.MoveNext())
@@ -169,7 +168,7 @@ namespace BII.WasaBii.Unity {
         /// <returns>
         /// A singleton coroutine, which when executed calls the passed action and yields the action's result.
         /// </returns>
-        public static IEnumerator Do([NotNull] Func<YieldInstruction> action) {
+        public static IEnumerator Do(Func<YieldInstruction> action) {
             yield return action();
         }
 
@@ -187,7 +186,7 @@ namespace BII.WasaBii.Unity {
         /// <returns>
         /// A coroutine that terminates immediately after executing the passed code.
         /// </returns>
-        public static IEnumerator Do([NotNull] Action code) {
+        public static IEnumerator Do(Action code) {
             code();
             yield break;
         }
@@ -231,7 +230,7 @@ namespace BII.WasaBii.Unity {
         /// <param name="times">
         /// The optional number of times the passed action is called and yielded.
         /// </param>
-        public static IEnumerator Repeat([NotNull] Action action, DelayType delayType, [CanBeNull] int? times = null) {
+        public static IEnumerator Repeat(Action action, DelayType delayType, int? times = null) {
             for (var i = 0; i != times; ++i) {
                 action();
                 yield return delayType.ToYieldInstruction();
@@ -253,7 +252,7 @@ namespace BII.WasaBii.Unity {
         /// </code></example>
         /// <param name="action">The code to execute before the passed coroutine.</param>
         /// <param name="coroutine">The coroutine to prepend the action to.</param>
-        public static IEnumerator DoBefore([NotNull] Action action, IEnumerator coroutine) {
+        public static IEnumerator DoBefore(Action action, IEnumerator coroutine) {
             action();
             yield return coroutine;
         }
@@ -272,9 +271,9 @@ namespace BII.WasaBii.Unity {
         // ReSharper disable once InvalidXmlDocComment
         [Pure]
         public static IEnumerator WaitUntil(
-            [NotNull] Condition condition, 
-            [CanBeNull] Action afterwards = null,
-            Func<object> yieldInstructionGetter = null
+            Condition condition, 
+            Action? afterwards = null,
+            Func<object>? yieldInstructionGetter = null
         ) {
             while (!condition())
                 yield return yieldInstructionGetter?.Invoke();
@@ -291,7 +290,7 @@ namespace BII.WasaBii.Unity {
         [Pure]
         public static IEnumerator DelayForFrames(
             uint frames, 
-            [CanBeNull] Action afterwards = null,
+            Action? afterwards = null,
             DelayType delayType = DelayType.Default
         ) {
             for (var i = 0; i < frames; ++i)
@@ -306,7 +305,7 @@ namespace BII.WasaBii.Unity {
         /// The block of code to be executed once the specified time has passed.
         /// </param>
         [Pure]
-        public static IEnumerator WaitForSeconds(float time, [CanBeNull] Action afterwards = null) {
+        public static IEnumerator WaitForSeconds(float time, Action? afterwards = null) {
             yield return new WaitForSeconds(time);
             if (afterwards != null) afterwards.Invoke();
         }
@@ -318,7 +317,7 @@ namespace BII.WasaBii.Unity {
         /// The block of code to be executed once the specified time has passed.
         /// </param>
         [Pure]
-        public static IEnumerator WaitFor(Duration duration, [CanBeNull] Action afterwards = null)
+        public static IEnumerator WaitFor(Duration duration, Action? afterwards = null)
             => WaitForSeconds((float) duration.AsSeconds(), afterwards);
 
         /// <summary>
@@ -334,7 +333,7 @@ namespace BII.WasaBii.Unity {
         [Pure]
         public static IEnumerator RepeatForSeconds(
             float seconds, 
-            [NotNull] Action action,
+            Action action,
             DelayType delayType = DelayType.Default
         ) {
             var start = Time.time;
@@ -356,7 +355,7 @@ namespace BII.WasaBii.Unity {
         [Pure]
         public static IEnumerator RepeatForFrames(
             uint frames, 
-            [NotNull] Action action, 
+            Action action, 
             DelayType delayType = DelayType.Default
         ) {
             for (var i = 0; i < frames; ++i) {
@@ -373,8 +372,8 @@ namespace BII.WasaBii.Unity {
         /// <param name="condition">Execute the action as long as this function returns true</param>
         [Pure]
         public static IEnumerator RepeatWhile(
-            [NotNull] Condition condition, 
-            [NotNull] Action action,
+            Condition condition, 
+            Action action,
             DelayType delayType = DelayType.Default
         ) {
             while (condition()) {
@@ -394,7 +393,7 @@ namespace BII.WasaBii.Unity {
         [Pure]
         public static IEnumerator RepeatEverySeconds(
             float interval, 
-            [NotNull] Action action,
+            Action action,
             int? repetitions = null
         ) {
             if (repetitions is int r && r <= 0)

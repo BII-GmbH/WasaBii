@@ -1,3 +1,5 @@
+#nullable enable
+
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {
@@ -15,12 +17,12 @@ namespace BII.WasaBii.Unity {
     /// </summary>
     [RequireComponent(typeof(Queryable))]
     public abstract class QueryableBehaviour : MonoBehaviour {
-        private Queryable _queryable;
+        private Queryable? _queryable;
 
         public Queryable Queryable {
             get {
                 if (_queryable != null) return _queryable;
-                _queryable = GetComponent<Queryable>();
+                _queryable = this.AsComponentOrThrow<Queryable>();
                 return _queryable;
             }
         }

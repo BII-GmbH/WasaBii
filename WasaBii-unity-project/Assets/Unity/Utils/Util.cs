@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -8,10 +10,7 @@ namespace BII.WasaBii.Unity {
     /// <summary>
     /// Author: Cameron Reuschel
     /// <br/><br/>
-    /// This class serves as a namespace for every
-    /// non-specific utility function, such as 
-    /// <see cref="Mod"/> and <see cref="IsNull{T}"/>,
-    /// as well as <see cref="VectorProxy"/>.
+    /// This class serves as a namespace for every non-specific unity utility function.
     /// </summary>
     public static class Util {
         
@@ -37,8 +36,8 @@ namespace BII.WasaBii.Unity {
         /// Otherwise the field remains unchanged, the getter
         /// is never called and the operation returns false.
         /// </summary>
-        public static bool IfAbsentCompute<T>(ref T field, [NotNull] Func<T> getter) {
-            if (IsNull(field) || EqualityComparer<T>.Default.Equals(field, default)) {
+        public static bool IfAbsentCompute<T>(ref T? field, Func<T> getter) {
+            if (IsNull(field) || Equals(field, default)) {
                 field = getter();
                 return true;
             }
@@ -57,9 +56,9 @@ namespace BII.WasaBii.Unity {
         /// If the getter produces a non-null or non-default value result,
         /// the returned field will always be assigned.
         /// </summary>
-        public static T IfAbsentComputeThenReturn<T>(ref T field, [NotNull] Func<T> getter) {
+        public static T IfAbsentComputeThenReturn<T>(ref T? field, [NotNull] Func<T> getter) {
             IfAbsentCompute(ref field, getter);
-            return field;
+            return field!;
         }
 
         /// <summary>
@@ -72,7 +71,7 @@ namespace BII.WasaBii.Unity {
         /// Since the getter must produce a non-null result,
         /// the returned field will always be non-null.
         /// </summary>
-        public static T IfAbsentComputeThenReturn<T>(ref T? field, [NotNull] Func<T> getter) where T : struct {
+        public static T IfAbsentComputeThenReturn<T>(ref T? field, Func<T> getter) where T : struct {
             IfAbsentCompute(ref field, () => getter());
             Contract.Assert(field != null);
             return field.Value;
@@ -80,10 +79,10 @@ namespace BII.WasaBii.Unity {
 
         /// If the field is null, it will be assigned the given value.
         /// Otherwise, the <paramref name="whenNotNull"/> action is executed.
-        public static void AssignValueIfNull<T>(ref T field, [NotNull] T value, Action<T> whenNotNull) where T : class {
+        public static void AssignValueIfNull<T>(ref T? field, T value, Action<T> whenNotNull) where T : class {
             if (IsNull(field))
                 field = value;
-            else whenNotNull(field);
+            else whenNotNull(field!);
         }
     }
 }

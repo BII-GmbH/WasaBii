@@ -40,7 +40,7 @@ namespace BII.WasaBii.Splines.Tests {
         
         [Test]
         public void WhenInvalidSpline_ThenThrows() {
-            Assert.That(() =>  CatmullRomSegmentAt(ExampleInvalidSpline.Spline, NormalizedSplineLocation.Zero), Throws.ArgumentException);
+            Assert.That(() => CatmullRomSegmentAt(ExampleInvalidSpline.Spline, NormalizedSplineLocation.Zero), Throws.ArgumentException);
         }
         
         [Test]

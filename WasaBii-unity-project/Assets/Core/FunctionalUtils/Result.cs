@@ -18,7 +18,7 @@ namespace BII.WasaBii.Core {
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public static Result<TValue, TError> Failure<TValue, TError>(this TError error) =>
-            Result<TValue, TError>.Error(error);
+            Result<TValue, TError>.Failure(error);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public static Failure<TError> Failure<TError>(this TError error) => new(error);
@@ -28,7 +28,7 @@ namespace BII.WasaBii.Core {
             bool predicate, Func<TValue> then, Func<TError> onError
         ) => predicate 
             ? Result<TValue, TError>.Success(then()) 
-            : Result<TValue, TError>.Error(onError());
+            : Result<TValue, TError>.Failure(onError());
 
         public static Result<TValue, TError> IfNotNull<TValue, TError>(
             TValue? value, Func<TError> whenNull
@@ -114,41 +114,45 @@ namespace BII.WasaBii.Core {
         }
 
         public bool WasSuccessful => Status == ValueStatus.Value;
-        public bool WasError => Status == ValueStatus.Error;
+        public bool WasFailure => Status == ValueStatus.Error;
         
-        public TValue ResultOrThrow() => 
-            WasSuccessful ? ResultOrDefault! : throw new InvalidOperationException("Not a successful result: " + ErrorOrDefault);
+        public TValue ResultOrThrow(Func<Exception>? exception = null) => 
+            WasSuccessful 
+                ? ResultOrDefault! 
+                : throw exception?.Invoke() ?? new InvalidOperationException("Not a successful result: " + ErrorOrDefault);
         
-        public TError ErrorOrThrow() => 
-            WasSuccessful ? throw new InvalidOperationException("Not an error: " + ResultOrDefault) : ErrorOrDefault!;
+        public TError ErrorOrThrow(Func<Exception>? exception = null) => 
+            WasSuccessful 
+                ? throw exception?.Invoke() ?? new InvalidOperationException("Not an error: " + ResultOrDefault) 
+                : ErrorOrDefault!;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TRes Match<TRes>(Func<TValue, TRes> onSuccess, Func<TError, TRes> onError) =>
+        public TRes Match<TRes>(Func<TValue, TRes> onSuccess, Func<TError, TRes> onFailure) =>
             Status switch {
                 ValueStatus.Default => throw new InvalidOperationException("Cannot match on a default result."),
                 ValueStatus.Value => onSuccess(ResultOrDefault!),
-                ValueStatus.Error => onError(ErrorOrDefault!),
-                _ => throw new UnsupportedEnumValueException(Status, $"{nameof(Result<TValue,TError>)}.{nameof(Match)}")
+                ValueStatus.Error => onFailure(ErrorOrDefault!),
+                _ => throw new UnsupportedEnumValueException(Status, $"{nameof(Result<TValue,TError>)}.{nameof(DoMatch)}")
             };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Match(Action<TValue> onSuccess, Action<TError> onError) {
+        public void DoMatch(Action<TValue> onSuccess, Action<TError> onFailure) {
             switch (Status) {
                 case ValueStatus.Default: throw new InvalidOperationException("Cannot match on a default result.");
                 case ValueStatus.Value: onSuccess(ResultOrDefault!); break;
-                case ValueStatus.Error: onError(ErrorOrDefault!); break;
+                case ValueStatus.Error: onFailure(ErrorOrDefault!); break;
                 default: 
-                    throw new UnsupportedEnumValueException(Status, $"{nameof(Result<TValue, TError>)}.{nameof(Match)}");
+                    throw new UnsupportedEnumValueException(Status, $"{nameof(Result<TValue, TError>)}.{nameof(DoMatch)}");
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TRes MatchDynamic<TRes>(Func<object, TRes> onSuccess, Func<TError, TRes> onError) =>
-            Match(value => onSuccess(value!), onError);
+        public TRes MatchDynamic<TRes>(Func<object, TRes> onSuccess, Func<TError, TRes> onFailure) =>
+            Match(value => onSuccess(value!), onFailure);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void MatchDynamic(Action<object> onSuccess, Action<TError> onError) =>
-            Match(value => onSuccess(value!), onError);
+        public void MatchDynamic(Action<object> onSuccess, Action<TError> onFailure) =>
+            DoMatch(value => onSuccess(value!), onFailure);
 
         public static implicit operator Result<TValue, TError>(Success<TValue> success) => new(success.Result);
         public static implicit operator Result<TValue, TError>(Failure<TError> failure) => new(failure.Error);
@@ -160,20 +164,19 @@ namespace BII.WasaBii.Core {
         public static Result<TValue, TError> Success(TValue value) => new(value);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Result<TValue, TError> Error(TError error) => new(error);
+        public static Result<TValue, TError> Failure(TError error) => new(error);
 
         [Pure] public bool Equals(TValue other) => WasSuccessful && Equals(other, ResultOrDefault!);
-        [Pure] public bool Equals(TError other) => WasError && Equals(other, ErrorOrDefault!);
+        [Pure] public bool Equals(TError other) => WasFailure && Equals(other, ErrorOrDefault!);
 
         [Pure] public bool Equals(Result<TValue, TError> other) => 
             Equals(Status, other.Status) && Equals(ResultOrDefault, other.ResultOrDefault) && Equals(ErrorOrDefault, other.ErrorOrDefault);
 
-        [Pure] public override bool Equals(object obj) =>
+        [Pure]
+        public override bool Equals(object obj) =>
             obj is Success<TValue> success && Equals(success)
             || obj is Failure<TError> failure && Equals(failure)
-            || obj is Result<TValue, TError> other && Equals(other) 
-            || obj is TValue otherValue && Equals(otherValue) 
-            || obj is TError otherError && Equals(otherError);
+            || obj is Result<TValue, TError> other && Equals(other);
 
         [Pure] public static bool operator ==(Result<TValue, TError> first, Result<TValue, TError> second) => first.Equals(second);
         [Pure] public static bool operator !=(Result<TValue, TError> first, Result<TValue, TError> second) => !first.Equals(second);
@@ -194,10 +197,10 @@ namespace BII.WasaBii.Core {
         // There is really no need for these to be extension methods.
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WhenSuccessful(Action<TValue> onSuccess) => Match(onSuccess, _ => { });
+        public void WhenSuccessful(Action<TValue> onSuccess) => DoMatch(onSuccess, _ => { });
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WhenError(Action<TError> onError) => Match(_ => { }, onError);
+        public void WhenFailure(Action<TError> onFailure) => DoMatch(_ => { }, onFailure);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public Result<TRes, TError> Map<TRes>(Func<TValue, TRes> mapping) => 
@@ -247,7 +250,7 @@ namespace BII.WasaBii.Core {
         
         [Pure] public Option<TError> ErrorOrNone() => Match(_ => Option.None, Option.Some);
 
-        [Pure] public Option<TValue> TryGetValue() => Match(Option.Some, _ => Option<TValue>.None);
+        [Pure] public Option<TValue> TryGetResult() => Match(Option.Some, _ => Option<TValue>.None);
         
         [Pure] public Option<TError> TryGetError() => Match(_ => Option<TError>.None, Option.Some);
         
@@ -275,16 +278,16 @@ namespace BII.WasaBii.Core {
     public static class ResultExtensions {
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfError<TError>(this Result<Nothing, TError> result) => result.ResultOrThrow();
+        public static void ThrowIfFailure<TError>(this Result<Nothing, TError> result) => result.ResultOrThrow();
         
         [Pure] public static Option<Result<TVal, TErr>> Flip<TVal, TErr>(this Result<Option<TVal>, TErr> result) =>
             result.Match(
                 onSuccess: option => option.Map(Result.Success<TVal, TErr>),
-                onError: err => Option.Some(err.Failure<TVal, TErr>())
+                onFailure: err => Option.Some(err.Failure<TVal, TErr>())
             );
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [Pure] public static Result<IEnumerable<TValue>, TError> Sequence<TValue, TError>(
+        [Pure] public static Result<IEnumerable<TValue>, TError> Flip<TValue, TError>(
             this IEnumerable<Result<TValue, TError>> enumerable
         ) => enumerable.Aggregate(
             Enumerable.Empty<TValue>().Success<IEnumerable<TValue>, TError>(),

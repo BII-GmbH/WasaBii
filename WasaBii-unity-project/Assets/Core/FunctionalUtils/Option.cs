@@ -138,7 +138,7 @@ namespace BII.WasaBii.Core {
             return HasValue;
         }
 
-        public void Match(Action<T> onHasValue, Action onNone) {
+        public void DoMatch(Action<T> onHasValue, Action onNone) {
             if (TryGetValue(out var res)) onHasValue(res);
             else onNone();
         }
@@ -159,30 +159,30 @@ namespace BII.WasaBii.Core {
         [Pure] public static T? GetOrNull<T>(this Option<T> option) where T : struct => 
             option.TryGetValue(out var val) ? val : null;
         
-        [Pure] public static IEnumerable<Option<T>> Sequence<T>(this Option<IEnumerable<T>> option, int sizeIfNone) => 
+        [Pure] public static IEnumerable<Option<T>> Flip<T>(this Option<IEnumerable<T>> option, int sizeIfNone) => 
             option.Map(enumerable => enumerable.Select(Option.Some))
                 .GetOrElse(() => Enumerable.Repeat(Option<T>.None, sizeIfNone));
 
-        [Pure] public static IReadOnlyCollection<Option<T>> Sequence<T>(this Option<IReadOnlyCollection<T>> option, int sizeIfNone) => 
+        [Pure] public static IReadOnlyCollection<Option<T>> Flip<T>(this Option<IReadOnlyCollection<T>> option, int sizeIfNone) => 
             option.Map(enumerable => enumerable.Select(Option.Some))
                 .GetOrElse(() => Enumerable.Repeat(Option<T>.None, sizeIfNone)).AsReadOnlyCollection();
 
-        [Pure] public static IReadOnlyList<Option<T>> Sequence<T>(this Option<IReadOnlyList<T>> option, int sizeIfNone) => 
+        [Pure] public static IReadOnlyList<Option<T>> Flip<T>(this Option<IReadOnlyList<T>> option, int sizeIfNone) => 
             option.Map(enumerable => enumerable.Select(Option.Some))
                 .GetOrElse(() => Enumerable.Repeat(Option<T>.None, sizeIfNone)).AsReadOnlyList();
 
-        [Pure] public static Option<IEnumerable<T>> Sequence<T>(this IEnumerable<Option<T>> enumerable) => 
+        [Pure] public static Option<IEnumerable<T>> Flip<T>(this IEnumerable<Option<T>> enumerable) => 
             enumerable.Aggregate(
                 Option.Some(Enumerable.Empty<T>()), 
                 (resO, nowO) => resO.FlatMap(res => nowO.Map(res.Append))
             );
 
         [Pure] public static Option<IEnumerable<T>> Traverse<T>(this IEnumerable<T> enumerable, Func<T, Option<T>>? f = null) =>
-            enumerable.Select(element => f?.Invoke(element) ?? Option.Some(element)).Sequence();
+            enumerable.Select(element => f?.Invoke(element) ?? Option.Some(element)).Flip();
         
         
         [Pure] public static Option<IEnumerable<T>> TraverseNoneIfEmpty<T>(this IEnumerable<T> enumerable, Func<T, Option<T>>? f = null) =>
-            enumerable.Select(element => f?.Invoke(element) ?? Option.Some(element)).OrIfEmpty(() => Option<T>.None.WrapAsEnumerable()).Sequence();
+            enumerable.Select(element => f?.Invoke(element) ?? Option.Some(element)).OrIfEmpty(() => Option<T>.None.WrapAsEnumerable()).Flip();
         
         [Pure] public static Option<T> Flatten<T>(this Option<Option<T>> option)
             => option.FlatMap(o => o);

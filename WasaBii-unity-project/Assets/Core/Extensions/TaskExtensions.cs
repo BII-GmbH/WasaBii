@@ -59,7 +59,7 @@ namespace BII.WasaBii.Core {
             failure => failure.Failure<S, F>().AsCompletedTask()
         );
 
-        public static Task<IEnumerable<T>> Sequence<T>(this IEnumerable<Task<T>> tasks) => 
+        public static Task<IEnumerable<T>> Flip<T>(this IEnumerable<Task<T>> tasks) => 
             Task.WhenAll(tasks).Map(array => (IEnumerable<T>) array);
     }
 

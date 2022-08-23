@@ -169,6 +169,9 @@ namespace BII.WasaBii.Unity {
                 Init();
             }
 
+            if (Template == null)
+                throw new InvalidOperationException("Cannot request item from pool: no Template set.");
+
             // first pass: find an inactive object
             for (var i = 0; i < _buffer.Count; ++i) {
                 var ii = (i + _lastIndex + 1) % _buffer.Count;
@@ -205,7 +208,7 @@ namespace BII.WasaBii.Unity {
             // ... else if it is not supposed to grow, fail ...
             if (Math.Abs(GrowRate) < Mathf.Epsilon)
                 throw new PoolOutOfItemsException(
-                    this + ": Requesting a " + TemplateObject + " with buffer capacity " + Capacity +
+                    this + ": Requesting a " + Template.gameObject + " with buffer capacity " + Capacity +
                     " failed and GrowRate is set to 0. No more items available.");
 
             // ... and if not still growing to capacity ... 
@@ -214,7 +217,7 @@ namespace BII.WasaBii.Unity {
                 Capacity = Capacity + Math.Max((int)(Capacity * GrowRate), 1);
                 _buffer.Capacity = Capacity;
 
-                Debug.LogWarning(this + ": Requesting a " + Template?.GetType() +
+                Debug.LogWarning(this + ": Requesting a " + Template.GetType() +
                                  " with buffer capacity " + origCapacity +
                                  " failed! No more items available. Increasing capacity to " + Capacity, this);
             }

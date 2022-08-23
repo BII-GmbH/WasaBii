@@ -22,7 +22,9 @@ namespace BII.WasaBii.Unity {
         public Queryable Queryable {
             get {
                 if (_queryable != null) return _queryable;
-                _queryable = this.GetComponentOrThrow<Queryable>();
+                _queryable = this.HasComponent<Queryable>(out var q) ? q 
+                    : throw new MissingComponentException(
+                        $"A {nameof(QueryableBehaviour)} must have a component of type {nameof(Queryable)} but {this} had none.");
                 return _queryable;
             }
         }

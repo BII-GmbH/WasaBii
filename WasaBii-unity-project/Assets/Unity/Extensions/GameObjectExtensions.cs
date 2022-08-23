@@ -29,7 +29,7 @@ namespace BII.WasaBii.Unity {
             this GameObject go, ref T? t,
             Search where = Search.InObjectOnly, bool includeInactive = false
         ) where T : Component {
-            if (t.IsNull()) t = go.GetComponent<T>(where, includeInactive).GetOrElse(() => null!);
+            if (t.IsNull()) go.HasComponent<T>(out t, where, includeInactive);
             return t;
         }
 

@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace BII.WasaBii.Unity {
     
-    public static class EnumerableExtensions {
+    public static class EnumerableUnityExtensions {
         
         public static Vector3 Sum(this IEnumerable<Vector3> enumerable)
             => enumerable.Aggregate(Vector3.zero, (v1, v2) => v1 + v2);
@@ -23,12 +23,11 @@ namespace BII.WasaBii.Unity {
         ) {
             var count = 0;
             var sum = seed;
-            enumerable.ForEach(
-                t => {
-                    count++;
-                    sum = addition(sum, t);
-                }
-            );
+            foreach (var t in enumerable) {
+                count++;
+                sum = addition(sum, t);
+            }
+            if (count == 0) return seed;
             return division(sum, count);
         }
 

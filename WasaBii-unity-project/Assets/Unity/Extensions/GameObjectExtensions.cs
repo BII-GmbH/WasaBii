@@ -10,7 +10,7 @@ namespace BII.WasaBii.Unity {
             this GameObject go, Action<T>? onAdd = null, 
             Search where = Search.InObjectOnly, bool includeInactive = false
         ) where T : Component {
-            if (go.IsComponent<T>(out var res, where, includeInactive)) {
+            if (go.HasComponent<T>(out var res, where, includeInactive)) {
                 res = go.AddComponent<T>();
                 onAdd?.Invoke(res);
             }
@@ -29,7 +29,7 @@ namespace BII.WasaBii.Unity {
             this GameObject go, ref T? t,
             Search where = Search.InObjectOnly, bool includeInactive = false
         ) where T : Component {
-            if (t.IsNull()) t = go.AsComponent<T>(where, includeInactive).GetOrElse(() => null!);
+            if (t.IsNull()) t = go.GetComponent<T>(where, includeInactive).GetOrElse(() => null!);
             return t;
         }
 

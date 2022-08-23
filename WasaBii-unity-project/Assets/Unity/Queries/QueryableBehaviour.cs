@@ -22,7 +22,7 @@ namespace BII.WasaBii.Unity {
         public Queryable Queryable {
             get {
                 if (_queryable != null) return _queryable;
-                _queryable = this.AsComponentOrThrow<Queryable>();
+                _queryable = this.GetComponentOrThrow<Queryable>();
                 return _queryable;
             }
         }

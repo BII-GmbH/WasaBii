@@ -1,9 +1,10 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Threading.Tasks;
 
 namespace BII.WasaBii.Core {
     public static class AsyncUtils {
-        public static async Task RepeatUntilCancelled(Func<Task> toRepeat, Action afterEachIteration = null) {
+        public static async Task RepeatUntilCancelled(Func<Task> toRepeat, Action? afterEachIteration = null) {
             while (true) {
                 try {
                     await toRepeat();
@@ -24,9 +25,14 @@ namespace BII.WasaBii.Core {
         }
 
 
+        /// <param name="toExecute">
+        /// Getter for the task that is executed.
+        /// Tasks are started on construction, so this ensures that we 
+        ///  can launch the task in our context and guarantee disposal.
+        /// </param>
         /// <param name="disposeAction">
         /// Code that is executed either if task of <paramref name="toExecute"/>
-        /// completes, is cancelled or fails with an exception. 
+        ///  completes, is cancelled or fails with an exception. 
         /// </param>
         public static async Task<T> WithCustomDisposeAction<T>(Func<Task<T>> toExecute, Action disposeAction) {
             try {

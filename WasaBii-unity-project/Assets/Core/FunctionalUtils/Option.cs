@@ -30,10 +30,12 @@ namespace BII.WasaBii.Core {
             }
         }
         
+        public static Option<T> TryCast<T>(object obj) => obj is T res ? res.Some() : None;
+        
         public static readonly UniversalNone None = new();
 
         /// Implicitly convertible to Option{T}.None for any T
-        public readonly struct UniversalNone { } 
+        public readonly struct UniversalNone { }
     }
     
     /// Marker interface for option values without specifying the generic type.

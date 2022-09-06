@@ -326,12 +326,12 @@ namespace BII.WasaBii.Core {
 
             if (thenDo == null) return;
 
-            IEnumerable<T> completeEnumerable() {
+            static IEnumerable<T> completeEnumerable(IEnumerator<T> enumerator) {
                 do yield return enumerator.Current;
                 while (enumerator.MoveNext());
             }
 
-            thenDo(completeEnumerable());
+            thenDo(completeEnumerable(enumerator));
         }
 
         public static TResult IfSingle<TSource, TResult>(

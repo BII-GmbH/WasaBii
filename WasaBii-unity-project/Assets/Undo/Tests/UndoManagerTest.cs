@@ -1,8 +1,10 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Undos;
+using JetBrains.Annotations;
 using NUnit.Framework;
 
 namespace BII.WasaBii.Undo.Tests {
@@ -63,11 +65,11 @@ namespace BII.WasaBii.Undo.Tests {
     }
 
     public class UndoManagerTest {
-        private UndoManager<string> undoManager;
+        private UndoManager<string> undoManager = null!; // always assigned in `Setup`
 
         private static void fail() => Assert.Fail();
 
-        private void registerUndos(int n, Action Do = null, Action Undo = null) {
+        private void registerUndos(int n, Action? Do = null, Action? Undo = null) {
             static void DoNothing() { }
             for (var i = 0; i < n; ++i) {
                 undoManager.StartRecordingAction("test #" + i);
@@ -760,9 +762,12 @@ namespace BII.WasaBii.Undo.Tests {
             public override void OnAfterDetach() => onAfterAttach();
         }
 
+        [Test]
         public void WhenUndosExceedCap_ThenOldestRemoved() {
+            #pragma warning disable CS0219 // wrong? Assigned right below in closures
             var onBeforeAttachCalled = false;
             var onAfterDetachCalled = false;
+            #pragma warning restore CS0219
 
             var buffer = new SingleElementUndoBuffer(
                 () => onBeforeAttachCalled = true, 

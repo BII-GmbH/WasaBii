@@ -1,11 +1,12 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BII.WasaBii.Core;
 using BII.WasaBii.Undos;
-using JetBrains.Annotations;
 using UnityEngine;
 
 namespace BII.WasaBii.Undo {
@@ -24,11 +25,11 @@ namespace BII.WasaBii.Undo {
     [CannotBeSerialized("Undos are closure-based. Do not serialize closures.")]
     public class UndoManager<TLabel> {
 
-        public event Action OnAfterActionRecorded;
-        public event Action<int> OnAfterUndo;
-        public event Action<int> OnAfterRedo;
-        public event Action OnUndoBufferPushed;
-        public event Action OnUndoBufferPopped;
+        public event Action? OnAfterActionRecorded;
+        public event Action<int>? OnAfterUndo;
+        public event Action<int>? OnAfterRedo;
+        public event Action? OnUndoBufferPushed;
+        public event Action? OnUndoBufferPopped;
 
         private bool _currentlyRegistering = false;
         private readonly UndoManagerState<TLabel> state;
@@ -39,7 +40,7 @@ namespace BII.WasaBii.Undo {
         /// </param>
         public UndoManager(int maxUndoStackSize) => state = new UndoManagerState<TLabel>(maxUndoStackSize);
 
-        public void PushUndoBuffer([NotNull] UndoBuffer<TLabel> customBuffer) {
+        public void PushUndoBuffer(UndoBuffer<TLabel> customBuffer) {
             state.pushUndoBuffer(customBuffer);
             OnUndoBufferPushed?.Invoke();
         }
@@ -53,9 +54,8 @@ namespace BII.WasaBii.Undo {
         public IEnumerable<TLabel> RedoLabels => state.currentUndoBuffer.RedoStack.Select(a => a.Label);
 
         public bool IsRecording => state._currentActionLabel != null;
-
-        [CanBeNull]
-        public TLabel CurrentActionLabel {
+        
+        public TLabel? CurrentActionLabel {
             get => state._currentActionLabel; set {
                 if (state._currentActionLabel == null) throw new InvalidOperationException(
                     "Cannot set an undo action name when there is no action running.");
@@ -105,17 +105,18 @@ namespace BII.WasaBii.Undo {
         /// <paramref name="action"/> is still executed after all previously registered actions.
         /// </param>
         public void RegisterAndExecute(
-            [NotNull] Action action,
-            [NotNull] Action undo,
-            [CanBeNull] Action disposeAfterDo = null,
-            [CanBeNull] Action disposeAfterUndo = null,
-            [CanBeNull] UndoPlaceholder saveUndoAt = null,
+            Action action,
+            Action undo,
+            Action? disposeAfterDo = null,
+            Action? disposeAfterUndo = null,
+            UndoPlaceholder? saveUndoAt = null,
             bool warningOnNotRecording = true,
+            // ReSharper disable thrice InvalidXmlDocComment
             [CallerMemberName] string __callerMemberName = "",
             [CallerFilePath] string __sourceFilePath = "",
             [CallerLineNumber] int __sourceLineNumber = 0
         ) => registerAndExecuteInternal(
-            new SymmetricOperation<object>(
+            new SymmetricOperation<object?>(
                 () => { action(); return null; }, undo, disposeAfterDo, disposeAfterUndo, 
                 // ReSharper disable thrice ExplicitCallerInfoArgument // intentional
                 __callerMemberName,
@@ -142,9 +143,9 @@ namespace BII.WasaBii.Undo {
         /// </param>
         public void RegisterAndExecute(
             in SymmetricOperation operation, 
-            [CanBeNull] UndoPlaceholder saveUndoAt = null,
+            UndoPlaceholder? saveUndoAt = null,
             bool warningOnNotRecording = true
-        ) => registerAndExecuteInternal(operation.WithResult<object>(null), saveUndoAt, warningOnNotRecording);
+        ) => registerAndExecuteInternal(operation.WithResult<object?>(null), saveUndoAt, warningOnNotRecording);
 
         /// <summary>
         /// Registers the passed symmetric operation to the currently running recording and
@@ -162,13 +163,13 @@ namespace BII.WasaBii.Undo {
         /// </param>
         public T RegisterAndExecute<T>(
             in SymmetricOperation<T> operation,
-            [CanBeNull] UndoPlaceholder saveUndoAt = null,
+            UndoPlaceholder? saveUndoAt = null,
             bool warningOnNotRecording = true
         ) => registerAndExecuteInternal(operation, saveUndoAt, warningOnNotRecording);
 
         private T registerAndExecuteInternal<T>(
             SymmetricOperation<T> operation,
-            [CanBeNull] UndoPlaceholder saveUndoAt,
+            UndoPlaceholder? saveUndoAt,
             bool warningOnNotRecording
         ) {
             // this extra variable is important, since recording can be started in `action()`
@@ -193,7 +194,7 @@ namespace BII.WasaBii.Undo {
             if (!IsRecording) {
                 if (warningOnNotRecording)
                     Debug.LogWarning("Registering an undo action while not recording. Is this intentional?");
-                operation.DisposeAfterDo?.Invoke(); // not saved, so we dispose instantly if necessary
+                operation.DisposeAfterDo.Invoke(); // not saved, so we dispose instantly if necessary
             } else {
                 if (saveUndoAt != null) {
                     state.replacePlaceholder(saveUndoAt, 
@@ -237,8 +238,7 @@ namespace BII.WasaBii.Undo {
         /// Logs a warning when stopped without any symmetric operations being registered.
         /// Returns null when the action was aborted before calling this.
         /// </summary>
-        [CanBeNull]
-        public UndoAction<TLabel> StopRecordingAction(TLabel finalLabel = default) {
+        public UndoAction<TLabel>? StopRecordingAction(TLabel? finalLabel = default) {
             if (!IsRecording) throw new InvalidOperationException(
                 "Tried to stop recording an undo action without starting one.");
 
@@ -253,7 +253,7 @@ namespace BII.WasaBii.Undo {
             if (state.recordedOperations.IsEmpty()) Debug.LogWarning(
                 $"Operation {state._currentActionLabel} saved without anything to undo.");
 
-            var res = new UndoAction<TLabel>(state._currentActionLabel, new Stack<SymmetricOperation>(state.recordedOperations));
+            var res = new UndoAction<TLabel>(state._currentActionLabel!, new Stack<SymmetricOperation>(state.recordedOperations));
 
             state.currentUndoBuffer.RegisterUndo(res);
 

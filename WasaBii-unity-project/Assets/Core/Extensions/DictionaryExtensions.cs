@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -28,11 +29,15 @@ namespace BII.WasaBii.Core {
 
         public static bool IsContentEqualTo<TKey, TValue>(
             this Dictionary<TKey, TValue> dict1,
-            Dictionary<TKey, TValue> otherDict
+            Dictionary<TKey, TValue> otherDict,
+            IEqualityComparer<TValue>? comparer = null
         ) {
             if (dict1.Count != otherDict.Count) return false;
+            comparer ??= EqualityComparer<TValue>.Default;
             foreach (var (key, value) in dict1) {
-                if (!otherDict.TryGetValue(key, out var otherValue) || !value.Equals(otherValue)) return false;
+                if (!otherDict.TryGetValue(key, out var otherValue) 
+                    || !comparer.Equals(value, otherValue)
+                ) return false;
             }
             return true;
         }

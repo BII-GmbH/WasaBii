@@ -11,15 +11,14 @@ namespace BII.WasaBii.Core {
         public static Stack<T> ToStack<T>(this IEnumerable<T> source) => new(source);
         
         public static Queue<T> ToQueue<T>(this IEnumerable<T> source) => new(source);
-
-        /// <inheritdoc cref="System.Linq.Enumerable.ToDictionary()"/>
+        
         public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(
             this IEnumerable<(TKey key, TValue value)> tupleCollection
         ) => tupleCollection.ToDictionary(tuple => tuple.key, tuple => tuple.value);
 
         public static ImmutableDictionary<TKey, TValue> ToImmutableDictionary<TKey, TValue>(
             this IEnumerable<(TKey, TValue)> entries
-        ) => ImmutableDictionary.CreateRange(entries.Select(e => new KeyValuePair<TKey, TValue>(e.Item1, e.Item2)));
+        ) where TKey : notnull => ImmutableDictionary.CreateRange(entries.Select(e => new KeyValuePair<TKey, TValue>(e.Item1, e.Item2)));
 
         public static IReadOnlyCollection<T> AsReadOnlyCollection<T>(this IEnumerable<T> source)
             => source as IReadOnlyCollection<T> ?? source.ToList();
@@ -324,12 +323,12 @@ namespace BII.WasaBii.Core {
 
             if (thenDo == null) return;
 
-            IEnumerable<T> completeEnumerable() {
+            static IEnumerable<T> completeEnumerable(IEnumerator<T> enumerator) {
                 do yield return enumerator.Current;
                 while (enumerator.MoveNext());
             }
 
-            thenDo(completeEnumerable());
+            thenDo(completeEnumerable(enumerator));
         }
 
         public static TResult IfSingle<TSource, TResult>(

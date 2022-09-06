@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Undos;
-using JetBrains.Annotations;
 using NUnit.Framework;
 
 namespace BII.WasaBii.Undo.Tests {
@@ -469,7 +468,7 @@ namespace BII.WasaBii.Undo.Tests {
         public void WhenRegisteringPlaceholderAndNotUsed_ThenIgnored() {
             undoManager.StartRecordingAction("test");
 
-            var unusedPlaceholder = undoManager.RegisterUndoPlaceholder();
+            _ = undoManager.RegisterUndoPlaceholder();
 
             bool? done = null;
             undoManager.RegisterAndExecute(() => done = true, () => done = false);

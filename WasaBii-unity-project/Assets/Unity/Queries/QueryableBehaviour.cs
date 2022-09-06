@@ -5,8 +5,6 @@ using UnityEngine;
 namespace BII.WasaBii.Unity {
 
     /// <summary>
-    /// Author: Cameron Reuschel <br/><br/>
-    /// 
     /// Inheriting from this class instead of <see cref="MonoBehaviour"/>
     /// causes a <see cref="Queryable"/> component to be added so that the
     /// inheriting class can be queried in a scene using the static methods

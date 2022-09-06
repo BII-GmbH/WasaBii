@@ -11,11 +11,13 @@ using UnityEngine;
 
 namespace BII.WasaBii.Undo {
     
+    /// <summary>
     /// Can be used to inject undo logic into a specific point in the undo stack.
     /// Get one by calling <see cref="UndoManager{TLabel}.RegisterUndoPlaceholder"/>.
     /// Call `UndoManager.RegisterAndExecute` and pass the placeholder to execute
-    /// the undo at the point when the placeholder has been inserted rather than
-    /// later. This invalidates the placeholder.
+    ///  the undo at the point when the placeholder has been inserted rather than later.
+    /// This invalidates the placeholder.
+    /// </summary>
     public sealed class UndoPlaceholder {
         internal readonly LinkedListNode<SymmetricOperation> placeholderNode;
         internal UndoPlaceholder(LinkedListNode<SymmetricOperation> placeholderNode) =>
@@ -62,10 +64,12 @@ namespace BII.WasaBii.Undo {
                 state._currentActionLabel = value;
             }
         }
-
+        
+        /// <summary>
         /// Appends a placeholder to the undo stack. This placeholder can later be used
         /// to inject only the undo-part of a symmetric operation into that place, even
         /// after other symmetric operations have been registered and executed since then.
+        /// </summary>
         /// <seealso cref="UndoPlaceholder"/>
         public UndoPlaceholder RegisterUndoPlaceholder() {
             if (!IsRecording)
@@ -338,7 +342,7 @@ namespace BII.WasaBii.Undo {
             state._wasAborted = true;
         }
 
-        /// Undos at most n actions. Returns the number of actions actually undone.
+        /// <summary> Undos at most n actions. Returns the number of actions actually undone. </summary>
         public int Undo(int n = 1) {
             if (IsRecording)
                 throw new InvalidOperationException(
@@ -348,7 +352,7 @@ namespace BII.WasaBii.Undo {
             return undoCount;
         }
 
-        /// Redos at most n actions. Returns the number of actions actually redone.
+        /// <summary> Redoes at most n actions. Returns the number of actions actually redone. </summary>
         public int Redo(int n = 1) {
             if (IsRecording) throw new InvalidOperationException(
                 $"Cannot redo: currently recording {state._currentActionLabel}.");

@@ -137,7 +137,7 @@ namespace BII.WasaBii.Unity {
             return curr;
         }
 
-        /// <returns>An instance of the <see cref="TemplateObject"/> prefab, active and at the origin.</returns>
+        /// <returns>An instance of the <see cref="Template"/> prefab, active and at the origin.</returns>
         /// <exception cref="PoolOutOfItemsException">
         /// If no items are available and GrowRate == 0
         /// </exception>
@@ -145,7 +145,7 @@ namespace BII.WasaBii.Unity {
         /// <seealso cref="RequestItem(Vector3, Quaternion)"/>
         public GameObject RequestItem() => RequestItem(Vector3.zero, Quaternion.identity);
 
-        /// <returns>An instance of the <see cref="TemplateObject"/> prefab, active and at the specified position.</returns>
+        /// <returns>An instance of the <see cref="Template"/> prefab, active and at the specified position.</returns>
         /// <exception cref="PoolOutOfItemsException">
         /// If no items are available and GrowRate == 0
         /// </exception>
@@ -154,7 +154,7 @@ namespace BII.WasaBii.Unity {
         public GameObject RequestItem(Vector3 position) => RequestItem(position, Quaternion.identity);
 
         /// <returns>
-        /// An instance of the <see cref="TemplateObject"/> prefab,
+        /// An instance of the <see cref="Template"/> prefab,
         /// active and with the specified position and rotation.</returns>
         /// <exception cref="PoolOutOfItemsException">
         /// If no items are available and GrowRate == 0

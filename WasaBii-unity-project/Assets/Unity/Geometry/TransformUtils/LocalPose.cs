@@ -79,6 +79,11 @@ namespace BII.WasaBii.Unity.Geometry {
         /// </example>
         [Pure] public GlobalPose ParentPoseFor(GlobalPose global) => Inverse.ToGlobalWith(global);
 
+        [Pure] public LocalPose TransformBy(LocalPose offset) => new(
+            Position.TransformBy(offset),
+            Rotation.TransformBy(offset)
+        );
+        
         [Pure] public bool Equals(LocalPose other) => Position.Equals(other.Position) && Rotation.Equals(other.Rotation);
 
         [Pure] public override bool Equals(object obj) => obj is LocalPose other && Equals(other);

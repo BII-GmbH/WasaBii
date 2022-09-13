@@ -25,8 +25,7 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static LocalPosition FromGlobal(TransformProvider parent, Vector3 global) =>
             FromLocal(parent.InverseTransformPoint(global));
 
-        [Pure] public static LocalPosition FromLocal(Vector3 local) 
-            => new LocalPosition(local);
+        [Pure] public static LocalPosition FromLocal(Vector3 local) => new(local);
 
         [Pure] public static LocalPosition FromLocal(Length x, Length y, Length z) 
             => FromLocal(new Vector3((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()));
@@ -34,15 +33,19 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static LocalPosition FromLocal(float x, float y, float z) 
             => FromLocal(new Vector3(x, y, z));
 
-        [Pure] public static LocalPosition FromTransform(Transform parent) => new LocalPosition(parent.localPosition);
+        [Pure] public static LocalPosition FromTransform(Transform parent) => new(parent.localPosition);
 
         /// Transforms the local position into global space, with <see cref="parent"/> as the parent.
         /// This is the inverse of <see cref="GlobalPosition.RelativeTo"/>
         [Pure] public GlobalPosition ToGlobalWith(TransformProvider parent) 
             => GlobalPosition.FromLocal(parent, AsVector);
 
-        [Pure] public static LocalPosition operator +(LocalPosition left, LocalOffset right) => new LocalPosition(left.AsVector + right.AsVector);
-        [Pure] public static LocalPosition operator -(LocalPosition left, LocalOffset right) => new LocalPosition(left.AsVector - right.AsVector);
+        [Pure]
+        public LocalPosition TransformBy(LocalPose offset) =>
+            offset.Position + offset.Rotation * this.AsOffset;
+
+        [Pure] public static LocalPosition operator +(LocalPosition left, LocalOffset right) => new(left.AsVector + right.AsVector);
+        [Pure] public static LocalPosition operator -(LocalPosition left, LocalOffset right) => new(left.AsVector - right.AsVector);
         [Pure] public static LocalOffset operator -(LocalPosition left, LocalPosition right) => LocalOffset.FromLocal(left.AsVector - right.AsVector);
         [Pure] public static LocalPosition operator -(LocalPosition pos) => LocalPosition.FromLocal(-pos.AsVector);
         [Pure] public static bool operator ==(LocalPosition a, LocalPosition b) => a.AsVector == b.AsVector;

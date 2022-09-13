@@ -37,12 +37,15 @@ namespace BII.WasaBii.Unity.Geometry {
             Size = size.Map(vector => vector.Map(Mathf.Abs));
         }
 
-        /// Returns the smallest possible bounds in global space that completely wraps <see cref="local"/>.
+        /// Returns the smallest possible bounds in global space that completely wraps <see cref="this"/>.
         /// Will most likely be larger than the original if rotations of any angles other than 90°-multiples
         /// are involved. 
         [Pure] public GlobalBounds ToGlobalWith(TransformProvider parent)
             => this.Vertices().Select(p => p.ToGlobalWith(parent)).Bounds();
-
+        
+        [Pure] public LocalBounds TransformBy(LocalPose offset) 
+            => this.Vertices().Select(p => p.TransformBy(offset)).Bounds();
+        
         [Pure] public bool Contains(LocalPosition point) 
             => point.X().IsInsideInterval(Min.X(), Max.X(), inclusive: true)
             && point.Y().IsInsideInterval(Min.Y(), Max.Y(), inclusive: true)

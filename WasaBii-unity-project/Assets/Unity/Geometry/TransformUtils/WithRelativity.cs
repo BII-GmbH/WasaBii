@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace BII.WasaBii.Unity.Geometry {
 
     /// The base for transform util types that have a built-in definition of what geometric
@@ -25,7 +27,7 @@ namespace BII.WasaBii.Unity.Geometry {
     public interface IsGlobalVariant<TGlobal, out TLocal> : IsGlobal, GeometryHelper<TGlobal>
     where TGlobal : IsGlobalVariant<TGlobal, TLocal>
     where TLocal : IsLocalVariant<TLocal, TGlobal> {
-        TLocal RelativeTo(TransformProvider parent);
+        [Pure] TLocal RelativeTo(TransformProvider parent);
     }
 
     /// States that the implementing type works in local space and that the global variant is `TGlobal`.
@@ -33,7 +35,9 @@ namespace BII.WasaBii.Unity.Geometry {
     public interface IsLocalVariant<TLocal, out TGlobal> : IsLocal, GeometryHelper<TLocal>
     where TGlobal : IsGlobalVariant<TGlobal, TLocal>
     where TLocal : IsLocalVariant<TLocal, TGlobal> {
-        TGlobal ToGlobalWith(TransformProvider parent);
+        [Pure] TGlobal ToGlobalWith(TransformProvider parent);
+        [Pure] TLocal TransformBy(LocalPose offset);
+
     }
 
 }

@@ -41,9 +41,9 @@ namespace BII.WasaBii.Unity.Geometry {
     
     public static class VectorLikeExtensions {
         
-        [Pure] public static Length X<T>(this T vectorLike) where T : struct, VectorLike => vectorLike.AsVector.x.Meters();
-        [Pure] public static Length Y<T>(this T vectorLike) where T : struct, VectorLike => vectorLike.AsVector.y.Meters();
-        [Pure] public static Length Z<T>(this T vectorLike) where T : struct, VectorLike => vectorLike.AsVector.z.Meters();
+        [Pure] public static Length X<T>(this T vectorLike) where T : struct, HasMagnitude<T>, VectorLike<T> => vectorLike.AsVector.x.Meters();
+        [Pure] public static Length Y<T>(this T vectorLike) where T : struct, HasMagnitude<T>, VectorLike<T> => vectorLike.AsVector.y.Meters();
+        [Pure] public static Length Z<T>(this T vectorLike) where T : struct, HasMagnitude<T>, VectorLike<T> => vectorLike.AsVector.z.Meters();
 
         [Pure] public static T WithX<T>(this T t, float x) where T : struct, HasMagnitude<T>, VectorLike<T> =>
             t.CopyWithDifferentValue(t.AsVector.WithX(x));

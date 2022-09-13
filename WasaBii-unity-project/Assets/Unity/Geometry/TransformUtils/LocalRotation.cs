@@ -20,24 +20,25 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static LocalRotation FromGlobal(TransformProvider parent, Quaternion global) => 
             FromLocal(parent.InverseTransformQuaternion(global));
 
-        [Pure] public static LocalRotation FromLocal(Quaternion local) =>
-            new LocalRotation(local);
+        [Pure] public static LocalRotation FromLocal(Quaternion local) => new(local);
 
         [Pure] public static LocalRotation FromAngleAxis(Angle angle, LocalDirection axis) => angle.WithAxis(axis);
         
-        [Pure] public static LocalRotation FromTransform(Transform parent) => new LocalRotation(parent.localRotation);
+        [Pure] public static LocalRotation FromTransform(Transform parent) => new(parent.localRotation);
 
         /// Transforms the local rotation into global space, with <see cref="parent"/> as the parent.
         /// This is the inverse of <see cref="GlobalRotation.RelativeTo"/>
         [Pure] public GlobalRotation ToGlobalWith(TransformProvider parent) 
             => GlobalRotation.FromLocal(parent, AsQuaternion);
 
+        [Pure] public LocalRotation TransformBy(LocalPose offset) => offset.Rotation * this;
+        
         [Pure] public static LocalOffset operator *(LocalRotation rotation, LocalOffset offset) => (rotation.AsQuaternion * offset.AsVector).AsLocalOffset();
         [Pure] public static LocalOffset operator *(LocalOffset offset, LocalRotation rotation) => (rotation.AsQuaternion * offset.AsVector).AsLocalOffset();
         [Pure] public static LocalDirection operator *(LocalRotation rotation, LocalDirection direction) => (rotation.AsQuaternion * direction.AsVector).AsLocalDirection();
         [Pure] public static LocalDirection operator *(LocalDirection direction, LocalRotation rotation) => (rotation.AsQuaternion * direction.AsVector).AsLocalDirection();
-        [Pure] public static LocalRotation operator *(LocalRotation left, LocalRotation right) => new LocalRotation(left.AsQuaternion * right.AsQuaternion);
-        [Pure] public static LocalRotation operator /(LocalRotation left, LocalRotation right) => new LocalRotation(left.AsQuaternion * right.AsQuaternion.Inverse());
+        [Pure] public static LocalRotation operator *(LocalRotation left, LocalRotation right) => new(left.AsQuaternion * right.AsQuaternion);
+        [Pure] public static LocalRotation operator /(LocalRotation left, LocalRotation right) => new(left.AsQuaternion * right.AsQuaternion.Inverse());
         [Pure] public static bool operator ==(LocalRotation a, LocalRotation b) => a.AsQuaternion == b.AsQuaternion;
         [Pure] public static bool operator !=(LocalRotation a, LocalRotation b) => a.AsQuaternion != b.AsQuaternion;
 
@@ -55,7 +56,7 @@ namespace BII.WasaBii.Unity.Geometry {
 
         [Pure] public LocalRotation Map(Func<Quaternion, Quaternion> f) => LocalRotation.FromLocal(f(AsQuaternion));
 
-        [Pure] public static Builder From(RelativeDirectionLike<IsLocal> from) => new Builder(from);
+        [Pure] public static Builder From(RelativeDirectionLike<IsLocal> from) => new(from);
         public readonly struct Builder {
 
             private readonly RelativeDirectionLike<IsLocal> from;

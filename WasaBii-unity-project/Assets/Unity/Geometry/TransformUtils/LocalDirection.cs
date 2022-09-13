@@ -35,6 +35,8 @@ namespace BII.WasaBii.Unity.Geometry {
         /// This is the inverse of <see cref="GlobalDirection.RelativeTo"/>
         [Pure] public GlobalDirection ToGlobalWith(TransformProvider parent) => GlobalDirection.FromLocal(parent, AsVector);
         
+        [Pure] public LocalDirection TransformBy(LocalPose offset) => offset.Rotation * this;
+        
         /// <inheritdoc cref="Vector3.Project"/>
         [Pure] public LocalDirection Project(LocalDirection onNormal) => this.AsOffset.Project(onNormal).Normalized;
 

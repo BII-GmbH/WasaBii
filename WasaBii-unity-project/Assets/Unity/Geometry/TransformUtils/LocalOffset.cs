@@ -45,6 +45,8 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public GlobalOffset ToGlobalWith(TransformProvider parent)
             => GlobalOffset.FromLocal(parent, AsVector);
 
+        [Pure] public LocalOffset TransformBy(LocalPose offset) => offset.Rotation * this;
+        
         /// <inheritdoc cref="Vector3.Project"/>
         [Pure] public LocalOffset Project(LocalDirection onNormal)
             => Vector3.Project(AsVector, onNormal.AsVector).AsLocalOffset();

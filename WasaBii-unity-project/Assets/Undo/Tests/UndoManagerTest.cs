@@ -822,7 +822,6 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(action1Undone, Is.False);
 
             Assert.That(action2Done, Is.True);
-            Assert.That(action2Undone, Is.False);
         }
 
 #endregion

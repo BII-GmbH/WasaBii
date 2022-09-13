@@ -216,7 +216,7 @@ namespace BII.WasaBii.Unity {
         ) where T : class {
             if (!m.gameObject.HasComponent<T>(out component, where, includeInactive)) 
                 throw new ComponentNotFoundException(
-                    "Failed to assign component of type " + typeof(T) + " to " + m.gameObject + ".");
+                    "Could not find component of type " + typeof(T) + " on " + m.gameObject + ".");
         }
 
         /// <summary>
@@ -248,15 +248,16 @@ namespace BII.WasaBii.Unity {
         /// <returns>true if new value was assigned, false if variable already has a value.</returns>
         /// <exception cref="Exception">If there was no component to be found in the specified search scope.</exception>
         public static bool AssignIfAbsent<T>(
-            this MonoBehaviour m, ref T variable, Search where = Search.InObjectOnly, bool includeInactive = false
+            this MonoBehaviour m, ref T? variable, Search where = Search.InObjectOnly, bool includeInactive = false
         ) where T : class {
             if (variable != null) { 
                 Debug.Log(
                     "Tried to assign component of type " + typeof(T) + " but field already had value " + variable, m.gameObject);
                 return false;
             }
-
-            m.AssignComponent(out variable, where, includeInactive);
+            
+            m.AssignComponent<T>(out var res, where, includeInactive);
+            variable = res;
             return true;
         }
 

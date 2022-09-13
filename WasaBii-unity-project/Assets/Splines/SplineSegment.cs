@@ -64,7 +64,7 @@ namespace BII.WasaBii.Splines {
                 return Math.Sqrt(polynomial.Ops.Dot(v, v));
             }
 
-            return Approximations.SimpsonsRule(LengthDeriv, from: 0, to: 1, sections).Meters();
+            return IntegralApproximation.SimpsonsRule(LengthDeriv, from: 0, to: 1, sections).Meters();
         }
         
         [Pure]

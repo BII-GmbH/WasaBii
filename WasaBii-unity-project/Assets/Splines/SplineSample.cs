@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.Contracts;
+using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 
 namespace BII.WasaBii.Splines {
@@ -37,7 +38,10 @@ namespace BII.WasaBii.Splines {
         [Pure]
         public static SplineSample<TPos, TDiff>? From(Spline<TPos, TDiff> spline, NormalizedSplineLocation location) {
             var (segmentIndex, t) = location.AsSegmentIndex();
-            if (segmentIndex.Value >= spline.SegmentCount()) return null;
+            if (t.IsNearly(0) && segmentIndex.Value == spline.SegmentCount()) {
+                segmentIndex -= 1;
+                t = 1;
+            } else if (segmentIndex.Value >= spline.SegmentCount()) return null;
             
             var segment = spline[segmentIndex];
             return new SplineSample<TPos, TDiff>(segment, t);

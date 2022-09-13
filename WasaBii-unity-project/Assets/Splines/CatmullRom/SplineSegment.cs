@@ -10,7 +10,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         public static Option<SplineSegment<TPos, TDiff>> From<TPos, TDiff>(
             CatmullRomSpline<TPos, TDiff> spline, SplineSegmentIndex idx, Length? cachedSegmentLength = null
         ) where TPos : struct where TDiff : struct =>
-            CubicPolynomial.FromSplineAt(spline, idx)
+            CatmullRomPolynomial.FromSplineAt(spline, idx)
                 .Map(val => new SplineSegment<TPos, TDiff>(val, cachedSegmentLength));
 
     }

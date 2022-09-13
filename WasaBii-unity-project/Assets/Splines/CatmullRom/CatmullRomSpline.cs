@@ -54,8 +54,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
         public TPos this[SplineHandleIndex index] => handles[index];
 
-        public SplineSample<TPos, TDiff> this[SplineLocation location] => ((Spline<TPos, TDiff>)this)[location];
-        public Length Length => ((Spline)this).Length;
+        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
 
         public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => 
             SplineSegment.From(this, index, cachedSegmentLengths.Value[index])
@@ -80,14 +79,6 @@ namespace BII.WasaBii.Splines.CatmullRom {
 #region Segment Length Caching
         // The cached lengths for each segment,
         // accessed by the segment index.
-        //
-        // 0 (e.g. default) values are treated as "no entry"
-        // and will force a cache calculation,
-        // as valid segments don't have the length 0.
-        //
-        // Even though this array is not immutable,
-        // this class is registered as an edge-case
-        // since the array is only used for lazy caches.
         [NonSerialized] 
         private readonly Lazy<IReadOnlyList<Length>> cachedSegmentLengths;
 
@@ -95,12 +86,13 @@ namespace BII.WasaBii.Splines.CatmullRom {
             var ret = new Length[spline.SegmentCount()];
             for (var i = 0; i < spline.SegmentCount(); i++) {
                 var idx = SplineSegmentIndex.At(i);
-                ret[idx] = SplineSegmentUtils.TrapezoidalLengthOf(
-                    CubicPolynomial.FromSplineAt(spline, idx).GetOrThrow(() =>
+                ret[idx] = CatmullRomPolynomial.FromSplineAt(spline, idx)
+                    .GetOrThrow(() =>
                         new Exception(
                             "Could not create a cubic polynomial for this spline. " +
                             "This should not happen and indicates a bug in this method."
-                        )));
+                        )
+                    ).ArcLength;
             }
             return ret;
         }

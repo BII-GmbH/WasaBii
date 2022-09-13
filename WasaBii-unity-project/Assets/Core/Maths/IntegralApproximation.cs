@@ -35,7 +35,7 @@ namespace BII.WasaBii.Core {
             );
         }
      
-        /// <inheritdoc cref="SimpsonsRule(System.Func{double,double},double,double,int)"/>
+        /// <inheritdoc cref="SimpsonsRule{T}"/>
         public static double SimpsonsRule(
             Func<double, double> f, 
             double from, double to, 
@@ -46,6 +46,9 @@ namespace BII.WasaBii.Core {
             mul: (a, b) => a * b
         );
 
+        /// <summary>
+        /// Calculates the trapezoidal integral approximation of the function <see cref="f"/>.
+        /// </summary>
         public static T Trapezoidal<T>(
             Func<double, T> f,
             double from,
@@ -53,10 +56,22 @@ namespace BII.WasaBii.Core {
             int samples,
             Func<T, T, T> add,
             Func<T, double, T> mul
-        ) => (to - from)
-            * Range.Sample(i => from + i * to, samples, includeFrom: true, includeTo: true)
+        ) => mul(
+            Range.Sample(i => from + i * (to - from), samples, includeFrom: true, includeTo: true)
                 .Select(f)
-                .Average(add, div: (a, d) => mul(a, 1d / d));
+                .Average(add, division: (a, d) => mul(a, 1d / d)),
+            to - from
+        );
+
+        /// <inheritdoc cref="Trapezoidal{T}"/>
+        public static double Trapezoidal(
+            Func<double, double> f, 
+            double from, double to,
+            int samples
+        ) => Range.Sample(i => from + i * (to - from), samples, includeFrom: true, includeTo: true)
+            .Select(f)
+            .Average() 
+            * (to - from);
 
     }
     

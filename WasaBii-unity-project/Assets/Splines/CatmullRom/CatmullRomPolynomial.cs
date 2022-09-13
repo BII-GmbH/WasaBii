@@ -6,18 +6,18 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines.CatmullRom {
     
-    internal static class CubicPolynomial {
+    internal static class CatmullRomPolynomial {
         
         [Pure]
         internal static Option<CubicPolynomial<TPos, TDiff>> FromSplineAt<TPos, TDiff>(CatmullRomSpline<TPos, TDiff> spline, SplineSegmentIndex idx) 
         where TPos : struct 
         where TDiff : struct => 
             CatmullRomSegment.CatmullRomSegmentAt(spline, NormalizedSplineLocation.From(idx)) is { Segment: var segment } 
-                ? FromCatmullRomSegment(segment, spline.Type.ToAlpha()) 
+                ? FromSegment(segment, spline.Type.ToAlpha()) 
                 : Option.None;
 
         [Pure]
-        internal static CubicPolynomial<TPos, TDiff> FromCatmullRomSegment<TPos, TDiff>(CatmullRomSegment<TPos, TDiff> segment, float alpha) 
+        internal static CubicPolynomial<TPos, TDiff> FromSegment<TPos, TDiff>(CatmullRomSegment<TPos, TDiff> segment, float alpha) 
         where TPos : struct 
         where TDiff : struct {
             var p0 = segment.P0;

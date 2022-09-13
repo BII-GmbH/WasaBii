@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
@@ -53,7 +52,7 @@ namespace BII.WasaBii.Splines {
         /// Simpson's 1/3 rule with <see cref="sections"/> sections / double that in subsections.
         /// </summary>
         [Pure]
-        internal static Length SimpsonsLengthOf<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int sections = 10) 
+        internal static Length SimpsonsLengthOf<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int sections = 4) 
         where TPos : struct 
         where TDiff : struct {
             

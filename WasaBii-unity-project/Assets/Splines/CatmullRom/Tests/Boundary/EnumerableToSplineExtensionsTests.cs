@@ -36,7 +36,7 @@ namespace BII.WasaBii.Splines.Tests {
 
             var uut = positions.ToSpline();
 
-            Assert.AreEqual(uut, Option<Spline<Vector3, Vector3>>.None);
+            Assert.AreEqual(uut, Option<CatmullRomSpline<Vector3, Vector3>>.None);
         }
 
         [Test]
@@ -49,7 +49,7 @@ namespace BII.WasaBii.Splines.Tests {
             var expectedEndHandle = new Vector3(3, 0, 0);
 
             var uutO = positions.ToSpline();
-            Assert.AreNotEqual(uutO, Option<Spline<Vector3, Vector3>>.None);
+            Assert.AreNotEqual(uutO, Option<CatmullRomSpline<Vector3, Vector3>>.None);
             var uut = uutO.GetOrThrow();
             Assert.That(uut.BeginMarginHandle(), Is.EqualTo(expectedBeginHandle));
             Assert.That(uut.FirstHandle(), Is.EqualTo(first));

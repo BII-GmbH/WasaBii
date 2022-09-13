@@ -1,4 +1,5 @@
 using System;
+using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines.Maths {
     internal readonly struct CubicPolynomial<TPos, TDiff> 
@@ -10,6 +11,8 @@ namespace BII.WasaBii.Splines.Maths {
         public readonly TPos D;
 
         internal readonly GeometricOperations<TPos, TDiff> Ops;
+
+        public Length ArcLength => SplineSegmentUtils.SimpsonsLengthOf(this);
         
         public CubicPolynomial(TDiff a, TDiff b, TDiff c, TPos d, GeometricOperations<TPos, TDiff> ops) {
             this.A = a;

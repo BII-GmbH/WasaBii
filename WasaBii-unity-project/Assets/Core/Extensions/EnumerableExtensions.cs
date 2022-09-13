@@ -625,5 +625,22 @@ namespace BII.WasaBii.Core {
             return list;
         }
         
+        /// <exception cref="ArgumentException"> When the passed <paramref name="enumerable"/> is empty. </exception>
+        public static T Average<T>(
+            this IEnumerable<T> enumerable,
+            Func<T, T, T> addition,
+            Func<T, int, T> division
+        ) {
+            using var it = enumerable.GetEnumerator();
+            if (!it.MoveNext()) 
+                throw new ArgumentException("Cannot average over an empty enumerable.");
+            var count = 1;
+            var sum = it.Current;
+            while (it.MoveNext()) {
+                count += 1;
+                sum = addition(sum, it.Current);
+            }
+            return division(sum, count);
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace BII.WasaBii.Unity {
     /// In order to reuse items the passed prefab must have a
     /// component that extends <see cref="Reusable"/>. When an
     /// item is ready to be reused, you must manually call
-    /// <see cref="Reusable.FreeForReuse()"/>. When acquiring
+    /// <see cref="GenericPool.Reusable.FreeForReuse()"/>. When acquiring
     /// an item from the pool, items for that
     /// <code>gameObject.activeSelf</code> holds true are
     /// preferred to objects that are still active. The reason
@@ -47,7 +47,7 @@ namespace BII.WasaBii.Unity {
     /// increases as soon as there are no more items available.
     /// </para><para>
     /// When no items are currently available for reuse, the pool
-    /// calls <see cref="Reusable.ReuseRequested"/> on every managed
+    /// calls <see cref="GenericPool.Reusable.ReuseRequested"/> on every managed
     /// item until one frees itself for reuse. When no items are
     /// found, the pool's capacity increases and a new item is instantiated.
     /// </para><para>

@@ -123,7 +123,7 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
             public static Vector3 Expected05Curvature = new Vector3(-0.393f, 0.526f, -3.228f);
             public static Vector3 Expected1Curvature = new Vector3(1.143f, -16.913f, -1.483f);
             
-            public static Length ExpectedSplineLength => 4.404f.Meters();
+            public static Length ExpectedSplineLength => 4.413755.Meters();
 
             public static CubicPolynomial<Vector3, Vector3> Polynomial => CubicPolynomial.FromCatmullRomSegment(
                 new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance),

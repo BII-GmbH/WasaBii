@@ -5,17 +5,17 @@ namespace BII.WasaBii.Splines.Maths {
         where TPos : struct 
         where TDiff : struct {
     
-        /// Coefficients of the polynomial function 
-        private readonly TDiff a, b, c;
-        private readonly TPos d;
+        /// Coefficients of the polynomial function: At³ + Bt² + Ct + D
+        public readonly TDiff A, B, C;
+        public readonly TPos D;
 
         internal readonly GeometricOperations<TPos, TDiff> Ops;
         
         public CubicPolynomial(TDiff a, TDiff b, TDiff c, TPos d, GeometricOperations<TPos, TDiff> ops) {
-            this.a = a;
-            this.b = b;
-            this.c = c;
-            this.d = d;
+            this.A = a;
+            this.B = b;
+            this.C = c;
+            this.D = d;
             this.Ops = ops;
         }
 
@@ -23,18 +23,18 @@ namespace BII.WasaBii.Splines.Maths {
             if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var tt = t * t;
             var ttt = tt * t;
-            return Ops.Add(d, Ops.Mul(c, t), Ops.Mul(b, tt), Ops.Mul(a, ttt));
+            return Ops.Add(D, Ops.Mul(C, t), Ops.Mul(B, tt), Ops.Mul(A, ttt));
         }
 
         public TDiff EvaluateDerivative(double t) {
             if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var tt = t * t;
-            return Ops.Add(c, Ops.Mul(b, 2 * t), Ops.Mul(a, 3 * tt));
+            return Ops.Add(C, Ops.Mul(B, 2 * t), Ops.Mul(A, 3 * tt));
         }
 
         public TDiff EvaluateSecondDerivative(double t) {
             if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
-            return Ops.Add(Ops.Mul(b, 2), Ops.Mul(a, 6 * t));
+            return Ops.Add(Ops.Mul(B, 2), Ops.Mul(A, 6 * t));
         }
 
         /// <returns>The progress along the polynomial at which the interpolated position is closest to <see cref="p"/></returns>

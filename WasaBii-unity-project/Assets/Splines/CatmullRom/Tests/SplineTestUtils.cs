@@ -4,9 +4,9 @@ using BII.WasaBii.Unity.Geometry.Splines;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.WasaBii.Splines.Tests {
+namespace BII.WasaBii.Splines.CatmullRom.Tests {
     
-    using Spline = Spline<Vector3, Vector3>;
+    using Spline = CatmullRomSpline<Vector3, Vector3>;
     using SplineSegment = SplineSegment<Vector3, Vector3>;
     using SplineSample = SplineSample<Vector3, Vector3>;
     

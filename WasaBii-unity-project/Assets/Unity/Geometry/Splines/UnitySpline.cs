@@ -2,6 +2,7 @@
 using BII.WasaBii.Splines;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Core;
+using BII.WasaBii.Splines.CatmullRom;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -10,42 +11,42 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
 
     public static class UnitySpline {
 
-        /// <inheritdoc cref="GenericSpline.FromInterpolating{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromInterpolating{TPos,TDiff}"/>
         [Pure]
-        public static Spline<Vector3, Vector3> FromInterpolating(
+        public static CatmullRomSpline<Vector3, Vector3> FromInterpolating(
             IEnumerable<Vector3> handles, SplineType? type = null
-        ) => GenericSpline.FromInterpolating(handles, GeometricOperations.Instance, type);
+        ) => CatmullRomSpline.FromInterpolating(handles, GeometricOperations.Instance, type);
         
-        /// <inheritdoc cref="GenericSpline.FromHandles{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}"/>
         [Pure]
-        public static Spline<Vector3, Vector3> FromHandles(
+        public static CatmullRomSpline<Vector3, Vector3> FromHandles(
             Vector3 beginMarginHandle, 
             IEnumerable<Vector3> interpolatedHandles, 
             Vector3 endMarginHandle, 
             SplineType? type = null
-        ) => GenericSpline.FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, GeometricOperations.Instance, type);
+        ) => CatmullRomSpline.FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, GeometricOperations.Instance, type);
 
-        /// <inheritdoc cref="GenericSpline.FromHandlesIncludingMargin{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesIncludingMargin{TPos,TDiff}"/>
         [Pure]
-        public static Spline<Vector3, Vector3> FromHandlesIncludingMargin(
+        public static CatmullRomSpline<Vector3, Vector3> FromHandlesIncludingMargin(
             IEnumerable<Vector3> allHandlesIncludingMargin,
             SplineType? type = null
-        ) => GenericSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, GeometricOperations.Instance, type);
+        ) => CatmullRomSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, GeometricOperations.Instance, type);
         
 #region Extensions
-        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="GenericEnumerableToCatmullRomSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
         [Pure]
-        public static Spline<Vector3, Vector3> ToSplineOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
+        public static CatmullRomSpline<Vector3, Vector3> ToSplineOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
             => source.ToSplineOrThrow(GeometricOperations.Instance, splineType);
 
-        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSpline{TPos,TDiff}"/>
+        /// <inheritdoc cref="GenericEnumerableToCatmullRomSplineExtensions.ToSpline{TPos,TDiff}"/>
         [Pure]
-        public static Option<Spline<Vector3, Vector3>> ToSpline(this IEnumerable<Vector3> source, SplineType? splineType = null)
+        public static Option<CatmullRomSpline<Vector3, Vector3>> ToSpline(this IEnumerable<Vector3> source, SplineType? splineType = null)
             => source.ToSpline(GeometricOperations.Instance, splineType);
 
-        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="GenericEnumerableToCatmullRomSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
         [Pure]
-        public static Spline<Vector3, Vector3> ToSplineWithMarginHandlesOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
+        public static CatmullRomSpline<Vector3, Vector3> ToSplineWithMarginHandlesOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
             => source.ToSplineWithMarginHandlesOrThrow(GeometricOperations.Instance, splineType);
 
         /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineToOrThrow{TPos, TDiff}"/>

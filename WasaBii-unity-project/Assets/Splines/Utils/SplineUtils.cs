@@ -7,22 +7,20 @@ namespace BII.WasaBii.Splines {
     
     public static class SplineUtils {
         
-        /// <returns>Whether the spline is valid, i.e. it has at least 4 handles (including the margin handles),
-        /// since this is the mathematically bound minimum required to define a catmull-rom spline</returns>
+        /// <returns>Whether the spline is valid, i.e. it has at least 2 handles (excluding possible margin handles),
+        /// since this is the mathematically bound minimum required to define a spline</returns>
         [Pure]
-        public static bool IsValid<TPos, TDiff>(this Spline<TPos, TDiff> spline)
-            where TPos : struct where TDiff : struct =>
-            spline.HandleCountIncludingMargin >= 4;
+        public static bool IsValid(this Spline spline) => spline.HandleCount >= 2;
 
         /// Executes the <see cref="resultGetter"/> if the spline has enough handles to be valid or throws an exception otherwise.
-        internal static T WhenValidOrThrow<T, TPos, TDiff>(this Spline<TPos, TDiff> spline, Func<Spline<TPos, TDiff>, T> resultGetter) 
-            where TPos : struct where TDiff : struct =>
-            spline.IsValid() ? resultGetter(spline) : throw new InvalidSplineException<TPos, TDiff>(spline, "Not enough handles");
+        internal static T WhenValidOrThrow<T, TSpline>(this TSpline spline, Func<TSpline, T> resultGetter) 
+            where TSpline : Spline =>
+            spline.IsValid() ? resultGetter(spline) : throw new InvalidSplineException(spline, "Not enough handles");
 
         [Pure]
         public static int SegmentCount<TPos, TDiff>(this Spline<TPos, TDiff> spline) 
             where TPos : struct where TDiff : struct =>
-            spline.IsValid() ? spline.HandleCountIncludingMargin - 3 : 0;
+            spline.IsValid() ? spline.HandleCount - 1 : 0;
 
         [Pure]
         public static SplineSample<TPos, TDiff>? TryQuery<TPos, TDiff>(
@@ -64,10 +62,6 @@ namespace BII.WasaBii.Splines {
             yield return spline[toNormalized].Position;
         }
 
-        public static TPos BeginMarginHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
-            where TPos : struct where TDiff : struct =>
-            spline.WhenValidOrThrow(s => s.HandlesIncludingMargin[0]);
-
         public static TPos FirstHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.WhenValidOrThrow(s => s.Handles[0]);
@@ -75,10 +69,6 @@ namespace BII.WasaBii.Splines {
         public static TPos LastHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
             where TPos : struct where TDiff : struct =>
             spline.WhenValidOrThrow(s => s.Handles[^1]);
-
-        public static TPos EndMarginHandle<TPos, TDiff>(this Spline<TPos, TDiff> spline)
-            where TPos : struct where TDiff : struct =>
-            spline.WhenValidOrThrow(s => s.HandlesIncludingMargin[^1]);
 
     }
     

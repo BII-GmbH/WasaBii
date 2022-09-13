@@ -2,11 +2,11 @@
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 
-namespace BII.WasaBii.Splines {
+namespace BII.WasaBii.Splines.CatmullRom {
     
     /// Utilities for constructing generic splines.
     /// For explicitly typed versions, see `UnitySpline`, `GlobalSpline` or `LocalSpline` in the Unity assembly
-    public static class GenericEnumerableToSplineExtensions {
+    public static class GenericEnumerableToCatmullRomSplineExtensions {
 
         /// <summary>
         /// Calculates margin handles for a spline that interpolates the given handle positions.
@@ -43,7 +43,7 @@ namespace BII.WasaBii.Splines {
         /// <exception cref="InsufficientNodePositionsException">
         /// When less than 2 handle positions were provided
         /// </exception>
-        public static Spline<TPos, TDiff> ToSplineOrThrow<TPos, TDiff>(
+        public static CatmullRomSpline<TPos, TDiff> ToSplineOrThrow<TPos, TDiff>(
             this IEnumerable<TPos> source, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null
         ) where TPos : struct where TDiff : struct {
             var positions = source.AsReadOnlyCollection();
@@ -51,7 +51,7 @@ namespace BII.WasaBii.Splines {
                 throw new InsufficientNodePositionsException(positions.Count, 2);
 
             var (beginHandle, endHandle) = positions.calculateSplineMarginHandles(ops);
-            return new ImmutableSpline<TPos, TDiff>(beginHandle, positions, endHandle, ops, splineType);
+            return new CatmullRomSpline<TPos, TDiff>(beginHandle, positions, endHandle, ops, splineType);
         }
 
         /// Creates a spline that interpolates the provided positions.
@@ -62,13 +62,13 @@ namespace BII.WasaBii.Splines {
         /// should just be similar to the trajectory of the rest of the spline.
         /// 
         /// Returns None if too few positions are provided
-        public static Option<Spline<TPos, TDiff>> ToSpline<TPos, TDiff>(
+        public static Option<CatmullRomSpline<TPos, TDiff>> ToSpline<TPos, TDiff>(
             this IEnumerable<TPos> source, GeometricOperations<TPos, TDiff> ops, SplineType? type = null
         ) where TPos : struct where TDiff : struct {
             var positions = source.AsReadOnlyCollection();
             if (positions.Count < 2) return Option.None;
             var (beginHandle, endHandle) = positions.calculateSplineMarginHandles(ops);
-            return new ImmutableSpline<TPos, TDiff>(beginHandle, positions, endHandle, ops, type);
+            return new CatmullRomSpline<TPos, TDiff>(beginHandle, positions, endHandle, ops, type);
         }
 
         /// <summary>
@@ -84,14 +84,14 @@ namespace BII.WasaBii.Splines {
         /// <exception cref="InsufficientNodePositionsException">
         /// When less than 4 handle positions were provided
         /// </exception>
-        public static Spline<TPos, TDiff> ToSplineWithMarginHandlesOrThrow<TPos, TDiff>(
+        public static CatmullRomSpline<TPos, TDiff> ToSplineWithMarginHandlesOrThrow<TPos, TDiff>(
             this IEnumerable<TPos> source, GeometricOperations<TPos, TDiff> ops, SplineType? type = null
         ) where TPos : struct where TDiff : struct {
             var positions = source.AsReadOnlyCollection();
             if (positions.Count < 4)
                 throw new InsufficientNodePositionsException(positions.Count, 4);
 
-            return new ImmutableSpline<TPos, TDiff>(positions, ops, type);
+            return new CatmullRomSpline<TPos, TDiff>(positions, ops, type);
         }
 
         private static TPos pointReflect<TPos, TDiff>(this TPos self, TPos on, GeometricOperations<TPos, TDiff> ops)

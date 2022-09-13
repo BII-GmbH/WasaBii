@@ -1,7 +1,7 @@
 using NUnit.Framework;
-using static BII.WasaBii.Splines.Tests.SplineTestUtils;
+using static BII.WasaBii.Splines.CatmullRom.Tests.SplineTestUtils;
 
-namespace BII.WasaBii.Splines.Tests {
+namespace BII.WasaBii.Splines.CatmullRom.Tests {
     
     public class CubicPolynomialTests {
         

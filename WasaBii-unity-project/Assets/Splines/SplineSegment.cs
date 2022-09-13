@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
@@ -12,34 +13,22 @@ namespace BII.WasaBii.Splines {
         private readonly Lazy<Length> cachedLength;
         public Length Length => cachedLength.Value;
 
-        public static Option<SplineSegment<TPos, TDiff>> From(Spline<TPos, TDiff> spline, SplineSegmentIndex idx, Length? cachedSegmentLength = null) =>
-            SplineSegmentUtils.CubicPolynomialFor(spline, idx)
-                .Map(val => new SplineSegment<TPos, TDiff>(val, cachedSegmentLength));
-
         internal SplineSegment(CubicPolynomial<TPos, TDiff> polynomial, Length? cachedLength = null) {
             Polynomial = polynomial;
-            this.cachedLength = new Lazy<Length>(() => cachedLength ?? SplineSegmentUtils.LengthOfSegment(polynomial));
+            this.cachedLength = new Lazy<Length>(() => cachedLength ?? SplineSegmentUtils.TrapezoidalLengthOf(polynomial));
         }
         
         public SplineSample<TPos, TDiff> SampleAt(double percentage) => new(this, percentage);
     }
 
     public static class SplineSegmentUtils {
-        public const int DefaultLengthSamples = 10;
         
+        /// <summary>
+        /// Approximates the length of the <see cref="polynomial"/> by
+        /// applying the trapezoidal rule with <see cref="samples"/> sections.
+        /// </summary>
         [Pure]
-        internal static Option<CubicPolynomial<TPos, TDiff>> CubicPolynomialFor<TPos, TDiff>(Spline<TPos, TDiff> spline, SplineSegmentIndex idx) 
-        where TPos : struct 
-        where TDiff : struct {
-            var catmullRomSegment = CatmullRomSegment.CatmullRomSegmentAt(spline, NormalizedSplineLocation.From(idx));
-
-            return catmullRomSegment is { } val 
-                ? CubicPolynomial.FromCatmullRomSegment(val.Segment, spline.Type.ToAlpha()) 
-                : Option.None;
-        }
-        
-        [Pure]
-        internal static Length LengthOfSegment<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int samples = DefaultLengthSamples) 
+        internal static Length TrapezoidalLengthOf<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int samples = 10) 
             where TPos : struct 
             where TDiff : struct {
             var length = Length.Zero;
@@ -57,6 +46,25 @@ namespace BII.WasaBii.Splines {
             length += ops.Distance(current, polynomial.Evaluate(t: 1));
 
             return length;
+        }
+
+        /// <summary>
+        /// Approximates the length of the <see cref="polynomial"/> by applying
+        /// Simpson's 1/3 rule with <see cref="sections"/> sections / double that in subsections.
+        /// </summary>
+        [Pure]
+        internal static Length SimpsonsLengthOf<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int sections = 10) 
+        where TPos : struct 
+        where TDiff : struct {
+            
+            // The function whose integral in the (0..1) range gives the polynomial's length.
+            // This is what we want to approximate.
+            double LengthDeriv(double t) {
+                var v = polynomial.EvaluateDerivative(t);
+                return Math.Sqrt(polynomial.Ops.Dot(v, v));
+            }
+
+            return Approximations.SimpsonsRule(LengthDeriv, from: 0, to: 1, sections).Meters();
         }
         
         [Pure]

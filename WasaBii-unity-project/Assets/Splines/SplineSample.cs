@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Splines.Maths;
 
@@ -35,13 +36,11 @@ namespace BII.WasaBii.Splines {
 
         [Pure]
         public static SplineSample<TPos, TDiff>? From(Spline<TPos, TDiff> spline, NormalizedSplineLocation location) {
-            var segmentData = CatmullRomSegment.CatmullRomSegmentAt(spline, location);
-            if (segmentData.HasValue)
-                return new SplineSample<TPos, TDiff>(
-                    CubicPolynomial.FromCatmullRomSegment(segmentData.Value.Segment, alpha: spline.Type.ToAlpha()),
-                    segmentData.Value.NormalizedOvershoot
-                );
-            return null;
+            var (segmentIndex, t) = location.AsSegmentIndex();
+            if (segmentIndex.Value >= spline.SegmentCount()) return null;
+            
+            var segment = spline[segmentIndex];
+            return new SplineSample<TPos, TDiff>(segment, t);
         }
         
     }

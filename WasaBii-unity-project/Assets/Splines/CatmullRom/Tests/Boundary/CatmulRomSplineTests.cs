@@ -2,8 +2,8 @@
 using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.WasaBii.Splines.Tests {
-    public class ImmutableSplineTests {
+namespace BII.WasaBii.Splines.CatmullRom.Tests {
+    public class CatmulRomSplineTests {
         [Test]
         public void Ctor_WhenInitializedCorrectly_ThenCorrectNodePositionsAndValidSpline() {
             var beginMarginHandle = new Vector3(1, 0, 0);

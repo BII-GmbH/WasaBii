@@ -3,10 +3,11 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using BII.WasaBii.Splines.Maths;
 
 [assembly:InternalsVisibleTo("BII_Splines_Tests")]
 
-namespace BII.WasaBii.Splines.Maths {
+namespace BII.WasaBii.Splines.CatmullRom {
    
     /// Internal data structure all supported spline data structures are converted to.
     /// It is used for the calculations and describes the area between two spline handles (p1 and p2), 
@@ -42,7 +43,7 @@ namespace BII.WasaBii.Splines.Maths {
         /// The exact position between P1 and P2 is determined by the returned NormalizedOvershoot:
         /// 0.0f is at P1, 1.0f is at P2 and the values in between are lerped. 
         public static (CatmullRomSegment<TPos, TDiff> Segment, double NormalizedOvershoot)? 
-            CatmullRomSegmentAt<TPos, TDiff>(Spline<TPos, TDiff> spline, NormalizedSplineLocation location) 
+            CatmullRomSegmentAt<TPos, TDiff>(CatmullRomSpline<TPos, TDiff> spline, NormalizedSplineLocation location) 
         where TPos : struct 
         where TDiff : struct {
             if(spline == null)

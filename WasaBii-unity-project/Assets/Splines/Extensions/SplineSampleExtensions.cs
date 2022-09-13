@@ -36,7 +36,7 @@ namespace BII.WasaBii.Splines {
         ) where TPos : struct where TDiff : struct 
             => withSpline.Spline.SampleSplineBetween(
                 SplineLocation.Zero, 
-                withSpline.Spline.Length(),
+                withSpline.Spline.Length,
                 desiredSampleLength,
                 minSegments
             );
@@ -49,7 +49,7 @@ namespace BII.WasaBii.Splines {
         ) where TPos : struct where TDiff : struct 
             => withSpline.Spline.SampleSplineBetween(
                 SplineLocation.Zero, 
-                withSpline.Spline.Length(),
+                withSpline.Spline.Length,
                 count
             );
         

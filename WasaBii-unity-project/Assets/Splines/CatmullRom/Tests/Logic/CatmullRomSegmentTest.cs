@@ -1,10 +1,9 @@
-﻿using BII.WasaBii.Splines.Maths;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UnityEngine;
-using static BII.WasaBii.Splines.Maths.CatmullRomSegment;
-using static BII.WasaBii.Splines.Tests.SplineTestUtils;
+using static BII.WasaBii.Splines.CatmullRom.CatmullRomSegment;
+using static BII.WasaBii.Splines.CatmullRom.Tests.SplineTestUtils;
 
-namespace BII.WasaBii.Splines.Tests {
+namespace BII.WasaBii.Splines.CatmullRom.Tests {
     
     using CatmullRomSegment = CatmullRomSegment<Vector3, Vector3>;
     

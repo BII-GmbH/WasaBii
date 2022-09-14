@@ -38,14 +38,10 @@ namespace BII.WasaBii.Core {
         public readonly struct UniversalNone { }
     }
     
-    /// Marker interface for option values without specifying the generic type.
-    /// Used in reflection-based code.
-    public interface UntypedOption { }
-    
     /// A class that potentially wraps a value.
     /// Can be either Some(value) or None.
     [MustBeSerializable]
-    public readonly struct Option<T> : UntypedOption, IEquatable<T>, IEquatable<Option<T>> {
+    public readonly struct Option<T> : IEquatable<T>, IEquatable<Option<T>> {
         
         // Fields are public for convenient support for pattern matching syntax
 

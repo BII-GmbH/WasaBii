@@ -11,15 +11,15 @@ using Newtonsoft.Json;
 namespace BII.WasaBii.Splines.CatmullRom {
     
     [JsonObject(IsReference = false)] // Treat as value type for serialization
-    [MustBeSerializable] 
+    [MustBeSerializable] [MustBeImmutable]
     public sealed class CatmullRomSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
-        
+
         public CatmullRomSpline(
             TPos startHandle, IEnumerable<TPos> handles, TPos endHandle, 
             GeometricOperations<TPos, TDiff> ops,
             SplineType? splineType = null
         ) : this(handles.Prepend(startHandle).Append(endHandle), ops, splineType)
-            => cachedSegmentLengths = new Lazy<IReadOnlyList<Length>>(() => calculateSegmentLengths(this));
+            => cachedSegmentLengths = new Lazy<ImmutableArray<Length>>(() => calculateSegmentLengths(this));
 
         public CatmullRomSpline(IEnumerable<TPos> allHandlesIncludingMarginHandles, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null) {
             handles = ImmutableArray.CreateRange(allHandlesIncludingMarginHandles);
@@ -28,7 +28,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
                     $"Cannot construct a Catmull-Rom spline from {handles.Length} handles, at least 4 are needed"
                 );
             Type = splineType ?? SplineType.Centripetal;
-            cachedSegmentLengths = new Lazy<IReadOnlyList<Length>>(() => calculateSegmentLengths(this));
+            cachedSegmentLengths = new Lazy<ImmutableArray<Length>>(() => calculateSegmentLengths(this));
             this.Ops = ops;
         }
 
@@ -86,9 +86,9 @@ namespace BII.WasaBii.Splines.CatmullRom {
         // The cached lengths for each segment,
         // accessed by the segment index.
         [NonSerialized] 
-        private readonly Lazy<IReadOnlyList<Length>> cachedSegmentLengths;
+        private readonly Lazy<ImmutableArray<Length>> cachedSegmentLengths;
 
-        private static IReadOnlyList<Length> calculateSegmentLengths(CatmullRomSpline<TPos, TDiff> spline) {
+        private static ImmutableArray<Length> calculateSegmentLengths(CatmullRomSpline<TPos, TDiff> spline) {
             var ret = new Length[spline.SegmentCount];
             for (var i = 0; i < spline.SegmentCount; i++) {
                 var idx = SplineSegmentIndex.At(i);
@@ -100,7 +100,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
                         )
                     ).ArcLength;
             }
-            return ret;
+            return ImmutableArray.Create(ret);
         }
         
         #endregion

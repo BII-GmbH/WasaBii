@@ -51,11 +51,6 @@ namespace BII.WasaBii.Core {
         }
     }
     
-    /// <summary> Interface existing solely for working dynamically with Results via reflection </summary>
-    public interface UntypedResult {
-        bool WasSuccessful { get; }
-    }
-    
     /// <summary>
     /// Temporary object indicating a success of type <typeparamref name="TValue"/>.
     /// As we know that it is a success, we do not need to specify an error type.
@@ -89,7 +84,7 @@ namespace BII.WasaBii.Core {
     ///  exceptions as "panics" - programmer errors that need to be caught at the top-level only.
     /// </summary>
     [MustBeSerializable]
-    public readonly struct Result<TValue, TError> : UntypedResult, IEquatable<Result<TValue, TError>> {
+    public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError>> {
 
         // Since this is a struct, the `status` field will be default-initialized to the first value of this enum.
         // As a default-initialized Result has neither a value or an error, it will have the status `Default`.

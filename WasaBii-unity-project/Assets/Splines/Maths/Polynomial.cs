@@ -1,43 +1,105 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 
+[assembly:InternalsVisibleTo("WasaBii-Splines-Tests")]
+
 namespace BII.WasaBii.Splines.Maths {
-    internal readonly struct CubicPolynomial<TPos, TDiff> 
+
+    internal static class Polynomial {
+        
+        public static Polynomial<TPos, TDiff> Cubic<TPos, TDiff> (TPos a, TDiff b, TDiff c, TDiff d, GeometricOperations<TPos, TDiff> ops)
+        where TPos : struct 
+        where TDiff : struct =>
+            new(ops, a, new[] { b, c, d });
+
+    }
+    
+    internal readonly struct Polynomial<TPos, TDiff> 
         where TPos : struct 
         where TDiff : struct {
     
-        /// Coefficients of the polynomial function: At³ + Bt² + Ct + D
-        public readonly TDiff A, B, C;
-        public readonly TPos D;
+        /// All coefficients of the polynomial function except the first. Eg. a cubic polynomial has
+        /// three <see cref="TailC"/> entries and is calculated in the form of: A + Bt + Ct² + Dt³
+        /// where A = <see cref="FirstC"/>, [B, C, D] = <see cref="TailC"/>
+        private readonly IReadOnlyList<TDiff> TailC;
+        private readonly TPos FirstC;
 
         internal readonly GeometricOperations<TPos, TDiff> Ops;
 
         public Length ArcLength => SplineSegmentUtils.SimpsonsLengthOf(this);
         
-        public CubicPolynomial(TDiff a, TDiff b, TDiff c, TPos d, GeometricOperations<TPos, TDiff> ops) {
-            this.A = a;
-            this.B = b;
-            this.C = c;
-            this.D = d;
+        public Polynomial(GeometricOperations<TPos, TDiff> ops, TPos firstC, IReadOnlyList<TDiff> tailC) {
+            this.FirstC = firstC;
+            this.TailC = tailC;
+            this.Ops = ops;
+        }
+
+        public Polynomial(GeometricOperations<TPos, TDiff> ops, TPos firstC, params TDiff[] tailC) {
+            this.FirstC = firstC;
+            this.TailC = tailC;
             this.Ops = ops;
         }
 
         public TPos Evaluate(double t) {
             if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
-            var tt = t * t;
-            var ttt = tt * t;
-            return Ops.Add(D, Ops.Mul(C, t), Ops.Mul(B, tt), Ops.Mul(A, ttt));
+            var ops = Ops;
+            return TailC.Aggregate(
+                seed: (res: FirstC, t),
+                (acc, diff) => (ops.Add(acc.res, ops.Mul(diff, acc.t)), acc.t * t)
+            ).res;
         }
 
         public TDiff EvaluateDerivative(double t) {
             if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
-            var tt = t * t;
-            return Ops.Add(C, Ops.Mul(B, 2 * t), Ops.Mul(A, 3 * tt));
+            var ops = Ops;
+            return TailC.ZipWithIndices().Aggregate(
+                seed: (res: Ops.ZeroDiff, t: 1.0),
+                (acc, diff) => (
+                    ops.Add(
+                        acc.res,
+                        ops.Mul(diff.item, acc.t * (diff.index + 1))
+                    ), 
+                    acc.t * t
+                )
+            ).res;
         }
 
         public TDiff EvaluateSecondDerivative(double t) {
             if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
-            return Ops.Add(Ops.Mul(B, 2), Ops.Mul(A, 6 * t));
+            var ops = Ops;
+            return TailC.ZipWithIndices().Skip(1).Aggregate(
+                seed: (res: Ops.ZeroDiff, t: 1.0),
+                (acc, diff) => (
+                    ops.Add(
+                        acc.res,
+                        ops.Mul(diff.item, acc.t * diff.index * (diff.index + 1))
+                    ), 
+                    acc.t * t
+                )
+            ).res;
+        }
+
+        public TDiff EvaluateNthDerivative(double t, int n) {
+            if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
+            var ops = Ops;
+            var factorials = new int[TailC.Count + 1];
+            factorials[0] = 1;
+            for (var i = 1; i <= TailC.Count; i++) factorials[i] = factorials[i - 1] * i;
+            return TailC.Skip(n - 1).ZipWithIndices().Aggregate(
+                seed: (res: Ops.ZeroDiff, t: 1.0),
+                (acc, diff) => (
+                    ops.Add(
+                        acc.res,
+                        // ReSharper disable once PossibleLossOfFraction
+                        ops.Mul(diff.item, acc.t * (factorials[diff.index + n] / factorials[diff.index]))
+                    ), 
+                    acc.t * t
+                )
+            ).res;
         }
 
         /// <returns>The progress along the polynomial at which the interpolated position is closest to <see cref="p"/></returns>

@@ -7,7 +7,7 @@ using static BII.WasaBii.Splines.CatmullRom.Tests.SplineTestUtils;
 namespace BII.WasaBii.Splines.CatmullRom.Tests {
     public class SplineNormalizationUtilityTest {
         private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizaionSamples = new Dictionary<double, double>
-            {{0, 0}, {0.5, 0.113}, {1, 0.226}, {2.6, 0.588}, {3, 0.679}, {4.414, 1}}.ToDictionary(
+            {{0, 0}, {0.5, 0.113}, {1, 0.227}, {2.6, 0.590}, {3, 0.680}, {4.414, 1}}.ToDictionary(
             kvp => SplineLocation.From(kvp.Key),
             kvp => NormalizedSplineLocation.From(kvp.Value)
         );

@@ -19,11 +19,11 @@ namespace BII.WasaBii.Splines {
             var spline = withSpline.Spline;
 
             var fromLoc = NormalizedSplineLocation.Zero;
-            var toLoc = NormalizedSplineLocation.From(spline.HandleCount - 1);
+            var toLoc = NormalizedSplineLocation.From(spline.SegmentCount);
             
             return Range.From(fromLoc, inclusive: true)
                 .To(toLoc, inclusive: true)
-                .Sample(samplesPerSegment * spline.SegmentCount(), NormalizedSplineLocation.Lerp)
+                .Sample(samplesPerSegment * spline.SegmentCount, NormalizedSplineLocation.Lerp)
                 .Select(location => spline[location]);
         }
 

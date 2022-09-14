@@ -13,7 +13,6 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
 
             var uut = new[] { beginMarginHandle, firstHandle, lastHandle, endMarginHandle }.ToSplineWithMarginHandlesOrThrow();
 
-            Assert.That(uut.IsValid(), Is.True);
             Assert.That(uut[SplineHandleIndex.At(0)], Is.EqualTo(beginMarginHandle));
             Assert.That(uut[SplineHandleIndex.At(1)], Is.EqualTo(firstHandle));
             Assert.That(uut[SplineHandleIndex.At(2)], Is.EqualTo(lastHandle));

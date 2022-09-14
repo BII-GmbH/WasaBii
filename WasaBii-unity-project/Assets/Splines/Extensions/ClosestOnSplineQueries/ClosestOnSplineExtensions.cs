@@ -58,8 +58,6 @@ namespace BII.WasaBii.Splines {
 
             var spline = withSpline.Spline;
 
-            if (!spline.IsValid()) return Option.None;
-
             // 0: The position is on the plane,
             // > 0: The position is above the plane (in the direction of the normal)
             // < 0: The position is below the plane (opposite direction of the normal)
@@ -75,7 +73,7 @@ namespace BII.WasaBii.Splines {
                 closestLocation
             );
 
-            var totalIntervals = spline.HandleCount - 1;
+            var totalIntervals = spline.SegmentCount;
             var lower = 0;
             var upper = totalIntervals;
 

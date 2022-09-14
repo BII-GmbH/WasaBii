@@ -1,6 +1,6 @@
 {
-    "name": "BII_Splines_Tests",
-    "rootNamespace": "",
+    "name": "WasaBii-Splines-CatmullRom-Tests",
+    "rootNamespace": "BII.WasaBii",
     "references": [
         "WasaBii-Core",
         "WasaBii-Splines",

@@ -42,7 +42,7 @@ namespace BII.WasaBii.Splines.Maths {
             // Iterate from each node and subtract its length from the location. 
             // Once the location is no longer greater than the node's length, 
             // the remaining location relative to the length is the normalized value t
-            while (currentSegmentIdx < spline.SegmentCount()) {
+            while (currentSegmentIdx < spline.SegmentCount) {
                 var segmentLength = spline[currentSegmentIdx].Length;
                 if (remainingDistanceToLocation > segmentLength) {
                     remainingDistanceToLocation -= segmentLength;
@@ -78,7 +78,7 @@ namespace BII.WasaBii.Splines.Maths {
 
             var location = SplineLocation.Zero;
             var segmentIdx = SplineSegmentIndex.Zero;
-            for (var remainingT = t; remainingT > 0 && segmentIdx < spline.SegmentCount(); remainingT -= 1) {
+            for (var remainingT = t; remainingT > 0 && segmentIdx < spline.SegmentCount; remainingT -= 1) {
                 var length = spline[segmentIdx].Length;
                 segmentIdx += 1;
                 location += length * Math.Min(1, remainingT);
@@ -134,7 +134,7 @@ namespace BII.WasaBii.Splines.Maths {
             foreach (var current in locations) {
                 var currentLocation = current;
                 while (currentLocation > segmentAbsoluteEnd) {
-                    if (currentSegmentIndex < spline.SegmentCount() - 1) {
+                    if (currentSegmentIndex < spline.SegmentCount - 1) {
                         // If we aren't in the last segment yet we advance the segment.
                         currentSegmentIndex += 1;
                         segmentAbsoluteBegin = segmentAbsoluteEnd;

@@ -22,7 +22,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
                 computePosition(
                     original,
                     original.EndMarginHandle(),
-                    NormalizedSplineLocation.From(original.HandleCount - 1)
+                    NormalizedSplineLocation.From(original.Handles.Count - 1)
                 ),
                 original.Ops,
                 original.Type

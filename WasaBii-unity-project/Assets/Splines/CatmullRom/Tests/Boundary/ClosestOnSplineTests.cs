@@ -1,5 +1,4 @@
-﻿using BII.WasaBii.Core;
-using BII.WasaBii.Unity.Geometry.Splines;
+﻿using BII.WasaBii.Unity.Geometry.Splines;
 using NUnit.Framework;
 using UnityEngine;
 using static BII.WasaBii.Splines.CatmullRom.Tests.SplineTestUtils;
@@ -7,12 +6,6 @@ using static BII.WasaBii.Splines.CatmullRom.Tests.SplineTestUtils;
 namespace BII.WasaBii.Splines.CatmullRom.Tests {
     public class ClosestOnSplineTests {
       
-        [Test]
-        public void QueryGreedyClosestPositionOnSplineTo_WhenInvalidSpline_ThenReturnsNone() {
-            var invalidSpline = SplineTestUtils.ExampleInvalidSpline.Spline;
-            Assert.That(invalidSpline.QueryClosestPositionOnSplineTo(Vector3.zero), Is.EqualTo(Option<ClosestOnSplineQueryResult<Vector3, Vector3>>.None));
-        }
-        
         [Test]
         public void QueryGreedyClosestPositionOnSplineTo_WhenEquidistantNodes_ThenReturnsCorrectLocationAndDistance() {
             var uut = UnitySpline.FromHandlesIncludingMargin(new []{

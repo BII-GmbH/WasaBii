@@ -111,6 +111,8 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
             public GlobalOffset Mul(GlobalOffset diff, double f) => diff * f;
 
             public double Dot(GlobalOffset a, GlobalOffset b) => a.Dot(b);
+            
+            public GlobalOffset ZeroDiff => GlobalOffset.Zero;
         }
     }
     

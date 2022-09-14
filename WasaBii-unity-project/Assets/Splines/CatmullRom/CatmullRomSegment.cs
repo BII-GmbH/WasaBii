@@ -5,7 +5,7 @@ using System;
 using System.Runtime.CompilerServices;
 using BII.WasaBii.Splines.Maths;
 
-[assembly:InternalsVisibleTo("BII_Splines_Tests")]
+[assembly:InternalsVisibleTo("WasaBii-Splines-CatmullRom-Tests")]
 
 namespace BII.WasaBii.Splines.CatmullRom {
    
@@ -49,20 +49,17 @@ namespace BII.WasaBii.Splines.CatmullRom {
             if(spline == null)
                 throw new ArgumentNullException(nameof(spline));
             
-            if(!spline.IsValid())
-                throw new ArgumentException("The given spline was not valid", nameof(spline));
-           
             if(double.IsNaN(location.Value))
                 throw new ArgumentException("The spline location is NaN", nameof(location));
                 
-            if (location < 0 || location > spline.HandleCount - 1 + EndOfSplineOvershootTolerance)
+            if (location < 0 || location > spline.Handles.Count - 1 + EndOfSplineOvershootTolerance)
                 return null;
             
-            var (s0, overshoot) = location >= spline.HandleCount - 1
+            var (s0, overshoot) = location >= spline.Handles.Count - 1
                 // The location was almost at, or slightly above the end of the spline
                 // but within tolerance. The used segment automatically
                 // becomes the last valid catmull rom segment.
-                ? (SplineHandleIndex.At(spline.HandleCount - 2), 1.0f)
+                ? (SplineHandleIndex.At(spline.Handles.Count - 2), 1.0f)
                 // Otherwise the location is simply converted to a handle index and overshoot
                 : location.AsHandleIndex();
             

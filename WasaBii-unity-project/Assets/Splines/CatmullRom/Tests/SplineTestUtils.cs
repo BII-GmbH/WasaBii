@@ -32,7 +32,7 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
             Assert.That(uut[SplineHandleIndex.At(2)], Is.EqualTo(ExampleLinearSpline.ThirdHandle));
             Assert.That(uut[SplineHandleIndex.At(3)], Is.EqualTo(ExampleLinearSpline.FourthHandle));
             
-            Assert.That(uut.HandleCountIncludingMargin, Is.EqualTo(ExampleLinearSpline.HandleCount));
+            Assert.That(uut.HandlesIncludingMargin.Count, Is.EqualTo(ExampleLinearSpline.HandleCount));
             Assert.That(uut.Type, Is.EqualTo(SplineType.Centripetal));
         
             Assert.That(() => uut[SplineSegmentIndex.Zero], Throws.Nothing);
@@ -75,7 +75,7 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
             public static Vector3 Expected05Curvature = Vector3.zero;
             public static Vector3 Expected1Curvature = Vector3.zero;
             
-            public static CubicPolynomial<Vector3, Vector3> Polynomial => CatmullRomPolynomial.FromSegment(
+            public static Polynomial<Vector3, Vector3> Polynomial => CatmullRomPolynomial.FromSegment(
                 new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance),
                 splineTypeAlphaValue
             );
@@ -112,20 +112,20 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
             // All values below (position, tangent and curvature) have been manually
             // confirmed to be the expected values by testing them with the previous spline system.
             public static Vector3 Expected0Position = SecondHandle;
-            public static Vector3 Expected05Position = new Vector3(1.5449f, 1.584f, -0.346f);
+            public static Vector3 Expected05Position = new Vector3(1.549f, 1.584f, -0.346f);
             public static Vector3 Expected1Position = ThirdHandle;
             
             public static Vector3 Expected0Tangent = new Vector3(1.453f, 0.130f, -0.595f);
             public static Vector3 Expected05Tangent = new Vector3(0.872f, 4.753f, -2.645f);
             public static Vector3 Expected1Tangent = new Vector3(1.060f, 0.657f, -3.823f);
 
-            public static Vector3 Expected0Curvature = new Vector3(-1.929f, 17.965f, -4.973f);
+            public static Vector3 Expected0Curvature = new Vector3(-1.930f, 17.966f, -4.973f);
             public static Vector3 Expected05Curvature = new Vector3(-0.393f, 0.526f, -3.228f);
-            public static Vector3 Expected1Curvature = new Vector3(1.143f, -16.913f, -1.483f);
+            public static Vector3 Expected1Curvature = new Vector3(1.144f, -16.913f, -1.484f);
             
             public static Length ExpectedSplineLength => 4.413755.Meters();
 
-            public static CubicPolynomial<Vector3, Vector3> Polynomial => CatmullRomPolynomial.FromSegment(
+            public static Polynomial<Vector3, Vector3> Polynomial => CatmullRomPolynomial.FromSegment(
                 new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance),
                 splineTypeAlphaValue
             );

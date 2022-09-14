@@ -9,7 +9,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
     internal static class CatmullRomPolynomial {
         
         [Pure]
-        internal static Option<CubicPolynomial<TPos, TDiff>> FromSplineAt<TPos, TDiff>(CatmullRomSpline<TPos, TDiff> spline, SplineSegmentIndex idx) 
+        internal static Option<Polynomial<TPos, TDiff>> FromSplineAt<TPos, TDiff>(CatmullRomSpline<TPos, TDiff> spline, SplineSegmentIndex idx) 
         where TPos : struct 
         where TDiff : struct => 
             CatmullRomSegment.CatmullRomSegmentAt(spline, NormalizedSplineLocation.From(idx)) is { Segment: var segment } 
@@ -17,7 +17,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
                 : Option.None;
 
         [Pure]
-        internal static CubicPolynomial<TPos, TDiff> FromSegment<TPos, TDiff>(CatmullRomSegment<TPos, TDiff> segment, float alpha) 
+        internal static Polynomial<TPos, TDiff> FromSegment<TPos, TDiff>(CatmullRomSegment<TPos, TDiff> segment, float alpha) 
         where TPos : struct 
         where TDiff : struct {
             var p0 = segment.P0;
@@ -47,11 +47,11 @@ namespace BII.WasaBii.Splines.CatmullRom {
             var t1 = TFor(p0, p1, p2, dt0, dt1);
             var t2 = TFor(p1, p2, p3, dt1, dt2);
 
-            var poly = new CubicPolynomial<TPos, TDiff>(
-                a: ops.Add(ops.Mul(ops.Sub(p1, p2), 2), t1, t2),
-                b: ops.Sub(ops.Mul(ops.Sub(p2, p1), 3), ops.Mul(t1, 2), t2),
-                c: t1,
-                d: p1,
+            var poly = Polynomial.Cubic(
+                a: p1,
+                b: t1,
+                c: ops.Sub(ops.Mul(ops.Sub(p2, p1), 3), ops.Mul(t1, 2), t2),
+                d: ops.Add(ops.Mul(ops.Sub(p1, p2), 2), t1, t2),
                 ops
             );
 

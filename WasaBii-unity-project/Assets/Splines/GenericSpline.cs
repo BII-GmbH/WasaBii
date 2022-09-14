@@ -11,7 +11,7 @@ namespace BII.WasaBii.Splines {
     [MustBeSerializable][MustBeImmutable]
     public interface Spline {
         
-        int HandleCount { get; }
+        int SegmentCount { get; }
         Length Length { get; }
         
     }
@@ -22,20 +22,15 @@ namespace BII.WasaBii.Splines {
         where TPos : struct 
         where TDiff : struct {
         
-        IReadOnlyList<TPos> Handles { get; }
-        int HandleCount => Handles.Count;
-        
+        IEnumerable<SplineSegment<TPos, TDiff>> Segments { get; }
+
         SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] { get; }
         SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
         SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] { get; }
         
         GeometricOperations<TPos, TDiff> Ops { get; }
 
-        Length Spline.Length => 
-            this.WhenValidOrThrow(
-                _ => Enumerable.Range(0, this.SegmentCount())
-                    .Sum(idx => this[SplineSegmentIndex.At(idx)].Length)
-            );
+        Length Spline.Length => Segments.Sum(s => s.Length);
     }
 
     public interface WithSpline<TPos, TDiff>

@@ -8,13 +8,13 @@ namespace BII.WasaBii.Splines {
     public readonly struct SplineSegment<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
-        internal readonly CubicPolynomial<TPos, TDiff> Polynomial;
+        internal readonly Polynomial<TPos, TDiff> Polynomial;
         private readonly Lazy<Length> cachedLength;
         public Length Length => cachedLength.Value;
 
-        internal SplineSegment(CubicPolynomial<TPos, TDiff> polynomial, Length? cachedLength = null) {
+        internal SplineSegment(Polynomial<TPos, TDiff> polynomial, Length? cachedLength = null) {
             Polynomial = polynomial;
-            this.cachedLength = new Lazy<Length>(() => cachedLength ?? SplineSegmentUtils.TrapezoidalLengthOf(polynomial));
+            this.cachedLength = new Lazy<Length>(() => cachedLength ?? SplineSegmentUtils.SimpsonsLengthOf(polynomial));
         }
         
         public SplineSample<TPos, TDiff> SampleAt(double percentage) => new(this, percentage);
@@ -27,7 +27,7 @@ namespace BII.WasaBii.Splines {
         /// applying the trapezoidal rule with <see cref="samples"/> sections.
         /// </summary>
         [Pure]
-        internal static Length TrapezoidalLengthOf<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int samples = 10) 
+        internal static Length TrapezoidalLengthOf<TPos, TDiff>(Polynomial<TPos, TDiff> polynomial, int samples = 10) 
             where TPos : struct 
             where TDiff : struct {
             var length = Length.Zero;
@@ -52,7 +52,7 @@ namespace BII.WasaBii.Splines {
         /// Simpson's 1/3 rule with <see cref="sections"/> sections / double that in subsections.
         /// </summary>
         [Pure]
-        internal static Length SimpsonsLengthOf<TPos, TDiff>(CubicPolynomial<TPos, TDiff> polynomial, int sections = 4) 
+        internal static Length SimpsonsLengthOf<TPos, TDiff>(Polynomial<TPos, TDiff> polynomial, int sections = 4) 
         where TPos : struct 
         where TDiff : struct {
             

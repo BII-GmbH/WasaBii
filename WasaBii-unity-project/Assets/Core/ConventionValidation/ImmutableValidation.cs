@@ -24,14 +24,18 @@ namespace BII.WasaBii.Core {
                 // Guids are practically immutable, but not implemented in an immutable fashion
                 typeof(Guid),
                 // Types are effectively immutable
-                typeof(Type)//,
-                // // TODO DS for maintainer: Implement proper solution for Lazy that works with generics
-                // typeof(Lazy<int>), typeof(Lazy<IReadOnlyList<Length>>)
+                typeof(Type)
             );
 
         // Generic instances of these are considered immutable when their generic parameters are immutable
         public static readonly IImmutableSet<Type> ConditionallyImmutableGenerics =
-            ImmutableHashSet.Create(typeof(Option<>), typeof(Result<,>), typeof(Lazy<>));
+            ImmutableHashSet.Create(
+                typeof(Option<>), 
+                typeof(Result<,>), 
+                // Technically, a lazy can be stateful depending on the factory closure.
+                // However, that would be stupid. We cannot validate this, so we just trust you people here.
+                typeof(Lazy<>)
+            );
         
         
         /// <inheritdoc cref="MustBeImmutableAttribute"/>
@@ -59,15 +63,15 @@ namespace BII.WasaBii.Core {
                 // We also allow strings. Who mutates string references?
                 if (type == typeof(string)) yield break;
 
-                // We also allow monads, as long as their contained values are immutable
-                if (type.IsGenericType && ConditionallyImmutableGenerics.FirstOrNone(
+                // We also allow certain generics, as long as their type arguments are immutable
+                if (type.IsGenericType && ConditionallyImmutableGenerics.Any(
                     genericType => genericType.IsAssignableFrom(type.GetGenericTypeDefinition())
-                ).TryGetValue(out var genericType)) {
-                    foreach (var err in type.GetGenericArguments().SelectMany(genericArgument =>
-                        validateTypeIsImmutable(
-                            genericArgument,
-                            contexts.Prepend($"Value of {genericType.Name}")
-                        ))) yield return err;
+                )) {
+                    foreach (var genericArgument in type.GetGenericArguments())
+                        foreach (var err in validateTypeIsImmutable(
+                             genericArgument,
+                             contexts.Prepend($"Generic Arg {genericArgument} of {type}")
+                         )) yield return err;
                     yield break;
                 }
                 

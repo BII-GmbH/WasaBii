@@ -5,17 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c0dc0d3b-1057-443e-a6a8-fc392c49bac8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Units-Generator.dir/.idea/indexLayout.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Units-Generator.dir/.idea/projectSettingsUpdater.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Units-Generator.dir/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Units-Generator.dir/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Core/ConventionValidation.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Core/ConventionValidation/Editor.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Core/ConventionValidation/Editor/WasaBii-Core-ConventionValidation-Editor.asmdef" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Core/ConventionValidation/Editor/WasaBii-Core-ConventionValidation-Editor.asmdef.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Core/FunctionalUtils/Option.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Core/FunctionalUtils/Option.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Core/FunctionalUtils/Result.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Core/FunctionalUtils/Result.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Splines/CatmullRom/CatmullRomSpline.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Splines/CatmullRom/CatmullRomSpline.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.WasaBii-Units-Generator.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Units-Generator.dir/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Core/ConventionValidation/ImmutableValidation.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Core/ConventionValidation/ImmutableValidation.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

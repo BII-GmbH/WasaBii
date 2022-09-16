@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
@@ -7,36 +9,14 @@ using BII.WasaBii.Unity.Geometry;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {
-    public static class EnumerableExtensions {
+    
+    public static class EnumerableUnityExtensions {
         
-        public static Vector3 Sum(this IEnumerable<Vector3> enumerable)
-            => enumerable.Aggregate(Vector3.zero, (v1, v2) => v1 + v2);
+        public static Vector3 Sum(this IEnumerable<Vector3> enumerable) => 
+            enumerable.Aggregate(Vector3.zero, (v1, v2) => v1 + v2);
 
-        public static T Average<T>(
-            this IEnumerable<T> enumerable,
-            T seed,
-            Func<T, T, T> addition,
-            Func<T, int, T> division
-        ) {
-            var count = 0;
-            var sum = seed;
-            enumerable.ForEach(
-                t => {
-                    count++;
-                    sum = addition(sum, t);
-                }
-            );
-            return division(sum, count);
-        }
-
-        public static T Average<T>(
-            this IEnumerable<T> enumerable,
-            Func<T, T, T> addition,
-            Func<T, int, T> division
-        ) => Average(enumerable, seed: default(T), addition, division);
-
-        public static Vector3 Average(this IEnumerable<Vector3> enumerable)
-            => enumerable.Average(
+        public static Vector3 Average(this IEnumerable<Vector3> enumerable) =>
+            enumerable.Average(
                 addition: (vec1, vec2) => vec1 + vec2,
                 division: (vec, i) => vec / i
             );

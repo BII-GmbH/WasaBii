@@ -1,10 +1,10 @@
+#nullable enable
+
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {
 
     /// <summary>
-    /// Author: Cameron Reuschel <br/><br/>
-    /// 
     /// Inheriting from this class instead of <see cref="MonoBehaviour"/>
     /// causes a <see cref="Queryable"/> component to be added so that the
     /// inheriting class can be queried in a scene using the static methods
@@ -15,13 +15,12 @@ namespace BII.WasaBii.Unity {
     /// </summary>
     [RequireComponent(typeof(Queryable))]
     public abstract class QueryableBehaviour : MonoBehaviour {
-        private Queryable _queryable;
+        private Queryable? _queryable;
 
         public Queryable Queryable {
             get {
-                if (_queryable != null) return _queryable;
-                _queryable = GetComponent<Queryable>();
-                return _queryable;
+                this.AssignIfAbsent(ref _queryable);
+                return _queryable!;
             }
         }
 

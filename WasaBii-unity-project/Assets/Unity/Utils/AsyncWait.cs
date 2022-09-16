@@ -12,7 +12,7 @@ namespace BII.WasaBii.Unity {
 
         public static Task ForCoroutine(IEnumerator coroutine) {
             var taskCompletionSource = new TaskCompletionSource<object>();
-            coroutine.Afterwards(() => taskCompletionSource.SetResult(null)).Start();
+            coroutine.Afterwards(() => taskCompletionSource.SetResult(new object())).Start();
             return taskCompletionSource.Task;
         }
 

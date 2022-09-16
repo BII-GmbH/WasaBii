@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿#nullable enable
+
+using System.ComponentModel;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {
@@ -14,7 +16,7 @@ namespace BII.WasaBii.Unity {
     }
 
     public static class DelayTypeExtensions {
-        public static YieldInstruction ToYieldInstruction(this DelayType delayType) => 
+        public static YieldInstruction? ToYieldInstruction(this DelayType delayType) => 
             delayType switch {
                 DelayType.Default => null,
                 DelayType.Fixed => new WaitForFixedUpdate(),

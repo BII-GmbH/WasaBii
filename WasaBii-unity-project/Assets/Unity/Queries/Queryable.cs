@@ -1,5 +1,6 @@
+#nullable enable
+
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {
@@ -13,7 +14,7 @@ namespace BII.WasaBii.Unity {
         // TODO CR for maintainer: figure out a way to register secondary queryables which are added later
         // => we do not want to override methods in the QueryableBehaviour, so we'd have to *poll* here (ew)
 
-        private Query _q;
+        private Query _q = default!; // initialized in Awake
 
         internal readonly List<QueryableBehaviour> Underlying = new();
 

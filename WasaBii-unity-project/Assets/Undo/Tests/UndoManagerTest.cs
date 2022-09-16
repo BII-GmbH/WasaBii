@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
@@ -63,11 +64,11 @@ namespace BII.WasaBii.Undo.Tests {
     }
 
     public class UndoManagerTest {
-        private UndoManager<string> undoManager;
+        private UndoManager<string> undoManager = null!; // always assigned in `Setup`
 
         private static void fail() => Assert.Fail();
 
-        private void registerUndos(int n, Action Do = null, Action Undo = null) {
+        private void registerUndos(int n, Action? Do = null, Action? Undo = null) {
             static void DoNothing() { }
             for (var i = 0; i < n; ++i) {
                 undoManager.StartRecordingAction("test #" + i);
@@ -467,7 +468,7 @@ namespace BII.WasaBii.Undo.Tests {
         public void WhenRegisteringPlaceholderAndNotUsed_ThenIgnored() {
             undoManager.StartRecordingAction("test");
 
-            var unusedPlaceholder = undoManager.RegisterUndoPlaceholder();
+            _ = undoManager.RegisterUndoPlaceholder();
 
             bool? done = null;
             undoManager.RegisterAndExecute(() => done = true, () => done = false);
@@ -760,9 +761,12 @@ namespace BII.WasaBii.Undo.Tests {
             public override void OnAfterDetach() => onAfterAttach();
         }
 
+        [Test]
         public void WhenUndosExceedCap_ThenOldestRemoved() {
+            #pragma warning disable CS0219 // wrong? Assigned right below in closures
             var onBeforeAttachCalled = false;
             var onAfterDetachCalled = false;
+            #pragma warning restore CS0219
 
             var buffer = new SingleElementUndoBuffer(
                 () => onBeforeAttachCalled = true, 
@@ -818,7 +822,6 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(action1Undone, Is.False);
 
             Assert.That(action2Done, Is.True);
-            Assert.That(action2Undone, Is.False);
         }
 
 #endregion

@@ -1,3 +1,5 @@
+#nullable enable
+
 using BII.WasaBii.Unity.Exceptions;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -15,14 +17,13 @@ namespace BII.WasaBii.Unity {
     /// </summary>
     /// <typeparam name="T">The implementing type itself</typeparam>
     public abstract class Singleton<T> : MonoBehaviour, Singleton where T : Singleton<T> {
-        private static T _instance;
+        private static T? _instance;
 
         public static bool HasInstance => _instance != null;
 
         /// <summary>
         /// Returns the instance of this singleton.
         /// </summary>
-        [NotNull]
         public static T Instance {
             get {
                 if (_instance != null) return _instance;
@@ -56,7 +57,7 @@ namespace BII.WasaBii.Unity {
                 instance = Instance;
                 return true;
             } catch (WrongSingletonUsageException) {
-                instance = null;
+                instance = null!;
                 return false;
             }
         }

@@ -1,7 +1,8 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using BII.WasaBii.Undos;
-using JetBrains.Annotations;
 
 namespace BII.WasaBii.Undo {
 
@@ -30,7 +31,7 @@ namespace BII.WasaBii.Undo {
 
         internal UndoBuffer<TLabel> currentUndoBuffer => _undoBufferStack.Peek();
 
-        internal void pushUndoBuffer([NotNull] UndoBuffer<TLabel> customBuffer) {
+        internal void pushUndoBuffer(UndoBuffer<TLabel> customBuffer) {
             if (customBuffer == null) throw new ArgumentNullException(nameof(customBuffer));
             customBuffer.OnBeforeAttach();
             _undoBufferStack.Push(customBuffer);
@@ -42,9 +43,10 @@ namespace BII.WasaBii.Undo {
             var popped = _undoBufferStack.Pop();
             popped.OnAfterDetach();
         }
-
+        
+        // ReSharper disable four times InconsistentNaming
         internal class BufferRecordingData {
-            [CanBeNull] public TLabel _currentActionLabel = default;
+            public TLabel? _currentActionLabel = default;
             public bool _wasAborted = false;
 
             public readonly LinkedList<SymmetricOperation> _recordedOperations = new();
@@ -78,7 +80,7 @@ namespace BII.WasaBii.Undo {
             currentRecordingData._currentActionLabel = default;
         }
 
-        [CanBeNull] internal TLabel _currentActionLabel {
+        internal TLabel? _currentActionLabel {
             get => currentRecordingData._currentActionLabel;
             set => currentRecordingData._currentActionLabel = value 
                 ?? throw new ArgumentException("Cannot set the current undo action name to null from outside.");

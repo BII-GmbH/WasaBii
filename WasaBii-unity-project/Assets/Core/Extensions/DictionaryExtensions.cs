@@ -1,12 +1,11 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace BII.WasaBii.Core
-{
+namespace BII.WasaBii.Core {
 
-    public static class DictionaryExtensions
-    {
+    public static class DictionaryExtensions {
 
         public static void AppendOrAdd<TKey, TValue>(this Dictionary<TKey, List<TValue>> dict, TKey key, TValue item) {
             if (dict.TryGetValue(key, out var list))
@@ -33,27 +32,16 @@ namespace BII.WasaBii.Core
                 dict.Add(key, new HashSet<TValue> {item});
         }
 
-        public static TValue GetOrEmpty<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dict, TKey key)
-        where TValue : new() {
-            if (dict.TryGetValue(key, out var res))
-                return res;
-            else
-                return new TValue();
-        }
-
         public static bool IsContentEqualTo<TKey, TValue>(
-            this IReadOnlyDictionary<TKey, TValue> dict1,
+            this IReadOnlyDictionary<TKey, TValue> dict,
             IReadOnlyDictionary<TKey, TValue> otherDict,
             IEqualityComparer<TValue>? comparer = null
         ) {
-            if (dict1.Count != otherDict.Count) return false;
+            if (dict.Count != otherDict.Count) return false;
             comparer ??= EqualityComparer<TValue>.Default;
-            foreach (var (key, value) in dict1) {
-                if (!otherDict.TryGetValue(key, out var otherValue) || !comparer.Equals(value, otherValue))
-                    return false;
-            }
-
-            return true;
+            return dict.All(
+                kv => otherDict.TryGetValue(kv.Key, out var otherValue) && comparer.Equals(kv.Value, otherValue)
+            );
         }
 
         public static TVal GetOrAdd<TKey, TVal>(this Dictionary<TKey, TVal> dict, TKey key, Func<TVal> valueProvider) {

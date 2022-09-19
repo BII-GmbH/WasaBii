@@ -2,6 +2,7 @@
 using BII.WasaBii.Splines;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Core;
+using BII.WasaBii.Splines.Bezier;
 using BII.WasaBii.Splines.CatmullRom;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
@@ -11,13 +12,13 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
 
     public static class UnitySpline {
 
-        /// <inheritdoc cref="CatmullRomSpline.FromInterpolating{TPos,TDiff}"/>
+        /// <inheritdoc cref="ToSplineOrThrow"/>
         [Pure]
         public static CatmullRomSpline<Vector3, Vector3> FromInterpolating(
-            IEnumerable<Vector3> handles, SplineType? type = null
-        ) => CatmullRomSpline.FromInterpolating(handles, GeometricOperations.Instance, type);
+            IEnumerable<Vector3> handles, SplineType? type = null, bool shouldLoop = false
+        ) => handles.ToSplineOrThrow(type, shouldLoop);
         
-        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}(TPos,System.Collections.Generic.IEnumerable{TPos},TPos,BII.WasaBii.Splines.Maths.GeometricOperations{TPos,TDiff},System.Nullable{BII.WasaBii.Splines.CatmullRom.SplineType})"/>
         [Pure]
         public static CatmullRomSpline<Vector3, Vector3> FromHandles(
             Vector3 beginMarginHandle, 
@@ -34,20 +35,25 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         ) => CatmullRomSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, GeometricOperations.Instance, type);
         
 #region Extensions
-        /// <inheritdoc cref="GenericEnumerableToCatmullRomSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}(IEnumerable{TPos},GeometricOperations{TPos, TDiff},SplineType?,bool)"/>
         [Pure]
-        public static CatmullRomSpline<Vector3, Vector3> ToSplineOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
-            => source.ToSplineOrThrow(GeometricOperations.Instance, splineType);
+        public static CatmullRomSpline<Vector3, Vector3> ToSplineOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null, bool shouldLoop = false)
+            => CatmullRomSpline.FromHandlesOrThrow(source, GeometricOperations.Instance, splineType, shouldLoop);
 
-        /// <inheritdoc cref="GenericEnumerableToCatmullRomSplineExtensions.ToSpline{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}(IEnumerable{TPos},GeometricOperations{TPos, TDiff},SplineType?,bool)"/>
         [Pure]
-        public static Option<CatmullRomSpline<Vector3, Vector3>> ToSpline(this IEnumerable<Vector3> source, SplineType? splineType = null)
-            => source.ToSpline(GeometricOperations.Instance, splineType);
+        public static Option<CatmullRomSpline<Vector3, Vector3>> ToSpline(this IEnumerable<Vector3> source, SplineType? splineType = null, bool shouldLoop = false)
+            => CatmullRomSpline.FromHandles(source, GeometricOperations.Instance, splineType, shouldLoop);
 
-        /// <inheritdoc cref="GenericEnumerableToCatmullRomSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesIncludingMargin{TPos,TDiff}"/>
         [Pure]
         public static CatmullRomSpline<Vector3, Vector3> ToSplineWithMarginHandlesOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
-            => source.ToSplineWithMarginHandlesOrThrow(GeometricOperations.Instance, splineType);
+            => CatmullRomSpline.FromHandlesIncludingMargin(source, GeometricOperations.Instance, splineType);
+
+        [Pure]
+        public static BezierSpline<Vector3, Vector3> ToSpline(
+            this IEnumerable<(Vector3 position, Vector3 velocity)> source, bool shouldLoop = false
+        ) => BezierSpline.FromHandlesWithVelocities(source, GeometricOperations.Instance, shouldLoop);
 
         /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineToOrThrow{TPos, TDiff}"/>
         [Pure]

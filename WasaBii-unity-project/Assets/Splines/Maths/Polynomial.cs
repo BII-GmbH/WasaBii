@@ -11,10 +11,15 @@ namespace BII.WasaBii.Splines.Maths {
 
     internal static class Polynomial {
         
+        public static Polynomial<TPos, TDiff> Quadratic<TPos, TDiff> (TPos a, TDiff b, TDiff c, GeometricOperations<TPos, TDiff> ops)
+        where TPos : struct 
+        where TDiff : struct =>
+            new(ops, a, b, c);
+
         public static Polynomial<TPos, TDiff> Cubic<TPos, TDiff> (TPos a, TDiff b, TDiff c, TDiff d, GeometricOperations<TPos, TDiff> ops)
         where TPos : struct 
         where TDiff : struct =>
-            new(ops, a, new[] { b, c, d });
+            new(ops, a, b, c, d);
 
     }
     

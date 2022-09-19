@@ -1,0 +1,104 @@
+using System;
+using System.Diagnostics.Contracts;
+using BII.WasaBii.Core;
+using BII.WasaBii.Splines.Maths;
+using BII.WasaBii.UnitSystem;
+
+namespace BII.WasaBii.Splines.Bezier {
+
+    public static class BezierSegment {
+        
+        [Pure]
+        public static BezierSegment<TPos, TDiff>.Cubic MkCubic<TPos, TDiff>(
+            TPos p0, TPos p1, TPos p2, TPos p3,
+            GeometricOperations<TPos, TDiff> ops
+        ) where TPos : struct where TDiff : struct 
+            => new(p0, p1, p2, p3, ops);
+
+        [Pure]
+        public static BezierSegment<TPos, TDiff>.Quadratic MkQuadratic<TPos, TDiff>(
+            TPos p0, TPos p1, TPos p2,
+            GeometricOperations<TPos, TDiff> ops
+        ) where TPos : struct where TDiff : struct 
+            => new(p0, p1, p2, ops);
+
+    }
+    
+    [MustBeSerializable] [MustBeImmutable]
+    public abstract record BezierSegment<TPos, TDiff> where TPos : struct where TDiff : struct {
+        
+        public abstract GeometricOperations<TPos, TDiff> Ops { get; init; }
+        public abstract TPos Start { get; }
+        public abstract TPos End { get; }
+        public abstract TDiff StartVelocity { get; }
+        public abstract TDiff EndVelocity { get; }
+        
+        [Pure] internal abstract Polynomial<TPos, TDiff> ToPolynomial();
+
+        [Pure] public SplineSegment<TPos, TDiff> ToSplineSegment(Lazy<Length>? cachedLength = null) 
+            => new(ToPolynomial(), cachedLength);
+        
+        [Pure] public abstract BezierSegment<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
+            Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
+        ) where TPosNew : struct where TDiffNew : struct;
+
+        /// Describes the area between two spline handles (p0 and p3), 
+        /// with the supporting handles p1 and p2
+        [MustBeSerializable] [MustBeImmutable]
+        public sealed record Cubic(TPos P0, TPos P1, TPos P2, TPos P3, GeometricOperations<TPos, TDiff> Ops) : BezierSegment<TPos, TDiff> {
+        
+            public override TPos Start => P0;
+            public override TPos End => P3;
+
+            public override TDiff StartVelocity => Ops.Mul(Ops.Sub(P1, P0), 3);
+            public override TDiff EndVelocity => Ops.Mul(Ops.Sub(P3, P2), 3);
+
+            [Pure]
+            internal override Polynomial<TPos, TDiff> ToPolynomial() {
+                var startVelocity = StartVelocity;
+                
+                var a = P0;
+                var b = startVelocity;
+                var c = Ops.Sub(Ops.Mul(Ops.Sub(P2, P1), 3), b);
+                var d = Ops.Add(Ops.Mul(Ops.Sub(P0, P3), 2), startVelocity, EndVelocity);
+                
+                return Polynomial.Cubic(a, b, c, d, Ops);
+            }
+
+            public override BezierSegment<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
+                Func<TPos, TPosNew> mapping, GeometricOperations<TPosNew, TDiffNew> newOps
+            ) => BezierSegment.MkCubic(mapping(P0), mapping(P1), mapping(P2), mapping(P3), newOps);
+
+        }
+
+        /// Describes the area between two spline handles (p0 and p2), 
+        /// with the supporting handle p1
+        [MustBeSerializable] [MustBeImmutable]
+        public sealed record Quadratic(TPos P0, TPos P1, TPos P2, GeometricOperations<TPos, TDiff> Ops) : BezierSegment<TPos, TDiff> {
+        
+            public override TPos Start => P0;
+            public override TPos End => P2;
+
+            public override TDiff StartVelocity => Ops.Mul(Ops.Sub(P1, P0), 2);
+            public override TDiff EndVelocity => Ops.Mul(Ops.Sub(P2, P1), 2);
+
+            [Pure]
+            internal override Polynomial<TPos, TDiff> ToPolynomial() {
+                var startVelocity = StartVelocity;
+                
+                var a = P0;
+                var b = startVelocity;
+                var c = Ops.Mul(Ops.Sub(EndVelocity, startVelocity), 0.5);
+                
+                return Polynomial.Quadratic(a, b, c, Ops);
+            }
+            
+            public override BezierSegment<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
+                Func<TPos, TPosNew> mapping, GeometricOperations<TPosNew, TDiffNew> newOps
+            ) => BezierSegment.MkQuadratic(mapping(P0), mapping(P1), mapping(P2), newOps);
+
+        }
+
+    }
+
+}

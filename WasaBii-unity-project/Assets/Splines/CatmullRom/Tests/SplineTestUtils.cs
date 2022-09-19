@@ -25,7 +25,7 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
         public void MockedSplineTest() {
             var uut = ExampleLinearSpline.Spline;
         
-            Assert.That(uut.Spline, Is.EqualTo(uut));
+            Assert.That(((WithSpline<Vector3, Vector3>)uut).Spline, Is.EqualTo(uut));
             
             Assert.That(uut[SplineHandleIndex.At(0)], Is.EqualTo(ExampleLinearSpline.FirstHandle));
             Assert.That(uut[SplineHandleIndex.At(1)], Is.EqualTo(ExampleLinearSpline.SecondHandle));
@@ -75,10 +75,9 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
             public static Vector3 Expected05Curvature = Vector3.zero;
             public static Vector3 Expected1Curvature = Vector3.zero;
             
-            public static Polynomial<Vector3, Vector3> Polynomial => CatmullRomPolynomial.FromSegment(
-                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance),
-                splineTypeAlphaValue
-            );
+            public static Polynomial<Vector3, Vector3> Polynomial => 
+                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance)
+                    .ToPolynomial(splineTypeAlphaValue);
 
             public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle},
@@ -125,10 +124,9 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
             
             public static Length ExpectedSplineLength => 4.413755.Meters();
 
-            public static Polynomial<Vector3, Vector3> Polynomial => CatmullRomPolynomial.FromSegment(
-                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance),
-                splineTypeAlphaValue
-            );
+            public static Polynomial<Vector3, Vector3> Polynomial => 
+                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance)
+                    .ToPolynomial(splineTypeAlphaValue);
             
             public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle},

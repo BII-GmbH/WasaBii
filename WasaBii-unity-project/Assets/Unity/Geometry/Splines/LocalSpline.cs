@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using BII.WasaBii.Splines;
-using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Core;
+using BII.WasaBii.Splines;
+using BII.WasaBii.Splines.Bezier;
 using BII.WasaBii.Splines.CatmullRom;
+using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 
@@ -11,13 +11,13 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
 
     public static class LocalSpline {
     
-        /// <inheritdoc cref="CatmullRomSpline.FromInterpolating{TPos,TDiff}"/>
+        /// <inheritdoc cref="ToSplineOrThrow"/>
         [Pure]
         public static CatmullRomSpline<LocalPosition, LocalOffset> FromInterpolating(
-            IEnumerable<LocalPosition> handles, SplineType? type = null
-        ) => CatmullRomSpline.FromInterpolating(handles, GeometricOperations.Instance, type);
+            IEnumerable<LocalPosition> handles, SplineType? type = null, bool shouldLoop = false
+        ) => handles.ToSplineOrThrow(type, shouldLoop);
         
-        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}(TPos,System.Collections.Generic.IEnumerable{TPos},TPos,BII.WasaBii.Splines.Maths.GeometricOperations{TPos,TDiff},System.Nullable{BII.WasaBii.Splines.CatmullRom.SplineType})"/>
         [Pure]
         public static CatmullRomSpline<LocalPosition, LocalOffset> FromHandles(
             LocalPosition beginMarginHandle, 
@@ -34,25 +34,30 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         ) => CatmullRomSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, GeometricOperations.Instance, type);
 
 #region Extensions
-        /// <inheritdoc cref="GenericEnumerableToCatmullRomSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff}"/>
         [Pure]
-        public static CatmullRomSpline<LocalPosition, LocalOffset> ToSplineOrThrow(this IEnumerable<LocalPosition> source, SplineType? splineType = null)
-            => source.ToSplineOrThrow(GeometricOperations.Instance, splineType);
+        public static CatmullRomSpline<LocalPosition, LocalOffset> ToSplineOrThrow(this IEnumerable<LocalPosition> source, SplineType? splineType = null, bool shouldLoop = false)
+            => CatmullRomSpline.FromHandlesOrThrow(source, GeometricOperations.Instance, splineType, shouldLoop);
 
-        /// <inheritdoc cref="GenericEnumerableToCatmullRomSplineExtensions.ToSpline{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}(IEnumerable{TPos},GeometricOperations{TPos, TDiff},SplineType?,bool)"/>
         [Pure]
-        public static Option<CatmullRomSpline<LocalPosition, LocalOffset>> ToSpline(this IEnumerable<LocalPosition> source, SplineType? splineType = null)
-            => source.ToSpline(GeometricOperations.Instance, splineType);
+        public static Option<CatmullRomSpline<LocalPosition, LocalOffset>> ToSpline(this IEnumerable<LocalPosition> source, SplineType? splineType = null, bool shouldLoop = false)
+            => CatmullRomSpline.FromHandles(source, GeometricOperations.Instance, splineType, shouldLoop);
 
-        /// <inheritdoc cref="GenericEnumerableToCatmullRomSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesIncludingMargin{TPos,TDiff}"/>
         [Pure]
         public static CatmullRomSpline<LocalPosition, LocalOffset> ToSplineWithMarginHandlesOrThrow(this IEnumerable<LocalPosition> source, SplineType? splineType = null)
-            => source.ToSplineWithMarginHandlesOrThrow(GeometricOperations.Instance, splineType);
+            => CatmullRomSpline.FromHandlesIncludingMargin(source, GeometricOperations.Instance, splineType);
 
         [Pure]
-        public static CatmullRomSpline<GlobalPosition, GlobalOffset> ToGlobalWith(
-            this CatmullRomSpline<LocalPosition, LocalOffset> local, TransformProvider parent
-        ) => local.HandlesIncludingMargin.Select(l => l.ToGlobalWith(parent)).ToSplineWithMarginHandlesOrThrow();
+        public static Spline<GlobalPosition, GlobalOffset> ToGlobalWith(
+            this Spline<LocalPosition, LocalOffset> local, TransformProvider parent
+        ) => local.Map(l => l.ToGlobalWith(parent), GlobalSpline.GeometricOperations.Instance);
+
+        [Pure]
+        public static BezierSpline<LocalPosition, LocalOffset> ToSpline(
+            this IEnumerable<(LocalPosition position, LocalOffset velocity)> source, bool shouldLoop = false
+        ) => BezierSpline.FromHandlesWithVelocities(source, GeometricOperations.Instance, shouldLoop);
 
         /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineToOrThrow{TPos, TDiff}"/>
         [Pure]

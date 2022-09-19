@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
@@ -30,7 +29,12 @@ namespace BII.WasaBii.Splines {
         
         GeometricOperations<TPos, TDiff> Ops { get; }
 
+        Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps) 
+            where TPosNew : struct where TDiffNew : struct;
+
         Length Spline.Length => Segments.Sum(s => s.Length);
+
+        Spline<TPos, TDiff> WithSpline<TPos, TDiff>.Spline => this;
     }
 
     public interface WithSpline<TPos, TDiff>

@@ -10,6 +10,18 @@ using Newtonsoft.Json;
 
 namespace BII.WasaBii.Splines.CatmullRom {
     
+    /// <summary>
+    /// A spline that is defined by a number of points ("handles") and one "margin handle" at each end.
+    /// The spline visits all points in order. The spline's trajectory between two points is influenced
+    /// by the two neighboring handles. For the first and last points, the margin handles are used instead.
+    /// A loop can be formed by starting and ending with the same point, using the second point as end margin
+    /// handle and using the second from last point as start margin handle.
+    ///
+    /// Both the first derivative (tangent / velocity) and the second
+    /// derivative (curvature / acceleration) are continuous, making
+    /// catmull-rom splines perfect for animation, where discontinuous
+    /// derivatives can produce sudden and unwanted changes in the movement.
+    /// </summary>
     [JsonObject(IsReference = false)] // Treat as value type for serialization
     [MustBeSerializable] [MustBeImmutable]
     public sealed class CatmullRomSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
@@ -34,8 +46,9 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
         // The non-nullable fields are not set and thus null, but
         // they should always be set via reflection, so this is fine.
+        // TODO DS: Lazy<Array<Lazy<Length>>>?
     #pragma warning disable 8618
-        [JsonConstructor] private CatmullRomSpline(){}
+        [JsonConstructor] private CatmullRomSpline() => cachedSegmentLengths = prepareSegmentLengthCache(this);
     #pragma warning restore 8618
 
         private readonly ImmutableArray<TPos> handles;
@@ -51,8 +64,6 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
         public SplineType Type { get; }
         
-        public Spline<TPos, TDiff> Spline => this;
-
         public GeometricOperations<TPos, TDiff> Ops { get; }
 
         public IEnumerable<SplineSegment<TPos, TDiff>> Segments 
@@ -73,14 +84,20 @@ namespace BII.WasaBii.Splines.CatmullRom {
                 $"Must be between 0 and {SegmentCount}"
             );
 
+        public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
+            Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
+        ) where TPosNew : struct where TDiffNew : struct => 
+            new CatmullRomSpline<TPosNew, TDiffNew>(HandlesIncludingMargin.Select(positionMapping), newOps, Type);
+
         public bool Equals(Spline<TPos, TDiff> other) => 
             other is CatmullRomSpline<TPos, TDiff> otherSpline 
                 && this.HandlesIncludingMargin.SequenceEqual(otherSpline.HandlesIncludingMargin) 
-                && Type == otherSpline.Type;
+                && Type == otherSpline.Type
+                && Equals(Ops, other.Ops);
 
         public override bool Equals(object obj) => obj is CatmullRomSpline<TPos, TDiff> otherSpline && Equals(otherSpline);
         
-        public override int GetHashCode() => HashCode.Combine(handles, (int)Type);
+        public override int GetHashCode() => HashCode.Combine(handles, (int)Type, Ops);
         
 #region Segment Length Caching
         // The cached lengths for each segment,
@@ -106,44 +123,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
         #endregion
 
     }
-    
-    /// Contains generic factory methods for building splines.
-    /// For explicitly typed variants with <see cref="GeometricOperations{TPos,TDiff}"/>
-    /// included, use `UnitySpline`, `GlobalSpline` or `LocalSpline` in the Unity assembly.
-    public static class CatmullRomSpline {
-        
-        /// Creates a spline that interpolates the given handles.
-        [Pure]
-        public static CatmullRomSpline<TPos, TDiff> FromInterpolating<TPos, TDiff>(
-            IEnumerable<TPos> handles, GeometricOperations<TPos, TDiff> ops, SplineType? type = null
-        ) where TPos : struct where TDiff : struct {
-            var interpolatedHandles = handles.AsReadOnlyList();
-            var (beginMarginHandle, endMarginHandle) = interpolatedHandles.calculateSplineMarginHandles(ops);
-            return FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, ops, type);
-        }
 
-        [Pure]
-        public static CatmullRomSpline<TPos, TDiff> FromHandles<TPos, TDiff>(
-            TPos beginMarginHandle, 
-            IEnumerable<TPos> interpolatedHandles, 
-            TPos endMarginHandle, 
-            GeometricOperations<TPos, TDiff> ops, 
-            SplineType? type = null
-        ) where TPos : struct where TDiff : struct => 
-            FromHandlesIncludingMargin(
-                interpolatedHandles.Prepend(beginMarginHandle).Append(endMarginHandle), 
-                ops,
-                type
-            );
-
-        /// Creates a spline with the given handles, which include the begin and end margin handles.
-        [Pure]
-        public static CatmullRomSpline<TPos, TDiff> FromHandlesIncludingMargin<TPos, TDiff>(
-            IEnumerable<TPos> allHandlesIncludingMargin, 
-            GeometricOperations<TPos, TDiff> ops, 
-            SplineType? type = null
-        ) where TPos : struct where TDiff : struct 
-            => new CatmullRomSpline<TPos, TDiff>(allHandlesIncludingMargin, ops, type);
+    public static partial class CatmullRomSpline {
         
         public static TPos BeginMarginHandle<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> spline)
         where TPos : struct where TDiff : struct =>
@@ -190,6 +171,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
             yield return spline[toNormalized].Position;
         }
-        
+
     }
+
 }

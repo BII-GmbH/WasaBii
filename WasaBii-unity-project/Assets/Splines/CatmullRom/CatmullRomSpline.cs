@@ -19,7 +19,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
             GeometricOperations<TPos, TDiff> ops,
             SplineType? splineType = null
         ) : this(handles.Prepend(startHandle).Append(endHandle), ops, splineType)
-            => cachedSegmentLengths = new Lazy<ImmutableArray<Length>>(() => calculateSegmentLengths(this));
+            => cachedSegmentLengths = prepareSegmentLengthCache(this);
 
         public CatmullRomSpline(IEnumerable<TPos> allHandlesIncludingMarginHandles, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null) {
             handles = ImmutableArray.CreateRange(allHandlesIncludingMarginHandles);
@@ -28,7 +28,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
                     $"Cannot construct a Catmull-Rom spline from {handles.Length} handles, at least 4 are needed"
                 );
             Type = splineType ?? SplineType.Centripetal;
-            cachedSegmentLengths = new Lazy<ImmutableArray<Length>>(() => calculateSegmentLengths(this));
+            cachedSegmentLengths = prepareSegmentLengthCache(this);
             this.Ops = ops;
         }
 
@@ -63,7 +63,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
 
         public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => 
-            SplineSegment.From(this, index, cachedSegmentLengths.Value[index])
+            SplineSegment.From(this, index, cachedSegmentLengths[index])
                 .GetOrThrow(() => new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {SegmentCount}"));
         
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
@@ -86,19 +86,19 @@ namespace BII.WasaBii.Splines.CatmullRom {
         // The cached lengths for each segment,
         // accessed by the segment index.
         [NonSerialized] 
-        private readonly Lazy<ImmutableArray<Length>> cachedSegmentLengths;
+        private readonly ImmutableArray<Lazy<Length>> cachedSegmentLengths;
 
-        private static ImmutableArray<Length> calculateSegmentLengths(CatmullRomSpline<TPos, TDiff> spline) {
-            var ret = new Length[spline.SegmentCount];
+        private static ImmutableArray<Lazy<Length>> prepareSegmentLengthCache(CatmullRomSpline<TPos, TDiff> spline) {
+            var ret = new Lazy<Length>[spline.SegmentCount];
             for (var i = 0; i < spline.SegmentCount; i++) {
                 var idx = SplineSegmentIndex.At(i);
-                ret[idx] = CatmullRomPolynomial.FromSplineAt(spline, idx)
+                ret[idx] = new Lazy<Length>(() => CatmullRomPolynomial.FromSplineAt(spline, idx)
                     .GetOrThrow(() =>
                         new Exception(
                             "Could not create a polynomial for this spline. " +
                             "This should not happen and indicates a bug in this method."
                         )
-                    ).ArcLength;
+                    ).ArcLength);
             }
             return ImmutableArray.Create(ret);
         }

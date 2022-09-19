@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using BII.WasaBii.UnitSystem;
+using JetBrains.Annotations;
 using static System.Reflection.BindingFlags;
 
 namespace BII.WasaBii.Core {
@@ -51,7 +52,7 @@ namespace BII.WasaBii.Core {
         ///   so that we can unit test this with non-serializable types itself.
         /// Adds all validated types to the passed set.
         /// </remarks>
-        public static IEnumerable<string> ValidateMustBeSerializable(Type toValidate, ISet<Type> alreadyValidated = null) {
+        public static IEnumerable<string> ValidateMustBeSerializable(Type toValidate, ISet<Type>? alreadyValidated = null) {
             alreadyValidated ??= new HashSet<Type>();
 
             return validateSerializableRecursively(toValidate, new SingleLinkedList<string>());
@@ -60,13 +61,13 @@ namespace BII.WasaBii.Core {
                 if (toValidate.GetCustomAttribute<__IgnoreMustBeSerializableAttribute>() != null) yield break;
                 
                 // Ensure we don't validate twice and don't run into cycles.
-                if (alreadyValidated.Contains(type)) yield break;
+                if (alreadyValidated!.Contains(type)) yield break;
                 alreadyValidated.Add(type);
 
                 string fail(string reason) => $"{string.Join(" / ", contexts.Reverse())} / [{type}]: {reason}";
                 
-                // Primitive types and enums can always be serialized
-                if (type.IsPrimitive || type.IsEnum) yield break;
+                // Primitive types can always be serialized
+                if (type.IsPrimitive) yield break;
 
                 // Also allow if it is one of the specifically allowed convenience types
                 if (ExtraAllowedTypes.Any(t => t.IsAssignableFrom(type))) yield break;

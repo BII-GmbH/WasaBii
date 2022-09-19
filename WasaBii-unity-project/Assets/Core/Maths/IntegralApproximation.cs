@@ -28,8 +28,8 @@ namespace BII.WasaBii.Core {
             var diff = to - from;
 
             return mul(
-                factors
-                    .Select((fac, i) => mul(f(from + diff * i / subsections), fac))
+                factors.Zip(Range.Sample01(subsections + 1, includeZero:true, includeOne:true))
+                    .Select((fac, i) => mul(f(from + i * diff), fac))
                     .Aggregate(add),
                 diff / (subsections * 3)
             );

@@ -40,7 +40,7 @@ namespace BII.WasaBii.Core {
         
         /// <inheritdoc cref="MustBeImmutableAttribute"/>
         /// Adds all validated types to the passed set.
-        public static IEnumerable<string> ValidateTrueImmutability(Type toValidate, ISet<Type> alreadyValidated = null) {
+        public static IEnumerable<string> ValidateTrueImmutability(Type toValidate, ISet<Type>? alreadyValidated = null) {
             alreadyValidated ??= new HashSet<Type>();
 
             return validateTypeIsImmutable(toValidate, new SingleLinkedList<string>());
@@ -49,7 +49,7 @@ namespace BII.WasaBii.Core {
                 if (type.GetCustomAttribute<__IgnoreMustBeImmutableAttribute>() != null) yield break;
 
                 // Ensure we don't validate twice and don't run into cycles.
-                if (alreadyValidated.Contains(type)) yield break;
+                if (alreadyValidated!.Contains(type)) yield break;
                 alreadyValidated.Add(type);
                 
                 string fail(string reason) => $"{string.Join(" / ", contexts.Reverse())} / [{type}]: {reason}";

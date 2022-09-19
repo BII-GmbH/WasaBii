@@ -1,19 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using UnityEngine;
 using static BII.WasaBii.Splines.Maths.SplineNormalizationUtility;
 using static BII.WasaBii.Splines.CatmullRom.Tests.SplineTestUtils;
 
 namespace BII.WasaBii.Splines.CatmullRom.Tests {
     public class SplineNormalizationUtilityTest {
         private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizaionSamples = new Dictionary<double, double>
-            {{0, 0}, {0.5, 0.113}, {1, 0.227}, {2.6, 0.590}, {3, 0.680}, {4.414, 1}}.ToDictionary(
+            {{0, 0}, {0.5, 0.202}, {1, 0.322}, {2.6, 0.622}, {3, 0.696}, {4.414, 1}}.ToDictionary(
             kvp => SplineLocation.From(kvp.Key),
             kvp => NormalizedSplineLocation.From(kvp.Value)
         );
 
         private static readonly Dictionary<NormalizedSplineLocation, SplineLocation> deNormalizaionSamples = new Dictionary<double, double>
-            {{0, 0}, {0.1, 0.441}, {0.3, 1.324}, {0.55, 2.428}, {0.7, 3.090}, {1, 4.414}}.ToDictionary(
+            {{0, 0}, {0.1, 0.192}, {0.3, 0.898}, {0.55, 2.198}, {0.7, 3.023}, {1, 4.414}}.ToDictionary(
             kvp => NormalizedSplineLocation.From(kvp.Key),
             kvp => SplineLocation.From(kvp.Value)
         );

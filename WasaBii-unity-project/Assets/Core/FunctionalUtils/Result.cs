@@ -88,6 +88,7 @@ namespace BII.WasaBii.Core {
 
         // Since this is a struct, the `status` field will be default-initialized to the first value of this enum.
         // As a default-initialized Result has neither a value or an error, it will have the status `Default`.
+        [MustBeSerializable]
         public enum ValueStatus { Default, Value, Error }
         
         // Fields are public for convenient support for pattern matching syntax

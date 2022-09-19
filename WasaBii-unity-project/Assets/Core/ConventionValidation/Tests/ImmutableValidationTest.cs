@@ -3,6 +3,9 @@ using System.Linq;
 using BII.WasaBii.Core.Editor;
 using NUnit.Framework;
 
+// We don't care about the actual values of the fields in our dummy classes. Let them be null.
+#nullable disable
+
 namespace BII.WasaBii.Core.Tests {
     public class ImmutableValidationTest {
         

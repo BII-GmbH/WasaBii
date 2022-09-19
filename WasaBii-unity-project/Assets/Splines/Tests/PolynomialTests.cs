@@ -1,5 +1,6 @@
 ﻿using System;
 using BII.WasaBii.Splines.Maths;
+using BII.WasaBii.UnitSystem;
 using BII.WasaBii.Unity.Geometry;
 using BII.WasaBii.Unity.Geometry.Splines;
 using NUnit.Framework;
@@ -161,6 +162,66 @@ namespace BII.WasaBii.Splines.Tests {
                 var expected = evaluateSixthSixthDerivative(t);
                 var actual = sixthOrderPolynomial.EvaluateNthDerivative(t, 6);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
+            }
+        }
+        
+        // Note DS: There is no simple way to (de-) normalize the location on any spline as it
+        // involves integrating the magnitude of the velocity, so we must approximate it. However,
+        // we can calculate it exactly for a specific type of spline: monotone rising (between 0 and 1) 1D splines.
+        // Their velocity is already 1D and positive, so its magnitude is itself, which means
+        // that its anti-derivative is simply the polynomial evaluation (ignoring the constant bias, which cancels out).
+        // Hence, we only test against those, as we can validate the result there.
+
+        private sealed class OneDimensionalOps : GeometricOperations<double, double> {
+            public double Add(double a, double b) => a + b;
+            public double Sub(double a, double b) => a - b;
+            public double Dot(double a, double b) => a * b;
+            public double Mul(double a, double b) => a * b;
+            public double ZeroDiff => 0;
+        }
+
+        private const int normalizationTestSampleCount = 20;
+        
+        [Test]
+        public void DeNormalizeMonotoneRisingCubic1DSplineLocations() {
+            
+            // Positive parameters ensure a positive derivative (for positive t values) and thus a monotone rising polynomial.
+            var oneDimensionalPolynomial = Polynomial.Cubic(1, 3, 3, 7, new OneDimensionalOps());
+
+            foreach (var t in Range.Sample01(normalizationTestSampleCount, includeZero: true, includeOne: true)) {
+                var expected = oneDimensionalPolynomial.Evaluate(t) - oneDimensionalPolynomial.Evaluate(0);
+                var actual = oneDimensionalPolynomial.ProgressToLength(t).AsMeters();
+                Assert.That(actual, Is.EqualTo(expected).Within(1E-3));
+            }
+        }
+
+        [Test]
+        public void NormalizeMonotoneRisingQuadratic1DSplineLocations() {
+            
+            // Calculating the t values for a given length is difficult, so we only use a quadratic polynomial
+            // with easy-to-work-with parameters.
+            var p0 = 2;
+            var p1 = 8;
+            var p2 = 8;
+            var polynomial = new Polynomial<double, double>(new OneDimensionalOps(), p0, p1, p2);
+
+            // length(t) is p1*t + p2*t²
+            // thus, 0 == p2*t² + p1*t - length
+            // abc formula (taking the positive t value) yields
+            // (-p1 + sqrt(p1² + 4*p2*length)) / (2*p2)
+            double tForLength(Length length) {
+                var a = p2;
+                var b = p1;
+                var c = -length.AsMeters();
+                return (Math.Sqrt(b*b - 4*a*c) - b) / (2 * a);
+            }
+
+            foreach (var l in Range.From(Length.Zero, inclusive: true)
+                .To(polynomial.ArcLength, inclusive: true)
+                .Sample(normalizationTestSampleCount, (from, to, p) => Units.Lerp(from, to, p))) {
+                var expected = tForLength(l);
+                var actual = polynomial.LengthToProgress(l);
+                Assert.That(actual, Is.EqualTo(expected).Within(1E-2));
             }
         }
 

@@ -45,7 +45,7 @@ namespace BII.WasaBii.Splines.Maths {
         }
 
         public TPos Evaluate(double t) {
-            if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
+            if(!t.IsInsideInterval(0, 1, threshold: 0.001)) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var ops = Ops;
             return TailC.Aggregate(
                 seed: (res: FirstC, t),
@@ -54,7 +54,7 @@ namespace BII.WasaBii.Splines.Maths {
         }
 
         public TDiff EvaluateDerivative(double t) {
-            if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
+            if(!t.IsInsideInterval(0, 1, threshold: 0.001)) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var ops = Ops;
             return TailC.ZipWithIndices().Aggregate(
                 seed: (res: Ops.ZeroDiff, t: 1.0),
@@ -69,7 +69,7 @@ namespace BII.WasaBii.Splines.Maths {
         }
 
         public TDiff EvaluateSecondDerivative(double t) {
-            if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
+            if(!t.IsInsideInterval(0, 1, threshold: 0.001)) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var ops = Ops;
             return TailC.ZipWithIndices().Skip(1).Aggregate(
                 seed: (res: Ops.ZeroDiff, t: 1.0),
@@ -84,7 +84,7 @@ namespace BII.WasaBii.Splines.Maths {
         }
 
         public TDiff EvaluateNthDerivative(double t, int n) {
-            if(t is < 0 or > 1) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
+            if(!t.IsInsideInterval(0, 1, threshold: 0.001)) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var ops = Ops;
             var factorials = new int[TailC.Count + 1];
             factorials[0] = 1;

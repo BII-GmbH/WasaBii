@@ -43,7 +43,8 @@ namespace BII.WasaBii.Splines.Maths {
             // Once the location is no longer greater than the node's length, 
             // the remaining location relative to the length is the normalized value t
             while (currentSegmentIdx < spline.SegmentCount) {
-                var segmentLength = spline[currentSegmentIdx].Length;
+                var segment = spline[currentSegmentIdx];
+                var segmentLength = segment.Length;
                 if (remainingDistanceToLocation > segmentLength) {
                     remainingDistanceToLocation -= segmentLength;
                     currentSegmentIdx += 1;
@@ -51,7 +52,7 @@ namespace BII.WasaBii.Splines.Maths {
                     var progressToNextHandle = remainingDistanceToLocation switch {
                         var d when d.IsNearly(Length.Zero, threshold: 1E-3.Meters()) => 0d,
                         var d when d.IsNearly(segmentLength, threshold: 1E-3.Meters()) => 1d,
-                        var d => d / segmentLength
+                        var d => segment.Polynomial.LengthToProgress(d, cachedPolynomialLength: segmentLength)
                     };
                     
                     return NormalizedSplineLocation.From(currentSegmentIdx) + progressToNextHandle;
@@ -77,11 +78,15 @@ namespace BII.WasaBii.Splines.Maths {
             where TDiff : struct {
 
             var location = SplineLocation.Zero;
-            var segmentIdx = SplineSegmentIndex.Zero;
-            for (var remainingT = t; remainingT > 0 && segmentIdx < spline.SegmentCount; remainingT -= 1) {
-                var length = spline[segmentIdx].Length;
-                segmentIdx += 1;
-                location += length * Math.Min(1, remainingT);
+            var lastSegmentIndex = Mathd.FloorToInt(t.Value);
+            for (var i = 0; i < lastSegmentIndex; i++) {
+                location += spline[SplineSegmentIndex.At(i)].Length;
+            }
+
+            var progressInLastSegment = t - lastSegmentIndex;
+            if (progressInLastSegment > double.Epsilon) {
+                var lastSegment = spline[SplineSegmentIndex.At(lastSegmentIndex)];
+                location += lastSegment.Polynomial.ProgressToLength(progressInLastSegment);
             }
 
             return location;
@@ -125,11 +130,10 @@ namespace BII.WasaBii.Splines.Maths {
             // Then the progress within that segment is added to the index,
             // and the result is the Normalized location.
 
-            Length segmentLengthAt(SplineSegmentIndex idx) => spline[idx].Length;
-
             var currentSegmentIndex = SplineSegmentIndex.Zero;
+            var segment = spline[currentSegmentIndex];
             var segmentAbsoluteBegin = SplineLocation.Zero;
-            var segmentAbsoluteEnd = (SplineLocation) segmentLengthAt(currentSegmentIndex);
+            var segmentAbsoluteEnd = (SplineLocation) segment.Length;
 
             foreach (var current in locations) {
                 var currentLocation = current;
@@ -137,8 +141,9 @@ namespace BII.WasaBii.Splines.Maths {
                     if (currentSegmentIndex < spline.SegmentCount - 1) {
                         // If we aren't in the last segment yet we advance the segment.
                         currentSegmentIndex += 1;
+                        segment = spline[currentSegmentIndex];
                         segmentAbsoluteBegin = segmentAbsoluteEnd;
-                        segmentAbsoluteEnd += segmentLengthAt(currentSegmentIndex);
+                        segmentAbsoluteEnd += segment.Length;
                     
                     } else if (currentLocation - segmentAbsoluteEnd < (splineLocationOvershootTolerance ?? DefaultSplineLocationOvershootTolerance)) {
                         // If it is the last segment, but we are within overshoot tolerance
@@ -150,7 +155,7 @@ namespace BII.WasaBii.Splines.Maths {
                         throw new ArgumentOutOfRangeException(
                             nameof(locations), 
                             $"The location {currentLocation} is outside of the spline's" +
-                            $" length {spline.Length} and cannot be normalized! Tolerance overshoot: {overshoot.Value}"
+                            $" length ({spline.Length}) and cannot be normalized! Tolerance overshoot: {overshoot.Value}"
                         );
                     }
                    
@@ -161,9 +166,8 @@ namespace BII.WasaBii.Splines.Maths {
                         $"The locations given to {nameof(BulkNormalizeOrdered)} must " +
                         $"be ordered in ascending order, but were not!"
                     );
-
                 yield return NormalizedSplineLocation.From(
-                    Mathd.InverseLerp(segmentAbsoluteBegin, segmentAbsoluteEnd, current)
+                    segment.Polynomial.LengthToProgress(current - segmentAbsoluteBegin, cachedPolynomialLength: segment.Length)
                 ) + currentSegmentIndex;
             }
         }

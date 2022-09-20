@@ -17,6 +17,7 @@ namespace BII.WasaBii.Core {
             Func<T, T, T> add,
             Func<T, double, T> mul
         ) {
+            if(sections < 1) throw new ArgumentException($"Cannot sample less than 1 sections (tried to sample {sections})");
             var factors = new List<int> { 1, 4 };
             for (var i = 1; i < sections; i++) {
                 factors.Add(2);
@@ -56,12 +57,30 @@ namespace BII.WasaBii.Core {
             int samples,
             Func<T, T, T> add,
             Func<T, double, T> mul
-        ) => mul(
-            Range.Sample(i => from + i * (to - from), samples, includeFrom: true, includeTo: true)
-                .Select(f)
-                .Average(add, division: (a, d) => mul(a, 1d / d)),
-            to - from
-        );
+        ) {
+            if(samples < 2) throw new ArgumentException($"Cannot sample less than 2 values (tried to sample {samples})");
+            var fromSample = f(from);
+            var toSample = f(to);
+            var intermediarySamples = samples > 2 
+                ? Range.Sample(i => from + i * (to - from), samples - 2, includeFrom: false, includeTo: false)
+                    .Select(f)
+                : Enumerable.Empty<T>();
+            return mul(
+                // Every sample except the first and last need to be weighted twice
+                intermediarySamples.duplicateElements()
+                    .Prepend(fromSample)
+                    .Append(toSample)
+                    .Average(add, division: (a, d) => mul(a, 1d / d)),
+                to - from
+            );
+        }
+
+        private static IEnumerable<T> duplicateElements<T>(this IEnumerable<T> e) {
+            foreach (var t in e) {
+                yield return t;
+                yield return t;
+            }
+        }
 
         /// <inheritdoc cref="Trapezoidal{T}"/>
         public static double Trapezoidal(

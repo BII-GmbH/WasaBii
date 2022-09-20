@@ -12,8 +12,8 @@ namespace BII.WasaBii.Unity {
         
         [SerializeField] private List<Transform> _targets = new ();
 
-        private LineRenderer __renderer;
-        private new LineRenderer renderer => gameObject.GetOrAssignIfAbsent(ref __renderer);
+        private LineRenderer? __renderer;
+        private new LineRenderer renderer => gameObject.GetOrAssignIfAbsent(ref __renderer)!;
 
         public void SetTargets(IEnumerable<Transform> targets) {
             _targets.Clear();

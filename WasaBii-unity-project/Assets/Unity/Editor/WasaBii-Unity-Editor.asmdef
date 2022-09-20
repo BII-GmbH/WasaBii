@@ -1,0 +1,21 @@
+﻿{
+  "name": "WasaBii-Unity-Editor",
+  "rootNamespace": "BII.WasaBii",
+  "references": [
+    "WasaBii-Unity",
+    "WasaBii-Splines",
+    "WasaBii-Core",
+    "WasaBii-Units"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

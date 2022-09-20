@@ -32,25 +32,25 @@ namespace BII.WasaBii.Splines {
         [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplineEvery<TPos, TDiff>(
             this WithSpline<TPos, TDiff> withSpline,
             Length desiredSampleLength,
-            int minSegments = 2
+            int minSamples = 2
         ) where TPos : struct where TDiff : struct 
             => withSpline.Spline.SampleSplineBetween(
                 SplineLocation.Zero, 
                 withSpline.Spline.Length,
                 desiredSampleLength,
-                minSegments
+                minSamples
             );
 
         /// Behaves similar to <see cref="SampleSplineBetween{TPos,TDiff}(Spline{TPos,TDiff},SplineLocation,SplineLocation,int)"/>
         /// but the spline is always sampled along its entire length.
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplineEvery<TPos, TDiff>(
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSpline<TPos, TDiff>(
             this WithSpline<TPos, TDiff> withSpline,
-            int count
+            int samples
         ) where TPos : struct where TDiff : struct 
             => withSpline.Spline.SampleSplineBetween(
                 SplineLocation.Zero, 
                 withSpline.Spline.Length,
-                count
+                samples
             );
         
         /// Samples locations on the spline between <paramref name="fromAbsolute"/> to <paramref name="toAbsolute"/>. The returned samples
@@ -60,24 +60,24 @@ namespace BII.WasaBii.Splines {
             SplineLocation fromAbsolute,
             SplineLocation toAbsolute,
             Length desiredSampleLength,
-            int minSegments = 2
+            int minSamples = 2
         ) where TPos : struct where TDiff : struct {
             
             if (desiredSampleLength <= Length.Zero)
                 throw new ArgumentException($"The sampleLength cannot be 0 or smaller than 0 (was {desiredSampleLength})");
 
-            var segments = Math.Max(minSegments, (int) Math.Ceiling((toAbsolute - fromAbsolute) / desiredSampleLength) + 1);
+            var segments = Math.Max(minSamples, (int) Math.Ceiling((toAbsolute - fromAbsolute) / desiredSampleLength) + 1);
 
             return spline.SampleSplineBetween(fromAbsolute, toAbsolute, segments);
         }
 
         /// Samples locations on the spline between <paramref name="fromAbsolute"/> to <paramref name="toAbsolute"/>.
-        /// <returns><see cref="count"/> uniformly distributed samples</returns>
+        /// <returns><see cref="samples"/> uniformly distributed samples</returns>
         [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplineBetween<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
             SplineLocation fromAbsolute,
             SplineLocation toAbsolute,
-            int count
+            int samples
         ) where TPos : struct where TDiff : struct {
             
             var reverse = false;
@@ -88,7 +88,7 @@ namespace BII.WasaBii.Splines {
 
             var locations = Range.From(fromAbsolute, inclusive: true)
                 .To(toAbsolute, inclusive: true)
-                .Sample(count, SplineLocation.Lerp);
+                .Sample(samples, SplineLocation.Lerp);
                 
             var result = spline.BulkNormalizeOrdered(locations)
                 .Select(nl => spline[nl]);

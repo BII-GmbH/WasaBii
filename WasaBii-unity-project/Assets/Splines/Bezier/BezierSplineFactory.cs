@@ -19,16 +19,17 @@ namespace BII.WasaBii.Splines.Bezier {
         ) where TPos : struct where TDiff : struct {
             using var enumerator = handles.GetEnumerator();
             var segments = new List<BezierSegment<TPos, TDiff>.Quadratic>();
-            Exception incorrectHandleCountException() => new ArgumentException(
-                "Incorrect number of handles passed. A bezier spline from n quadratic segments has 2 * n + 1 handles"
+            if (!enumerator.MoveNext()) throw new ArgumentException("No handles passed. A bezier spline from quadratic segments needs at least 3 handles");
+            var a = enumerator.Current;
+            Exception incorrectHandleCountException(int offset) => new ArgumentException(
+                $"Incorrect number of handles passed. A bezier spline from n quadratic segments has 2 * n + 1 handles (provided: {1 + 2 * segments.Count + offset})"
             );
             while (enumerator.MoveNext()) {
-                var a = enumerator.Current;
-                if (!enumerator.MoveNext()) throw incorrectHandleCountException();
                 var b = enumerator.Current;
-                if (!enumerator.MoveNext()) throw incorrectHandleCountException();
+                if (!enumerator.MoveNext()) throw incorrectHandleCountException(2);
                 var c = enumerator.Current;
                 segments.Add(BezierSegment.MkQuadratic(a, b, c, ops));
+                a = c;
             }
 
             return new BezierSpline<TPos, TDiff>(segments, ops);
@@ -41,18 +42,19 @@ namespace BII.WasaBii.Splines.Bezier {
         ) where TPos : struct where TDiff : struct {
             using var enumerator = handles.GetEnumerator();
             var segments = new List<BezierSegment<TPos, TDiff>.Cubic>();
-            Exception incorrectHandleCountException() => new ArgumentException(
-                "Incorrect number of handles passed. A bezier spline from n cubic segments has 3 * n + 1 handles"
+            if (!enumerator.MoveNext()) throw new ArgumentException("No handles passed. A bezier spline from cubic segments needs at least 4 handles");
+            var a = enumerator.Current;
+            Exception incorrectHandleCountException(int offset) => new ArgumentException(
+                $"Incorrect number of handles passed. A bezier spline from n cubic segments has 3 * n + 1 handles (provided: {1 + 3 * segments.Count + offset})"
             );
             while (enumerator.MoveNext()) {
-                var a = enumerator.Current;
-                if (!enumerator.MoveNext()) throw incorrectHandleCountException();
                 var b = enumerator.Current;
-                if (!enumerator.MoveNext()) throw incorrectHandleCountException();
+                if (!enumerator.MoveNext()) throw incorrectHandleCountException(2);
                 var c = enumerator.Current;
-                if (!enumerator.MoveNext()) throw incorrectHandleCountException();
+                if (!enumerator.MoveNext()) throw incorrectHandleCountException(3);
                 var d = enumerator.Current;
                 segments.Add(BezierSegment.MkCubic(a, b, c, d, ops));
+                a = d;
             }
 
             return new BezierSpline<TPos, TDiff>(segments, ops);

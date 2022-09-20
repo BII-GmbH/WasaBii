@@ -16,6 +16,19 @@ namespace BII.WasaBii.Splines.Bezier {
             => new(p0, p1, p2, p3, ops);
 
         [Pure]
+        public static BezierSegment<TPos, TDiff>.Cubic MkCubic<TPos, TDiff>(
+            TPos start, TDiff startVelocity, TPos end, TDiff endVelocity,
+            GeometricOperations<TPos, TDiff> ops
+        ) where TPos : struct where TDiff : struct 
+            => MkCubic(
+                p0: start, 
+                p1: ops.Add(start, ops.Div(startVelocity, 3)),
+                p2: ops.Sub(end, ops.Div(endVelocity, 3)), 
+                p3: end, 
+                ops
+            );
+
+        [Pure]
         public static BezierSegment<TPos, TDiff>.Quadratic MkQuadratic<TPos, TDiff>(
             TPos p0, TPos p1, TPos p2,
             GeometricOperations<TPos, TDiff> ops
@@ -32,15 +45,25 @@ namespace BII.WasaBii.Splines.Bezier {
         public abstract TPos End { get; }
         public abstract TDiff StartVelocity { get; }
         public abstract TDiff EndVelocity { get; }
+
+        [NonSerialized] public readonly Lazy<Length> Length;
         
+        // Lazy lambda will only get evaluated later. All other fields will be set by then.
+        // ReSharper disable once VirtualMemberCallInConstructor
+        private BezierSegment() => Length = new Lazy<Length>(ToPolynomial().ArcLength);
+
         [Pure] internal abstract Polynomial<TPos, TDiff> ToPolynomial();
 
-        [Pure] public SplineSegment<TPos, TDiff> ToSplineSegment(Lazy<Length>? cachedLength = null) 
-            => new(ToPolynomial(), cachedLength);
+        [Pure] public SplineSegment<TPos, TDiff> ToSplineSegment() 
+            => new(ToPolynomial(), Length);
         
         [Pure] public abstract BezierSegment<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
             Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
         ) where TPosNew : struct where TDiffNew : struct;
+
+        [Pure] public BezierSegment<TPos, TDiff> Map(Func<TPos, TPos> positionMapping) => Map(positionMapping, Ops);
+        
+        public abstract BezierSegment<TPos, TDiff> Reversed { get; }
 
         /// Describes the area between two spline handles (p0 and p3), 
         /// with the supporting handles p1 and p2
@@ -53,6 +76,8 @@ namespace BII.WasaBii.Splines.Bezier {
             public override TDiff StartVelocity => Ops.Mul(Ops.Sub(P1, P0), 3);
             public override TDiff EndVelocity => Ops.Mul(Ops.Sub(P3, P2), 3);
 
+            public override BezierSegment<TPos, TDiff> Reversed => new Cubic(P3, P2, P1, P0, Ops);
+            
             [Pure]
             internal override Polynomial<TPos, TDiff> ToPolynomial() {
                 var startVelocity = StartVelocity;
@@ -81,6 +106,8 @@ namespace BII.WasaBii.Splines.Bezier {
 
             public override TDiff StartVelocity => Ops.Mul(Ops.Sub(P1, P0), 2);
             public override TDiff EndVelocity => Ops.Mul(Ops.Sub(P2, P1), 2);
+
+            public override BezierSegment<TPos, TDiff> Reversed => new Quadratic(P2, P1, P0, Ops);
 
             [Pure]
             internal override Polynomial<TPos, TDiff> ToPolynomial() {

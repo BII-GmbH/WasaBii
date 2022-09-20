@@ -25,7 +25,7 @@ namespace BII.WasaBii.Splines {
     public static class SplineSegmentUtils {
         
         /// <summary>
-        /// Approximates the length of the <see cref="polynomial"/> by
+        /// Approximates the length of the <see cref="polynomial"/> curve by
         /// applying the trapezoidal rule with <see cref="samples"/> sections.
         /// </summary>
         [Pure]
@@ -41,7 +41,7 @@ namespace BII.WasaBii.Splines {
         }
 
         /// <summary>
-        /// Approximates the length of the <see cref="polynomial"/> by applying
+        /// Approximates the length of the <see cref="polynomial"/> curve by applying
         /// Simpson's 1/3 rule with <see cref="sections"/> sections / double that in subsections.
         /// </summary>
         [Pure]

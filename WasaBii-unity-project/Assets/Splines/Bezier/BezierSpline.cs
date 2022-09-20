@@ -27,10 +27,10 @@ namespace BII.WasaBii.Splines.Bezier {
         public int SegmentCount => Segments.Length;
 
         IEnumerable<SplineSegment<TPos, TDiff>> Spline<TPos, TDiff>.Segments =>
-            Segments.Select((s, i) => s.ToSplineSegment(lengthCacheFor(SplineSegmentIndex.At(i))));
+            Segments.Select(s => s.ToSplineSegment());
 
         public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] 
-            => Segments[index].ToSplineSegment(lengthCacheFor(index));
+            => Segments[index].ToSplineSegment();
         public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
             throw new ArgumentOutOfRangeException(
@@ -44,7 +44,6 @@ namespace BII.WasaBii.Splines.Bezier {
         public BezierSpline(IEnumerable<BezierSegment<TPos, TDiff>> segments, GeometricOperations<TPos, TDiff> ops) {
             Segments = segments.ToImmutableArray();
             Ops = ops;
-            cachedSegmentLengths = prepareSegmentLengthCache(this);
         }
 
         public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
@@ -65,29 +64,9 @@ namespace BII.WasaBii.Splines.Bezier {
 
         // The non-nullable fields are not set and thus null, but
         // they should always be set via reflection, so this is fine.
-        // TODO DS: Lazy<Array<Lazy<Length>>>?
         #pragma warning disable 8618
         [JsonConstructor] private BezierSpline(){}
         #pragma warning restore 8618
-
-#region Segment Length Caching
-
-        private Lazy<Length> lengthCacheFor(SplineSegmentIndex i) => cachedSegmentLengths[i];
-
-        // The cached lengths for each segment,
-        // accessed by the segment index.
-        [NonSerialized] 
-        private readonly ImmutableArray<Lazy<Length>> cachedSegmentLengths;
-
-        private static ImmutableArray<Lazy<Length>> prepareSegmentLengthCache(BezierSpline<TPos, TDiff> spline) {
-            var ret = new Lazy<Length>[spline.Segments.Length];
-            for (var i = 0; i < spline.Segments.Length; i++) {
-                ret[i] = new Lazy<Length>(() => spline.Segments[i].ToPolynomial().ArcLength);
-            }
-            return ImmutableArray.Create(ret);
-        }
-        
-#endregion
 
     }
 

@@ -74,7 +74,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
         public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
 
         public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => 
-            SplineSegment.From(this, index, cachedSegmentLengths[index])
+            CatmullRomPolynomial.FromSplineAt(this, index)
+                .Map(val => new SplineSegment<TPos, TDiff>(val, cachedSegmentLengths[index]))
                 .GetOrThrow(() => new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {SegmentCount}"));
         
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??

@@ -29,10 +29,12 @@ namespace BII.WasaBii.Splines {
         /// applying the trapezoidal rule with <see cref="samples"/> sections.
         /// </summary>
         [Pure]
-        internal static Length TrapezoidalLengthOf<TPos, TDiff>(Polynomial<TPos, TDiff> polynomial, Range<double>? inRange = null, int samples = 10) 
-            where TPos : struct 
-            where TDiff : struct {
-            var range = inRange ?? Range.From(0.0, inclusive: true).To(1.0, inclusive: true);
+        internal static Length TrapezoidalLengthOf<TPos, TDiff>(
+            Polynomial<TPos, TDiff> polynomial, 
+            double? start = 0.0, double? end = 1.0,
+            int samples = 10
+        ) where TPos : struct where TDiff : struct {
+            var range = Range.From(start ?? 0.0, inclusive: true).To(end ?? 1.0, inclusive: true);
             var ops = polynomial.Ops;
             return range.Sample(samples + 1, (a, b, p) => Mathd.Lerp(a, b, p))
                 .Select(polynomial.Evaluate)
@@ -45,18 +47,20 @@ namespace BII.WasaBii.Splines {
         /// Simpson's 1/3 rule with <see cref="sections"/> sections / double that in subsections.
         /// </summary>
         [Pure]
-        internal static Length SimpsonsLengthOf<TPos, TDiff>(Polynomial<TPos, TDiff> polynomial, Range<double>? inRange = null, int sections = 4) 
-        where TPos : struct 
-        where TDiff : struct {
+        internal static Length SimpsonsLengthOf<TPos, TDiff>(
+            Polynomial<TPos, TDiff> polynomial, 
+            double? start = 0.0, double? end = 1.0, 
+            int sections = 4
+        ) where TPos : struct where TDiff : struct {
             
-            // The function whose integral in the (0..1) range gives the polynomial's length.
+            // The function whose integral in the (0..1) range gives the polynomial curve's length.
             // This is what we want to approximate.
             double LengthDeriv(double t) {
                 var v = polynomial.EvaluateDerivative(t);
                 return Math.Sqrt(polynomial.Ops.Dot(v, v));
             }
 
-            return IntegralApproximation.SimpsonsRule(LengthDeriv, inRange?.From ?? 0, inRange?.To ?? 1, sections).Meters();
+            return IntegralApproximation.SimpsonsRule(LengthDeriv, start ?? 0.0, end ?? 1.0, sections).Meters();
         }
 
         /// <summary>
@@ -67,7 +71,7 @@ namespace BII.WasaBii.Splines {
             this Polynomial<TPos, TDiff> polynomial, double t,
             int approximationSampleSectionCount = 4
         ) where TPos : struct where TDiff : struct 
-            => SimpsonsLengthOf(polynomial, inRange: Range.From(0.0, inclusive: true).To(t, inclusive: true), approximationSampleSectionCount);
+            => SimpsonsLengthOf(polynomial, end: t, sections: approximationSampleSectionCount);
 
         /// <summary>
         /// Iteratively approximates the progress parameter t where the length of the
@@ -82,8 +86,8 @@ namespace BII.WasaBii.Splines {
         /// <param name="iterations">How many times the guess should be corrected towards the true value</param>
         /// <param name="oversteppingFactor">When correcting towards the true value, we can expect the polynomial to
         /// stay locally similar, which means that we will probably stay on the wrong side of the true value. To avoid
-        /// this, we step <see cref="oversteppingFactor"/> times further. Must be more than one and less than two
-        /// to prevent never finding the value.</param>
+        /// this, we step <see cref="oversteppingFactor"/> times further. Must be more than zero and less than two
+        /// to prevent never finding the value. Should be at least one</param>
         /// <param name="thresholdFactor">Triggers an early return when the current curve segment is within a factor
         /// of <see cref="thresholdFactor"/> from the queried <see cref="length"/></param>
         /// <param name="cachedPolynomialLength">The total polynomial arc length if already known</param>
@@ -98,24 +102,23 @@ namespace BII.WasaBii.Splines {
             Length? cachedPolynomialLength = null,
             int approximationSampleSectionCount = 4
         ) where TPos : struct where TDiff : struct {
-            if (!oversteppingFactor.IsInsideInterval(1, 2, threshold: 0.01))
+            if (oversteppingFactor is <= 0 or >= 2)
                 throw new ArgumentException(
-                    $"{nameof(oversteppingFactor)} must be between 1 and 2, was {oversteppingFactor}"
+                    $"{nameof(oversteppingFactor)} must be between 0 and 2, was {oversteppingFactor}"
                 );
             if (thresholdFactor < 1)
                 throw new ArgumentException($"{nameof(thresholdFactor)} must be at least 1, was {thresholdFactor}");
             
-            var fromStart = Range.From(0.0, inclusive: true);
             var upperThreshold = thresholdFactor;
             var lowerThreshold = 1 / thresholdFactor;
             
-            var totalLength = cachedPolynomialLength ?? SimpsonsLengthOf(polynomial, inRange: fromStart.To(1, inclusive: true), sections: approximationSampleSectionCount);
+            var totalLength = cachedPolynomialLength ?? SimpsonsLengthOf(polynomial, sections: approximationSampleSectionCount);
             
             // "Guessing" the starting point. This is the accurate result iff
             // the derivative's magnitude is constant across the whole polynomial.
             var t = length / totalLength;
             for (var i = 0; i < iterations; i++) {
-                var actualLength = SimpsonsLengthOf(polynomial, inRange: fromStart.To(t, inclusive: true), sections: approximationSampleSectionCount);
+                var actualLength = polynomial.ProgressToLength(t, approximationSampleSectionCount);
                 var error = actualLength / length;
                 if (error <= upperThreshold && error >= lowerThreshold) break;
                 var lengthDiff = length - actualLength;

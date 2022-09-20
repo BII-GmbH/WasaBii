@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
-using BII.WasaBii.UnitSystem;
 using Newtonsoft.Json;
 
 namespace BII.WasaBii.Splines.Bezier {
@@ -15,12 +14,12 @@ namespace BII.WasaBii.Splines.Bezier {
     /// points is influenced by the control point(s) between them, as it goes "in the direction" of these, usually
     /// without actually touching them.
     ///
-    /// The first derivative (tangent / velocity) is continuous iff every point is collinear with the two control
-    /// points before and after it. The second derivative (curvature / acceleration) is continuous as well if these two
+    /// The derivative (tangent / velocity) has a continuous direction iff every point is collinear with
+    /// the two control points before and after it. Its magnitude is continuous as well iff these two
     /// control points are also at the same distance from their shared point.
     /// </summary>
     [JsonObject(IsReference = false)] // Treat as value type for serialization
-    [MustBeSerializable] [MustBeImmutable]
+    [MustBeSerializable]
     public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff>, IEquatable<BezierSpline<TPos, TDiff>> where TPos : struct where TDiff : struct {
 
         public readonly ImmutableArray<BezierSegment<TPos, TDiff>> Segments;

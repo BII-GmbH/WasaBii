@@ -7,7 +7,7 @@ using BII.WasaBii.UnitSystem;
 namespace BII.WasaBii.Splines {
     
     /// Non-generic interface for use in utilities. Always implement the explicit version below.
-    [MustBeSerializable][MustBeImmutable]
+    [MustBeSerializable]
     public interface Spline {
         
         int SegmentCount { get; }
@@ -16,7 +16,7 @@ namespace BII.WasaBii.Splines {
     }
 
     /// The base interface for splines.
-    [MustBeSerializable][MustBeImmutable]
+    [MustBeSerializable]
     public interface Spline<TPos, TDiff> : Spline, IEquatable<Spline<TPos, TDiff>>, WithSpline<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {

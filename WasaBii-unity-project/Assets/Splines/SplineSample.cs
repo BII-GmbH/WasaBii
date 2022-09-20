@@ -15,18 +15,18 @@ namespace BII.WasaBii.Splines {
         public TPos Position => Segment.Polynomial.Evaluate(T);
 
         /// <summary>
-        /// The direction of the spline at the queried point. This is also the
-        /// velocity when traversing the spline at a constant rate.
+        /// The first derivative, which is the direction of the spline at the queried point.
+        /// This is also the velocity when traversing the spline at a constant rate.
         /// </summary>
         public TDiff Tangent => Segment.Polynomial.EvaluateDerivative(T);
 
         /// <summary>
-        /// The direction into which the spline bends at the queried point. This is also the
-        /// acceleration when traversing the spline at a constant rate.
+        /// The second derivative, which is the direction into which the spline bends at the
+        /// queried point. This is also the acceleration when traversing the spline at a constant rate.
         /// </summary>
         public TDiff Curvature => Segment.Polynomial.EvaluateSecondDerivative(T);
         
-        public TDiff NthDerivation(int n) => Segment.Polynomial.EvaluateNthDerivative(T, n);
+        public TDiff NthDerivative(int n) => Segment.Polynomial.EvaluateNthDerivative(T, n);
 
         public (TPos Position, TDiff Tangent) PositionAndTangent => (Position, Tangent);
 

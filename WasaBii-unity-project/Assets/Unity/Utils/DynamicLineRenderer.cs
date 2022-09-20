@@ -22,10 +22,9 @@ namespace BII.WasaBii.Unity {
 
         [ExecuteAlways]
         private void Update() {
-            var positions = _targets.WithoutNull().Select(t => t.position).ToArray();
-            if (positions.Length < 2) return;
-            renderer.positionCount = positions.Length;
-            renderer.SetPositions(positions);
+            if (_targets.Count < 2) return;
+            renderer.positionCount = _targets.Count;
+            renderer.SetPositions(_targets.WithoutNull().Select(t => t.position).ToArray());
         }
         
     }

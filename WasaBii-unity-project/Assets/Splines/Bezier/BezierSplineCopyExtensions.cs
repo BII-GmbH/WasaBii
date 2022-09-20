@@ -10,7 +10,7 @@ namespace BII.WasaBii.Splines.Bezier {
         public static BezierSpline<TPos, TDiff> CopyWithOffset<TPos, TDiff>(
             this BezierSpline<TPos, TDiff> original, Func<TDiff, TDiff> tangentToOffset
         ) where TPos : struct where TDiff : struct => new(
-            original.Segments.Select(s => BezierSegment.MkCubic(
+            original.Segments.Select(s => BezierSegment.Cubic(
                 start: s.Ops.Add(s.Start, tangentToOffset(s.StartVelocity)), 
                 s.StartVelocity,
                 s.Ops.Add(s.End, tangentToOffset(s.EndVelocity)),

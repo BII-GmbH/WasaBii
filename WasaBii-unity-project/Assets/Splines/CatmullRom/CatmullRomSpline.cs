@@ -17,21 +17,19 @@ namespace BII.WasaBii.Splines.CatmullRom {
     /// A loop can be formed by starting and ending with the same point, using the second point as end margin
     /// handle and using the second from last point as start margin handle.
     ///
-    /// Both the first derivative (tangent / velocity) and the second
-    /// derivative (curvature / acceleration) are continuous, making
+    /// The derivative (tangent / velocity) is continuous, making
     /// catmull-rom splines perfect for animation, where discontinuous
     /// derivatives can produce sudden and unwanted changes in the movement.
     /// </summary>
     [JsonObject(IsReference = false)] // Treat as value type for serialization
-    [MustBeSerializable] [MustBeImmutable]
+    [MustBeSerializable]
     public sealed class CatmullRomSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
 
         public CatmullRomSpline(
             TPos startHandle, IEnumerable<TPos> handles, TPos endHandle, 
             GeometricOperations<TPos, TDiff> ops,
             SplineType? splineType = null
-        ) : this(handles.Prepend(startHandle).Append(endHandle), ops, splineType)
-            => cachedSegmentLengths = prepareSegmentLengthCache(this);
+        ) : this(handles.Prepend(startHandle).Append(endHandle), ops, splineType) {}
 
         public CatmullRomSpline(IEnumerable<TPos> allHandlesIncludingMarginHandles, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null) {
             handles = ImmutableArray.CreateRange(allHandlesIncludingMarginHandles);
@@ -40,15 +38,14 @@ namespace BII.WasaBii.Splines.CatmullRom {
                     $"Cannot construct a Catmull-Rom spline from {handles.Length} handles, at least 4 are needed"
                 );
             Type = splineType ?? SplineType.Centripetal;
-            cachedSegmentLengths = prepareSegmentLengthCache(this);
+            cachedSegmentLengths = new Lazy<ImmutableArray<Lazy<Length>>>(() => prepareSegmentLengthCache(this));
             this.Ops = ops;
         }
 
         // The non-nullable fields are not set and thus null, but
         // they should always be set via reflection, so this is fine.
-        // TODO DS: Lazy<Array<Lazy<Length>>>?
     #pragma warning disable 8618
-        [JsonConstructor] private CatmullRomSpline() => cachedSegmentLengths = prepareSegmentLengthCache(this);
+        [JsonConstructor] private CatmullRomSpline() => cachedSegmentLengths = new Lazy<ImmutableArray<Lazy<Length>>>(() => prepareSegmentLengthCache(this));
     #pragma warning restore 8618
 
         private readonly ImmutableArray<TPos> handles;
@@ -75,7 +72,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
         public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => 
             CatmullRomPolynomial.FromSplineAt(this, index)
-                .Map(val => new SplineSegment<TPos, TDiff>(val, cachedSegmentLengths[index]))
+                .Map(val => new SplineSegment<TPos, TDiff>(val, cachedSegmentLengths.Value[index]))
                 .GetOrThrow(() => new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {SegmentCount}"));
         
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
@@ -104,7 +101,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         // The cached lengths for each segment,
         // accessed by the segment index.
         [NonSerialized] 
-        private readonly ImmutableArray<Lazy<Length>> cachedSegmentLengths;
+        private readonly Lazy<ImmutableArray<Lazy<Length>>> cachedSegmentLengths;
 
         private static ImmutableArray<Lazy<Length>> prepareSegmentLengthCache(CatmullRomSpline<TPos, TDiff> spline) {
             var ret = new Lazy<Length>[spline.SegmentCount];

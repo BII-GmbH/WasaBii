@@ -9,18 +9,18 @@ namespace BII.WasaBii.Splines.Bezier {
     public static class BezierSegment {
         
         [Pure]
-        public static BezierSegment<TPos, TDiff>.Cubic MkCubic<TPos, TDiff>(
+        public static BezierSegment<TPos, TDiff>.Cubic Cubic<TPos, TDiff>(
             TPos p0, TPos p1, TPos p2, TPos p3,
             GeometricOperations<TPos, TDiff> ops
         ) where TPos : struct where TDiff : struct 
             => new(p0, p1, p2, p3, ops);
 
         [Pure]
-        public static BezierSegment<TPos, TDiff>.Cubic MkCubic<TPos, TDiff>(
+        public static BezierSegment<TPos, TDiff>.Cubic Cubic<TPos, TDiff>(
             TPos start, TDiff startVelocity, TPos end, TDiff endVelocity,
             GeometricOperations<TPos, TDiff> ops
         ) where TPos : struct where TDiff : struct 
-            => MkCubic(
+            => Cubic(
                 p0: start, 
                 p1: ops.Add(start, ops.Div(startVelocity, 3)),
                 p2: ops.Sub(end, ops.Div(endVelocity, 3)), 
@@ -29,7 +29,7 @@ namespace BII.WasaBii.Splines.Bezier {
             );
 
         [Pure]
-        public static BezierSegment<TPos, TDiff>.Quadratic MkQuadratic<TPos, TDiff>(
+        public static BezierSegment<TPos, TDiff>.Quadratic Quadratic<TPos, TDiff>(
             TPos p0, TPos p1, TPos p2,
             GeometricOperations<TPos, TDiff> ops
         ) where TPos : struct where TDiff : struct 
@@ -37,7 +37,7 @@ namespace BII.WasaBii.Splines.Bezier {
 
     }
     
-    [MustBeSerializable] [MustBeImmutable]
+    [MustBeSerializable]
     public abstract record BezierSegment<TPos, TDiff> where TPos : struct where TDiff : struct {
         
         public abstract GeometricOperations<TPos, TDiff> Ops { get; init; }
@@ -48,9 +48,7 @@ namespace BII.WasaBii.Splines.Bezier {
 
         [NonSerialized] public readonly Lazy<Length> Length;
         
-        // Lazy lambda will only get evaluated later. All other fields will be set by then.
-        // ReSharper disable once VirtualMemberCallInConstructor
-        private BezierSegment() => Length = new Lazy<Length>(ToPolynomial().ArcLength);
+        private BezierSegment() => Length = new Lazy<Length>(() => ToPolynomial().ArcLength);
 
         [Pure] internal abstract Polynomial<TPos, TDiff> ToPolynomial();
 
@@ -67,7 +65,7 @@ namespace BII.WasaBii.Splines.Bezier {
 
         /// Describes the area between two spline handles (p0 and p3), 
         /// with the supporting handles p1 and p2
-        [MustBeSerializable] [MustBeImmutable]
+        [MustBeSerializable]
         public sealed record Cubic(TPos P0, TPos P1, TPos P2, TPos P3, GeometricOperations<TPos, TDiff> Ops) : BezierSegment<TPos, TDiff> {
         
             public override TPos Start => P0;
@@ -92,13 +90,13 @@ namespace BII.WasaBii.Splines.Bezier {
 
             public override BezierSegment<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
                 Func<TPos, TPosNew> mapping, GeometricOperations<TPosNew, TDiffNew> newOps
-            ) => BezierSegment.MkCubic(mapping(P0), mapping(P1), mapping(P2), mapping(P3), newOps);
+            ) => BezierSegment.Cubic(mapping(P0), mapping(P1), mapping(P2), mapping(P3), newOps);
 
         }
 
         /// Describes the area between two spline handles (p0 and p2), 
         /// with the supporting handle p1
-        [MustBeSerializable] [MustBeImmutable]
+        [MustBeSerializable]
         public sealed record Quadratic(TPos P0, TPos P1, TPos P2, GeometricOperations<TPos, TDiff> Ops) : BezierSegment<TPos, TDiff> {
         
             public override TPos Start => P0;
@@ -122,7 +120,7 @@ namespace BII.WasaBii.Splines.Bezier {
             
             public override BezierSegment<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
                 Func<TPos, TPosNew> mapping, GeometricOperations<TPosNew, TDiffNew> newOps
-            ) => BezierSegment.MkQuadratic(mapping(P0), mapping(P1), mapping(P2), newOps);
+            ) => BezierSegment.Quadratic(mapping(P0), mapping(P1), mapping(P2), newOps);
 
         }
 

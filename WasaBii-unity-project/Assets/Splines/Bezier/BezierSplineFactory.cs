@@ -26,11 +26,13 @@ namespace BII.WasaBii.Splines.Bezier {
             );
             while (enumerator.MoveNext()) {
                 var b = enumerator.Current;
-                if (!enumerator.MoveNext()) throw incorrectHandleCountException(2);
+                if (!enumerator.MoveNext()) throw incorrectHandleCountException(1);
                 var c = enumerator.Current;
-                segments.Add(BezierSegment.MkQuadratic(a, b, c, ops));
+                segments.Add(BezierSegment.Quadratic(a, b, c, ops));
                 a = c;
             }
+            
+            if(segments.IsEmpty()) throw new ArgumentException("Only one handle passed. A bezier spline from quadratic segments needs at least 3 handles");
 
             return new BezierSpline<TPos, TDiff>(segments, ops);
         }
@@ -49,13 +51,15 @@ namespace BII.WasaBii.Splines.Bezier {
             );
             while (enumerator.MoveNext()) {
                 var b = enumerator.Current;
-                if (!enumerator.MoveNext()) throw incorrectHandleCountException(2);
+                if (!enumerator.MoveNext()) throw incorrectHandleCountException(1);
                 var c = enumerator.Current;
-                if (!enumerator.MoveNext()) throw incorrectHandleCountException(3);
+                if (!enumerator.MoveNext()) throw incorrectHandleCountException(2);
                 var d = enumerator.Current;
-                segments.Add(BezierSegment.MkCubic(a, b, c, d, ops));
+                segments.Add(BezierSegment.Cubic(a, b, c, d, ops));
                 a = d;
             }
+            
+            if(segments.IsEmpty()) throw new ArgumentException("Only one handle passed. A bezier spline from cubic segments needs at least 4 handles");
 
             return new BezierSpline<TPos, TDiff>(segments, ops);
         }
@@ -68,14 +72,9 @@ namespace BII.WasaBii.Splines.Bezier {
         ) where TPos : struct where TDiff : struct {
             var (first, tail) = handles;
             var allHandles = shouldLoop ? first.PrependTo(tail).Append(first) : first.PrependTo(tail);
-            var segments = allHandles.Select((p, v) => {
-                var offset = ops.Div(v, 3);
-                var leftHandle = ops.Sub(p, offset);
-                var rightHandle = ops.Add(p, offset);
-                return (leftHandle, p, rightHandle);
-            }).PairwiseSliding().Select((left, right) => 
-                BezierSegment.MkCubic(left.p, left.rightHandle, right.leftHandle, right.p, ops)
-            ).ToArray();
+            var segments = allHandles.PairwiseSliding().Select((left, right) => 
+                BezierSegment.Cubic(left.position, left.velocity, right.position, right.velocity, ops)
+            );
             return new BezierSpline<TPos, TDiff>(segments, ops);
         }
     }

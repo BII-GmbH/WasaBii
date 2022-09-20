@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using BII.WasaBii.Splines;
+using BII.WasaBii.Splines.Bezier;
 using UnityEngine;
 using static System.Reflection.BindingFlags;
 
@@ -34,7 +35,9 @@ namespace BII.WasaBii.Core {
                 typeof(Result<,>), 
                 // Technically, a lazy can be stateful depending on the factory closure.
                 // However, that would be stupid. We cannot validate this, so we just trust you people here.
-                typeof(Lazy<>)
+                typeof(Lazy<>),
+                typeof(Spline<,>),
+                typeof(BezierSegment<,>)
             );
         
         

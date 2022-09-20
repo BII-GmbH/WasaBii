@@ -15,7 +15,7 @@ namespace BII.WasaBii.Splines.Tests {
         private static readonly GlobalOffset b = GlobalOffset.FromGlobal(4, 2, 0);
         private static readonly GlobalOffset c = GlobalOffset.FromGlobal(1, 3, 3);
         private static readonly GlobalOffset d = GlobalOffset.FromGlobal(7, 6, 9);
-        private static readonly GlobalOffset e = GlobalOffset.FromGlobal(-1.0f / 12.0f, Mathf.PI, (float)Math.E);
+        private static readonly GlobalOffset e = GlobalOffset.FromGlobal(-1.0f / 12.0f, 2 * Mathf.PI, (float)Math.E);
         private static readonly GlobalOffset f = GlobalOffset.FromGlobal(1.618f, 2.414f, 3.303f);
 
         private static readonly Polynomial<GlobalPosition, GlobalOffset> linearPolynomial = new(
@@ -198,8 +198,7 @@ namespace BII.WasaBii.Splines.Tests {
         [Test]
         public void NormalizeMonotoneRisingQuadratic1DSplineLocations() {
             
-            // Calculating the t values for a given length is difficult, so we only use a quadratic polynomial
-            // with easy-to-work-with parameters.
+            // Calculating the t values for a given length is difficult, so we only use a quadratic polynomial.
             var p0 = 2;
             var p1 = 8;
             var p2 = 8;

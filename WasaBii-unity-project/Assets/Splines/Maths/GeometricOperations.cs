@@ -32,6 +32,7 @@ namespace BII.WasaBii.Splines.Maths {
             return Math.Sqrt(Dot(diff, diff)).Meters();
         }
         [Pure] TPos Lerp(TPos from, TPos to, double t) => Add(from, Mul(Sub(to, from), t));
+        [Pure] TDiff Lerp(TDiff from, TDiff to, double t) => Add(from, Mul(Sub(to, from), t));
         
         [Pure] TDiff ZeroDiff { get; }
     }

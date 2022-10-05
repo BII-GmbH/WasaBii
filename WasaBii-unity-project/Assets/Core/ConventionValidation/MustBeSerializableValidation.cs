@@ -15,10 +15,6 @@ namespace BII.WasaBii.Core {
             // Contains all types that we explicitly support for serialization and are not from us.
             // Custom types should use the [MustBeSerialized] attribute instead.
             
-            // NOTE CR: These types are not checked at all.
-            //          This means that collection contents are not checked.
-            //          Implementing this properly would be really hard, so we just live with worse hints for now.
-
             // System
             typeof(System.Decimal),
             typeof(System.String),

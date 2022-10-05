@@ -36,16 +36,16 @@ namespace BII.WasaBii.Splines {
         }
 
         [Pure]
-        public static SplineSample<TPos, TDiff>? From(Spline<TPos, TDiff> spline, SplineLocation location) =>
+        public static Option<SplineSample<TPos, TDiff>> From(Spline<TPos, TDiff> spline, SplineLocation location) =>
             From(spline, spline.Normalize(location));
 
         [Pure]
-        public static SplineSample<TPos, TDiff>? From(Spline<TPos, TDiff> spline, NormalizedSplineLocation location) {
+        public static Option<SplineSample<TPos, TDiff>> From(Spline<TPos, TDiff> spline, NormalizedSplineLocation location) {
             var (segmentIndex, t) = location.AsSegmentIndex();
             if (t.IsNearly(0) && segmentIndex.Value == spline.SegmentCount) {
                 segmentIndex -= 1;
                 t = 1;
-            } else if (segmentIndex.Value >= spline.SegmentCount) return null;
+            } else if (segmentIndex.Value >= spline.SegmentCount) return Option.None;
             
             var segment = spline[segmentIndex];
             return new SplineSample<TPos, TDiff>(segment, t);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
 using BII.WasaBii.UnitSystem;
 
@@ -10,13 +11,22 @@ namespace BII.WasaBii.Splines.Bezier {
         public static BezierSpline<TPos, TDiff> CopyWithOffset<TPos, TDiff>(
             this BezierSpline<TPos, TDiff> original, Func<TDiff, TDiff> tangentToOffset
         ) where TPos : struct where TDiff : struct => new(
-            original.Segments.Select(s => BezierSegment.Cubic(
-                start: s.Ops.Add(s.Start, tangentToOffset(s.StartVelocity)), 
-                s.StartVelocity,
-                s.Ops.Add(s.End, tangentToOffset(s.EndVelocity)),
-                endVelocity: s.EndVelocity, 
-                s.Ops
-            )),
+            original.Segments.Select(s => {
+                var ops = original.Ops;
+                var startVelocity = s.StartVelocity(ops);
+                var endVelocity = s.EndVelocity(ops);
+                var startOffset = tangentToOffset(startVelocity);
+                var endOffset = tangentToOffset(endVelocity);
+                var newStart = original.Ops.Add(s.Start, startOffset);
+                var newEnd = original.Ops.Add(s.End, endOffset);
+                return s.Degree == 2 // Quadratic segment might lose velocity continuity if we don't make it cubic
+                    ? BezierSegment.Cubic(newStart, startVelocity, newEnd, endVelocity, ops) 
+                    : new BezierSegment<TPos, TDiff>(
+                        newStart,
+                        s.Handles.Select((h, i) => ops.Add(h, ops.Lerp(startOffset, endOffset, i / (s.Handles.Length - 1.0)))).ToImmutableArray(),
+                        newEnd
+                    );
+            }),
             original.Ops
         );
 

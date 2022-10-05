@@ -18,15 +18,19 @@ namespace BII.WasaBii.Unity {
         public void SetTargets(IEnumerable<Transform> targets) {
             _targets.Clear();
             _targets.AddRange(targets);
+            updatePositionCount();
         }
+
+        private void OnValidate() => updatePositionCount();
 
         [ExecuteAlways]
         private void Update() {
             if (_targets.Count < 2) return;
-            renderer.positionCount = _targets.Count;
             renderer.SetPositions(_targets.WithoutNull().Select(t => t.position).ToArray());
         }
-        
+
+        private void updatePositionCount() => renderer.positionCount = _targets.Count.Max(2);
+
     }
 
 }

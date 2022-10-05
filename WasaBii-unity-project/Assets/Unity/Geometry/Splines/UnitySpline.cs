@@ -109,6 +109,8 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
             public double Dot(Vector3 a, Vector3 b) => Vector3.Dot(a, b);
             
             public Vector3 ZeroDiff => Vector3.zero;
+            
+            public Vector3 Lerp(Vector3 from, Vector3 to, double t) => Vector3.Lerp(from, to, (float)t);
 
         }
         

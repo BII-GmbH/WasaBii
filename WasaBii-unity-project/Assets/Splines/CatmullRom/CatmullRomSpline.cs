@@ -17,9 +17,10 @@ namespace BII.WasaBii.Splines.CatmullRom {
     /// A loop can be formed by starting and ending with the same point, using the second point as end margin
     /// handle and using the second from last point as start margin handle.
     ///
-    /// The derivative (tangent / velocity) is continuous, making
-    /// catmull-rom splines perfect for animation, where discontinuous
-    /// derivatives can produce sudden and unwanted changes in the movement.
+    /// Because you can construct a catmull-rom spline by only defining the points, it is very easy to set up.
+    /// The derivative (tangent / velocity) is always continuous, which is very handy since discontinuous
+    /// derivatives produce sudden kinks in the curve. Catmull-rom splines never produce loops within a single
+    /// segment, i.e. between two succinct points.
     /// </summary>
     [JsonObject(IsReference = false)] // Treat as value type for serialization
     [MustBeSerializable]
@@ -75,12 +76,13 @@ namespace BII.WasaBii.Splines.CatmullRom {
                 .Map(val => new SplineSegment<TPos, TDiff>(val, cachedSegmentLengths.Value[index]))
                 .GetOrThrow(() => new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {SegmentCount}"));
         
-        public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => SplineSample<TPos, TDiff>.From(this, location) ??
-            throw new ArgumentOutOfRangeException(
-                nameof(location),
-                location,
-                $"Must be between 0 and {SegmentCount}"
-            );
+        public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => 
+            SplineSample<TPos, TDiff>.From(this, location).GetOrThrow(() => 
+                new ArgumentOutOfRangeException(
+                    nameof(location),
+                    location,
+                    $"Must be between 0 and {SegmentCount}"
+                ));
 
         public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
             Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps

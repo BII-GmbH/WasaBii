@@ -97,36 +97,44 @@ namespace BII.WasaBii.Splines {
             this Polynomial<TPos, TDiff> polynomial,
             Length length,
             int iterations = 4,
-            double oversteppingFactor = 1.2,
             double thresholdFactor = 1.01,
             Length? cachedPolynomialLength = null,
             int approximationSampleSectionCount = 4
         ) where TPos : struct where TDiff : struct {
-            if (oversteppingFactor is <= 0 or >= 2)
-                throw new ArgumentException(
-                    $"{nameof(oversteppingFactor)} must be between 0 and 2, was {oversteppingFactor}"
-                );
             if (thresholdFactor < 1)
                 throw new ArgumentException($"{nameof(thresholdFactor)} must be at least 1, was {thresholdFactor}");
             
             var upperThreshold = thresholdFactor;
             var lowerThreshold = 1 / thresholdFactor;
-            
+
             var totalLength = cachedPolynomialLength ?? SimpsonsLengthOf(polynomial, sections: approximationSampleSectionCount);
             
+            var lowerBound = (t: 0.0, length: Length.Zero);
+            var upperBound = (t: 1.0, length: totalLength);
+
             // "Guessing" the starting point. This is the accurate result iff
             // the derivative's magnitude is constant across the whole polynomial.
             var t = length / totalLength;
             for (var i = 0; i < iterations; i++) {
+                t = Math.Clamp(t, 0.0, 1.0);
                 var actualLength = polynomial.ProgressToLength(t, approximationSampleSectionCount);
                 var error = actualLength / length;
                 if (error <= upperThreshold && error >= lowerThreshold) break;
-                var lengthDiff = length - actualLength;
                 
-                // Depending on whether the diff was positive or negative,
-                // the actual value for t must be higher or lower, so we
-                // step in that direction.
-                t += lengthDiff / totalLength * oversteppingFactor;
+                // Depending on whether the the actual value was smaller or greater than the queried one,
+                // we know that that is a lower or upper bound and we need to step in the other direction.
+                
+                if (length > actualLength)
+                    lowerBound = (t, actualLength);
+                else
+                    upperBound = (t, actualLength);
+
+                t = Mathd.Lerp(
+                    lowerBound.t,
+                    upperBound.t,
+                    Units.InverseLerp(lowerBound.length, upperBound.length, length),
+                    shouldClamp: true
+                );
             }
 
             return t;
@@ -138,5 +146,6 @@ namespace BII.WasaBii.Splines {
         ) 
         where TPos : struct 
         where TDiff : struct => NormalizedSplineLocation.From(sample.T + sample.Segment.Polynomial.EvaluateClosestPointTo(queriedPosition, samples));
+
     }
 }

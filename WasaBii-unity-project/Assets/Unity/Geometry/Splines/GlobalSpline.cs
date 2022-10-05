@@ -119,6 +119,9 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
             public double Dot(GlobalOffset a, GlobalOffset b) => a.Dot(b);
             
             public GlobalOffset ZeroDiff => GlobalOffset.Zero;
+            
+            public GlobalPosition Lerp(GlobalPosition from, GlobalPosition to, double t) => GlobalPosition.Lerp(from, to, t);
+            public GlobalOffset Lerp(GlobalOffset from, GlobalOffset to, double t) => GlobalOffset.Lerp(from, to, t);
         }
     }
     

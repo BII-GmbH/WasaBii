@@ -18,7 +18,7 @@ namespace BII.WasaBii.Splines.Bezier {
             GeometricOperations<TPos, TDiff> ops
         ) where TPos : struct where TDiff : struct {
             using var enumerator = handles.GetEnumerator();
-            var segments = new List<BezierSegment<TPos, TDiff>.Quadratic>();
+            var segments = new List<BezierSegment<TPos, TDiff>>();
             if (!enumerator.MoveNext()) throw new ArgumentException("No handles passed. A bezier spline from quadratic segments needs at least 3 handles");
             var a = enumerator.Current;
             Exception incorrectHandleCountException(int offset) => new ArgumentException(
@@ -28,7 +28,7 @@ namespace BII.WasaBii.Splines.Bezier {
                 var b = enumerator.Current;
                 if (!enumerator.MoveNext()) throw incorrectHandleCountException(1);
                 var c = enumerator.Current;
-                segments.Add(BezierSegment.Quadratic(a, b, c, ops));
+                segments.Add(new BezierSegment<TPos, TDiff>(a, b, c));
                 a = c;
             }
             
@@ -43,7 +43,7 @@ namespace BII.WasaBii.Splines.Bezier {
             GeometricOperations<TPos, TDiff> ops
         ) where TPos : struct where TDiff : struct {
             using var enumerator = handles.GetEnumerator();
-            var segments = new List<BezierSegment<TPos, TDiff>.Cubic>();
+            var segments = new List<BezierSegment<TPos, TDiff>>();
             if (!enumerator.MoveNext()) throw new ArgumentException("No handles passed. A bezier spline from cubic segments needs at least 4 handles");
             var a = enumerator.Current;
             Exception incorrectHandleCountException(int offset) => new ArgumentException(
@@ -55,7 +55,7 @@ namespace BII.WasaBii.Splines.Bezier {
                 var c = enumerator.Current;
                 if (!enumerator.MoveNext()) throw incorrectHandleCountException(2);
                 var d = enumerator.Current;
-                segments.Add(BezierSegment.Cubic(a, b, c, d, ops));
+                segments.Add(new BezierSegment<TPos, TDiff>(a, b, c, d));
                 a = d;
             }
             
@@ -64,16 +64,48 @@ namespace BII.WasaBii.Splines.Bezier {
             return new BezierSpline<TPos, TDiff>(segments, ops);
         }
 
+        /// <summary>
+        /// Constructs a spline that traverses each handle in order at the desired position and velocity.
+        /// </summary>
+        /// <param name="handles">The positions the spline should visit along with the desired velocity at these points.</param>
+        /// <param name="ops">The geometric operations necessary for calculation.</param>
+        /// <param name="shouldLoop">Whether the spline should come back to the first handle or stop at the last.</param>
+        /// <param name="shouldAccelerationBeContinuous">If true, the spline's trajectory is altered to ensure a
+        /// continuous acceleration. This is usually desirable for animations since jumps in the acceleration might
+        /// make the movement look less smooth. Since this makes the trajectory less predictable and increases the
+        /// computational load, you should not enable it unless you actually need it.</param>
         [Pure]
         public static BezierSpline<TPos, TDiff> FromHandlesWithVelocities<TPos, TDiff>(
             IEnumerable<(TPos position, TDiff velocity)> handles,
+            GeometricOperations<TPos, TDiff> ops, 
+            bool shouldLoop = false,
+            bool shouldAccelerationBeContinuous = false
+        ) where TPos : struct where TDiff : struct {
+            if (shouldAccelerationBeContinuous)
+                return FromHandlesWithVelocitiesAndAccelerations(
+                    handles.Select(h => (h.position, h.velocity, ops.ZeroDiff)),
+                    ops,
+                    shouldLoop
+                );
+            else {
+                var (first, tail) = handles;
+                var allHandles = shouldLoop ? first.PrependTo(tail).Append(first) : first.PrependTo(tail);
+                var segments = allHandles.PairwiseSliding().Select((left, right) => 
+                    BezierSegment.Cubic(left.position, left.velocity, right.position, right.velocity, ops)
+                );
+                return new BezierSpline<TPos, TDiff>(segments, ops);
+            }
+        }
+        [Pure]
+        public static BezierSpline<TPos, TDiff> FromHandlesWithVelocitiesAndAccelerations<TPos, TDiff>(
+            IEnumerable<(TPos position, TDiff velocity, TDiff acceleration)> handles,
             GeometricOperations<TPos, TDiff> ops, 
             bool shouldLoop = false
         ) where TPos : struct where TDiff : struct {
             var (first, tail) = handles;
             var allHandles = shouldLoop ? first.PrependTo(tail).Append(first) : first.PrependTo(tail);
             var segments = allHandles.PairwiseSliding().Select((left, right) => 
-                BezierSegment.Cubic(left.position, left.velocity, right.position, right.velocity, ops)
+                BezierSegment.Quintic(left.position, left.velocity, left.acceleration, right.position, right.velocity, right.acceleration, ops)
             );
             return new BezierSpline<TPos, TDiff>(segments, ops);
         }

@@ -30,7 +30,7 @@ namespace BII.WasaBii.Splines.Bezier {
     /// </summary>
     [JsonObject(IsReference = false)] // Treat as value type for serialization
     [MustBeSerializable]
-    public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff>, IEquatable<BezierSpline<TPos, TDiff>> where TPos : struct where TDiff : struct {
+    public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
 
         internal sealed record Cache(
             ImmutableArray<Lazy<SplineSegment<TPos, TDiff>>> SplineSegments
@@ -72,17 +72,6 @@ namespace BII.WasaBii.Splines.Bezier {
             Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
         ) where TPosNew : struct where TDiffNew : struct
             => new BezierSpline<TPosNew, TDiffNew>(Segments.Select(s => s.Map<TPosNew, TDiffNew>(positionMapping)), newOps);
-
-        public bool Equals(BezierSpline<TPos, TDiff> other) {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return Segments.SequenceEqual(other.Segments) && Equals(Ops, other.Ops);
-        }
-
-        public override bool Equals(object obj) => ReferenceEquals(this, obj) || obj is BezierSpline<TPos, TDiff> other && Equals(other);
-        public bool Equals(Spline<TPos, TDiff> spline) => spline is BezierSpline<TPos, TDiff> other && Equals(other);
-
-        public override int GetHashCode() => HashCode.Combine(Segments, Ops);
 
         // The non-nullable fields are not set and thus null, but
         // they should always be set via reflection, so this is fine.

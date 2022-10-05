@@ -17,7 +17,7 @@ namespace BII.WasaBii.Splines {
 
     /// The base interface for splines.
     [MustBeSerializable]
-    public interface Spline<TPos, TDiff> : Spline, IEquatable<Spline<TPos, TDiff>>, WithSpline<TPos, TDiff>
+    public interface Spline<TPos, TDiff> : Spline, WithSpline<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
         

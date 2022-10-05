@@ -89,16 +89,6 @@ namespace BII.WasaBii.Splines.CatmullRom {
         ) where TPosNew : struct where TDiffNew : struct => 
             new CatmullRomSpline<TPosNew, TDiffNew>(HandlesIncludingMargin.Select(positionMapping), newOps, Type);
 
-        public bool Equals(Spline<TPos, TDiff> other) => 
-            other is CatmullRomSpline<TPos, TDiff> otherSpline 
-                && this.HandlesIncludingMargin.SequenceEqual(otherSpline.HandlesIncludingMargin) 
-                && Type == otherSpline.Type
-                && Equals(Ops, other.Ops);
-
-        public override bool Equals(object obj) => obj is CatmullRomSpline<TPos, TDiff> otherSpline && Equals(otherSpline);
-        
-        public override int GetHashCode() => HashCode.Combine(handles, (int)Type, Ops);
-        
 #region Segment Length Caching
         // The cached lengths for each segment,
         // accessed by the segment index.

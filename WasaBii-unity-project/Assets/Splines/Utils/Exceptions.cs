@@ -9,12 +9,5 @@ namespace BII.WasaBii.Splines {
                  $" number of handles required to construct a catmull-rom spline segment " +
                  $"{(required < 4 ? "without" : "with")} margin handles") { }
     }
-    
-    public class InvalidSplineException : Exception  {
-        public InvalidSplineException(Spline spline, string reason)
-            : base($"The Spline {spline} is not valid because of {reason}") { }
-        public InvalidSplineException(string context, Spline spline, string reason)
-            : base($"{context}: The Spline {spline} is not valid because of {reason}") { }
-    }
 
 }

@@ -19,7 +19,7 @@ namespace BII.WasaBii.UnitSystem {
             new TValue {SiValue = value};
 
         public static double As<TValue, TUnit>(this TValue value, TUnit unit)
-            where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit => value.SiValue * unit.SiFactor;
+            where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit => value.SiValue / unit.SiFactor;
 
         public static double As(this IUnitValue value, IUnit unit) {
             if (!value.UnitType.IsInstanceOfType(unit))

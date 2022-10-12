@@ -6,22 +6,14 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
     
-    /// Non-generic interface for use in utilities. Always implement the explicit version below.
-    [MustBeSerializable]
-    public interface Spline {
-        
-        int SegmentCount { get; }
-        Length Length { get; }
-        
-    }
-
     /// The base interface for splines.
     [MustBeSerializable]
-    public interface Spline<TPos, TDiff> : Spline, WithSpline<TPos, TDiff>
+    public interface Spline<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
         
         IEnumerable<SplineSegment<TPos, TDiff>> Segments { get; }
+        int SegmentCount { get; }
 
         SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] { get; }
         SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
@@ -30,17 +22,14 @@ namespace BII.WasaBii.Splines {
         GeometricOperations<TPos, TDiff> Ops { get; }
 
         Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps) 
-            where TPosNew : struct where TDiffNew : struct;
-
-        Length Spline.Length => Segments.Sum(s => s.Length);
-
-        Spline<TPos, TDiff> WithSpline<TPos, TDiff>.Spline => this;
+            where TPosNew : struct where TDiffNew : struct; 
     }
 
-    public interface WithSpline<TPos, TDiff>
-        where TPos : struct 
-        where TDiff : struct {
-        Spline<TPos, TDiff> Spline { get; }
+    public static class GenericSplineExtensions {
+        
+        public static Length Length<TPos, TDiff>(this Spline<TPos, TDiff> spline) 
+        where TPos : struct where TDiff : struct => spline.Segments.Sum(s => s.Length);
+
     }
 
 }

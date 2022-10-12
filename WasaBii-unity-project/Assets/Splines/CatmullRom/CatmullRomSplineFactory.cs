@@ -21,11 +21,9 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// needs to be clearly defined.
         /// 
         /// </summary>
-        /// <exception cref="InsufficientNodePositionsException">
-        /// When less than 2 interpolated handle positions were provided
-        /// </exception>
+        /// <returns><see cref="NotEnoughHandles"/> if less than 2 interpolated handle positions were provided</returns>
         [Pure]
-        public static CatmullRomSpline<TPos, TDiff> FromHandles<TPos, TDiff>(
+        public static Result<CatmullRomSpline<TPos, TDiff>, NotEnoughHandles> FromHandles<TPos, TDiff>(
             TPos beginMarginHandle, 
             IEnumerable<TPos> interpolatedHandles, 
             TPos endMarginHandle, 
@@ -33,6 +31,33 @@ namespace BII.WasaBii.Splines.CatmullRom {
             SplineType? type = null
         ) where TPos : struct where TDiff : struct => 
             FromHandlesIncludingMargin(
+                interpolatedHandles.Prepend(beginMarginHandle).Append(endMarginHandle), 
+                ops,
+                type
+            );
+
+        /// <summary>
+        /// Creates a catmull-rom spline from the provided positions.
+        /// The begin and end margin handles are not interpolated by
+        /// the spline and merely affect its trajectory at the spline's
+        /// start and end.
+        ///
+        /// This should be used when the trajectory at the spline's begin / end
+        /// needs to be clearly defined.
+        /// 
+        /// </summary>
+        /// <exception cref="InsufficientNodePositionsException">
+        /// When less than 2 interpolated handle positions were provided
+        /// </exception>
+        [Pure]
+        public static CatmullRomSpline<TPos, TDiff> FromHandlesOrThrow<TPos, TDiff>(
+            TPos beginMarginHandle, 
+            IEnumerable<TPos> interpolatedHandles, 
+            TPos endMarginHandle, 
+            GeometricOperations<TPos, TDiff> ops, 
+            SplineType? type = null
+        ) where TPos : struct where TDiff : struct => 
+            FromHandlesIncludingMarginOrThrow(
                 interpolatedHandles.Prepend(beginMarginHandle).Append(endMarginHandle), 
                 ops,
                 type
@@ -68,17 +93,42 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// This should be used when the trajectory at the spline's begin / end
         /// should just be similar to the trajectory of the rest of the spline.
         /// 
-        /// Returns None if too few positions are provided
-        public static Option<CatmullRomSpline<TPos, TDiff>> FromHandles<TPos, TDiff>(
+        /// Returns <see cref="NotEnoughHandles"/> if too few positions are provided
+        public static Result<CatmullRomSpline<TPos, TDiff>, NotEnoughHandles> FromHandles<TPos, TDiff>(
             IEnumerable<TPos> source, GeometricOperations<TPos, TDiff> ops, SplineType? type = null, bool shouldLoop = false
         ) where TPos : struct where TDiff : struct {
             var positions = source.AsReadOnlyCollection();
-            if (positions.Count < 2) return Option.None;
+            if (positions.Count < 2) return new NotEnoughHandles(positions.Count, 2);
             var handles = shouldLoop ? positions.Append(positions.First()) : positions;
             var (beginHandle, endHandle) = handles.calculateSplineMarginHandles(ops, shouldLoop);
             return new CatmullRomSpline<TPos, TDiff>(beginHandle, handles, endHandle, ops, type);
         }
 
+        /// <summary>
+        /// Tries to create a catmull-rom spline from the provided positions.
+        /// The first and last position of the IEnumerable become the begin and end handles,
+        /// which means that they are not interpolated by the spline and merely affect its
+        /// trajectory at the spline's start and end.
+        ///
+        /// This should be used when the trajectory at the spline's begin / end
+        /// needs to be clearly defined.
+        /// </summary>
+        /// <returns><see cref="NotEnoughHandles"/> if <see cref="allHandlesIncludingMargin"/> has less than
+        /// 4 entries.</returns>
+        [Pure]
+        public static Result<CatmullRomSpline<TPos, TDiff>, NotEnoughHandles> FromHandlesIncludingMargin<TPos, TDiff>(
+            IEnumerable<TPos> allHandlesIncludingMargin, 
+            GeometricOperations<TPos, TDiff> ops, 
+            SplineType? type = null
+        ) where TPos : struct where TDiff : struct {
+            var positions = allHandlesIncludingMargin.AsReadOnlyCollection();
+            return Result.If(
+                positions.Count >= 4,
+                () => new CatmullRomSpline<TPos, TDiff>(positions, ops, type),
+                () => new NotEnoughHandles(positions.Count, 4)
+            );
+        }
+        
         /// <summary>
         /// Creates a catmull-rom spline from the provided positions.
         /// The first and last position of the IEnumerable become the begin and end handles,
@@ -93,18 +143,14 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// When less than 4 handle positions were provided
         /// </exception>
         [Pure]
-        public static CatmullRomSpline<TPos, TDiff> FromHandlesIncludingMargin<TPos, TDiff>(
+        public static CatmullRomSpline<TPos, TDiff> FromHandlesIncludingMarginOrThrow<TPos, TDiff>(
             IEnumerable<TPos> allHandlesIncludingMargin, 
             GeometricOperations<TPos, TDiff> ops, 
             SplineType? type = null
-        ) where TPos : struct where TDiff : struct {
-            var positions = allHandlesIncludingMargin.AsReadOnlyCollection();
-            if (positions.Count < 4)
-                throw new InsufficientNodePositionsException(positions.Count, 4);
+        ) where TPos : struct where TDiff : struct 
+            => FromHandlesIncludingMargin(allHandlesIncludingMargin, ops, type)
+                .ResultOrThrow(error => new InsufficientNodePositionsException(error.HandlesProvided, 4));
 
-            return new CatmullRomSpline<TPos, TDiff>(positions, ops, type);
-        }
-        
         /// <summary>
         /// Calculates margin handles for a catmull-rom spline that interpolates the given handle positions.
         /// These margin handles are calculated on the easiest way possible by

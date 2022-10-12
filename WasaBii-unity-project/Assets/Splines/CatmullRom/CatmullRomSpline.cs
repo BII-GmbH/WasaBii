@@ -115,7 +115,23 @@ namespace BII.WasaBii.Splines.CatmullRom {
     }
 
     public static partial class CatmullRomSpline {
-        
+
+        /// <summary>
+        /// Designed to be used as a <see cref="Result"/> error type in situations
+        /// where an operation can fail due to too few catmull-rom handles.
+        /// Catmull-Rom splines always need at least 4 handles: two margin handles and two positions to traverse.
+        /// Some utilities calculate the margin handles, in which case only two positions need to be defined.
+        /// <see cref="HandlesNeeded"/> defines how many positions were required.
+        /// </summary>
+        public readonly struct NotEnoughHandles {
+            public readonly int HandlesProvided;
+            public readonly int HandlesNeeded;
+            public NotEnoughHandles(int handlesProvided, int handlesNeeded) {
+                HandlesProvided = handlesProvided;
+                HandlesNeeded = handlesNeeded;
+            }
+        }
+
         public static TPos BeginMarginHandle<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> spline)
         where TPos : struct where TDiff : struct =>
             spline.HandlesIncludingMargin[0];

@@ -32,14 +32,20 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
 
         [Test]
         public void WhenLocationLessThanZero_ThenReturnNull() {
-            var queryResult = CatmullRomSegmentAt(ExampleLinearSpline.Spline, NormalizedSplineLocation.From(-1));
+            var queryResult = CatmullRomSegmentAt(
+                ExampleLinearSpline.Spline, 
+                NormalizedSplineLocation.From(-1)
+            );
         
             Assert.That(queryResult, Is.EqualTo(null));
         }
         
         [Test]
         public void WhenInvalidSpline_ThenThrows() {
-            Assert.That(() => CatmullRomSegmentAt(ExampleInvalidSpline.Spline, NormalizedSplineLocation.Zero), Throws.TypeOf<InsufficientNodePositionsException>());
+            Assert.That(() => CatmullRomSegmentAt(
+                ExampleInvalidSpline.Spline, 
+                NormalizedSplineLocation.Zero
+            ), Throws.TypeOf<InsufficientNodePositionsException>());
         }
         
         [Test]

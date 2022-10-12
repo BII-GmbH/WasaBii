@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using BII.WasaBii.UnitSystem;
 using NUnit.Framework;
 using UnityEngine;
 using static BII.WasaBii.Splines.Maths.SplineNormalizationUtility;
@@ -33,10 +34,10 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
         public void DeNormalize_WhenEquidistantNode_ThenTAndLocationEqual() {
             var uut = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
         
-            foreach (var t in new[] {0, 0.1, 0.3, 0.5, 0.77, 1, 1.5, 1.99, 2}.Select(SplineLocation.From)) {
-                var location = uut.DeNormalize(NormalizedSplineLocation.From(t));
+            foreach (var t in new[] {0, 0.1, 0.3, 0.5, 0.77, 1, 1.5, 1.99, 2}) {
+                var location = uut.DeNormalize(NormalizedSplineLocation.From(t)).Value.AsMeters();
         
-                Assert.That(location, Is.EqualTo(t), $"Equidistant DeNormalization for t={t} did not work");
+                Assert.That(location, Is.EqualTo(t).Within(0.0001), $"Equidistant DeNormalization for t={t} did not work");
             }
         }
         

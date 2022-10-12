@@ -11,7 +11,7 @@ namespace BII.WasaBii.Splines.Tests {
         public void ToSplineOrThrow_WhenLessThanTwoNodes_ThenThrowsInsufficientNodePositionsException() {
             var positions = new[] { Vector3.zero };
 
-            Assert.That(() => positions.ToSplineOrThrow(), Throws.TypeOf<InsufficientNodePositionsException>());
+            Assert.That(() => UnitySpline.FromHandles(positions), Throws.TypeOf<InsufficientNodePositionsException>());
         }
 
         [Test]
@@ -23,7 +23,7 @@ namespace BII.WasaBii.Splines.Tests {
             var expectedBeginHandle = new Vector3(-3, 0, 0);
             var expectedEndHandle = new Vector3(3, 0, 0);
 
-            var uut = positions.ToSplineOrThrow();
+            var uut = UnitySpline.FromHandles(positions).AsOrThrow<CatmullRomSpline<Vector3, Vector3>>();
             Assert.That(uut.BeginMarginHandle(), Is.EqualTo(expectedBeginHandle));
             Assert.That(uut.FirstHandle(), Is.EqualTo(first));
             Assert.That(uut.LastHandle(), Is.EqualTo(last));
@@ -34,9 +34,9 @@ namespace BII.WasaBii.Splines.Tests {
         public void ToSplineOrNone_WhenLessThanTwoNodes_ThenReturnsNull() {
             var positions = new[] { Vector3.zero };
 
-            var uut = positions.ToSpline();
+            var uut = CatmullRomSpline.FromHandles(positions, UnitySpline.GeometricOperations.Instance);
 
-            Assert.AreEqual(uut, Option<CatmullRomSpline<Vector3, Vector3>>.None);
+            Assert.AreEqual(uut, new CatmullRomSpline.NotEnoughHandles(1, 2).Failure());
         }
 
         [Test]
@@ -48,9 +48,9 @@ namespace BII.WasaBii.Splines.Tests {
             var expectedBeginHandle = new Vector3(-3, 0, 0);
             var expectedEndHandle = new Vector3(3, 0, 0);
 
-            var uutO = positions.ToSpline();
-            Assert.AreNotEqual(uutO, Option<CatmullRomSpline<Vector3, Vector3>>.None);
-            var uut = uutO.GetOrThrow();
+            var uutO = CatmullRomSpline.FromHandles(positions, UnitySpline.GeometricOperations.Instance);
+            Assert.AreEqual(uutO.WasFailure, false);
+            var uut = uutO.ResultOrThrow();
             Assert.That(uut.BeginMarginHandle(), Is.EqualTo(expectedBeginHandle));
             Assert.That(uut.FirstHandle(), Is.EqualTo(first));
             Assert.That(uut.LastHandle(), Is.EqualTo(last));
@@ -61,7 +61,7 @@ namespace BII.WasaBii.Splines.Tests {
         public void ToSplineWithHandles_WhenLessThanFourNodes_ThenThrowsInsufficientNodePositionsException() {
             var positions = new[] { Vector3.zero, Vector3.one, Vector3.one };
 
-            Assert.That(() => positions.ToSplineWithMarginHandlesOrThrow(), Throws.TypeOf<InsufficientNodePositionsException>());
+            Assert.That(() => UnitySpline.FromHandlesIncludingMargin(positions), Throws.TypeOf<InsufficientNodePositionsException>());
         }
 
         [Test]
@@ -72,7 +72,7 @@ namespace BII.WasaBii.Splines.Tests {
             var endHandle = new Vector3(3, 0, 0);
             var positions = new[] { beginHandle, first, last, endHandle };
 
-            var uut = positions.ToSplineWithMarginHandlesOrThrow();
+            var uut = UnitySpline.FromHandlesIncludingMargin(positions).AsOrThrow<CatmullRomSpline<Vector3, Vector3>>();
             Assert.That(uut.BeginMarginHandle(), Is.EqualTo(beginHandle));
             Assert.That(uut.FirstHandle(), Is.EqualTo(first));
             Assert.That(uut.LastHandle(), Is.EqualTo(last));

@@ -57,10 +57,12 @@ namespace BII.WasaBii.Splines {
             // This is what we want to approximate.
             double LengthDeriv(double t) {
                 var v = polynomial.EvaluateDerivative(t);
-                return Math.Sqrt(polynomial.Ops.Dot(v, v));
+                var ret = Math.Sqrt(polynomial.Ops.Dot(v, v));
+                return ret;
             }
 
-            return IntegralApproximation.SimpsonsRule(LengthDeriv, start ?? 0.0, end ?? 1.0, sections).Meters();
+            var ret = IntegralApproximation.SimpsonsRule(LengthDeriv, start ?? 0.0, end ?? 1.0, sections).Meters();
+            return ret;
         }
 
         /// <summary>
@@ -78,7 +80,7 @@ namespace BII.WasaBii.Splines {
         /// polynomial curve in segment (0..t) is equal to <see cref="length"/> by
         /// guessing and repeatedly correcting <see cref="iterations"/> times. Stops
         /// early when the current value is "good enough", meaning that the segment
-        /// length at this point is at most <see cref="threshold"/> times the
+        /// length at this point is at most <see cref="thresholdFactor"/> times the
         /// queried length and vice versa.
         /// </summary>
         /// <param name="polynomial">The polynomial in question</param>
@@ -96,10 +98,11 @@ namespace BII.WasaBii.Splines {
         internal static double LengthToProgress<TPos, TDiff>(
             this Polynomial<TPos, TDiff> polynomial,
             Length length,
-            int iterations = 4,
+            int iterations = 2,
+            double oversteppingFactor = 1.1,
             double thresholdFactor = 1.01,
             Length? cachedPolynomialLength = null,
-            int approximationSampleSectionCount = 4
+            int approximationSampleSectionCount = 2
         ) where TPos : struct where TDiff : struct {
             if (thresholdFactor < 1)
                 throw new ArgumentException($"{nameof(thresholdFactor)} must be at least 1, was {thresholdFactor}");
@@ -115,24 +118,28 @@ namespace BII.WasaBii.Splines {
             // "Guessing" the starting point. This is the accurate result iff
             // the derivative's magnitude is constant across the whole polynomial.
             var t = length / totalLength;
+            
             for (var i = 0; i < iterations; i++) {
-                t = Math.Clamp(t, 0.0, 1.0);
-                var actualLength = polynomial.ProgressToLength(t, approximationSampleSectionCount);
+                var actualLength = lowerBound.length + SimpsonsLengthOf(polynomial, start: lowerBound.t, end: t, approximationSampleSectionCount);
                 var error = actualLength / length;
                 if (error <= upperThreshold && error >= lowerThreshold) break;
                 
                 // Depending on whether the the actual value was smaller or greater than the queried one,
                 // we know that that is a lower or upper bound and we need to step in the other direction.
-                
-                if (length > actualLength)
-                    lowerBound = (t, actualLength);
-                else
-                    upperBound = (t, actualLength);
 
+                double tInBounds;
+                if (length > actualLength) {
+                    lowerBound = (t, actualLength);
+                    tInBounds = Units.InverseLerp(actualLength, upperBound.length, length) * oversteppingFactor;
+                } else {
+                    upperBound = (t, actualLength);
+                    tInBounds = Units.InverseLerp(lowerBound.length, actualLength, length) / oversteppingFactor;
+                }
+                
                 t = Mathd.Lerp(
                     lowerBound.t,
                     upperBound.t,
-                    Units.InverseLerp(lowerBound.length, upperBound.length, length),
+                    tInBounds,
                     shouldClamp: true
                 );
             }

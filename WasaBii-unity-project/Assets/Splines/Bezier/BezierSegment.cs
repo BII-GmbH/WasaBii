@@ -8,6 +8,10 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines.Bezier {
 
+    /// <summary>
+    /// Factory methods for constructing a <see cref="BezierSegment{TPos,TDiff}"/> that compute the handles
+    /// to fit certain criteria regarding velocity or acceleration at the curve's start and end.
+    /// </summary>
     public static class BezierSegment {
         
         /// <summary>
@@ -79,7 +83,7 @@ namespace BII.WasaBii.Splines.Bezier {
 
     /// <summary>
     /// Describes a curve connecting a start position and an end position. The trajectory is influenced by
-    /// up to 10 handles in between, although it is advisable to stick with few handles as pushing the limit
+    /// up to 11 handles in between, although it is advisable to stick with few handles as pushing the limit
     /// could result in numerical instabilities and inaccurate results. The default is the cubic bezier curve
     /// with just 2 handles. The curve will usually go in the direction of the handles without ever touching them.
     /// </summary>
@@ -91,6 +95,28 @@ namespace BII.WasaBii.Splines.Bezier {
         public readonly TPos End;
 
         public int Degree => Handles.Length + 1;
+
+        /// <summary>
+        /// Since calculating the polynomial includes computing the factorial of the spline's degree, we need
+        /// to limit the degree to be at most 12. Any larger degree would have a factorial than exceeds the
+        /// range of <see cref="int"/>. Switching to <see cref="long"/> could potentially allow a degree of
+        /// up to 20, but numbers this high could lead to very inaccurate <see cref="float"/> calculations.
+        /// </summary>
+        private const int maxDegree = 12;
+        
+        public BezierSegment(TPos start, ImmutableArray<TPos> handles, TPos end) {
+            Start = start;
+            Handles = handles;
+            End = end;
+            if (Degree > maxDegree)
+                throw new ArgumentException($"A single bezier curve may only have at most {maxDegree - 1} handles.");
+        }
+
+        public BezierSegment(TPos p0, TPos p1, params TPos[] otherPos) : this(
+            p0,
+            p1.PrependTo(otherPos[..^1]).ToImmutableArray(),
+            otherPos[^1]
+        ) { }
 
         public TDiff StartVelocity(GeometricOperations<TPos, TDiff> ops) => Degree > 1 
             ? ops.Mul(ops.Sub(this[1], this[0]), Degree) 
@@ -112,28 +138,6 @@ namespace BII.WasaBii.Splines.Bezier {
             : i.Value == Degree
                 ? i.IsFromEnd ? Start : End
                 : Handles[new Index(i.Value - 1, i.IsFromEnd)];
-
-        /// <summary>
-        /// Since calculating the polynomial includes computing the factorial of the spline's degree, we need
-        /// to limit the degree to be at most 12. Any larger degree would have a factorial than exceeds the
-        /// range of <see cref="int"/>. Switching to <see cref="long"/> could potentially allow a degree of
-        /// up to 20, but numbers this high could lead to very inaccurate <see cref="float"/> calculations.
-        /// </summary>
-        private const int maxDegree = 12;
-        
-        public BezierSegment(TPos start, ImmutableArray<TPos> handles, TPos end) {
-            Start = start;
-            Handles = handles;
-            End = end;
-            if (Degree > maxDegree)
-                throw new ArgumentException($"A single bezier curve may only have at most {maxDegree - 2} handles.");
-        }
-
-        public BezierSegment(TPos p0, TPos p1, params TPos[] otherPos) : this(
-            p0,
-            p1.PrependTo(otherPos[..^1]).ToImmutableArray(),
-            otherPos[^1]
-        ) { }
 
         [Pure] internal Polynomial<TPos, TDiff> ToPolynomial(GeometricOperations<TPos, TDiff> ops) {
             var p0 = Start;

@@ -24,7 +24,7 @@ namespace BII.WasaBii.Splines {
         /// querying accuracies on different points on the spline.
         /// </remarks>
         [Pure] public static ClosestOnSplineQueryResult<TPos, TDiff> QueryClosestPositionOnSplineToOrThrow<TPos, TDiff>(
-            this WithSpline<TPos, TDiff> spline,
+            this Spline<TPos, TDiff> spline,
             TPos position,
             int samples = DefaultClosestOnSplineSamples
         ) where TPos : struct where TDiff : struct => 
@@ -51,12 +51,10 @@ namespace BII.WasaBii.Splines {
         /// querying accuracies on different points on the spline.
         /// </remarks> 
         public static Option<ClosestOnSplineQueryResult<TPos, TDiff>> QueryClosestPositionOnSplineTo<TPos, TDiff>(
-            this WithSpline<TPos, TDiff> withSpline,
+            this Spline<TPos, TDiff> spline,
             TPos position,
             int samples = DefaultClosestOnSplineSamples
         ) where TPos : struct where TDiff : struct {
-
-            var spline = withSpline.Spline;
 
             // 0: The position is on the plane,
             // > 0: The position is above the plane (in the direction of the normal)

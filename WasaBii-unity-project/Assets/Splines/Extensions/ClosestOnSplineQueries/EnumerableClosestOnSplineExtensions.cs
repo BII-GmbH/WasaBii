@@ -25,14 +25,14 @@ namespace BII.WasaBii.Splines {
         /// </remarks>
         [Pure] public static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff> queryResult)> QueryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff>(
             this IEnumerable<TWithSpline> splines,
+            Func<TWithSpline, Spline<TPos, TDiff>> splineSelector,
             TPos position,
             int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) where TWithSpline : class, WithSpline<TPos, TDiff> 
-            where TPos : struct 
-            where TDiff : struct => queryClosestPositionOnSplinesTo(
-            splines,
-            queryFunction: spline => spline.QueryClosestPositionOnSplineTo(position, samples)
-        );
+        ) where TPos : struct where TDiff : struct => 
+            queryClosestPositionOnSplinesTo(
+                splines,
+                queryFunction: withSpline => splineSelector(withSpline).QueryClosestPositionOnSplineTo(position, samples)
+            );
 
         /// <summary>
         /// Similar to <see cref="QueryClosestPositionOnSplinesTo{TWithSpline, TPos, TDiff}"/>,
@@ -53,17 +53,18 @@ namespace BII.WasaBii.Splines {
         /// </remarks>
         [Pure] public static (TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff> queryResult) QueryClosestPositionOnSplinesToOrThrow<TWithSpline, TPos, TDiff>(
             this IEnumerable<TWithSpline> splines,
+            Func<TWithSpline, Spline<TPos, TDiff>> splineSelector,
             TPos position,
             int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) where TWithSpline : class, WithSpline<TPos, TDiff> 
-            where TPos : struct 
-            where TDiff : struct => splines.QueryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff>(position, samples).GetOrThrow(() => new ArgumentException(
-            $"All splines given to {nameof(QueryClosestPositionOnSplinesToOrThrow)} were not valid and a query could therefore not be performed!"
-        ));
+        )where TPos : struct where TDiff : struct 
+            => splines.QueryClosestPositionOnSplinesTo(splineSelector, position, samples).GetOrThrow(() => new ArgumentException(
+                $"All splines given to {nameof(QueryClosestPositionOnSplinesToOrThrow)} were not valid and a query could therefore not be performed!"
+            ));
 
         private static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff> queryResult)> queryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff>(
-            IEnumerable<TWithSpline> splines, Func<TWithSpline, Option<ClosestOnSplineQueryResult<TPos, TDiff>>> queryFunction
-        ) where TWithSpline : WithSpline<TPos, TDiff> where TPos : struct where TDiff : struct => 
+            IEnumerable<TWithSpline> splines,
+            Func<TWithSpline, Option<ClosestOnSplineQueryResult<TPos, TDiff>>> queryFunction
+        ) where TPos : struct where TDiff : struct => 
             splines.Collect(spline => queryFunction(spline).Map(queryResult => (spline, queryResult)))
                 .MinBy(t => t.queryResult.Distance);
     }

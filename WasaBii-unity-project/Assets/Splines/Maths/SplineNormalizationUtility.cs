@@ -155,7 +155,7 @@ namespace BII.WasaBii.Splines.Maths {
                         throw new ArgumentOutOfRangeException(
                             nameof(locations), 
                             $"The location {currentLocation} is outside of the spline's" +
-                            $" length ({spline.Length}) and cannot be normalized! Tolerance overshoot: {overshoot.Value}"
+                            $" length ({spline.Length()}) and cannot be normalized! Tolerance overshoot: {overshoot.Value}"
                         );
                     }
                    

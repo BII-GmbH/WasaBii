@@ -76,6 +76,11 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
 
     // We include this type in case values of different units are hashed in the same collection
     public override int GetHashCode() => HashCode.Combine(this.SiValue, typeof({name}));
+
+    public override string ToString() {{
+        var u = Units.MostFittingDisplayUnitFor(this);
+        return $""{{this.As(u)}}{{u.ShortName}}"";
+    }}
     
 }}{extensions}
 

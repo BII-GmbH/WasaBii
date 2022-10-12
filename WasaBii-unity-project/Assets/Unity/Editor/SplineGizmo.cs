@@ -21,13 +21,8 @@ namespace BII.WasaBii.Unity.Editor {
         /// <see cref="samplesPerSegment"/> * spline.SegmentCount - 1 individual lines.
         /// </summary>
         public static void DrawSegments(Spline<Vector3, Vector3> spline, int samplesPerSegment = 10) {
-            var segments = spline.SampleSplinePerSegment(samplesPerSegment).Select(s => s.Position).PairwiseSliding().ToArray();
-            for (int i = 0; i < segments.Length; i++) {
-                Gizmos.color = Color.Lerp(Color.green, Color.red, i / (float)segments.Length);
-                Gizmos.DrawLine(segments[i].Item1, segments[i].Item2);
-            }
-            // foreach (var (a, b) in spline.SampleSplinePerSegment(samplesPerSegment).Select(s => s.Position).PairwiseSliding()) 
-            //     Gizmos.DrawLine(a, b);
+            foreach (var (a, b) in spline.SampleSplinePerSegment(samplesPerSegment).Select(s => s.Position).PairwiseSliding()) 
+                Gizmos.DrawLine(a, b);
         }
         
         /// <summary>
@@ -35,11 +30,8 @@ namespace BII.WasaBii.Unity.Editor {
         /// <see cref="samplesTotal"/> - 1 individual lines.
         /// </summary>
         public static void Draw(Spline<Vector3, Vector3> spline, int samplesTotal = 10) {
-            var segments = spline.SampleSpline(samplesTotal).Select(s => s.Position).PairwiseSliding().ToArray();
-            for (int i = 0; i < segments.Length; i++) {
-                Gizmos.color = Color.Lerp(Color.green, Color.red, i / (float)segments.Length);
-                Gizmos.DrawLine(segments[i].Item1, segments[i].Item2);
-            }
+            foreach (var (a, b) in spline.SampleSpline(samplesTotal).Select(s => s.Position).PairwiseSliding()) 
+                Gizmos.DrawLine(a, b);
         }
         
         /// <summary>
@@ -47,13 +39,8 @@ namespace BII.WasaBii.Unity.Editor {
         /// This means that you will see spline.Length / <see cref="desiredSampleLength"/> individual lines.
         /// </summary>
         public static void Draw(Spline<Vector3, Vector3> spline, Length desiredSampleLength) {
-            var segments = spline.SampleSplineEvery(desiredSampleLength).Select(s => s.Position).PairwiseSliding().ToArray();
-            for (int i = 0; i < segments.Length; i++) {
-                Gizmos.color = Color.Lerp(Color.green, Color.red, i / (float)segments.Length);
-                Gizmos.DrawLine(segments[i].Item1, segments[i].Item2);
-            }
-            // foreach (var (a, b) in spline.SampleSplineEvery(desiredSampleLength).Select(s => s.Position).PairwiseSliding()) 
-            //     Gizmos.DrawLine(a, b);
+            foreach (var (a, b) in spline.SampleSplineEvery(desiredSampleLength).Select(s => s.Position).PairwiseSliding()) 
+                Gizmos.DrawLine(a, b);
         }
         
     }

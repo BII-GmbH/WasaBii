@@ -117,9 +117,19 @@ namespace BII.WasaBii.Core {
                 ? ResultOrDefault! 
                 : throw exception?.Invoke() ?? new InvalidOperationException("Not a successful result: " + ErrorOrDefault);
         
+        public TValue ResultOrThrow(Func<TError, Exception> exception) => 
+            WasSuccessful 
+                ? ResultOrDefault! 
+                : throw exception(ErrorOrDefault!);
+        
         public TError ErrorOrThrow(Func<Exception>? exception = null) => 
             WasSuccessful 
                 ? throw exception?.Invoke() ?? new InvalidOperationException("Not an error: " + ResultOrDefault) 
+                : ErrorOrDefault!;
+
+        public TError ErrorOrThrow(Func<TValue, Exception> exception) => 
+            WasSuccessful 
+                ? throw exception(ResultOrDefault!)
                 : ErrorOrDefault!;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

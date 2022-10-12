@@ -25,8 +25,6 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
         public void MockedSplineTest() {
             var uut = ExampleLinearSpline.Spline;
         
-            Assert.That(((WithSpline<Vector3, Vector3>)uut).Spline, Is.EqualTo(uut));
-            
             Assert.That(uut[SplineHandleIndex.At(0)], Is.EqualTo(ExampleLinearSpline.FirstHandle));
             Assert.That(uut[SplineHandleIndex.At(1)], Is.EqualTo(ExampleLinearSpline.SecondHandle));
             Assert.That(uut[SplineHandleIndex.At(2)], Is.EqualTo(ExampleLinearSpline.ThirdHandle));
@@ -52,7 +50,7 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
             public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
                 new []{FirstHandle, SecondHandle},
                 SplineType.Centripetal
-            );
+            ).AsOrThrow<Spline>();
         }
         
         public static class ExampleLinearSpline {
@@ -82,7 +80,7 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
             public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle},
                 SplineType.Centripetal
-            );
+            ).AsOrThrow<Spline>();
         }
         
         public static class ExampleEquidistantLinearSpline {
@@ -97,7 +95,7 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
             public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle, FifthHandle},
                 SplineType.Centripetal
-            );
+            ).AsOrThrow<Spline>();
         }
         
         public static class ExampleCurvedSpline {
@@ -131,7 +129,7 @@ namespace BII.WasaBii.Splines.CatmullRom.Tests {
             public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle},
                 SplineType.Centripetal
-            );
+            ).AsOrThrow<Spline>();
         }
         
        

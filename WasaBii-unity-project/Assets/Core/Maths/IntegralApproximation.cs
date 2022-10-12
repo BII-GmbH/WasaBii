@@ -18,18 +18,12 @@ namespace BII.WasaBii.Core {
             Func<T, double, T> mul
         ) {
             if(sections < 1) throw new ArgumentException($"Cannot sample less than 1 sections (tried to sample {sections})");
-            var factors = new List<int> { 1, 4 };
-            for (var i = 1; i < sections; i++) {
-                factors.Add(2);
-                factors.Add(4);
-            }
-            factors.Add(1);
-
+            
             var subsections = sections * 2;
             var diff = to - from;
 
             return mul(
-                factors.Zip(Range.Sample01(subsections + 1, includeZero:true, includeOne:true))
+                simpsonsFactors(sections).Zip(Range.Sample01(subsections + 1, includeZero:true, includeOne:true))
                     .Select((fac, i) => mul(f(from + i * diff), fac))
                     .Aggregate(add),
                 diff / (subsections * 3)
@@ -41,11 +35,29 @@ namespace BII.WasaBii.Core {
             Func<double, double> f, 
             double from, double to, 
             int sections
-        ) => SimpsonsRule(
-            f, from, to, sections, 
-            add: (a, b) => a + b, 
-            mul: (a, b) => a * b
-        );
+        ) {
+            if(sections < 1) throw new ArgumentException($"Cannot sample less than 1 sections (tried to sample {sections})");
+            
+            var subsections = sections * 2;
+            var diff = to - from;
+
+            var sum = 0.0;
+            foreach (var (fac, idx) in simpsonsFactors(sections).ZipWithIndices()) {
+                var i = idx / (double)subsections;
+                sum += f(from + i * diff) * fac;
+            }
+            return sum * diff / (subsections * 3);
+        }
+
+        private static IEnumerable<int> simpsonsFactors(int sections) {
+            yield return 1;
+            yield return 4;
+            for (var i = 1; i < sections; i++) {
+                yield return 2;
+                yield return 4;
+            }
+            yield return 1;
+        }
 
         /// <summary>
         /// Calculates the trapezoidal integral approximation of the function <see cref="f"/>.

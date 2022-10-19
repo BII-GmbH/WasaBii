@@ -8,6 +8,11 @@ namespace BII.WasaBii.UnitSystem {
         string LongName { get; }
         string ShortName { get; }
         double SiFactor { get; }
+        
+        /// <summary>
+        /// The multiplicative inverse of <see cref="SiFactor"/>. Precalculated once such that utility methods can
+        /// multiply si values by this instead of dividing by <see cref="SiFactor"/> for improved performance.
+        /// </summary>
         double InverseSiFactor { get; }
 
         public interface Base : IUnit { }

@@ -8,6 +8,7 @@ namespace BII.WasaBii.UnitSystem {
         string LongName { get; }
         string ShortName { get; }
         double SiFactor { get; }
+        double InverseSiFactor { get; }
 
         public interface Base : IUnit { }
 

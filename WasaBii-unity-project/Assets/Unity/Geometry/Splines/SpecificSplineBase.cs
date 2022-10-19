@@ -16,7 +16,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
     /// or <see cref="CatmullRomSpline{TPos,TDiff}"/> by wrapping it.
     /// </summary>
     [MustBeSerializable]
-    public abstract class SpecificSplineBase<TSelf, TPos, TDiff> : Spline<TPos, TDiff>
+    public abstract class SpecificSplineBase<TSelf, TPos, TDiff> : Spline<TPos, TDiff>.Copyable
     where TSelf : SpecificSplineBase<TSelf, TPos, TDiff> where TPos : struct where TDiff : struct {
 
         public readonly Spline<TPos, TDiff> Wrapped;
@@ -62,41 +62,48 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
             TPos position,
             int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
         ) => this.QueryClosestPositionOnSplineTo<TPos, TDiff>(position, samples);
-        
-        /// Creates a new spline with a similar trajectory, but with all handle positions
-        /// being moved by a certain offset which depends on the spline's tangent at these points.
+
+        /// <inheritdoc cref="Spline{TPos,TDiff}.Copyable.CopyWithOffset"/>
         [Pure]
-        public TSelf CopyWithOffset(Func<TDiff, TDiff> tangentToOffset) => mkNew(Wrapped switch {
-            CatmullRomSpline<TPos, TDiff> catmullRom => catmullRom.CopyWithOffset(tangentToOffset),
-            BezierSpline<TPos, TDiff> bezier => bezier.CopyWithOffset(tangentToOffset),
-            _ => throw new Exception($"Spline type {Wrapped.GetType()} does not support copying")
-        });
-        
-        /// Creates a new spline with the same trajectory, but with
-        /// all handle positions being moved along a certain
-        /// <paramref name="offset"/>, independent of the spline's
-        /// tangent at these points.
+        public TSelf CopyWithOffset(Func<TDiff, TDiff> tangentToOffset) => 
+            mkNew(((Spline<TPos, TDiff>.Copyable)this).CopyWithOffset(tangentToOffset));
+
+        Spline<TPos, TDiff> Spline<TPos, TDiff>.Copyable.CopyWithOffset(Func<TDiff, TDiff> tangentToOffset) =>
+            Wrapped switch {
+                Spline<TPos, TDiff>.Copyable copyable => copyable.CopyWithOffset(tangentToOffset),
+                _ => throw new Exception($"Spline type {Wrapped.GetType()} does not implement {nameof(Spline<TPos, TDiff>.Copyable)}")
+            };
+
+        /// <inheritdoc cref="Spline{TPos,TDiff}.Copyable.CopyWithStaticOffset"/>
         [Pure]
-        public TSelf CopyWithStaticOffset(TDiff offset) => mkNew(Wrapped switch {
-            CatmullRomSpline<TPos, TDiff> catmullRom => catmullRom.CopyWithStaticOffset(offset),
-            BezierSpline<TPos, TDiff> bezier => bezier.CopyWithStaticOffset(offset),
-            _ => throw new Exception($"Spline type {Wrapped.GetType()} does not support copying")
-        });
-        
-        /// Creates a new spline with a similar trajectory,
-        /// but different spacing between the handles.
+        public TSelf CopyWithStaticOffset(TDiff offset) =>
+            mkNew(((Spline<TPos, TDiff>.Copyable)this).CopyWithStaticOffset(offset));
+
+        Spline<TPos, TDiff> Spline<TPos, TDiff>.Copyable.CopyWithStaticOffset(TDiff offset) =>
+            Wrapped switch {
+                Spline<TPos, TDiff>.Copyable copyable => copyable.CopyWithStaticOffset(offset),
+                _ => throw new Exception($"Spline type {Wrapped.GetType()} does not implement {nameof(Spline<TPos, TDiff>.Copyable)}")
+            };
+
+        /// <inheritdoc cref="Spline{TPos,TDiff}.Copyable.CopyWithDifferentHandleDistance"/>
         [Pure]
-        public TSelf CopyWithDifferentHandleDistance(Length desiredHandleDistance) => mkNew(Wrapped switch {
-            CatmullRomSpline<TPos, TDiff> catmullRom => catmullRom.CopyWithDifferentHandleDistance(desiredHandleDistance),
-            BezierSpline<TPos, TDiff> bezier => bezier.CopyWithDifferentHandleDistance(desiredHandleDistance),
-            _ => throw new Exception($"Spline type {Wrapped.GetType()} does not support copying")
-        });
+        public TSelf CopyWithDifferentHandleDistance(Length desiredHandleDistance) =>
+            mkNew(((Spline<TPos, TDiff>.Copyable)this).CopyWithDifferentHandleDistance(desiredHandleDistance));
+
+        Spline<TPos, TDiff> Spline<TPos, TDiff>.Copyable.CopyWithDifferentHandleDistance(Length desiredHandleDistance) =>
+            Wrapped switch {
+                Spline<TPos, TDiff>.Copyable copyable => copyable.CopyWithDifferentHandleDistance(desiredHandleDistance),
+                _ => throw new Exception($"Spline type {Wrapped.GetType()} does not implement {nameof(Spline<TPos, TDiff>.Copyable)}")
+            };
+
+        /// <inheritdoc cref="Spline{TPos,TDiff}.Copyable.Reversed"/>
+        [Pure] public TSelf Reversed => mkNew(((Spline<TPos, TDiff>.Copyable)this).Reversed);
         
-        [Pure] public TSelf Reversed => mkNew(Wrapped switch {
-            CatmullRomSpline<TPos, TDiff> catmullRom => catmullRom.Reversed(),
-            BezierSpline<TPos, TDiff> bezier => bezier.Reversed(),
-            _ => throw new Exception($"Spline type {Wrapped.GetType()} does not support copying")
-        });
+        Spline<TPos, TDiff> Spline<TPos, TDiff>.Copyable.Reversed =>
+            Wrapped switch {
+                Spline<TPos, TDiff>.Copyable copyable => copyable.Reversed,
+                _ => throw new Exception($"Spline type {Wrapped.GetType()} does not implement {nameof(Spline<TPos, TDiff>.Copyable)}")
+            };
 
         [Pure] protected abstract TSelf mkNew(Spline<TPos, TDiff> toWrap);
 

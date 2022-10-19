@@ -3,12 +3,12 @@ using System.Linq;
 using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines.CatmullRom {
-    public static class CatmullRomSplineCopyExtensions {
+    public static class CatmullRomSplineCopyUtils {
     
         /// Creates a new spline with a similar trajectory as <paramref name="original"/>, but with all handle
         /// positions being moved by a certain offset which depends on the spline's tangent at these points.
         public static CatmullRomSpline<TPos, TDiff> CopyWithOffset<TPos, TDiff>(
-            this CatmullRomSpline<TPos, TDiff> original, Func<TDiff, TDiff> tangentToOffset
+            CatmullRomSpline<TPos, TDiff> original, Func<TDiff, TDiff> tangentToOffset
         ) where TPos : struct where TDiff : struct {
             TPos computePosition(
                 Spline<TPos, TDiff> deriveFrom, TPos originalPosition, NormalizedSplineLocation tangentLocation
@@ -34,7 +34,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// being moved along a certain <paramref name="offset"/>,
         /// independent of the spline's tangent at these points.
         public static CatmullRomSpline<TPos, TDiff> CopyWithStaticOffset<TPos, TDiff>(
-            this CatmullRomSpline<TPos, TDiff> original, TDiff offset
+            CatmullRomSpline<TPos, TDiff> original, TDiff offset
         ) where TPos : struct where TDiff : struct {
             TPos computePosition(TPos node) => original.Ops.Add(node, offset);
             return new CatmullRomSpline<TPos, TDiff>(
@@ -50,7 +50,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// <paramref name="original"/>, but different spacing
         /// between the non-margin handles.
         public static CatmullRomSpline<TPos, TDiff> CopyWithDifferentHandleDistance<TPos, TDiff>(
-            this CatmullRomSpline<TPos, TDiff> original, Length desiredHandleDistance
+            CatmullRomSpline<TPos, TDiff> original, Length desiredHandleDistance
         ) where TPos : struct where TDiff : struct =>
             new(
                 original.Ops.Lerp(original.Handles[0], original.BeginMarginHandle(), desiredHandleDistance / original.Ops.Distance(original.Handles[0], original.BeginMarginHandle())),
@@ -60,10 +60,5 @@ namespace BII.WasaBii.Splines.CatmullRom {
                 original.Type
             );
         
-        /// Creates a new spline that is the reverse of the original
-        /// but has the same handles and spline type
-        public static CatmullRomSpline<TPos, TDiff> Reversed<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> original) 
-            where TPos : struct where TDiff : struct => 
-                new(original.HandlesIncludingMargin.Reverse(), original.Ops, original.Type);
     }
 }

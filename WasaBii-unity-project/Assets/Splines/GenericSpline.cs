@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
@@ -21,8 +22,28 @@ namespace BII.WasaBii.Splines {
         
         GeometricOperations<TPos, TDiff> Ops { get; }
 
-        Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps) 
+        [Pure] Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps) 
             where TPosNew : struct where TDiffNew : struct; 
+        
+        [MustBeSerializable]
+        public interface Copyable : Spline<TPos, TDiff> {
+
+            [Pure] public Spline<TPos, TDiff> Reversed { get; }
+
+            /// Creates a new spline with a similar trajectory, but with all handle positions
+            /// being moved by a certain offset which depends on the spline's tangent at these points.
+            [Pure] public Spline<TPos, TDiff> CopyWithOffset(Func<TDiff, TDiff> tangentToOffset);
+            
+            /// Creates a new spline with the same trajectory, but with
+            /// all handle positions being moved along a certain
+            /// <paramref name="offset"/>, independent of the spline's
+            /// tangent at these points.
+            [Pure] public Spline<TPos, TDiff> CopyWithStaticOffset(TDiff offset);
+        
+            /// Creates a new spline with a similar trajectory,
+            /// but different spacing between the handles.
+            [Pure] public Spline<TPos, TDiff> CopyWithDifferentHandleDistance(Length desiredHandleDistance);
+        }
     }
 
     public static class GenericSplineExtensions {

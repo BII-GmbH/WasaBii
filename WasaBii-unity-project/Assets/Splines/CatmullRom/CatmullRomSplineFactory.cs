@@ -106,7 +106,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
         /// <summary>
         /// Tries to create a catmull-rom spline from the provided positions.
-        /// The first and last position of the IEnumerable become the begin and end handles,
+        /// The first and last position of <paramref name="allHandlesIncludingMargin"/> become the begin and end handles,
         /// which means that they are not interpolated by the spline and merely affect its
         /// trajectory at the spline's start and end.
         ///
@@ -131,7 +131,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         
         /// <summary>
         /// Creates a catmull-rom spline from the provided positions.
-        /// The first and last position of the IEnumerable become the begin and end handles,
+        /// The first and last position of <paramref name="allHandlesIncludingMargin"/> become the begin and end handles,
         /// which means that they are not interpolated by the spline and merely affect its
         /// trajectory at the spline's start and end.
         ///

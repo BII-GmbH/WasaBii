@@ -19,14 +19,14 @@ namespace BII.WasaBii.UnitSystem {
             new TValue {SiValue = value};
 
         public static double As<TValue, TUnit>(this TValue value, TUnit unit)
-            where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit => value.SiValue / unit.SiFactor;
+            where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit => value.SiValue * unit.InverseSiFactor;
 
         public static double As(this IUnitValue value, IUnit unit) {
             if (!value.UnitType.IsInstanceOfType(unit))
                 throw new ArgumentException(
                     $"The type of the target unit does not match the type of the value's unit type. " +
                     $"Expected {value.UnitType} but was {unit}");
-            return value.SiValue / unit.SiFactor;
+            return value.SiValue * unit.InverseSiFactor;
         }
 
         private static IUnitDescription<TUnit> unitDescriptionOf<TUnit>() where TUnit : IUnit =>

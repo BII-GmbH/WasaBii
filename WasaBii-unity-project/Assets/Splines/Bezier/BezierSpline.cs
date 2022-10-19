@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
@@ -30,7 +31,7 @@ namespace BII.WasaBii.Splines.Bezier {
     /// </summary>
     [JsonObject(IsReference = false)] // Treat as value type for serialization
     [MustBeSerializable]
-    public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
+    public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : struct where TDiff : struct {
 
         internal sealed record Cache(
             ImmutableArray<Lazy<SplineSegment<TPos, TDiff>>> SplineSegments
@@ -68,10 +69,21 @@ namespace BII.WasaBii.Splines.Bezier {
             cache = new Lazy<Cache>(initCache);
         }
 
-        public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
+        [Pure] public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
             Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
         ) where TPosNew : struct where TDiffNew : struct
             => new BezierSpline<TPosNew, TDiffNew>(Segments.Select(s => s.Map<TPosNew, TDiffNew>(positionMapping)), newOps);
+
+        [Pure] public Spline<TPos, TDiff> Reversed => new BezierSpline<TPos, TDiff>(Segments.Reverse().Select(s => s.Reversed), Ops);
+        
+        [Pure] public Spline<TPos, TDiff> CopyWithOffset(Func<TDiff, TDiff> tangentToOffset) => 
+            BezierSplineCopyUtils.CopyWithOffset(this, tangentToOffset);
+
+        [Pure] public Spline<TPos, TDiff> CopyWithStaticOffset(TDiff offset) =>
+            BezierSplineCopyUtils.CopyWithStaticOffset(this, offset);
+
+        [Pure] public Spline<TPos, TDiff> CopyWithDifferentHandleDistance(Length desiredHandleDistance) =>
+            BezierSplineCopyUtils.CopyWithDifferentHandleDistance(this, desiredHandleDistance);
 
         // The non-nullable fields are not set and thus null, but
         // they should always be set via reflection, so this is fine.

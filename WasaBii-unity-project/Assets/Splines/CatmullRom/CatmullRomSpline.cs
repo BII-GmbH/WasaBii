@@ -24,7 +24,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
     /// </summary>
     [JsonObject(IsReference = false)] // Treat as value type for serialization
     [MustBeSerializable]
-    public sealed class CatmullRomSpline<TPos, TDiff> : Spline<TPos, TDiff> where TPos : struct where TDiff : struct {
+    public sealed class CatmullRomSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : struct where TDiff : struct {
 
         public CatmullRomSpline(
             TPos startHandle, IEnumerable<TPos> handles, TPos endHandle, 
@@ -84,11 +84,22 @@ namespace BII.WasaBii.Splines.CatmullRom {
                     $"Must be between 0 and {SegmentCount}"
                 ));
 
-        public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
+        [Pure] public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
             Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
         ) where TPosNew : struct where TDiffNew : struct => 
             new CatmullRomSpline<TPosNew, TDiffNew>(HandlesIncludingMargin.Select(positionMapping), newOps, Type);
 
+        [Pure] public Spline<TPos, TDiff> Reversed => new CatmullRomSpline<TPos, TDiff>(HandlesIncludingMargin.Reverse(), Ops, Type);
+        
+        [Pure] public Spline<TPos, TDiff> CopyWithOffset(Func<TDiff, TDiff> tangentToOffset) => 
+            CatmullRomSplineCopyUtils.CopyWithOffset(this, tangentToOffset);
+
+        [Pure] public Spline<TPos, TDiff> CopyWithStaticOffset(TDiff offset) =>
+            CatmullRomSplineCopyUtils.CopyWithStaticOffset(this, offset);
+
+        [Pure] public Spline<TPos, TDiff> CopyWithDifferentHandleDistance(Length desiredHandleDistance) =>
+            CatmullRomSplineCopyUtils.CopyWithDifferentHandleDistance(this, desiredHandleDistance);
+        
 #region Segment Length Caching
         // The cached lengths for each segment,
         // accessed by the segment index.
@@ -120,8 +131,10 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// Designed to be used as a <see cref="Result"/> error type in situations
         /// where an operation can fail due to too few catmull-rom handles.
         /// Catmull-Rom splines always need at least 4 handles: two margin handles and two positions to traverse.
-        /// Some utilities calculate the margin handles, in which case only two positions need to be defined.
-        /// <see cref="HandlesNeeded"/> defines how many positions were required.
+        /// Some utilities require you to pass the margin handles, in which case you have to pass at least 4 handles in total.
+        /// Other utilities calculate them, such that only two handles need to be defined.
+        /// <see cref="HandlesNeeded"/> defines how many handles were required by this specific utility
+        /// (4 if margin handles are required, 2 if not).
         /// </summary>
         public readonly struct NotEnoughHandles {
             public readonly int HandlesProvided;

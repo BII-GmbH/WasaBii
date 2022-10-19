@@ -24,6 +24,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
         public abstract string LongName {{ get; }}
         public abstract string ShortName {{ get; }}
         public abstract double SiFactor {{ get; }}
+        public abstract double InverseSiFactor {{ get; }}
 
         private Unit() {{}}
 
@@ -39,6 +40,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
             public override string LongName => ""{unit.SiUnit.Name}"";
             public override string ShortName => ""{unit.SiUnit.Short}"";
             public override double SiFactor => 1d;
+            public override double InverseSiFactor => 1d;
             
             private {unit.SiUnit.Name}() : base() {{}}
 
@@ -50,6 +52,7 @@ public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
             public override string LongName => ""{au.Name}"";
             public override string ShortName => ""{au.Short}"";
             public override double SiFactor => {au.Factor};
+            public override double InverseSiFactor => {1 / au.Factor};
             
             private {au.Name}() : base() {{}}
 

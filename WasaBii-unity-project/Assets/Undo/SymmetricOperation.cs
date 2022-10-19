@@ -11,6 +11,7 @@ namespace BII.WasaBii.Undos {
 
     // ReSharper disable all InvalidXmlDocComment // for the caller arguments which are explicitly not documented
 
+#if !WASABII_SYMOP_NODEBUGINFO
     /// Contains debug data that specifies where a <see cref="SymmetricOperation"/> has been constructed.
     public readonly struct SymmetricOperationDebugInfo {
         public readonly string CallerMemberName;
@@ -27,7 +28,20 @@ namespace BII.WasaBii.Undos {
             SourceLineNumber = sourceLineNumber;
         }
     }
+#endif
 
+    /// <summary>
+    /// An operation that can be undone. Consists of two actions
+    ///  - <see cref="Do"/> and <see cref="Undo"/> - with optional disposal logic.
+    /// Essentially a symmetric <see cref="Action"/>.
+    /// Can be properly composed via <see cref="SymmetricOperationExtensions.AndThen"/>.
+    /// </summary>
+    /// <remarks>
+    /// Also includes <see cref="DebugInfo"/>, which contains some information 
+    ///  about where the operation and its parts have been constructed.
+    /// For less overhead, the compiler symbol <c>WASABII_SYMOP_NODEBUGINFO</c> can be defined to disable this.
+    /// </remarks>
+    /// <seealso cref="SymmetricOperation{T}"/>
     [CannotBeSerialized("Based on function references which cannot be serialized.")]
     public sealed class SymmetricOperation {
         internal readonly Action lastDo;
@@ -45,8 +59,9 @@ namespace BII.WasaBii.Undos {
         internal readonly ImmutableList<Action>? disposeAfterDoInOrder;
         internal readonly ImmutableList<Action>? disposeAfterUndoInOrder;
 
+#if !WASABII_SYMOP_NODEBUGINFO
         public readonly ImmutableList<SymmetricOperationDebugInfo> DebugInfo;
-
+#endif
         public static readonly Action DoNothingOperation = () => { };
 
         private static readonly SymmetricOperation empty = new(DoNothingOperation, DoNothingOperation);
@@ -91,10 +106,12 @@ namespace BII.WasaBii.Undos {
             Action action, 
             Action undo, 
             Action? disposeAfterDo = null,
-            Action? disposeAfterUndo = null,
-            [CallerMemberName] string __callerMemberName = "",
+            Action? disposeAfterUndo = null
+#if !WASABII_SYMOP_NODEBUGINFO
+            , [CallerMemberName] string __callerMemberName = "",
             [CallerFilePath] string __sourceFilePath = "",
             [CallerLineNumber] int __sourceLineNumber = 0
+#endif
         ) {
             this.lastDo = action;
             this.lastUndo = undo;
@@ -109,10 +126,11 @@ namespace BII.WasaBii.Undos {
             disposeAfterUndoInOrder = null;
             if (disposeAfterDo != null) this.disposeAfterDoInOrder = ImmutableList.Create(disposeAfterDo);
             if (disposeAfterUndo != null) this.disposeAfterUndoInOrder = ImmutableList.Create(disposeAfterUndo);
-
+#if !WASABII_SYMOP_NODEBUGINFO
             this.DebugInfo = ImmutableList.Create(
                 new SymmetricOperationDebugInfo(__callerMemberName, __sourceFilePath, __sourceLineNumber)
             );
+#endif
         }
 
         internal SymmetricOperation(
@@ -121,8 +139,10 @@ namespace BII.WasaBii.Undos {
             ImmutableList<Action>? doInOrder,
             ImmutableList<Action>? undoInOrder,
             ImmutableList<Action>? disposeAfterDoInOrder,
-            ImmutableList<Action>? disposeAfterUndoInOrder,
-            ImmutableList<SymmetricOperationDebugInfo> debugInfo
+            ImmutableList<Action>? disposeAfterUndoInOrder
+#if !WASABII_SYMOP_NODEBUGINFO
+            , ImmutableList<SymmetricOperationDebugInfo> debugInfo
+#endif
         ) {
             this.lastDo = lastAction;
             this.lastUndo = lastUndo;
@@ -131,13 +151,28 @@ namespace BII.WasaBii.Undos {
 
             this.disposeAfterDoInOrder = disposeAfterDoInOrder;
             this.disposeAfterUndoInOrder = disposeAfterUndoInOrder;
-
+#if !WASABII_SYMOP_NODEBUGINFO
             this.DebugInfo = debugInfo;
+#endif
         }
     }
-
+    
+    /// <summary>
+    /// An operation that returns a value of type <typeparamref name="T"/>
+    ///  which causes side-effects. These side-effects can be undone.
+    /// Consists of a func <see cref="Do"/> and an action <see cref="Undo"/> with optional disposal logic.
+    /// This is a monad, and thus provides <see cref="SymmetricOperationExtensions.Map"/>
+    ///  and <see cref="SymmetricOperationExtensions.FlatMap"/>.
+    /// Can be constructed from a <see cref="SymmetricOperation"/> in numerous ways via extensions,
+    ///  and can be composed via <see cref="SymmetricOperationExtensions.AndThen{T}"/>.
+    /// </summary>
+    /// <remarks>
+    /// Also includes <see cref="DebugInfo"/>, which contains some information 
+    ///  about where the operation and its parts have been constructed.
+    /// For less overhead, the compiler symbol <c>WASABII_SYMOP_NODEBUGINFO</c> can be defined to disable this.
+    /// </remarks>
     [CannotBeSerialized("Based on function references which cannot be serialized.")]
-    public readonly struct SymmetricOperation<T> {
+    public sealed class SymmetricOperation<T> {
 
         // Note CR: we still use function composition for this type, as there is usually
         //   only one final typed SymOp after a chain of untyped SymOps.
@@ -150,8 +185,10 @@ namespace BII.WasaBii.Undos {
         public readonly Action Undo;
         public readonly Action DisposeAfterDo;  
         public readonly Action DisposeAfterUndo;
-
+        
+#if !WASABII_SYMOP_NODEBUGINFO
         public readonly ImmutableList<SymmetricOperationDebugInfo> DebugInfo;
+#endif
 
         /// <summary>
         /// Describes how to both do something and undo it again. The action
@@ -176,34 +213,40 @@ namespace BII.WasaBii.Undos {
             Func<T> action, 
             Action undo, 
             Action? disposeAfterDo = null,
-            Action? disposeAfterUndo = null,
-            [CallerMemberName] string __callerMemberName = "",
+            Action? disposeAfterUndo = null
+#if !WASABII_SYMOP_NODEBUGINFO
+            , [CallerMemberName] string __callerMemberName = "",
             [CallerFilePath] string __sourceFilePath = "",
             [CallerLineNumber] int __sourceLineNumber = 0
+#endif
         ) {
             this.Do = action;
             this.Undo = undo;
             this.DisposeAfterDo = disposeAfterDo ?? SymmetricOperation.DoNothingOperation;
             this.DisposeAfterUndo = disposeAfterUndo ?? SymmetricOperation.DoNothingOperation;
-
+#if !WASABII_SYMOP_NODEBUGINFO
             this.DebugInfo = ImmutableList.Create(
                 new SymmetricOperationDebugInfo(__callerMemberName, __sourceFilePath, __sourceLineNumber)
             );
+#endif
         }
 
         internal SymmetricOperation(
             Func<T> action, 
             Action undo, 
             Action? disposeAfterDo,
-            Action? disposeAfterUndo,
-            ImmutableList<SymmetricOperationDebugInfo> debugInfo
+            Action? disposeAfterUndo
+#if !WASABII_SYMOP_NODEBUGINFO
+            , ImmutableList<SymmetricOperationDebugInfo> debugInfo
+#endif
         ) {
             this.Do = action;
             this.Undo = undo;
             this.DisposeAfterDo = disposeAfterDo ?? SymmetricOperation.DoNothingOperation;
             this.DisposeAfterUndo = disposeAfterUndo ?? SymmetricOperation.DoNothingOperation;
-
+#if !WASABII_SYMOP_NODEBUGINFO
             this.DebugInfo = debugInfo;
+#endif
         }
     }
 
@@ -218,10 +261,18 @@ namespace BII.WasaBii.Undos {
 
         /// Result will be immediately captured by value.
         public static SymmetricOperation<T> WithResult<T>(this SymmetricOperation src, T result) => 
-            new SymmetricOperation<T>(() => {
-                src.Do();
-                return result;
-            }, src.Undo, src.DisposeAfterDo, src.DisposeAfterUndo, src.DebugInfo);
+            new SymmetricOperation<T>(
+                () => {
+                    src.Do();
+                    return result;
+                }, 
+                src.Undo, 
+                src.DisposeAfterDo, 
+                src.DisposeAfterUndo
+#if !WASABII_SYMOP_NODEBUGINFO
+                , src.DebugInfo
+#endif
+            );
 
         /// Result will be calculated the first time the symmetric operation is executed.
         /// Use this instead of <see cref="WithResult{T}"/>
@@ -229,43 +280,57 @@ namespace BII.WasaBii.Undos {
         ///   through side-effects in the symmetric operation.
         public static SymmetricOperation<T> WithLazyResult<T>(this SymmetricOperation src, Func<T> result) {
             var cachedResult = Option<T>.None;
-            return new SymmetricOperation<T>(() => {
-                src.Do();
-                return cachedResult.Match(
-                    v => v,
-                    () => {
-                        var res = result();
-                        cachedResult = res;
-                        return res;
-                    }
-                );
-            }, src.Undo, src.DisposeAfterDo, src.DisposeAfterUndo, src.DebugInfo);
+            return new SymmetricOperation<T>(
+                () => {
+                    src.Do();
+                    return cachedResult.Match(
+                        v => v,
+                        () => {
+                            var res = result();
+                            cachedResult = res;
+                            return res;
+                        }
+                    );
+                }, 
+                src.Undo, 
+                src.DisposeAfterDo, 
+                src.DisposeAfterUndo
+#if !WASABII_SYMOP_NODEBUGINFO
+                , src.DebugInfo
+#endif
+            );
         }
 
         public static SymmetricOperation<TRes> Map<T, TRes>(
             this SymmetricOperation<T> src, 
-            Func<T, TRes> mapping,
-            [CallerMemberName] string __callerMemberName = "",
+            Func<T, TRes> mapping
+#if !WASABII_SYMOP_NODEBUGINFO
+            , [CallerMemberName] string __callerMemberName = "",
             [CallerFilePath] string __sourceFilePath = "",
             [CallerLineNumber] int __sourceLineNumber = 0
+#endif
         ) => new SymmetricOperation<TRes>(
             () => mapping(src.Do()), 
             src.Undo, 
             src.DisposeAfterDo, 
-            src.DisposeAfterUndo,
-            src.DebugInfo.Add(new SymmetricOperationDebugInfo(
+            src.DisposeAfterUndo
+#if !WASABII_SYMOP_NODEBUGINFO
+            , src.DebugInfo.Add(new SymmetricOperationDebugInfo(
                 __callerMemberName,
                 __sourceFilePath,
                 __sourceLineNumber
             ))
+#endif
         );
 
         public static SymmetricOperation<TRes> FlatMap<T, TRes>(
             this SymmetricOperation<T> src,
-            Func<T, SymmetricOperation<TRes>> mapping,
-            [CallerMemberName] string __callerMemberName = "",
+            Func<T, SymmetricOperation<TRes>> mapping
+#if !WASABII_SYMOP_NODEBUGINFO
+            , [CallerMemberName] string __callerMemberName = "",
             [CallerFilePath] string __sourceFilePath = "",
             [CallerLineNumber] int __sourceLineNumber = 0
+#endif
         ) {
             SymmetricOperation<TRes> mappingRes = default!;
             return new SymmetricOperation<TRes>(
@@ -278,12 +343,14 @@ namespace BII.WasaBii.Undos {
                 }, () => {
                     mappingRes.DisposeAfterUndo!();
                     src.DisposeAfterUndo();
-                },
-                src.DebugInfo.Add(new SymmetricOperationDebugInfo(
+                }
+#if !WASABII_SYMOP_NODEBUGINFO
+                , src.DebugInfo.Add(new SymmetricOperationDebugInfo(
                     __callerMemberName,
                     __sourceFilePath,
                     __sourceLineNumber
                 ))
+#endif
             );
         }
 
@@ -295,8 +362,8 @@ namespace BII.WasaBii.Undos {
             if (then.doInOrder != null) newDo.AddRange(then.doInOrder);
 
             var newUndo = ImmutableList.CreateBuilder<Action>();
-            newUndo.Add(then.lastUndo);
             if (then.undoInOrder != null) newUndo.AddRange(then.undoInOrder);
+            newUndo.Add(src.lastUndo);
             if (src.undoInOrder != null) newUndo.AddRange(src.undoInOrder);
 
             // then-dispose can depend on resources of src-dispose
@@ -315,12 +382,14 @@ namespace BII.WasaBii.Undos {
 
             return new SymmetricOperation(
                 then.lastDo, 
-                src.lastUndo, 
+                then.lastUndo, 
                 newDo.ToImmutable(), 
                 newUndo.ToImmutable(), 
                 newDispose, 
-                newUndoDispose, 
-                src.DebugInfo.AddRange(then.DebugInfo)
+                newUndoDispose
+#if !WASABII_SYMOP_NODEBUGINFO
+                , src.DebugInfo.AddRange(then.DebugInfo)
+#endif
             );
         }
 
@@ -343,8 +412,10 @@ namespace BII.WasaBii.Undos {
                 // then-dispose can depend on resources of src-dispose
                 then.DisposeAfterUndo();
                 src.DisposeAfterUndo();
-            },
-            src.DebugInfo.AddRange(then.DebugInfo)
+            }
+#if !WASABII_SYMOP_NODEBUGINFO
+            , src.DebugInfo.AddRange(then.DebugInfo)
+#endif
         );
 
         /// Adds do and undo logic to an existing <see cref="SymmetricOperation"/>.
@@ -355,10 +426,12 @@ namespace BII.WasaBii.Undos {
             Action doThen,
             Action undoThen,
             Action? disposeAfterDoThen = null,
-            Action? disposeAfterUndoThen = null,
-            [CallerMemberName] string __callerMemberName = "",
+            Action? disposeAfterUndoThen = null
+#if !WASABII_SYMOP_NODEBUGINFO
+            , [CallerMemberName] string __callerMemberName = "",
             [CallerFilePath] string __sourceFilePath = "",
             [CallerLineNumber] int __sourceLineNumber = 0
+#endif
         ) {
             var newDo = src.doInOrder != null 
                 ? src.doInOrder.Add(src.lastDo) 
@@ -388,12 +461,14 @@ namespace BII.WasaBii.Undos {
                 newDo, 
                 newUndo,
                 newDispose, 
-                newUndoDispose, 
-                src.DebugInfo.Add(new SymmetricOperationDebugInfo(
+                newUndoDispose
+#if !WASABII_SYMOP_NODEBUGINFO
+                , src.DebugInfo.Add(new SymmetricOperationDebugInfo(
                     __callerMemberName,
                     __sourceFilePath,
                     __sourceLineNumber
                 ))
+#endif
             );
         }
 
@@ -407,10 +482,12 @@ namespace BII.WasaBii.Undos {
             Func<TRes> doThen, 
             Action undoThen, 
             Action? disposeAfterDoThen = null, 
-            Action? disposeAfterUndoThen = null,
-            [CallerMemberName] string __callerMemberName = "",
+            Action? disposeAfterUndoThen = null
+#if !WASABII_SYMOP_NODEBUGINFO
+            , [CallerMemberName] string __callerMemberName = "",
             [CallerFilePath] string __sourceFilePath = "",
             [CallerLineNumber] int __sourceLineNumber = 0
+#endif
         ) => new SymmetricOperation<TRes>(() => {
                 src.Do();
                 return doThen();
@@ -425,18 +502,57 @@ namespace BII.WasaBii.Undos {
                 // then-dispose can depend on resources of src-dispose
                 disposeAfterUndoThen?.Invoke();
                 src.DisposeAfterUndo();
-            },
-            src.DebugInfo.Add(new SymmetricOperationDebugInfo(
+            }
+#if !WASABII_SYMOP_NODEBUGINFO
+            , src.DebugInfo.Add(new SymmetricOperationDebugInfo(
                 __callerMemberName,
                 __sourceFilePath,
                 __sourceLineNumber
             ))
+#endif
         );
 
-        public static SymmetricOperation CombineInOrder(this IEnumerable<SymmetricOperation> enumerable, SymmetricOperation seed) =>
-            enumerable.Aggregate(seed, (op1, op2) => op1.AndThen(op2));
+        public static SymmetricOperation CombineInOrder(this IEnumerable<SymmetricOperation> toCombine) {
+            var toCombineList = toCombine.AsReadOnlyList();
+            if (toCombineList.IsEmpty()) return SymmetricOperation.Empty;
+            if (toCombineList.Count == 1) return toCombineList[0];
+            if (toCombineList.Count == 2) return toCombineList[0].AndThen(toCombineList[1]);
 
-        public static SymmetricOperation CombineInOrder(this IEnumerable<SymmetricOperation> enumerable) =>
-            CombineInOrder(enumerable, SymmetricOperation.Empty);
+            var newDo = new List<Action>();
+#if !WASABII_SYMOP_NODEBUGINFO
+            var debugInfo = new List<SymmetricOperationDebugInfo>();
+#endif
+            
+            foreach (var symOp in toCombine) {
+                newDo.AddRange(symOp.doInOrder);
+                newDo.Add(symOp.lastDo);
+#if !WASABII_SYMOP_NODEBUGINFO
+                debugInfo.AddRange(symOp.DebugInfo);
+#endif
+            }
+            
+            var newUndo = new List<Action>();
+            var newDispose = new List<Action>();
+            var newUndoDispose = new List<Action>();
+
+            foreach (var symOp in toCombine.Reverse()) {
+                newUndo.Add(symOp.lastUndo);
+                newUndo.AddRange(symOp.undoInOrder);
+                newDispose.AddRange(symOp.disposeAfterDoInOrder);
+                newUndoDispose.AddRange(symOp.disposeAfterUndoInOrder);
+            }
+
+            return new SymmetricOperation(
+                newDo.Last(),
+                newUndo.First(), 
+                newDo.Take(newDo.Count - 1).ToImmutableList(), 
+                newUndo.Skip(1).ToImmutableList(), 
+                newDispose.ToImmutableList(), 
+                newUndoDispose.ToImmutableList()
+#if !WASABII_SYMOP_NODEBUGINFO
+                , debugInfo.ToImmutableList()
+#endif
+            );   
+        }
     }
 }

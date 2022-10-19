@@ -23,7 +23,7 @@ namespace BII.WasaBii.Core {
         public static Vector3 WithZ(this Vector3 v, Func<float, float> mapping) => 
             new Vector3(v.X, v.Y, mapping(v.Z));
 
-        public static Vector3 Map(this Vector3 v, Func<float, float> mapping) => 
+        public static Vector3 MapXYZ(this Vector3 v, Func<float, float> mapping) => 
             new Vector3(mapping(v.X), mapping(v.Y), mapping(v.Z));
 
         public static float DistanceTo(this Vector3 v1, Vector3 v2)

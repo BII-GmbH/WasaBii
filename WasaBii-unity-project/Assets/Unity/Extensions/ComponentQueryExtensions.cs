@@ -22,10 +22,10 @@ namespace BII.WasaBii.Unity {
     // ReSharper disable all InvalidXmlDocComment
     public static class ComponentQueryExtensions {
         
-        private static Option<T> ToOption<T>(this T component) =>
+        private static Option<T> toOption<T>(this T component) =>
             Util.IsNull(component) ? Option.None : Option.Some(component);
         
-        private static Option<T> SearchParents<T>(GameObject go, Func<GameObject, Option<T>> mapper) where T : class {
+        private static Option<T> searchParents<T>(GameObject go, Func<GameObject, Option<T>> mapper) where T : class {
             while (true) {
                 var res = mapper(go);
                 if (res.HasValue) return res;
@@ -34,7 +34,7 @@ namespace BII.WasaBii.Unity {
             }
         }
 
-        private static Option<T> SearchChildren<T>(GameObject go, Func<GameObject, Option<T>> mapper) where T : class {
+        private static Option<T> searchChildren<T>(GameObject go, Func<GameObject, Option<T>> mapper) where T : class {
             var toSearch = new Queue<GameObject>(new []{go});
             while (toSearch.TryDequeue(out var curr)) {
                 var res = mapper(curr);
@@ -44,7 +44,7 @@ namespace BII.WasaBii.Unity {
             return Option.None;
         }
 
-        private static Option<T> SearchSiblings<T>(GameObject go, Func<GameObject, Option<T>> mapper) where T : class {
+        private static Option<T> searchSiblings<T>(GameObject go, Func<GameObject, Option<T>> mapper) where T : class {
             if (go.transform.parent == null) return mapper(go);
             foreach (var child in go.transform.parent.GetChildren()) {
                 var res = mapper(child.gameObject);
@@ -79,13 +79,18 @@ namespace BII.WasaBii.Unity {
             where T : class =>
             where switch {
                 Search.InObjectOnly => fn(go),
-                Search.InChildren => SearchChildren(go, fn),
-                Search.InParents => SearchParents(go, fn),
-                Search.InSiblings => SearchSiblings(go, fn),
+                Search.InChildren => searchChildren(go, fn),
+                Search.InChildrenOnly => 
+                    go.transform.GetChildren()
+                        .Select(t => searchChildren(t.gameObject, fn))
+                        .FirstOrNone(v => v.HasValue)
+                        .Flatten(),
+                Search.InParents => searchParents(go, fn),
+                Search.InSiblings => searchSiblings(go, fn),
                 Search.InWholeHierarchy => 
                     go.transform.parent.IsNotNull(out var p) && 
-                    SearchParents(p.gameObject, fn).TryGetValue(out var parentSearch) 
-                        ? parentSearch : SearchChildren(go, fn),
+                    searchParents(p.gameObject, fn).TryGetValue(out var parentSearch) 
+                        ? parentSearch : searchChildren(go, fn),
                 _ => throw new UnsupportedSearchException(where)
             };
 
@@ -108,21 +113,24 @@ namespace BII.WasaBii.Unity {
         public static bool HasComponent<T>(
             this GameObject go, out T result, Search where = Search.InObjectOnly, bool includeInactive = false
         ) where T : class => (where switch {
-            Search.InObjectOnly => go.GetComponent<T>(),
-            Search.InChildren => go.GetComponentInChildren<T>(includeInactive),
+            Search.InObjectOnly => go.GetComponent<T>().toOption(),
+            Search.InChildren => go.GetComponentInChildren<T>(includeInactive).toOption(),
+            Search.InChildrenOnly => go.transform.GetChildren()
+                .Select(child => child.GetComponentInChildren<T>(includeInactive).toOption())
+                .FirstOrNone().Flatten(),
             Search.InParents => go.GetComponentInParent<T>(includeInactive),
             Search.InSiblings => go.transform.parent.IsNull(out var p)
-                ? go.GetComponent<T>()
+                ? go.GetComponent<T>().toOption()
                 : go.transform.parent.GetChildren()
-                    .Collect(child => child.GetComponent<T>())
-                    .FirstOrDefault(),
+                    .Select(child => child.GetComponent<T>().toOption())
+                    .FirstOrNone().Flatten(),
             Search.InWholeHierarchy =>
                 go.transform.parent.IsNotNull(out var p) &&
                 p.gameObject.GetComponentInParent<T>(includeInactive).IsNotNull(out var parentSearch)
-                    ? parentSearch
-                    : go.GetComponentInChildren<T>(includeInactive),
+                    ? parentSearch.toOption()
+                    : go.GetComponentInChildren<T>(includeInactive).toOption(),
             _ => throw new UnsupportedSearchException(where)
-        }).ToOption().TryGetValue(out result);
+        }).TryGetValue(out result);
 
         /// <inheritdoc cref="HasComponent{T}(UnityEngine.GameObject,out T,BII.WasaBii.Unity.Search,bool)" />
         public static bool HasComponent<T>(
@@ -170,6 +178,9 @@ namespace BII.WasaBii.Unity {
             Search.InObjectOnly => go.GetComponents<T>(),
             Search.InParents => go.GetComponentsInParent<T>(includeInactive),
             Search.InChildren => go.GetComponentsInChildren<T>(includeInactive),
+            Search.InChildrenOnly => go.transform
+                .GetChildren()
+                .SelectMany(c => c.gameObject.GetComponentsInChildren<T>(includeInactive)),
             Search.InSiblings => go.transform.parent.IsNull(out var p)
                 ? go.All<T>(includeInactive: includeInactive)
                 : go.transform.parent.GetChildren()

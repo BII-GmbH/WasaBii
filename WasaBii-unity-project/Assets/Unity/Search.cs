@@ -22,6 +22,8 @@ namespace BII.WasaBii.Unity {
         /// <inheritdoc cref="Search"/>
         InChildren,
         /// <inheritdoc cref="Search"/>
+        InChildrenOnly,
+        /// <inheritdoc cref="Search"/>
         InParents,
         /// <inheritdoc cref="Search"/>
         InSiblings,

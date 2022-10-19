@@ -158,15 +158,17 @@ namespace BII.WasaBii.Core {
         [Pure] public static float Sqr(this float value) => value * value;
         [Pure] public static double Sqr(this double value) => value * value;
         
-        /// Mathematically correct modulus.
+        /// Remainder of dividing <paramref name="x"/> by <paramref name="m"/>.
+        /// Equal to the % operator for positive arguments,
+        ///  but will always yield a positive result for negative arguments.
         /// Always positive for any x as long as m > 0.
-        [Pure] public static int Mod(int x, int m) => (x % m + m) % m;
+        [Pure] public static int Rem(int x, int m) => (x % m + m) % m;
         
-        /// <inheritdoc cref="Mod(int,int)"/>
-        [Pure] public static float Mod(float x, float m) => (x % m + m) % m;
+        /// <inheritdoc cref="Rem(int,int)"/>
+        [Pure] public static float Rem(float x, float m) => (x % m + m) % m;
         
-        /// <inheritdoc cref="Mod(int,int)"/>
-        [Pure] public static double Mod(double x, double m) => (x % m + m) % m;
+        /// <inheritdoc cref="Rem(int,int)"/>
+        [Pure] public static double Rem(double x, double m) => (x % m + m) % m;
 
     }
 }

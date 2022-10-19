@@ -1,0 +1,28 @@
+﻿{
+  "name": "WasaBii-Splines-Tests",
+  "rootNamespace": "BII.WasaBii",
+  "references": [
+    "WasaBii-Core",
+    "WasaBii-Splines",
+    "WasaBii-Units",
+    "WasaBii-Unity",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll",
+    "WasaBii-Units-Shared.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

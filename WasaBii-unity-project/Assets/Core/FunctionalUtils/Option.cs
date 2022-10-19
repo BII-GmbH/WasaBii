@@ -30,20 +30,18 @@ namespace BII.WasaBii.Core {
             }
         }
         
+        public static Option<T> TryCast<T>(object obj) => obj is T res ? res.Some() : None;
+        
         public static readonly UniversalNone None = new();
 
         /// Implicitly convertible to Option{T}.None for any T
-        public readonly struct UniversalNone { } 
+        public readonly struct UniversalNone { }
     }
-    
-    /// Marker interface for option values without specifying the generic type.
-    /// Used in reflection-based code.
-    public interface UntypedOption { }
     
     /// A class that potentially wraps a value.
     /// Can be either Some(value) or None.
     [MustBeSerializable]
-    public readonly struct Option<T> : UntypedOption, IEquatable<T>, IEquatable<Option<T>> {
+    public readonly struct Option<T> : IEquatable<T>, IEquatable<Option<T>> {
         
         // Fields are public for convenient support for pattern matching syntax
 
@@ -91,11 +89,7 @@ namespace BII.WasaBii.Core {
         [Pure] public Option<TRes> AsOrNone<TRes>() => HasValue && ValueOrDefault is TRes res ? res.Some() : Option<TRes>.None;
         
         public static implicit operator Option<T>(Option.UniversalNone _) => default;
-
-        public static implicit operator Option<T>(T value) {
-            if (value == null) return Option.None;
-            else return new Option<T>(value);
-        }
+        public static implicit operator Option<T>(T value) => value == null ? Option.None : new Option<T>(value);
 
         [Pure] public bool Equals(T other) => HasValue && EqualityComparer<T>.Default.Equals(other, ValueOrDefault!);
 

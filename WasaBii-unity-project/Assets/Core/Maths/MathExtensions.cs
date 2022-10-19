@@ -83,6 +83,12 @@ namespace BII.WasaBii.Core {
                 : cmp1 == 1 && cmp2 == -1;
         }
 
+        [Pure] public static bool IsInsideInterval(this float value, float min, float max, float threshold = float.Epsilon)
+            => value >= min - threshold && value <= max + threshold;
+
+        [Pure] public static bool IsInsideInterval(this double value, double min, double max, double threshold = double.Epsilon)
+            => value >= min - threshold && value <= max + threshold;
+
         [Pure] public static bool IsNearly(this float value, float other, float threshold = float.Epsilon)
             => Math.Abs(value - other) <= threshold;
 

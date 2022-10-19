@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
+using WasaBii.Geometry.Shared;
 
 namespace BII.WasaBii.UnitSystem;
 
@@ -31,7 +32,24 @@ public class GeneratorTests
     [Test]
     public void EnsureExampleCompiles() {
         
-        Compilation comp = CreateCompilation("namespace System.Runtime.CompilerServices { public static class IsExternalInit {} }");
+        Compilation comp = CreateCompilation(@"
+namespace BII.WasaBii.UnitSystem {
+    public readonly struct Length {
+        public double SiValue { init; get; }
+    }
+    public readonly struct Area {
+        public double SiValue { init; get; }
+    }
+}
+namespace WasaBii.Geometry.Shared {
+    using BII.WasaBii.UnitSystem;
+
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true)]
+    public readonly partial struct GlobalRotation {
+        public readonly Length X, Y, Z, W;
+    }
+
+}");
         var newComp = RunGenerators(comp, out var generatorDiags, Array.Empty<AdditionalText>(), new GeometryHelperGenerator());
 
         Assert.That(generatorDiags, Is.Empty);
@@ -53,7 +71,7 @@ public class GeneratorTests
                 MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.1.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").Location),
                 MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location),
                 MetadataReference.CreateFromFile(typeof(System.Object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(IUnitValue).Assembly.Location) 
+                MetadataReference.CreateFromFile(typeof(GeometryHelper).Assembly.Location)
             },
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );

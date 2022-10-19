@@ -9,11 +9,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <OutputPath>..\..\WasaBii-unity-project\Assets\Core\GeometryUtils\</OutputPath>
+    <OutputPath>..\..\WasaBii-unity-project\Assets\Unity\Geometry\TransformUtils\GeometryUtils\</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <OutputPath>..\..\WasaBii-unity-project\Assets\Core\GeometryUtils\</OutputPath>
+    <OutputPath>..\..\WasaBii-unity-project\Assets\Unity\Geometry\TransformUtils\GeometryUtils\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

@@ -10,6 +10,7 @@
     <OutputType>Library</OutputType>
 
     <LangVersion>default</LangVersion>    
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>

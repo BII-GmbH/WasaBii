@@ -90,6 +90,13 @@ namespace BII.WasaBii.UnitSystem {
         ) where TSelf : struct, IUnitValue<TSelf> =>
             FromSiValue<TSelf>(from.SiValue.Lerp(to.SiValue, progress, shouldClamp));
         
+        public static TSelf LerpTo<TSelf>(
+            this TSelf from,
+            TSelf to,
+            double progress,
+            bool shouldClamp = true
+        ) where TSelf : struct, IUnitValue<TSelf> => Lerp(from, to, progress, shouldClamp);
+        
         public static double InverseLerp<TSelf>(
             TSelf from,
             TSelf to,

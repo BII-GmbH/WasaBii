@@ -438,8 +438,8 @@ namespace BII.WasaBii.Undos {
                 : ImmutableList.Create(src.lastDo);
 
             var newUndo = src.undoInOrder != null
-                ? src.undoInOrder.Insert(0, undoThen)
-                : ImmutableList.Create(undoThen);
+                ? src.undoInOrder.Insert(0, src.lastUndo)
+                : ImmutableList.Create(src.lastUndo);
 
             // then-dispose can depend on resources of src-dispose
 
@@ -457,7 +457,7 @@ namespace BII.WasaBii.Undos {
 
             return new SymmetricOperation(
                 doThen, 
-                src.lastUndo, 
+                undoThen, 
                 newDo, 
                 newUndo,
                 newDispose, 

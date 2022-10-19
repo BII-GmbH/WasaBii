@@ -78,7 +78,7 @@ namespace BII.WasaBii.Splines.Maths {
             where TDiff : struct {
 
             var location = SplineLocation.Zero;
-            var lastSegmentIndex = Mathd.FloorToInt(t.Value);
+            var lastSegmentIndex = MathD.FloorToInt(t.Value);
             for (var i = 0; i < lastSegmentIndex; i++) {
                 location += spline[SplineSegmentIndex.At(i)].Length;
             }

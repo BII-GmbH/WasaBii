@@ -148,7 +148,7 @@ namespace BII.WasaBii.Splines.Maths {
                 res -= numerator / denominator;
                 
                 // res sometimes goes very slightly below 0 or very slightly above 1.
-                // Since this would trigger a Contract Assertion elsewhere,
+                // Since this would trigger a Debug.Assertion elsewhere,
                 // we ensure that the value is clamped.
                 res = Math.Clamp(res, 0, 1);
             }

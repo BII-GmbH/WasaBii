@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using JetBrains.Annotations;
+using UnityEngine;
 
 namespace BII.WasaBii.Unity {
     
@@ -73,8 +74,8 @@ namespace BII.WasaBii.Unity {
         /// </summary>
         public static T IfAbsentComputeThenReturn<T>(ref T? field, Func<T> getter) where T : struct {
             IfAbsentCompute(ref field, () => getter());
-            Contract.Assert(field != null);
-            return field.Value;
+            Debug.Assert(field != null);
+            return field!.Value;
         }
 
         /// If the field is null, it will be assigned the given value.

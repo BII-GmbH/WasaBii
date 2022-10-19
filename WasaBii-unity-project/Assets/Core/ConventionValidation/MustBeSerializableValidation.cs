@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -51,9 +52,9 @@ namespace BII.WasaBii.Core {
         public static IEnumerable<string> ValidateMustBeSerializable(Type toValidate, ISet<Type>? alreadyValidated = null) {
             alreadyValidated ??= new HashSet<Type>();
 
-            return validateSerializableRecursively(toValidate, new SingleLinkedList<string>());
+            return validateSerializableRecursively(toValidate, ImmutableStack<string>.Empty);
 
-            IEnumerable<string> validateSerializableRecursively(Type type, SingleLinkedList<string> contexts) {
+            IEnumerable<string> validateSerializableRecursively(Type type, ImmutableStack<string> contexts) {
                 if (toValidate.GetCustomAttribute<__IgnoreMustBeSerializableAttribute>() != null) yield break;
                 
                 // Ensure we don't validate twice and don't run into cycles.
@@ -80,7 +81,7 @@ namespace BII.WasaBii.Core {
                         .Where(t => t != typeof(System.Object)) // we sometimes have untyped dictionaries and lists
                         .Where(t => !t.IsGenericParameter) // obviously can't validate when parameter is not specific
                         .SelectMany(t => validateSerializableRecursively(t,
-                            contexts.Prepend($"Contents of collection/tuple of type [{type.Name}]"))
+                            contexts.Push($"Contents of collection/tuple of type [{type.Name}]"))
                     )) yield return recRes;
                     yield break;
                 }
@@ -89,7 +90,7 @@ namespace BII.WasaBii.Core {
                 if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>)) {
                     foreach (var recres in validateSerializableRecursively(
                         type.GetGenericArguments()[0],
-                        contexts.Prepend("Value of Nullable")
+                        contexts.Push("Value of Nullable")
                     )) yield return recres;
                     yield break;
                 }
@@ -123,7 +124,7 @@ namespace BII.WasaBii.Core {
                         ) {
                             foreach (var err in validateSerializableRecursively(
                                 field.FieldType,
-                                contexts.Prepend($"Field {{{field.Name}}} in type [{currentType.Name}]")
+                                contexts.Push($"Field {{{field.Name}}} in type [{currentType.Name}]")
                             )) yield return err;
                         }
                     }

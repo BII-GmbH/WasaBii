@@ -4,9 +4,9 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
-using Range = BII.WasaBii.Core.Range;
 
 namespace BII.WasaBii.Splines {
     public static class SplineSampleExtensions {
@@ -23,7 +23,7 @@ namespace BII.WasaBii.Splines {
             var fromLoc = NormalizedSplineLocation.Zero;
             var toLoc = NormalizedSplineLocation.From(spline.SegmentCount);
             
-            return Range.From(fromLoc, inclusive: true)
+            return SampleRange.From(fromLoc, inclusive: true)
                 .To(toLoc, inclusive: true)
                 .Sample(samplesPerSegment * spline.SegmentCount, NormalizedSplineLocation.Lerp)
                 .Select(location => spline[location]);
@@ -109,10 +109,10 @@ namespace BII.WasaBii.Splines {
             
             var sampleLocations = equidistant
                 ? spline.BulkNormalizeOrdered(
-                    Range.From(fromAbsolute, inclusive: true)
+                    SampleRange.From(fromAbsolute, inclusive: true)
                         .To(toAbsolute, inclusive: true)
                         .Sample(samples, SplineLocation.Lerp))
-                : Range.From(spline.Normalize(fromAbsolute), inclusive: true)
+                : SampleRange.From(spline.Normalize(fromAbsolute), inclusive: true)
                     .To(spline.Normalize(toAbsolute), inclusive: true)
                     .Sample(samples, NormalizedSplineLocation.Lerp);
                 

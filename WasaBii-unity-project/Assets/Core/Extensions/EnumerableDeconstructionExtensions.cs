@@ -5,8 +5,9 @@ namespace BII.WasaBii.Core {
     public static class EnumerableDeconstructionExtensions {
         
         /// Allows IEnumerables to be deconstructed into head and tail pairs, recursively:
-        /// <code>var (a, (b, (_, (c, rest)))) = myList;</code>
+        /// <c>var (a, (b, (_, (c, rest)))) = myList;</c>
         public static void Deconstruct<T>(this IEnumerable<T> source, out T head, out IEnumerable<T> tail) {
+            // ReSharper disable once GenericEnumeratorNotDisposed // disposed in .RemainingToEnumerable()
             var it = source.GetEnumerator();
             if (!it.MoveNext()) 
                 throw new IndexOutOfRangeException("Cannot deconstruct enumerable: no elements remaining.");
@@ -20,10 +21,9 @@ namespace BII.WasaBii.Core {
             var it = source.GetEnumerator();
             var result = Option.If(
                 it.MoveNext(),
-                // Only ever executed iff the result has a value => The `.Dispose()` later on does not apply.
-                // ReSharper disable AccessToDisposedClosure
+                // Only ever executed immediately iff the result has a value => The `.Dispose()` later on does not apply.
+                // ReSharper disable twice AccessToDisposedClosure
                 () => (it.Current, it.RemainingToEnumerable())
-                // ReSharper restore AccessToDisposedClosure
             );
             if(!result.HasValue) it.Dispose();
             return result;

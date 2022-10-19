@@ -1,11 +1,11 @@
 ﻿using System;
+using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
 using BII.WasaBii.Unity.Geometry;
 using BII.WasaBii.Unity.Geometry.Splines;
 using NUnit.Framework;
 using UnityEngine;
-using Range = BII.WasaBii.Core.Range;
 
 namespace BII.WasaBii.Splines.Tests {
 
@@ -50,7 +50,7 @@ namespace BII.WasaBii.Splines.Tests {
 
         [Test]
         public void EvaluateLinear() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateLinear(t);
                 var actual = linearPolynomial.Evaluate(t);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -59,7 +59,7 @@ namespace BII.WasaBii.Splines.Tests {
         
         [Test]
         public void EvaluateLinear_Derivative() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateLinearDerivative(t);
                 var actual = linearPolynomial.EvaluateDerivative(t);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -68,7 +68,7 @@ namespace BII.WasaBii.Splines.Tests {
         
         [Test]
         public void EvaluateLinear_SecondDerivative() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateLinearSecondDerivative(t);
                 var actual = linearPolynomial.EvaluateSecondDerivative(t);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -77,7 +77,7 @@ namespace BII.WasaBii.Splines.Tests {
         
         [Test]
         public void EvaluateCubic() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateCubic(t);
                 var actual = cubicPolynomial.Evaluate(t);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -86,7 +86,7 @@ namespace BII.WasaBii.Splines.Tests {
         
         [Test]
         public void EvaluateCubic_Derivative() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateCubicDerivative(t);
                 var actual = cubicPolynomial.EvaluateNthDerivative(t, 1);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -95,7 +95,7 @@ namespace BII.WasaBii.Splines.Tests {
         
         [Test]
         public void EvaluateCubic_SecondDerivative() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateCubicSecondDerivative(t);
                 var actual = cubicPolynomial.EvaluateSecondDerivative(t);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -104,7 +104,7 @@ namespace BII.WasaBii.Splines.Tests {
         
         [Test]
         public void EvaluateCubic_ThirdDerivative() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateCubicThirdDerivative(t);
                 var actual = cubicPolynomial.EvaluateNthDerivative(t, 3);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -113,7 +113,7 @@ namespace BII.WasaBii.Splines.Tests {
         
         [Test]
         public void EvaluateCubic_FourthDerivative() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateCubicFourthDerivative(t);
                 var actual = cubicPolynomial.EvaluateNthDerivative(t, 4);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -122,7 +122,7 @@ namespace BII.WasaBii.Splines.Tests {
         
         [Test]
         public void EvaluateCubic_FifthDerivative() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateCubicFifthDerivative(t);
                 var actual = cubicPolynomial.EvaluateNthDerivative(t, 5);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -131,7 +131,7 @@ namespace BII.WasaBii.Splines.Tests {
         
         [Test]
         public void EvaluateSixth() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateSixth(t);
                 var actual = sixthOrderPolynomial.Evaluate(t);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -140,7 +140,7 @@ namespace BII.WasaBii.Splines.Tests {
   
         [Test]
         public void EvaluateSixth_SecondDerivative() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateSixthSecondDerivative(t);
                 var actual = sixthOrderPolynomial.EvaluateNthDerivative(t, 2);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -149,7 +149,7 @@ namespace BII.WasaBii.Splines.Tests {
 
         [Test]
         public void EvaluateSixth_FourthDerivative() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateSixthFourthDerivative(t);
                 var actual = sixthOrderPolynomial.EvaluateNthDerivative(t, 4);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -158,7 +158,7 @@ namespace BII.WasaBii.Splines.Tests {
 
         [Test]
         public void EvaluateSixth_SixthDerivative() {
-            foreach (var t in Range.Sample01(count: 10, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(count: 10, includeZero: true, includeOne: true)) {
                 var expected = evaluateSixthSixthDerivative(t);
                 var actual = sixthOrderPolynomial.EvaluateNthDerivative(t, 6);
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-7));
@@ -188,7 +188,7 @@ namespace BII.WasaBii.Splines.Tests {
             // Positive parameters ensure a positive derivative (for positive t values) and thus a monotone rising polynomial.
             var oneDimensionalPolynomial = Polynomial.Cubic(1, 3, 3, 7, new OneDimensionalOps());
 
-            foreach (var t in Range.Sample01(normalizationTestSampleCount, includeZero: true, includeOne: true)) {
+            foreach (var t in SampleRange.Sample01(normalizationTestSampleCount, includeZero: true, includeOne: true)) {
                 var expected = oneDimensionalPolynomial.Evaluate(t) - oneDimensionalPolynomial.Evaluate(0);
                 var actual = oneDimensionalPolynomial.ProgressToLength(t).AsMeters();
                 Assert.That(actual, Is.EqualTo(expected).Within(1E-3));
@@ -215,7 +215,7 @@ namespace BII.WasaBii.Splines.Tests {
                 return (Math.Sqrt(b*b - 4*a*c) - b) / (2 * a);
             }
 
-            foreach (var l in Range.From(Length.Zero, inclusive: true)
+            foreach (var l in SampleRange.From(Length.Zero, inclusive: true)
                 .To(polynomial.ArcLength, inclusive: true)
                 .Sample(normalizationTestSampleCount, (from, to, p) => Units.Lerp(from, to, p))) {
                 var expected = tForLength(l);

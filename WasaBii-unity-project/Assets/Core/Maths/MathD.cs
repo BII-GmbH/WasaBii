@@ -1,7 +1,7 @@
 using System;
 
 namespace BII.WasaBii.Core {
-    public static class Mathd {
+    public static class MathD {
 
         /// <summary>
         /// Linear interpolation between <see cref="from"/> and <see cref="to"/>.

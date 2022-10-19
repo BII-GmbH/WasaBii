@@ -23,7 +23,7 @@ namespace BII.WasaBii.Unity {
                 ).Start();
             
             request.completed += _ => {
-                Contract.Assert(request.asset != null);
+                Debug.Assert(request.asset != null);
                 res.SetResult(
                     request.asset as T ?? throw new Exception(
                         $"The result of the operation {request.asset} was not of the expected type {typeof(T)}")

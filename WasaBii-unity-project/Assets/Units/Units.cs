@@ -69,12 +69,12 @@ namespace BII.WasaBii.UnitSystem {
         public static TSelf Min<TSelf>(
             TSelf first, params TSelf[] values
         ) where TSelf : struct, IUnitValue<TSelf> =>
-            FromSiValue<TSelf>(Mathd.Min(values.Prepend(first).Select(v => v.SiValue).ToArray()));
+            FromSiValue<TSelf>(MathD.Min(values.Prepend(first).Select(v => v.SiValue).ToArray()));
 
         public static TSelf Max<TSelf>(
             TSelf first, params TSelf[] values
         ) where TSelf : struct, IUnitValue<TSelf> =>
-            FromSiValue<TSelf>(Mathd.Max(values.Prepend(first).Select(v => v.SiValue).ToArray()));
+            FromSiValue<TSelf>(MathD.Max(values.Prepend(first).Select(v => v.SiValue).ToArray()));
         
         // Interpolation
         
@@ -96,7 +96,7 @@ namespace BII.WasaBii.UnitSystem {
             TSelf value,
             bool shouldClamp = true
         ) where TSelf : struct, IUnitValue<TSelf> =>
-            Mathd.InverseLerp(from.SiValue, to.SiValue, value.SiValue, shouldClamp);
+            MathD.InverseLerp(from.SiValue, to.SiValue, value.SiValue, shouldClamp);
         
         /// <param name="progressExponent">Defines how the samples are distributed.
         /// A value between 0 and 1 will shift the samples towards <see cref="to"/>,

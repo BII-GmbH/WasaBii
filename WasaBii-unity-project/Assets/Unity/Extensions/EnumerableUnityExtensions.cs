@@ -1,8 +1,10 @@
 ﻿#nullable enable
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 using BII.WasaBii.Unity.Geometry;
@@ -80,6 +82,12 @@ namespace BII.WasaBii.Unity {
                     (accum, currentPos) => (currentPos, accum.currentLength + accum.lastPos.DistanceTo(currentPos))
                 )
                 .currentLength.Meters();
+        }
+        
+        /// Convert a Task into an IEnumerator intended to be used as a Unity-Coroutine
+        public static IEnumerator AsCoroutine(this Task task) {
+            while (!task.IsCompleted) yield return null;
+            task.GetAwaiter().GetResult();
         }
     }
 }

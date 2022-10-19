@@ -49,7 +49,7 @@ namespace BII.WasaBii.Extra {
 
         /// <inheritdoc cref="SmoothInterpolateTo(float,float,float,float)"/>
         [Pure] public static double SmoothInterpolateTo(this double current, double target, double smoothness, double progress) => 
-            Mathd.Lerp(target, current, Math.Pow(smoothness, progress));
+            MathD.Lerp(target, current, Math.Pow(smoothness, progress));
     }
 
     public static class UnitSmoothInterpolation {

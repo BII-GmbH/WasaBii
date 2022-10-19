@@ -46,9 +46,9 @@ namespace BII.WasaBii.Core {
         public static IEnumerable<string> ValidateTrueImmutability(Type toValidate, ISet<Type>? alreadyValidated = null) {
             alreadyValidated ??= new HashSet<Type>();
 
-            return validateTypeIsImmutable(toValidate, new SingleLinkedList<string>());
+            return validateTypeIsImmutable(toValidate, ImmutableStack<string>.Empty);
 
-            IEnumerable<string> validateTypeIsImmutable(Type type, SingleLinkedList<string> contexts) {
+            IEnumerable<string> validateTypeIsImmutable(Type type, ImmutableStack<string> contexts) {
                 if (type.GetCustomAttribute<__IgnoreMustBeImmutableAttribute>() != null) yield break;
 
                 // Ensure we don't validate twice and don't run into cycles.
@@ -73,7 +73,7 @@ namespace BII.WasaBii.Core {
                     foreach (var genericArgument in type.GetGenericArguments())
                         foreach (var err in validateTypeIsImmutable(
                              genericArgument,
-                             contexts.Prepend($"Generic Arg {genericArgument} of {type}")
+                             contexts.Push($"Generic Arg {genericArgument} of {type}")
                          )) yield return err;
                     yield break;
                 }
@@ -82,7 +82,7 @@ namespace BII.WasaBii.Core {
                 // even though value tuples are technically mutable, for convenience.
                 if (typeof(ITuple).IsAssignableFrom(type)) {
                     foreach (var err in type.GetGenericArguments()
-                        .SelectMany(t => validateTypeIsImmutable(t, contexts.Prepend("Value of Tuple")))
+                        .SelectMany(t => validateTypeIsImmutable(t, contexts.Push("Value of Tuple")))
                     ) yield return err;
                     yield break;
                 }
@@ -99,7 +99,7 @@ namespace BII.WasaBii.Core {
                     else foreach (var genericArgument in type.GetGenericArguments())
                         foreach (var err in validateTypeIsImmutable(
                             genericArgument,
-                            contexts.Prepend($"Generic Arg of {type}")
+                            contexts.Push($"Generic Arg of {type}")
                         )) yield return err;
                     yield break;
                 }
@@ -127,7 +127,7 @@ namespace BII.WasaBii.Core {
                         
                         else foreach (var err in validateTypeIsImmutable(
                             field.FieldType,
-                            contexts.Prepend($"Field {{{field.Name}}} in type [{currentType.Name}]")
+                            contexts.Push($"Field {{{field.Name}}} in type [{currentType.Name}]")
                         )) yield return err;
                     }
                     currentType = currentType.BaseType;

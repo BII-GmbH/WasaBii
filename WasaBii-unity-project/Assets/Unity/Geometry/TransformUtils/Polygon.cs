@@ -28,7 +28,7 @@ namespace BII.WasaBii.Unity.Geometry {
                 var v1 = Vertices[0];
                 return 0.5f.Meters() * Vertices.Skip(1)
                     .PairwiseSliding()
-                    .Select((vj, vk) => (vj - v1).Cross(vk - v1))
+                    .SelectTuple((vj, vk) => (vj - v1).Cross(vk - v1))
                     .Sum()
                     .Length;
             }

@@ -4,7 +4,6 @@ using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
-using Range = BII.WasaBii.Core.Range;
 
 namespace BII.WasaBii.Splines {
     public readonly struct SplineSegment<TPos, TDiff>
@@ -34,9 +33,9 @@ namespace BII.WasaBii.Splines {
             double? start = 0.0, double? end = 1.0,
             int samples = 10
         ) where TPos : struct where TDiff : struct {
-            var range = Range.From(start ?? 0.0, inclusive: true).To(end ?? 1.0, inclusive: true);
+            var range = SampleRange.From(start ?? 0.0, inclusive: true).To(end ?? 1.0, inclusive: true);
             var ops = polynomial.Ops;
-            return range.Sample(samples + 1, (a, b, p) => Mathd.Lerp(a, b, p))
+            return range.Sample(samples + 1, (a, b, p) => MathD.Lerp(a, b, p))
                 .Select(polynomial.Evaluate)
                 .PairwiseSliding()
                 .Sum(sample => ops.Distance(sample.Item1, sample.Item2));
@@ -136,7 +135,7 @@ namespace BII.WasaBii.Splines {
                     tInBounds = Units.InverseLerp(lowerBound.length, actualLength, length) / oversteppingFactor;
                 }
                 
-                t = Mathd.Lerp(
+                t = MathD.Lerp(
                     lowerBound.t,
                     upperBound.t,
                     tInBounds,

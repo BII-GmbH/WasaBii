@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 
 namespace BII.WasaBii.Core {
     public static class EnumerableExtensions {
-        
-        // ReSharper disable all InconsistentNaming
 
         public static Stack<T> ToStack<T>(this IEnumerable<T> source) => new(source);
         
@@ -103,6 +101,14 @@ namespace BII.WasaBii.Core {
         public static IEnumerable<TRes> SelectTuple<T1, T2, T3, T4, TRes>(
             this IEnumerable<(T1, T2, T3, T4)> source, Func<T1, T2, T3, T4, TRes> fn
         ) => source.Select(t => fn(t.Item1, t.Item2, t.Item3, t.Item4));
+        
+        public static IEnumerable<TOut> SelectManyTuple<T1, T2, TOut>(
+            this IEnumerable<(T1, T2)> enumerable, Func<T1, T2, IEnumerable<TOut>> mapping
+        ) => enumerable.SelectMany(tuple => mapping(tuple.Item1, tuple.Item2));
+        
+        public static IEnumerable<TOut> SelectManyTuple<T1, T2, T3, TOut>(
+            this IEnumerable<(T1, T2, T3)> enumerable, Func<T1, T2, T3, IEnumerable<TOut>> mapping
+        ) => enumerable.SelectMany(tuple => mapping(tuple.Item1, tuple.Item2, tuple.Item3));
 
         public static IEnumerable<T> Flatten<T>(this IEnumerable<IEnumerable<T>> source) => source.SelectMany(s => s);
 
@@ -398,8 +404,10 @@ namespace BII.WasaBii.Core {
         }
 
 
+        /// <summary>
         /// Divides the contents of <paramref name="source"/> based on <paramref name="selector"/>
         /// to either be part of the true or false results.
+        /// </summary>
         /// <remarks>
         /// Strictly speaking, this does not create partitions, since set theories
         /// defines partitions to be non-empty. However, the results can be empty.
@@ -418,22 +426,6 @@ namespace BII.WasaBii.Core {
             return (trueResults, falseResults);
         }
 
-        public static IEnumerable<TOut> Select<T1, T2, TOut>(
-            this IEnumerable<(T1, T2)> enumerable, Func<T1, T2, TOut> mapping
-        ) => enumerable.Select(tuple => mapping(tuple.Item1, tuple.Item2));
-        
-        public static IEnumerable<TOut> Select<T1, T2, T3, TOut>(
-            this IEnumerable<(T1, T2, T3)> enumerable, Func<T1, T2, T3, TOut> mapping
-        ) => enumerable.Select(tuple => mapping(tuple.Item1, tuple.Item2, tuple.Item3));
-
-        public static IEnumerable<TOut> SelectMany<T1, T2, TOut>(
-            this IEnumerable<(T1, T2)> enumerable, Func<T1, T2, IEnumerable<TOut>> mapping
-        ) => enumerable.SelectMany(tuple => mapping(tuple.Item1, tuple.Item2));
-        
-        public static IEnumerable<TOut> SelectMany<T1, T2, T3, TOut>(
-            this IEnumerable<(T1, T2, T3)> enumerable, Func<T1, T2, T3, IEnumerable<TOut>> mapping
-        ) => enumerable.SelectMany(tuple => mapping(tuple.Item1, tuple.Item2, tuple.Item3));
-
         public static bool Any<T1, T2>(
             this IEnumerable<(T1, T2)> enumerable, Func<T1, T2, bool> mapping
         ) => enumerable.Any(tuple => mapping(tuple.Item1, tuple.Item2));
@@ -441,12 +433,6 @@ namespace BII.WasaBii.Core {
         public static bool Any<T1, T2, T3>(
             this IEnumerable<(T1, T2, T3)> enumerable, Func<T1, T2, T3, bool> mapping
         ) => enumerable.Any(tuple => mapping(tuple.Item1, tuple.Item2, tuple.Item3));
-
-        public static IEnumerable<T> CollectValues<T>(this IEnumerable<Option<T>> enumerable) {
-            foreach (var t in enumerable)
-                if (t.HasValue)
-                    yield return t.GetOrThrow();
-        }
 
         public static IEnumerable<T> SkipLast<T>(this IReadOnlyCollection<T> collection, int count) => 
             collection.Take(collection.Count - count);
@@ -465,11 +451,11 @@ namespace BII.WasaBii.Core {
             TryFindIndexOf(collection, current => Equals(element, current), out index);
 
         /// Preserves the order the elements will have in the code.
-        /// E.g. 1.PrependTo({2, 3, 4, 5}) = {1, 2, 3, 4, 5}
+        /// E.g. <c>1.PrependTo({2, 3, 4, 5}) = {1, 2, 3, 4, 5}</c>
         /// as opposed to
-        /// {2, 3, 4, 5}.Prepend(1) = {1, 2, 3, 4, 5}.
+        /// <c>{2, 3, 4, 5}.Prepend(1) = {1, 2, 3, 4, 5}.</c>
         public static IEnumerable<T> PrependTo<T>(this T head, IEnumerable<T> tail) => tail.Prepend(head);
-
+        
         public static string Join(this IEnumerable<string> enumerable, string separator = "") => string.Join(separator, enumerable);
 
         public static bool TryPeek<T>(this Stack<T> stack, out T t) {
@@ -496,7 +482,7 @@ namespace BII.WasaBii.Core {
         /// <param name="enumerable"> Enumerable that should be split </param>
         /// <param name="shouldSplit"> function to determine between which elements the enumerable should be split </param>
         /// <returns> Enumerable containing the smaller split sections of the input Enumerable</returns>
-        public static IEnumerable<IEnumerable<T>> SplitByFunction<T>(
+        public static IEnumerable<IEnumerable<T>> SplitBy<T>(
             this IEnumerable<T> enumerable, Func<T, T, bool> shouldSplit
         ) {
             using var it = enumerable.GetEnumerator();

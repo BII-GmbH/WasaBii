@@ -34,7 +34,7 @@ namespace BII.WasaBii.Undos {
     /// An operation that can be undone. Consists of two actions
     ///  - <see cref="Do"/> and <see cref="Undo"/> - with optional disposal logic.
     /// Essentially a symmetric <see cref="Action"/>.
-    /// Can be properly composed via <see cref="SymmetricOperationExtensions.AndThen"/>.
+    /// Can be properly composed via <see cref="SymmetricOperations.AndThen"/>.
     /// </summary>
     /// <remarks>
     /// Also includes <see cref="DebugInfo"/>, which contains some information 
@@ -161,10 +161,10 @@ namespace BII.WasaBii.Undos {
     /// An operation that returns a value of type <typeparamref name="T"/>
     ///  which causes side-effects. These side-effects can be undone.
     /// Consists of a func <see cref="Do"/> and an action <see cref="Undo"/> with optional disposal logic.
-    /// This is a monad, and thus provides <see cref="SymmetricOperationExtensions.Map"/>
-    ///  and <see cref="SymmetricOperationExtensions.FlatMap"/>.
+    /// This is a monad, and thus provides <see cref="SymmetricOperations.Map"/>
+    ///  and <see cref="SymmetricOperations.FlatMap"/>.
     /// Can be constructed from a <see cref="SymmetricOperation"/> in numerous ways via extensions,
-    ///  and can be composed via <see cref="SymmetricOperationExtensions.AndThen{T}"/>.
+    ///  and can be composed via <see cref="SymmetricOperations.AndThen{T}"/>.
     /// </summary>
     /// <remarks>
     /// Also includes <see cref="DebugInfo"/>, which contains some information 
@@ -250,7 +250,7 @@ namespace BII.WasaBii.Undos {
         }
     }
 
-    public static class SymmetricOperationExtensions {
+    public static class SymmetricOperations {
 
         // TODO CR: further optimize using a collection that allows efficient immutable *merging* of two instances
         //          We currently do `immutableList.AddRange(otherList)`, but there must be a way to just merge both efficiently
@@ -512,6 +512,11 @@ namespace BII.WasaBii.Undos {
 #endif
         );
 
+        public static SymmetricOperation CombineInOrder(
+            this SymmetricOperation source,
+            IEnumerable<SymmetricOperation> others
+        ) => CombineInOrder(others.Prepend(source));
+
         public static SymmetricOperation CombineInOrder(this IEnumerable<SymmetricOperation> toCombine) {
             var toCombineList = toCombine.AsReadOnlyList();
             if (toCombineList.IsEmpty()) return SymmetricOperation.Empty;
@@ -524,7 +529,8 @@ namespace BII.WasaBii.Undos {
 #endif
             
             foreach (var symOp in toCombine) {
-                newDo.AddRange(symOp.doInOrder);
+                if (symOp.doInOrder != null) 
+                    newDo.AddRange(symOp.doInOrder);
                 newDo.Add(symOp.lastDo);
 #if !WASABII_SYMOP_NODEBUGINFO
                 debugInfo.AddRange(symOp.DebugInfo);
@@ -537,9 +543,12 @@ namespace BII.WasaBii.Undos {
 
             foreach (var symOp in toCombine.Reverse()) {
                 newUndo.Add(symOp.lastUndo);
-                newUndo.AddRange(symOp.undoInOrder);
-                newDispose.AddRange(symOp.disposeAfterDoInOrder);
-                newUndoDispose.AddRange(symOp.disposeAfterUndoInOrder);
+                if (symOp.undoInOrder != null)
+                    newUndo.AddRange(symOp.undoInOrder);
+                if (symOp.disposeAfterDoInOrder != null) 
+                    newDispose.AddRange(symOp.disposeAfterDoInOrder);
+                if (symOp.disposeAfterUndoInOrder != null)
+                    newUndoDispose.AddRange(symOp.disposeAfterUndoInOrder);
             }
 
             return new SymmetricOperation(

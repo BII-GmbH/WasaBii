@@ -200,6 +200,53 @@ namespace BII.WasaBii.Undo.Tests {
             assert(Op.Undo, expectedUndo);
             assert(Op.DoDispose, expectedUndo);
         }
+
+        [Test]
+        public void ComposeInOrder_WhenEmpty_ReturnsEmptySymOp() {
+            var empty = Array.Empty<SymmetricOperation>().CombineInOrder();
+            Assert.That(() => {
+                empty.Do();
+                empty.Undo();
+                empty.DisposeAfterDo();
+                empty.DisposeAfterUndo();
+            }, Throws.Nothing);
+        }
+
+        [Test]
+        public void ComposeInOrder_WithManyComplex_CallsInOrder() {
+            var operation = new[] {
+                makeOp().AndThen(makeOp()), 
+                makeOp(), 
+                makeOp(), 
+                makeOp().AndThen(makeOp()),
+                makeOp().AndThen(makeOp()).AndThen(makeOp())
+            }.CombineInOrder();
+            
+            var expectedDo = new[] {1, 2, 3, 4, 5, 6, 7, 8, 9};
+            var expectedUndo = new[] {9, 8, 7, 6, 5, 4, 3, 2, 1};
+            
+            assertEmpty(Op.Do, Op.Undo, Op.DoDispose, Op.UndoDispose);
+            
+            operation.Do();
+            assert(Op.Do, expectedDo);
+            assertEmpty(Op.Undo, Op.DoDispose, Op.UndoDispose);
+            
+            operation.Undo();
+            assert(Op.Undo, expectedUndo);
+            assertEmpty(Op.DoDispose, Op.UndoDispose);
+            
+            operation.DisposeAfterDo();
+            assert(Op.DoDispose, expectedUndo); // resource disposal is backwards
+            assertEmpty(Op.UndoDispose);
+            
+            operation.DisposeAfterUndo();
+            assert(Op.UndoDispose, expectedUndo);
+            
+            // Ensure nothing else happened
+            assert(Op.Do, expectedDo);
+            assert(Op.Undo, expectedUndo);
+            assert(Op.DoDispose, expectedUndo);
+        }
         
 #endregion
         

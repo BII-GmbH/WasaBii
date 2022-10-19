@@ -1,0 +1,29 @@
+{
+    "name": "WasaBii-Core-ConventionValidation-Tests",
+    "rootNamespace": "BII.WasaBii",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "WasaBii-Core",
+        "WasaBii-Core-ConventionValidation",
+        "WasaBii-Core-ConventionValidation-Editor",
+        "WasaBii-Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "Castle.Core.dll",
+        "System.Collections.Immutable.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

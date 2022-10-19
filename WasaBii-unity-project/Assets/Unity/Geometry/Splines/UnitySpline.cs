@@ -1,87 +1,60 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using BII.WasaBii.Splines;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Core;
+using BII.WasaBii.Splines.Bezier;
+using BII.WasaBii.Splines.CatmullRom;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity.Geometry.Splines {
 
-    public static class UnitySpline {
-
-        /// <inheritdoc cref="GenericSpline.FromInterpolating{TPos,TDiff}"/>
-        [Pure]
-        public static Spline<Vector3, Vector3> FromInterpolating(
-            IEnumerable<Vector3> handles, SplineType? type = null
-        ) => GenericSpline.FromInterpolating(handles, GeometricOperations.Instance, type);
+    [MustBeSerializable]
+    public sealed class UnitySpline : SpecificSplineBase<UnitySpline, Vector3, Vector3> {
         
-        /// <inheritdoc cref="GenericSpline.FromHandles{TPos,TDiff}"/>
+#region Factory Methods
+        
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff}(IEnumerable{TPos},GeometricOperations{TPos,TDiff},SplineType?,bool)"/>
         [Pure]
-        public static Spline<Vector3, Vector3> FromHandles(
+        public static UnitySpline FromHandles(IEnumerable<Vector3> source, SplineType? splineType = null, bool shouldLoop = false)
+            => new(CatmullRomSpline.FromHandlesOrThrow(source, GeometricOperations.Instance, splineType, shouldLoop));
+
+        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}(TPos,System.Collections.Generic.IEnumerable{TPos},TPos,BII.WasaBii.Splines.Maths.GeometricOperations{TPos,TDiff},System.Nullable{BII.WasaBii.Splines.CatmullRom.SplineType})"/>
+        [Pure]
+        public static UnitySpline FromHandles(
             Vector3 beginMarginHandle, 
             IEnumerable<Vector3> interpolatedHandles, 
             Vector3 endMarginHandle, 
             SplineType? type = null
-        ) => GenericSpline.FromHandles(beginMarginHandle, interpolatedHandles, endMarginHandle, GeometricOperations.Instance, type);
+        ) => new(CatmullRomSpline.FromHandlesOrThrow(beginMarginHandle, interpolatedHandles, endMarginHandle, GeometricOperations.Instance, type));
 
-        /// <inheritdoc cref="GenericSpline.FromHandlesIncludingMargin{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesIncludingMargin{TPos,TDiff}"/>
         [Pure]
-        public static Spline<Vector3, Vector3> FromHandlesIncludingMargin(
+        public static UnitySpline FromHandlesIncludingMargin(
             IEnumerable<Vector3> allHandlesIncludingMargin,
             SplineType? type = null
-        ) => GenericSpline.FromHandlesIncludingMargin(allHandlesIncludingMargin, GeometricOperations.Instance, type);
-        
-#region Extensions
-        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineOrThrow{TPos,TDiff}"/>
-        [Pure]
-        public static Spline<Vector3, Vector3> ToSplineOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
-            => source.ToSplineOrThrow(GeometricOperations.Instance, splineType);
+        ) => new(CatmullRomSpline.FromHandlesIncludingMarginOrThrow(allHandlesIncludingMargin, GeometricOperations.Instance, type));
 
-        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSpline{TPos,TDiff}"/>
+        /// <inheritdoc cref="BezierSpline.FromHandlesWithVelocities{TPos,TDiff}"/>
         [Pure]
-        public static Option<Spline<Vector3, Vector3>> ToSpline(this IEnumerable<Vector3> source, SplineType? splineType = null)
-            => source.ToSpline(GeometricOperations.Instance, splineType);
+        public static UnitySpline FromHandlesWithVelocities(
+            IEnumerable<(Vector3 position, Vector3 velocity)> handles, bool shouldLoop = false,
+            bool shouldAccelerationBeContinuous = false
+        ) => new(BezierSpline.FromHandlesWithVelocities(handles, GeometricOperations.Instance, shouldLoop, shouldAccelerationBeContinuous));
 
-        /// <inheritdoc cref="GenericEnumerableToSplineExtensions.ToSplineWithMarginHandlesOrThrow{TPos,TDiff}"/>
+        /// <inheritdoc cref="BezierSpline.FromHandlesWithVelocities{TPos,TDiff}"/>
         [Pure]
-        public static Spline<Vector3, Vector3> ToSplineWithMarginHandlesOrThrow(this IEnumerable<Vector3> source, SplineType? splineType = null)
-            => source.ToSplineWithMarginHandlesOrThrow(GeometricOperations.Instance, splineType);
-
-        /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineToOrThrow{TPos, TDiff}"/>
-        [Pure]
-        public static ClosestOnSplineQueryResult< Vector3, Vector3> QueryClosestPositionOnSplineToOrThrow(
-            this Spline<Vector3, Vector3> spline,
-            Vector3 position,
-            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) => spline.QueryClosestPositionOnSplineToOrThrow<Vector3, Vector3>(position, samples);
-        
-        /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineTo{TPos, TDiff}"/>
-        [Pure]
-        public static Option<ClosestOnSplineQueryResult<Vector3, Vector3>> QueryClosestPositionOnSplineTo(
-            this Spline<Vector3, Vector3> spline,
-            Vector3 position,
-            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) => spline.QueryClosestPositionOnSplineTo<Vector3, Vector3>(position, samples);
-
-        /// <inheritdoc cref="EnumerableClosestOnSplineExtensions.QueryClosestPositionOnSplinesTo{TWithSpline, TPos, TDiff}"/>
-        [Pure] public static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<Vector3, Vector3> queryResult)> QueryClosestPositionOnSplinesTo<TWithSpline>(
-            this IEnumerable<TWithSpline> splines,
-            Vector3 position,
-            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) where TWithSpline : class, WithSpline<Vector3, Vector3>
-            => splines.QueryClosestPositionOnSplinesTo<TWithSpline, Vector3, Vector3>(position, samples);
-        
-        /// <inheritdoc cref="EnumerableClosestOnSplineExtensions.QueryClosestPositionOnSplinesToOrThrow{TWithSpline, TPos, TDiff}"/>
-        [Pure] public static (TWithSpline closestSpline, ClosestOnSplineQueryResult<Vector3, Vector3> queryResult) QueryClosestPositionOnSplinesToOrThrow<TWithSpline>(
-            this IEnumerable<TWithSpline> splines,
-            Vector3 position,
-            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) where TWithSpline : class, WithSpline<Vector3, Vector3>
-            => splines.QueryClosestPositionOnSplinesToOrThrow<TWithSpline, Vector3, Vector3>(position, samples);
+        public static UnitySpline FromHandlesWithVelocitiesAndAccelerations(
+            IEnumerable<(Vector3 position, Vector3 velocity, Vector3 acceleration)> handles, bool shouldLoop = false
+        ) => new(BezierSpline.FromHandlesWithVelocitiesAndAccelerations(handles, GeometricOperations.Instance, shouldLoop));
 
 #endregion
         
+        public UnitySpline(Spline<Vector3, Vector3> wrapped) : base(wrapped) { }
+        protected override UnitySpline mkNew(Spline<Vector3, Vector3> toWrap) => new(toWrap);
+
         [MustBeImmutable][MustBeSerializable]
         public sealed class GeometricOperations : GeometricOperations<Vector3, Vector3> {
 
@@ -100,9 +73,31 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
             public Vector3 Mul(Vector3 diff, double f) => diff * (float)f;
 
             public double Dot(Vector3 a, Vector3 b) => Vector3.Dot(a, b);
-
+            
+            public Vector3 ZeroDiff => Vector3.zero;
+            
+            public Vector3 Lerp(Vector3 from, Vector3 to, double t) => Vector3.Lerp(from, to, (float)t);
         }
+
+    }
+
+    public static class UnitySplineExtensions {
+        
+        /// <inheritdoc cref="EnumerableClosestOnSplineExtensions.QueryClosestPositionOnSplinesTo{TWithSpline, TPos, TDiff}"/>
+        [Pure] public static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<Vector3, Vector3> queryResult)> QueryClosestPositionOnSplinesTo<TWithSpline>(
+            this IEnumerable<TWithSpline> splines,
+            Func<TWithSpline, UnitySpline> splineSelector,
+            Vector3 position,
+            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+        ) => splines.QueryClosestPositionOnSplinesTo<TWithSpline, Vector3, Vector3>(splineSelector, position, samples);
+        
+        /// <inheritdoc cref="EnumerableClosestOnSplineExtensions.QueryClosestPositionOnSplinesToOrThrow{TWithSpline, TPos, TDiff}"/>
+        [Pure] public static (TWithSpline closestSpline, ClosestOnSplineQueryResult<Vector3, Vector3> queryResult) QueryClosestPositionOnSplinesToOrThrow<TWithSpline>(
+            this IEnumerable<TWithSpline> splines,
+            Func<TWithSpline, UnitySpline> splineSelector,
+            Vector3 position,
+            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+        ) => splines.QueryClosestPositionOnSplinesToOrThrow<TWithSpline, Vector3, Vector3>(splineSelector, position, samples);
         
     }
-    
 }

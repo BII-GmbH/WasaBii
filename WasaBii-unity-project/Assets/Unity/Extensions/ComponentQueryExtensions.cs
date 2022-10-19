@@ -82,9 +82,8 @@ namespace BII.WasaBii.Unity {
                 Search.InChildren => searchChildren(go, fn),
                 Search.InChildrenOnly => 
                     go.transform.GetChildren()
-                        .Select(t => searchChildren(t.gameObject, fn))
-                        .FirstOrNone(v => v.HasValue)
-                        .Flatten(),
+                        .Collect(t => searchChildren(t.gameObject, fn))
+                        .FirstOrNone(),
                 Search.InParents => searchParents(go, fn),
                 Search.InSiblings => searchSiblings(go, fn),
                 Search.InWholeHierarchy => 
@@ -116,14 +115,14 @@ namespace BII.WasaBii.Unity {
             Search.InObjectOnly => go.GetComponent<T>().toOption(),
             Search.InChildren => go.GetComponentInChildren<T>(includeInactive).toOption(),
             Search.InChildrenOnly => go.transform.GetChildren()
-                .Select(child => child.GetComponentInChildren<T>(includeInactive).toOption())
-                .FirstOrNone().Flatten(),
+                .Collect(child => child.GetComponentInChildren<T>(includeInactive).toOption())
+                .FirstOrNone(),
             Search.InParents => go.GetComponentInParent<T>(includeInactive),
             Search.InSiblings => go.transform.parent.IsNull(out var p)
                 ? go.GetComponent<T>().toOption()
                 : go.transform.parent.GetChildren()
-                    .Select(child => child.GetComponent<T>().toOption())
-                    .FirstOrNone().Flatten(),
+                    .Collect(child => child.GetComponent<T>().toOption())
+                    .FirstOrNone(),
             Search.InWholeHierarchy =>
                 go.transform.parent.IsNotNull(out var p) &&
                 p.gameObject.GetComponentInParent<T>(includeInactive).IsNotNull(out var parentSearch)

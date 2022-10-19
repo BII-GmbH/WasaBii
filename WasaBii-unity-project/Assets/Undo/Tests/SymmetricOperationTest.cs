@@ -7,8 +7,7 @@ using NUnit.Framework;
 
 namespace BII.WasaBii.Undo.Tests {
     
-    public class SymmetricOperationTest
-    {
+    public class SymmetricOperationTest {
         
 #region boilerplate
         

@@ -8,9 +8,11 @@ using UnityEditor.SceneManagement;
 
 namespace BII.WasaBii.Unity {
     
+    /// <summary>
     /// Contains functions to avoid error-prone compiler conditions 
     /// when programming optional behavior in non-editor code that 
     /// should affect the editor and to reduce repetition.
+    /// </summary>
     public static class EditorRuntimeHelper {
         
         /// Can be called in non-editor code to mark the scene dirty
@@ -23,12 +25,14 @@ namespace BII.WasaBii.Unity {
             #endif
         }
 
+        /// <summary>
         /// Can be called in non-editor code to mark any number of objects dirty
         /// if in edit mode. 
         /// This is especially important on instances of prefabs,
         /// because otherwise the prefab may override some of the objects values.
         /// This exists to avoid the error-prone 
         /// compiler conditions in normal code and to avoid repetition.
+        /// </summary>
         public static void IfInEditorMarkObjectsDirty(params UnityEngine.Object[] objects) {
             #if UNITY_EDITOR
             if (!Application.isPlaying) {

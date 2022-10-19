@@ -8,23 +8,22 @@ using UnityEngine;
 
 namespace BII.WasaBii.Unity {
     
-    /// Author: Cameron Reuschel, David Schantz
-    /// <br/><br/>
-    /// The class holding all nonspecific extension methods in the core library.
-    public static class UtilityExtensions {
+    public static class UnityUtilityExtensions {
         
 #region General Extensions
 
+        /// <summary>
         /// An IEnumerable containing all the children of this Transform in order.
         /// It is safe to modify the transforms children during iteration.
         /// <b>Iterable only once</b>.
+        /// </summary>
         [Pure]
         public static IEnumerable<Transform> GetChildren(this Transform transform) => 
             transform.Cast<Transform>();
 
-        /// <inheritdoc cref="Util.IsNull{T}"/>
+        /// <inheritdoc cref="UnityUtils.IsNull{T}"/>
         [Pure]
-        public static bool IsNull<T>(this T value) => Util.IsNull(value);
+        public static bool IsNull<T>(this T value) => UnityUtils.IsNull(value);
 
         [Pure]
         public static bool IsNotNull<T>(this T value)
@@ -33,38 +32,44 @@ namespace BII.WasaBii.Unity {
         [Pure]
         public static bool IsNull<T>(this T value, out T t) {
             t = value;
-            return Util.IsNull(value);
+            return UnityUtils.IsNull(value);
         }
 
         [Pure]
         public static bool IsNotNull<T>(this T value, out T t)
             => !value.IsNull(out t);
 
+        /// <summary>
         /// Returns the <paramref name="value"/> it was invoked on if it isn't null.
         /// Otherwise, return the provided alternate value <paramref name="otherwise"/>.
-        /// This null check is performed using <see cref="Util.IsNull{T}"/>,
+        /// This null check is performed using <see cref="UnityUtils.IsNull{T}"/>,
         /// so this method is safe-to-use on classes deriving from <see cref="UnityEngine.Object"/>.
         /// Therefore it works equivalent to the null-coalescing operator.
+        /// </summary>
         public static T OrWhenNull<T>(this T value, T otherwise) where T : class =>
             !value.IsNull() ? value : otherwise; 
         
+        /// <summary>
         /// Returns the <paramref name="value"/> it was invoked on if it isn't null.
         /// Otherwise, return the alternate value received
         /// by calling the <paramref name="otherValueGetter"/>.
-        /// This null check is performed using <see cref="Util.IsNull{T}"/>,
+        /// This null check is performed using <see cref="UnityUtils.IsNull{T}"/>,
         /// so this method is safe-to-use on classes deriving from <see cref="UnityEngine.Object"/>.
         /// Therefore it works equivalent to the null-coalescing operator.
+        /// </summary>
         public static T OrWhenNull<T>(this T value,  Func<T> otherValueGetter) where T : class =>
             !value.IsNull() ? value : otherValueGetter(); 
         
+        /// <summary><para>
         /// Invokes the given <code>action</code> when the value is <b>not</b>
         /// null using <code>Util.IsNull</code>, returning a <code>TResult</code>.
         /// If the value itself is null however, it calls <code>elseAction</code> if present.
-        /// <br/>
+        /// </para><para>
         /// This method is designed as a replacement for patterns such as <code>value?.action() ?? elseAction()</code>.
-        /// <br/>
+        /// </para><para>
         /// See <a href="https://blogs.unity3d.com/2014/05/16/custom-operator-should-we-keep-it/">
-        /// this blog post</a> for more details about Unity's custom null handling. 
+        /// this blog post</a> for more details about Unity's custom null handling.
+        /// </para></summary>
         public static void IfNotNull<T>(
             this T value,
             Action<T> action,
@@ -74,16 +79,16 @@ namespace BII.WasaBii.Unity {
             else elseAction?.Invoke();
         }
 
-        /// <summary>
+        /// <summary><para>
         /// Invokes the given <code>action</code> when the value is <b>not</b> null using <code>Util.IsNull</code>,
         /// returning a <code>TResult</code>. If the value itself or the result of the action is null however,
         /// it returns the result of <code>elseAction</code>.
-        /// <br/>
+        /// </para><para>
         /// This method is designed as a replacement for patterns such as <code>value?.action() ?? elseAction()</code>.
-        /// <br/>
+        /// </para><para>
         /// See <a href="https://blogs.unity3d.com/2014/05/16/custom-operator-should-we-keep-it/">
         /// this blog post</a> for more details about Unity's custom null handling. 
-        /// </summary>
+        /// </para></summary>
         public static TResult IfNotNull<T, TResult>(
             this T? value,
             Func<T, TResult> action,
@@ -92,16 +97,16 @@ namespace BII.WasaBii.Unity {
             value.IsNotNull() && action(value!).IsNotNull(out var res) 
                 ? res : elseAction();
 
-        /// <summary>
+        /// <summary><para>
         /// Invokes the given <code>action</code> when the value is <b>not</b> null using <code>Util.IsNull</code>,
         /// returning a <code>TResult</code>. If the value itself or the result of the action is null however,
         /// it returns <code>elseResult</code> or the type's default value instead.
-        /// <br/>
+        /// </para><para>
         /// This method is designed as a replacement for patterns such as <code>value?.action() ?? elseAction()</code>.
-        /// <br/>
+        /// </para><para>
         /// See <a href="https://blogs.unity3d.com/2014/05/16/custom-operator-should-we-keep-it/">
         /// this blog post</a> for more details about Unity's custom null handling. 
-        /// </summary>
+        /// </para></summary>
         public static TResult? IfNotNull<T, TResult>(
             this T? value,
             Func<T, TResult> action,
@@ -109,21 +114,20 @@ namespace BII.WasaBii.Unity {
         ) where T : class =>
             IfNotNull(value, action, () => elseResult);
 
-        /// <summary>
+        /// <summary><para>
         /// Destroys the object in the recommended way.
         /// Safe to use in code that is shared between editor and runtime.
-        /// <br/>
+        /// </para><para>
         /// In Unity, it is recommended to always use Destroy(obj). However,
         /// when used in editor code, object destruction is delayed forever.
         /// For this reason, DestroyImmediate(obj) must be used in editor code.
         /// This function encapsulates the preprocessor code necessary 
         /// to determine whether the code is being run in editor mode.
-        /// <br/>
+        /// </para><para>
         /// Note that transforms cannot be destroyed. When a user still
         /// attempts to destroy a transform, a warning is logged and the
         /// transforms game object is destroyed instead.
-        /// </summary>
-        /// <param name="obj"></param>
+        /// </para></summary>
         public static void SafeDestroy(this UnityEngine.Object obj) {
             var transform = obj as Transform;
             if (transform != null) {

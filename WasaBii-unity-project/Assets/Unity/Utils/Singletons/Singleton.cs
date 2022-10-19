@@ -10,8 +10,6 @@ namespace BII.WasaBii.Unity {
     public interface Singleton { }
 
     /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
     /// Any BaseBehaviour that is a singleton should only be found once.
     /// Enables static access to this single object by using <code>Classname.Instance</code>.
     /// </summary>

@@ -9,11 +9,9 @@ using UnityEngine;
 namespace BII.WasaBii.Unity {
     
     /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
     /// This class serves as a namespace for every non-specific unity utility function.
     /// </summary>
-    public static class Util {
+    public static class UnityUtils {
         
         /// <summary>
         /// A null check that works for any generic type T. This works

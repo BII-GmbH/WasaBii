@@ -2,8 +2,6 @@ using System;
 
 namespace BII.WasaBii.Unity.Exceptions {
     /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
     /// Thrown when a <see cref="GenericPool"/>
     /// is initialized without a Template. 
     /// </summary>

@@ -23,13 +23,13 @@ namespace BII.WasaBii.Unity {
     public static class ComponentQueryExtensions {
         
         private static Option<T> toOption<T>(this T component) =>
-            Util.IsNull(component) ? Option.None : Option.Some(component);
+            UnityUtils.IsNull(component) ? Option.None : Option.Some(component);
         
         private static Option<T> searchParents<T>(GameObject go, Func<GameObject, Option<T>> mapper) where T : class {
             while (true) {
                 var res = mapper(go);
                 if (res.HasValue) return res;
-                if (Util.IsNull(go.transform.parent)) return Option.None;
+                if (UnityUtils.IsNull(go.transform.parent)) return Option.None;
                 go = go.transform.parent.gameObject;
             }
         }
@@ -284,7 +284,7 @@ namespace BII.WasaBii.Unity {
         public static bool AssignIfAbsentOrAdd<T>(
             this MonoBehaviour m, ref T variable, Search where = Search.InObjectOnly, bool includeInactive = false
         ) where T : Component {
-            if (!Util.IsNull(variable)) {
+            if (!UnityUtils.IsNull(variable)) {
                 Debug.Log(
                     "Tried to assign component of type " + typeof(T) + " but field already had value " + variable, m.gameObject);
                 return false;

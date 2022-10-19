@@ -1,10 +1,8 @@
 ﻿#nullable enable
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 using BII.WasaBii.Unity.Geometry;
@@ -22,27 +20,6 @@ namespace BII.WasaBii.Unity {
                 addition: (vec1, vec2) => vec1 + vec2,
                 division: (vec, i) => vec / i
             );
-
-        public static void ForEachDistinctPair<T>(this IEnumerable<T> enumerable, Action<T, T> action)
-        where T : IEquatable<T> {
-            var list = enumerable.ToList();
-            foreach (var t1 in list)
-            foreach (var t2 in list)
-                if (!t1.Equals(t2))
-                    action(t1, t2);
-        }
-
-        public static (List<T1>, List<T2>) Unzip<T1, T2>(this IEnumerable<(T1, T2)> enumerable) {
-            var t1List = new List<T1>();
-            var t2List = new List<T2>();
-            
-            foreach (var (t1, t2) in enumerable) {
-                t1List.Add(t1);
-                t2List.Add(t2);
-            }
-
-            return (t1List, t2List);
-        }
 
         public static Bounds Bounds(this IEnumerable<Vector3> vertices) {
             Vector3 min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -82,12 +59,6 @@ namespace BII.WasaBii.Unity {
                     (accum, currentPos) => (currentPos, accum.currentLength + accum.lastPos.DistanceTo(currentPos))
                 )
                 .currentLength.Meters();
-        }
-        
-        /// Convert a Task into an IEnumerator intended to be used as a Unity-Coroutine
-        public static IEnumerator AsCoroutine(this Task task) {
-            while (!task.IsCompleted) yield return null;
-            task.GetAwaiter().GetResult();
         }
     }
 }

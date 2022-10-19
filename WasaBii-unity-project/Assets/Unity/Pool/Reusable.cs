@@ -4,15 +4,16 @@ namespace BII.WasaBii.Unity {
 
     public partial class GenericPool {
 
-        /// <summary>
+        /// <summary><para>
         /// GameObjects with a Reusable component attached are marked
         /// as reusable for use with <see cref="GenericPool"/> and
-        /// potential other utilities. <br/>
+        /// potential other utilities.
+        /// </para><para>
         /// Calling <see cref="FreeForReuse"/> enables other objects
         /// to directly reuse this object. Calling <see cref="LockForReuse"/>
         /// should be used after an object has just been reused in order
         /// to prevent immediate reuse. 
-        /// </summary>
+        /// </para></summary>
         public abstract class Reusable : MonoBehaviour {
             /// <summary>
             /// This is called whenever an object is attempted to be reused.

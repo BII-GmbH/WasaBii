@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
 using System;
-using System.Diagnostics.Contracts;
+using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -32,5 +32,11 @@ namespace BII.WasaBii.Unity {
             
             return res.Task;
         } 
+        
+        /// Convert a Task into an IEnumerator intended to be used as a Unity-Coroutine
+        public static IEnumerator AsCoroutine(this Task task) {
+            while (!task.IsCompleted) yield return null;
+            task.GetAwaiter().GetResult();
+        }
     }
 }

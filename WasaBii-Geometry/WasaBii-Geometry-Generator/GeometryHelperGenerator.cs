@@ -49,10 +49,7 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
                 var attributeArguments = attributeData.GetArgumentValues().ToArray();
                 
                 var areFieldsIndependent = (bool) attributeArguments.First(a => a.Name == "areFieldsIndependent").Value;
-                // var areAllFieldsLength = fieldsDelcs.All(f =>
-                //     TypeSymbolFor(f.Declaration.Type, semanticModel) is INamedTypeSymbol {
-                //         Name: "Length", ContainingNamespace: var ns
-                //     } && ns.ToString() == "BII.WasaBii.UnitSystem");
+                var isBasic = (bool) attributeArguments.First(a => a.Name == "isBasic").Value;
                 var hasMagnitude = (bool) attributeArguments.First(a => a.Name == "hasMagnitude").Value;
 
                 var allMembers = new List<MemberDeclarationSyntax> {mkConstructor(typeDecl, allFields)};
@@ -60,13 +57,15 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
                     allMembers.AddRange(mkMapAndScale(typeDecl, allFields, hasMagnitude));
                     allMembers.AddRange(mkWithFieldMethods(typeDecl, allFields));
                     allMembers.AddRange(mkMinMax(typeDecl, allFields));
-                    allMembers.Add(mkLerp(typeDecl, allFields));
                 }
 
                 if (hasMagnitude) {
                     allMembers.Add(mkSqrMagnitude(allFields.Select(f => f.variable)));
                     allMembers.Add(mkMagnitude());
                 }
+                
+                allMembers.Add(mkLerp(typeDecl, allFields));
+                allMembers.Add(mkSlerp(typeDecl, allFields, isBasic));
                 allMembers.Add(mkIsNearly(typeDecl, allFields, semanticModel));
                 
                 // if fields are independent, make map and with
@@ -95,9 +94,7 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
     }
 
     private static bool isLength(SyntaxNode type, SemanticModel semanticModel) =>
-        TypeSymbolFor(type, semanticModel) is INamedTypeSymbol {
-            Name: "Length", ContainingNamespace: var ns
-        } && ns.ToString() == "BII.WasaBii.UnitSystem";
+        TypeSymbolFor(type, semanticModel) is INamedTypeSymbol { Name: "Length" };
 
     private MemberDeclarationSyntax mkConstructor(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, VariableDeclaratorSyntax variable)> fields) {
         return ConstructorDeclaration(
@@ -342,6 +339,10 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
             ))
             .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
 
+    /// Assumes all fields are `Length` or all fields have a `.SlerpTo(other, double)`
+    private MethodDeclarationSyntax mkSlerp(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, VariableDeclaratorSyntax variable)> fields, bool isBasic) =>
+    
+    
     private sealed class SyntaxReceiver : ISyntaxReceiver {
 
         public sealed record GeometryHelperData(TypeDeclarationSyntax Type, AttributeSyntax Attribute);

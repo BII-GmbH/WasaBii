@@ -5,7 +5,6 @@ using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 using UnityEngine;
-using Range = BII.WasaBii.Core.Range;
 
 namespace BII.WasaBii.Unity.Geometry {
     
@@ -24,7 +23,7 @@ namespace BII.WasaBii.Unity.Geometry {
                 ? Vector3.Slerp(a, b, (float) progress)
                 : Vector3.SlerpUnclamped(a, b, (float) progress);
             return (piv + diff)
-                .WithY((float) Mathd.Lerp(start.y, end.y, progress, shouldClamp))
+                .WithY((float) MathD.Lerp(start.y, end.y, progress, shouldClamp))
                 .AsGlobalPosition();
         }
 
@@ -44,7 +43,7 @@ namespace BII.WasaBii.Unity.Geometry {
         // but until then, we use sampling.
         public static Length CalculateCirpingMovementLength(
             PositionProvider from, PositionProvider to, PositionProvider pivot, int sampleCount = 6
-        ) => Range.Sample(t => Cirp(from, to, pivot, t), sampleCount, includeFrom: true, includeTo: true)
+        ) => SampleRange.Sample(t => Cirp(from, to, pivot, t), sampleCount, includeFrom: true, includeTo: true)
             .Select(loc => loc.AsVector)
             .TotalPathLength();
 
@@ -72,7 +71,7 @@ namespace BII.WasaBii.Unity.Geometry {
         /// <param name="c"> length of the third side</param>
         /// <returns> returns the angles of the triangle (A is the opposing angle of side a, ect.)</returns>
         [Pure] public static (Angle A, Angle B, Angle C) SolveTriangleFromSideLengths(double a, double b, double c) {
-            Contract.Assert(
+            Debug.Assert(
                 a + b > c && a + c > b && b + c > a,
                 "Can only solve triangle if lengths can form a valid triangle" +
                 "\n Lengths are: \n A: {a}\n B: {b}\n C: {c}"
@@ -277,10 +276,10 @@ namespace BII.WasaBii.Unity.Geometry {
             }
             public Intersection(Line2D line, Vector2 point) {
                 var res = At(line, point);
-                Contract.Assert(res.HasValue, 
+                Debug.Assert(res.HasValue, 
                     $"The intersection point ({point}) does not lie on the line ({line}).");
                 
-                t = res.Value.t;
+                t = res.Value!.t;
                 this.line = line;
             }
         }

@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
@@ -37,11 +38,11 @@ namespace BII.WasaBii.Splines {
         public SplineSample<TPos, TDiff> SampleAt(double percentage) => Spline[NormalizedSplineLocation.Lerp(StartLocationNormalized, EndLocationNormalized, percentage)];
 
         public SplineSample<TPos, TDiff> SampleFromStart(Length distanceFromStart) {
-            Contract.Assert(
+            Debug.Assert(
                 distanceFromStart >= -Length.Epsilon, 
                 $"Distance must be above 0, but was {distanceFromStart}"
             );
-            Contract.Assert(
+            Debug.Assert(
                 distanceFromStart <= Length + Length.Epsilon, 
                 $"Distance must be below the length of {Length}, but was {distanceFromStart}"
             );
@@ -49,11 +50,11 @@ namespace BII.WasaBii.Splines {
         }
 
         public SplineSample<TPos, TDiff> SampleFromEnd(Length distanceFromEnd) {
-            Contract.Assert(
+            Debug.Assert(
                 distanceFromEnd >= -Length.Epsilon, 
                 $"Distance must be above 0, but was {distanceFromEnd}"
             );
-            Contract.Assert(
+            Debug.Assert(
                 distanceFromEnd <= Length + Length.Epsilon, 
                 $"Distance must be below the length of {Length}, but was {distanceFromEnd}"
             );

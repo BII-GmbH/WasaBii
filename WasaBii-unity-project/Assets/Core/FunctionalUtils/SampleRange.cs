@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace BII.WasaBii.Core {
 
-    public static class Range {
+    public static class SampleRange {
         
         /// <returns><see cref="count"/> equidistant values between 0 and 1 in ascending order.</returns>
         /// <param name="includeZero">Whether the result starts with 0 or the next larger number</param>
@@ -30,11 +30,11 @@ namespace BII.WasaBii.Core {
             Sample01(count, includeFrom, includeTo).Select(interpolate);
 
 
-        [Pure] public static Range<T>.Builder From<T>(T from, bool inclusive) => new(from, inclusive);
+        [Pure] public static SampleRange<T>.Builder From<T>(T from, bool inclusive) => new(from, inclusive);
 
     }
     
-    public readonly struct Range<T> {
+    public readonly struct SampleRange<T> {
         
         public readonly T From;
         public readonly bool IncludeFrom;
@@ -42,7 +42,7 @@ namespace BII.WasaBii.Core {
         public readonly T To;
         public readonly bool IncludeTo;
         
-        public Range(T from, T to, bool includeFrom, bool includeTo) {
+        public SampleRange(T from, T to, bool includeFrom, bool includeTo) {
             this.From = from;
             this.To = to;
             IncludeFrom = includeFrom;
@@ -54,7 +54,7 @@ namespace BII.WasaBii.Core {
         ) {
             var (from, to) = (From, To);
             T CalcVal(double t) => interpolate(from, to, t);
-            return Range.Sample(CalcVal, count, IncludeFrom, IncludeTo);
+            return SampleRange.Sample(CalcVal, count, IncludeFrom, IncludeTo);
         }
 
         public sealed class Builder {
@@ -67,7 +67,7 @@ namespace BII.WasaBii.Core {
                 IncludeFrom = includeFrom;
             }
 
-            public Range<T> To(T to, bool inclusive) => new(From, to, IncludeFrom, inclusive);
+            public SampleRange<T> To(T to, bool inclusive) => new(From, to, IncludeFrom, inclusive);
 
         }
 

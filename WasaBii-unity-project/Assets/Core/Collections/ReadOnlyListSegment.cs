@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 
 namespace BII.WasaBii.Core {
     
@@ -15,10 +15,10 @@ namespace BII.WasaBii.Core {
         public int Count { get; }
 
         public ReadOnlyListSegment(IReadOnlyList<T> wrapped, int offset, int count) {
-            Contract.Assert(wrapped != null);
-            Contract.Assert(offset >= 0);
-            Contract.Assert(count >= 0);
-            Contract.Assert(wrapped.Count >= offset + count);
+            Debug.Assert(wrapped != null);
+            Debug.Assert(offset >= 0);
+            Debug.Assert(count >= 0);
+            Debug.Assert(wrapped.Count >= offset + count);
             _wrapped = wrapped;
             this._offset = offset;
             this.Count = count;

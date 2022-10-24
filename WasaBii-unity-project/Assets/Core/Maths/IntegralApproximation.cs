@@ -23,8 +23,8 @@ namespace BII.WasaBii.Core {
             var diff = to - from;
 
             return mul(
-                simpsonsFactors(sections).Zip(Range.Sample01(subsections + 1, includeZero:true, includeOne:true))
-                    .Select((fac, i) => mul(f(from + i * diff), fac))
+                simpsonsFactors(sections).Zip(SampleRange.Sample01(subsections + 1, includeZero:true, includeOne:true))
+                    .SelectTuple((fac, i) => mul(f(from + i * diff), fac))
                     .Aggregate(add),
                 diff / (subsections * 3)
             );
@@ -74,7 +74,7 @@ namespace BII.WasaBii.Core {
             var fromSample = f(from);
             var toSample = f(to);
             var intermediarySamples = samples > 2 
-                ? Range.Sample(i => from + i * (to - from), samples - 2, includeFrom: false, includeTo: false)
+                ? SampleRange.Sample(i => from + i * (to - from), samples - 2, includeFrom: false, includeTo: false)
                     .Select(f)
                 : Enumerable.Empty<T>();
             return mul(
@@ -99,7 +99,7 @@ namespace BII.WasaBii.Core {
             Func<double, double> f, 
             double from, double to,
             int samples
-        ) => Range.Sample(i => from + i * (to - from), samples, includeFrom: true, includeTo: true)
+        ) => SampleRange.Sample(i => from + i * (to - from), samples, includeFrom: true, includeTo: true)
             .Select(f)
             .Average() 
             * (to - from);

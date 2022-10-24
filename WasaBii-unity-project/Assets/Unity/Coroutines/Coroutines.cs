@@ -11,33 +11,32 @@ namespace BII.WasaBii.Unity {
     // ReSharper disable all InvalidXmlDocComment
     
     /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
     /// This class holds a number of generic coroutine building blocks.
     /// These are necessary for a more fluent approach to using coroutines.
     /// By using these building blocks, one may construct complex coroutines
     /// without bloating the class with many <code>private IEnumerator foo(...)</code> functions.
     /// By using static imports one may use these directly without prefixes.
     /// For further documentation, consult the CaveGame wiki.
-    /// <br/><br/>
-    /// <i>Note that these only work on unity coroutines, not collection-like IEnumerators.</i>
     /// </summary>
+    /// <remarks>
+    /// <i>Note that these only work on unity coroutines, not collection-like IEnumerators.</i>
+    /// </remarks>
     /// <example><code>
     /// using static CoreLibrary.Coroutines;
     /// </code></example>
     public static class Coroutines {
         
-        /// <summary>
+        /// <summary><para>
         /// A block of code (see <see cref="Action"/>) that returns 
         /// a value of type boolean. This code may be executed as 
         /// many times as necessary by the function it is passed to.
-        /// <br/>
+        /// </para><para>
         /// Note that a Condition is usually a <i>closure</i>, meaning
         /// that it uses variables defined outside of it's scope.
         /// This is important, as a constant Condition may cause endless
         /// loops, e.g. in <see cref="Coroutines.YieldWhile"/>.
         /// An example of this can be seen below.
-        /// </summary>
+        /// </para></summary>
         /// <seealso cref="Action"/>
         /// <example><code>
         /// // a custom implementation of an until-loop using tail recursion
@@ -69,18 +68,24 @@ namespace BII.WasaBii.Unity {
         /// });
         /// </code></example>
         public delegate bool Condition();
-
+        
+        /// <summary>
         /// An empty lazy singleton that is used to start coroutines with <see cref="Coroutines.Start"/>.
         /// Calling .Instance on this class creates a game object with an instance if not already present.
+        /// </summary>
         public sealed class CoroutineRunner : LazySingleton<CoroutineRunner> { }
 
+        /// <summary>
         /// Starts this coroutine. An alternative to calling <see cref="MonoBehaviour.StartCoroutine(IEnumerator)"/>.
         /// Spawns an instance of <see cref="CoroutineRunner"/> if not already present in the scene.
+        /// </summary>
         public static Coroutine Start(this IEnumerator coroutine) => 
             CoroutineRunner.Instance.StartCoroutine(coroutine);
 
+        /// <summary>
         /// Stops the passed coroutine. An alternative to calling <see cref="MonoBehaviour.StopCoroutine(Coroutine)"/>.
         /// Spawns an instance of <see cref="CoroutineRunner"/> if not already present in the scene.
+        /// </summary>
         public static void Stop(this Coroutine coroutine) =>
             CoroutineRunner.Instance.StopCoroutine(coroutine);
 
@@ -109,10 +114,12 @@ namespace BII.WasaBii.Unity {
             }
         }
 
+        /// <summary>
         /// <b>Before</b> each execution step of this coroutine, check if the
         /// specified condition holds true. Once it fails, cancel the coroutine immediately.
         /// One can use <see cref="Afterwards"/> to execute code regardless of interruption.
         /// This checks the condition once <b>before</b> executing any code.
+        /// </summary>
         public static IEnumerator YieldWhile(this IEnumerator coroutine, Condition condition) {
             var flattened = coroutine.Flatten();
             while (condition() && flattened.MoveNext())
@@ -153,15 +160,15 @@ namespace BII.WasaBii.Unity {
             }
         }
 
-        /// <summary>
+        /// <summary><para>
         /// 'Constructor' for a singleton coroutine.
         /// Takes a func, executes its code and `yield return`s
         /// the <see cref="YieldInstruction"/> it returns.
-        /// <br/><br/>
+        /// </para><para>
         /// By chaining calls of <see cref="Do(System.Func{UnityEngine.YieldInstruction})"/>,
         /// <see cref="AndThen"/> and <see cref="YieldWhile"/>
         /// you can construct any coroutine from functions only. 
-        /// </summary>
+        /// </para></summary>
         /// <param name="action">
         /// The action containing a single step of a coroutine and returns a value to be yielded.
         /// </param>
@@ -172,14 +179,14 @@ namespace BII.WasaBii.Unity {
             yield return action();
         }
 
-        /// <summary>
+        /// <summary><para>
         /// Turns a block of code into a coroutine that never yields anything.
         /// As soon as the coroutine is started, the passed <see cref="Action"/>
         /// is executed and the coroutine ends.
-        /// <br/><br/>
+        /// </para><para>
         /// You can use this as a code-to-coroutine conversion for a function
         /// that expects a coroutine, but should work immediately instead. 
-        /// </summary>
+        /// </para></summary>
         /// <param name="code">
         /// The code that is executed as soon as this coroutine is started.
         /// </param>
@@ -203,16 +210,16 @@ namespace BII.WasaBii.Unity {
             yield break;
         }
 
-        /// <summary>
+        /// <summary><para>
         /// Repeats the passed <see cref="YieldInstruction"/> either the
         /// specified number of times or forever if not specified.
-        /// <br/><br/>
+        /// </para><para>
         /// You can use <see cref="YieldWhile"/> to repeat your custom
         /// action until a condition is met. This is different from
         /// <see cref="RepeatWhile"/> and <see cref="RepeatEverySeconds"/>
         /// in that you can be more specific about what you want to yield
         /// between repetitions. 
-        /// </summary>
+        /// <para></summary>
         /// <example><code>
         /// var launch = Repeat(() => {
         ///     _rb.AddForce(Vector3.up * Push);

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -134,7 +135,7 @@ namespace BII.WasaBii.Core {
         [Pure] public static IEnumerable<int> Until(this int from, int toExclusive) => Enumerable.Range(from, toExclusive);
 
         [Pure] public static int LerpTo(this int fromInclusive, int toExclusive, float progress) {
-            Contract.Assert(fromInclusive < toExclusive);
+            Debug.Assert(fromInclusive < toExclusive);
             return ((int) Lerp(fromInclusive, toExclusive, progress)).Min(toExclusive - 1);
         }
         [Pure] public static float Lerp(float a, float b, float t) => a + (b - a) * Clamp01(t);
@@ -146,8 +147,8 @@ namespace BII.WasaBii.Core {
         }
         
         [Pure] public static int LerpTo(this int fromInclusive, int toExclusive, double progress) {
-            Contract.Assert(fromInclusive < toExclusive);
-            return ((int) Mathd.Lerp(fromInclusive, toExclusive, progress)).Min(toExclusive - 1);
+            Debug.Assert(fromInclusive < toExclusive);
+            return ((int) MathD.Lerp(fromInclusive, toExclusive, progress)).Min(toExclusive - 1);
         }
         
         [Pure] public static int Sign(this int value) => value.IsZero() ? 0 : value > 0 ? 1 : -1;

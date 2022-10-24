@@ -3,13 +3,9 @@ using UnityEngine;
 namespace BII.WasaBii.Unity {
     // ReSharper disable all InconsistentNaming
 
-    /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
-    /// The methods in this class are GENERATED through the
-    /// 'generateColorSelectionExtensions.sc' scala script
-    /// in the '_CodeGenScripts' folder.
-    /// </summary>
+    // The methods in here have been generated via an external script.
+    // It is not recommended to maintain these manually.
+    
     public static class ColorSelectionExtensions {
         /// <summary> 
         /// Returns a new Color with it's values set to 

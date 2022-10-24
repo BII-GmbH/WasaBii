@@ -90,7 +90,7 @@ namespace BII.WasaBii.Splines.Bezier {
             else {
                 var (first, tail) = handles;
                 var allHandles = shouldLoop ? first.PrependTo(tail).Append(first) : first.PrependTo(tail);
-                var segments = allHandles.PairwiseSliding().Select((left, right) => 
+                var segments = allHandles.PairwiseSliding().SelectTuple((left, right) => 
                     BezierSegment.Cubic(left.position, left.velocity, right.position, right.velocity, ops)
                 );
                 return new BezierSpline<TPos, TDiff>(segments, ops);
@@ -104,7 +104,7 @@ namespace BII.WasaBii.Splines.Bezier {
         ) where TPos : struct where TDiff : struct {
             var (first, tail) = handles;
             var allHandles = shouldLoop ? first.PrependTo(tail).Append(first) : first.PrependTo(tail);
-            var segments = allHandles.PairwiseSliding().Select((left, right) => 
+            var segments = allHandles.PairwiseSliding().SelectTuple((left, right) => 
                 BezierSegment.Quintic(left.position, left.velocity, left.acceleration, right.position, right.velocity, right.acceleration, ops)
             );
             return new BezierSpline<TPos, TDiff>(segments, ops);

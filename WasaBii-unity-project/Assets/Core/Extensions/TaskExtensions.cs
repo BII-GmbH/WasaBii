@@ -47,12 +47,6 @@ namespace BII.WasaBii.Core {
                 return onException(e).Failure();
             }
         }
-        
-        /// Convert a Task into an IEnumerator intended to be used as a Unity-Coroutine
-        public static IEnumerator AsCoroutine(this Task task) {
-            while (!task.IsCompleted) yield return null;
-            task.GetAwaiter().GetResult();
-        }
 
         public static Task<Result<S, F>> Flip<S, F>(this Result<Task<S>, F> result) => result.Match(
             async success => (await success).Success<S, F>(),

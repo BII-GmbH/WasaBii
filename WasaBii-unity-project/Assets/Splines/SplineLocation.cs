@@ -38,7 +38,7 @@ namespace BII.WasaBii.Splines {
         public static explicit operator SplineLocation(double l) => From(l);
 
         public static SplineLocation Lerp(SplineLocation from, SplineLocation to, double progress)
-            => From(Mathd.Lerp(from, to, progress));
+            => From(MathD.Lerp(from, to, progress));
 
         public static SplineLocation operator +(SplineLocation l) => l;
         public static SplineLocation operator -(SplineLocation l) => From(-l.Value);
@@ -156,7 +156,7 @@ namespace BII.WasaBii.Splines {
             new(a.Value + t * (b.Value - a.Value));
         
         public (SplineHandleIndex Index, double Overshoot) AsHandleIndex() {
-            var index = SplineHandleIndex.At(Mathd.FloorToInt(Value));
+            var index = SplineHandleIndex.At(MathD.FloorToInt(Value));
             var overshoot = Value - index;
             return (index, overshoot);
         }

@@ -9,7 +9,7 @@ namespace BII.WasaBii.Core {
     /// A list view that simply inverts the order of elements.
     /// Wraps the original list without copying it. Be aware
     /// that changes to the original list will reflect to this.
-    [Serializable] [MustBeSerializable]
+    [Serializable]
     public sealed class ReverseList<T> : IReadOnlyList<T> {
 
         private readonly IReadOnlyList<T> wrapped;

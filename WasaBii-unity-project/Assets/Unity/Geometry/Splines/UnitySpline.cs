@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace BII.WasaBii.Unity.Geometry.Splines {
 
-    [MustBeSerializable]
+    [Serializable]
     public sealed class UnitySpline : SpecificSplineBase<UnitySpline, Vector3, Vector3> {
         
 #region Factory Methods
@@ -55,7 +55,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         public UnitySpline(Spline<Vector3, Vector3> wrapped) : base(wrapped) { }
         protected override UnitySpline mkNew(Spline<Vector3, Vector3> toWrap) => new(toWrap);
 
-        [MustBeImmutable][MustBeSerializable]
+        [MustBeImmutable][Serializable]
         public sealed class GeometricOperations : GeometricOperations<Vector3, Vector3> {
 
             public static readonly GeometricOperations Instance = new();

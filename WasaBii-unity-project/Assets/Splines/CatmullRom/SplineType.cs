@@ -1,5 +1,5 @@
-﻿using System.ComponentModel;
-using BII.WasaBii.Core;
+﻿using System;
+using System.ComponentModel;
 
 namespace BII.WasaBii.Splines.CatmullRom {
     
@@ -10,7 +10,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
     ///   this graph
     /// </a>
     /// for a visual demonstration.
-    [MustBeSerializable] 
+    [Serializable] 
     public enum SplineType {
         Uniform,
         Centripetal,

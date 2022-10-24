@@ -7,8 +7,6 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
     
-    /// The base interface for splines.
-    [MustBeSerializable]
     public interface Spline<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {
@@ -24,8 +22,7 @@ namespace BII.WasaBii.Splines {
 
         [Pure] Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps) 
             where TPosNew : struct where TDiffNew : struct; 
-        
-        [MustBeSerializable]
+            
         public interface Copyable : Spline<TPos, TDiff> {
 
             [Pure] public Spline<TPos, TDiff> Reversed { get; }

@@ -23,7 +23,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
     /// segment, i.e. between two succinct points.
     /// </summary>
     [JsonObject(IsReference = false)] // Treat as value type for serialization
-    [MustBeSerializable]
+    [Serializable]
     public sealed class CatmullRomSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : struct where TDiff : struct {
 
         public CatmullRomSpline(

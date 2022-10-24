@@ -11,7 +11,7 @@ namespace BII.WasaBii.Unity.Geometry {
     /// A wrapper for a <see cref="Vector3"/> that represents a the difference between two positions in the same local space.
     /// Can also be viewed as a <see cref="LocalDirection"/> with a length.
     [MustBeImmutable]
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct LocalOffset : 
         LocalDirectionLike<LocalOffset>, 
         HasMagnitude<LocalOffset>, 

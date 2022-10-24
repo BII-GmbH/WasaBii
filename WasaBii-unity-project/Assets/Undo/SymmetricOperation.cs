@@ -42,7 +42,6 @@ namespace BII.WasaBii.Undos {
     /// For less overhead, the compiler symbol <c>WASABII_SYMOP_NODEBUGINFO</c> can be defined to disable this.
     /// </remarks>
     /// <seealso cref="SymmetricOperation{T}"/>
-    [CannotBeSerialized("Based on function references which cannot be serialized.")]
     public sealed class SymmetricOperation {
         internal readonly Action lastDo;
         internal readonly Action lastUndo;
@@ -171,7 +170,6 @@ namespace BII.WasaBii.Undos {
     ///  about where the operation and its parts have been constructed.
     /// For less overhead, the compiler symbol <c>WASABII_SYMOP_NODEBUGINFO</c> can be defined to disable this.
     /// </remarks>
-    [CannotBeSerialized("Based on function references which cannot be serialized.")]
     public sealed class SymmetricOperation<T> {
 
         // Note CR: we still use function composition for this type, as there is usually

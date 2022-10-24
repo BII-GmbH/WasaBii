@@ -25,7 +25,7 @@ namespace BII.WasaBii.Unity.Geometry {
 
     /// A wrapper for a <see cref="Vector3"/> that represents a world-space position.
     [MustBeImmutable]
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct GlobalPosition : 
         VectorLike<GlobalPosition>, HasMagnitude<GlobalPosition>, 
         IsGlobalVariant<GlobalPosition, LocalPosition>,

@@ -8,7 +8,7 @@ namespace BII.WasaBii.Unity.Geometry {
 
     /// A wrapper for a <see cref="Vector3"/> that represents a local position relative to an undefined parent.
     [MustBeImmutable]
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct LocalPosition : 
         VectorLike<LocalPosition>, HasMagnitude<LocalPosition>, 
         IsLocalVariant<LocalPosition, GlobalPosition>,

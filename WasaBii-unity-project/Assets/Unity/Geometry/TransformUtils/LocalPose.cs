@@ -7,7 +7,7 @@ namespace BII.WasaBii.Unity.Geometry {
 
     /// <see cref="LocalPosition"/> and <see cref="LocalRotation"/> combined.
     [MustBeImmutable]
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct LocalPose : IsLocalVariant<LocalPose, GlobalPose>, IEquatable<LocalPose> {
         
         public static readonly LocalPose Identity = new LocalPose(Vector3.zero, Quaternion.identity);

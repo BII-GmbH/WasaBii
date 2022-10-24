@@ -11,7 +11,7 @@ namespace BII.WasaBii.Core {
     /// Creates a copy of the wrapped list so that even
     /// if the original gets mutated, the contents of
     /// `this` remains unchanged.
-    [MustBeSerializable] [MustBeImmutable]
+    [Serializable][MustBeImmutable]
     public sealed class SequenceEqualityList<T> : IReadOnlyList<T>, IEquatable<IEnumerable<T>>, IEquatable<SequenceEqualityList<T>> {
         
         private readonly ImmutableArray<T> wrapped;
@@ -29,7 +29,7 @@ namespace BII.WasaBii.Core {
         // the null check. Since therefore, the Json constructor and the actual one
         // have the exactly same signature, I cannot separate them.
         public SequenceEqualityList(IEnumerable<T> wrapped) {
-            this.wrapped = (wrapped ?? Enumerable.Empty<T>()).ToImmutableArray();
+            this.wrapped = (wrapped ?? ImmutableArray<T>.Empty).AsImmutableArray();
             hashCode = new Lazy<int>(() => this.wrapped.Aggregate(0, (hash, now) => 
                 (hash << 7) ^ (hash >> 5) ^ (now != null ? now.GetHashCode() : 0)));
         }
@@ -53,10 +53,8 @@ namespace BII.WasaBii.Core {
     }
 
     public static class SequenceEqualityListExtensions {
-
         public static SequenceEqualityList<T> ToSequenceEqualityList<T>(this IEnumerable<T> enumerable) =>
             new(enumerable);
-
     }
 
 }

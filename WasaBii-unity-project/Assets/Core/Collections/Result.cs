@@ -83,12 +83,12 @@ namespace BII.WasaBii.Core {
     /// When you consistently use Results for computations that can fail based on the parameters, then you can use
     ///  exceptions as "panics" - programmer errors that need to be caught at the top-level only.
     /// </summary>
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError>> {
 
         // Since this is a struct, the `status` field will be default-initialized to the first value of this enum.
         // As a default-initialized Result has neither a value or an error, it will have the status `Default`.
-        [MustBeSerializable]
+        [Serializable]
         public enum ValueStatus { Default, Value, Error }
         
         // Fields are public for convenient support for pattern matching syntax

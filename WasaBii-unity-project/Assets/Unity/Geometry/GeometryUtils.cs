@@ -279,13 +279,14 @@ namespace BII.WasaBii.Unity.Geometry {
                 Debug.Assert(res.HasValue, 
                     $"The intersection point ({point}) does not lie on the line ({line}).");
                 
-                t = res.Value!.t;
+                t = res!.Value.t;
                 this.line = line;
             }
         }
 
         public override string ToString() => $"start: {Start}, end: {End}";
     }
+    
 
     public readonly struct Circle {
         public readonly Vector2 Center;

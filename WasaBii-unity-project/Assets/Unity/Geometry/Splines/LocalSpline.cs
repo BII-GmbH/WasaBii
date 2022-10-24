@@ -10,7 +10,7 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Unity.Geometry.Splines {
 
-    [MustBeSerializable]
+    [Serializable]
     public sealed class LocalSpline : SpecificSplineBase<LocalSpline, LocalPosition, LocalOffset> {
 
 #region Factory Methods
@@ -58,7 +58,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         public LocalSpline(Spline<LocalPosition, LocalOffset> wrapped) : base(wrapped) { }
         protected override LocalSpline mkNew(Spline<LocalPosition, LocalOffset> toWrap) => new(toWrap);
 
-        [MustBeImmutable][MustBeSerializable]
+        [MustBeImmutable][Serializable]
         public sealed class GeometricOperations : GeometricOperations<LocalPosition, LocalOffset> {
 
             public static readonly GeometricOperations Instance = new();

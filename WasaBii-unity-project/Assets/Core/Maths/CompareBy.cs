@@ -11,7 +11,6 @@ namespace BII.WasaBii.Core {
         
         /// A generic, non-serializable IComparer for use in collections.
         /// Compares by mapping both compared values to a new type and comparing that type instead.
-        [CannotBeSerialized("Make a custom subclass of IComparer which does not use lambdas.")]
         private sealed class CompareBy<T, TRes> : IComparer<T> where TRes : IComparable<TRes> {
             private readonly Func<T, TRes> compareBy;
             public CompareBy(Func<T, TRes> compareBy) => this.compareBy = compareBy;

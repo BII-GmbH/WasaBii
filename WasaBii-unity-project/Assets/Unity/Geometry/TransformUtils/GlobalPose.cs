@@ -9,7 +9,7 @@ namespace BII.WasaBii.Unity.Geometry {
     
     /// <see cref="GlobalPosition"/> and <see cref="GlobalRotation"/> combined.
     [MustBeImmutable]
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct GlobalPose : IsGlobalVariant<GlobalPose, LocalPose>, IEquatable<GlobalPose> {
         public static implicit operator TransformProvider(GlobalPose location)
             => TransformProvider.From(location.Position.AsVector, location.Rotation.AsQuaternion, Vector3.one);

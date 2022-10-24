@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -5,7 +7,6 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Runtime.Serialization;
 using BII.WasaBii.Core;
-using Newtonsoft.Json;
 
 namespace BII.Utilities.Independent {
     
@@ -81,14 +82,15 @@ namespace BII.Utilities.Independent {
     /// You can inherit from these types as well, if you want to, without any further thoughts.
     /// </summary>
     /// <remarks>For more details, refer to the docs in the source file.</remarks>
-    [MustBeSerializable]
     public interface HierarchicalMetadata<TSupertype> : HierarchicalMetadata<TSupertype, TSupertype> 
     where TSupertype : class, IEquatable<TSupertype> {
         
         [Pure] public new Option<T> MetadataFor<T>() where T : TSupertype;
         
+        #pragma warning disable CS0108 // hides inherited member; intentional in this case
+        
         /// <inheritdoc cref="HierarchicalMetadata{TSupertype}"/>
-        [MustBeSerializable][MustBeImmutable]
+        [Serializable][MustBeImmutable]
         public class Immutable : HierarchicalMetadata<TSupertype, TSupertype>.Immutable, HierarchicalMetadata<TSupertype> {
             protected override TSupertype getKeyFromEntry(TSupertype entry) => entry;
             [Pure] public new Option<T> MetadataFor<T>() where T : TSupertype => data.TryGetValue(typeof(T)).Map(v => (T) v);
@@ -97,7 +99,7 @@ namespace BII.Utilities.Independent {
         }
 
         /// <inheritdoc cref="HierarchicalMetadata{TSupertype}"/>
-        [MustBeSerializable]
+        [Serializable]
         public class Mutable : HierarchicalMetadata<TSupertype, TSupertype>.Mutable, HierarchicalMetadata<TSupertype> {
             protected override TSupertype getKeyFromEntry(TSupertype entry) => entry;
             [Pure] public new Option<T> MetadataFor<T>() where T : TSupertype => data.TryGetValue(typeof(T)).Map(v => (T) v);
@@ -105,6 +107,8 @@ namespace BII.Utilities.Independent {
             public Mutable() { }
             public Mutable(IEnumerable<TSupertype> entries) : base(entries) { }
         }
+        
+        #pragma warning restore CS0108
     }
 
     /// <summary>
@@ -118,7 +122,6 @@ namespace BII.Utilities.Independent {
     /// defines how to get a key from each value contained in the collection.
     /// </summary>
     /// <remarks>For more details, refer to the docs in the source file.</remarks>
-    [MustBeSerializable]
     public interface HierarchicalMetadata<TSupertype, TValue> 
     where TSupertype : class where TValue : IEquatable<TValue> {
 
@@ -131,7 +134,7 @@ namespace BII.Utilities.Independent {
         [Pure] public IEnumerable<TValue> Values { get; }
         
         // Note CR: Extra class, because default interface methods can not be resolved for some reason
-        [MustBeSerializable]
+        [Serializable]
         public abstract class WithQueries : HierarchicalMetadata<TSupertype, TValue> {
             
             protected abstract IReadOnlyDictionary<Type, TValue> data { get; }
@@ -159,7 +162,7 @@ namespace BII.Utilities.Independent {
                     yield break;
                 yield return sourceType;
                 var recRes = sourceType.GetInterfaces()
-                    .If(sourceType.BaseType != null, interfaces => interfaces.Prepend(sourceType.BaseType))
+                    .If(sourceType.BaseType != null, interfaces => interfaces.Prepend(sourceType.BaseType!))
                     .SelectMany(allMetadataTypesFor);
                 foreach (var res in recRes)
                     if (res != typeof(TSupertype))
@@ -174,14 +177,16 @@ namespace BII.Utilities.Independent {
         /// Just collect all the values and pass them to the constructor.
         ///
         /// All you need to do is implement the single `getKeyFromEntry` method. There is nothing else to consider.
-        [MustBeSerializable][MustBeImmutable]
+        [Serializable][MustBeImmutable]
         public abstract class Immutable : WithQueries {
             [SerializeInSubclasses] private readonly ImmutableDictionary<Type, TValue> _data;
             protected override IReadOnlyDictionary<Type, TValue> data => _data;
             
-            protected Immutable(IEnumerable<TValue> entries) => _data = entries
-                .SelectMany(e => allMetadataTypesFor(getKeyFromEntry(e).GetType()).Select(t => (t, e)))
-                .ToImmutableDictionary();
+            protected Immutable(IEnumerable<TValue>? entries) => 
+                _data = entries?
+                    .SelectMany(e => allMetadataTypesFor(getKeyFromEntry(e).GetType()).Select(t => (t, e)))
+                    .ToImmutableDictionary() 
+                ?? ImmutableDictionary<Type, TValue>.Empty;
         }
 
         /// <inheritdoc cref="HierarchicalMetadata{TSupertype,TValue}"/>
@@ -191,7 +196,7 @@ namespace BII.Utilities.Independent {
         /// of `TSupertype`, when you query `T`, then there can be at most one unambiguous result.
         ///
         /// All you need to do is implement the single `getKeyFromEntry` method. There is nothing else to consider.
-        [MustBeSerializable]
+        [Serializable]
         public abstract class Mutable : WithQueries {
             [SerializeInSubclasses] private readonly Dictionary<Type, TValue> _data = new();
             

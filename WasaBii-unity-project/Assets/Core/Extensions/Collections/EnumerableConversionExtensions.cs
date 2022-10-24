@@ -60,14 +60,17 @@ namespace BII.WasaBii.Core {
         public static Queue<T> AsQueue<T>(this IEnumerable<T> source) =>
             source as Queue<T> ?? new Queue<T>(source);
         
-        public static T[] AsArray<T>(this IEnumerable<T> source)
-            => source as T[] ?? source.ToArray();
+        public static T[] AsArray<T>(this IEnumerable<T> source) => 
+            source as T[] ?? source.ToArray();
+        
+        public static ImmutableArray<T> AsImmutableArray<T>(this IEnumerable<T> source) => 
+            source is ImmutableArray<T> arr ? arr : source.ToImmutableArray();
 
-        public static ImmutableList<T> AsImmutableList<T>(this IEnumerable<T> source)
-            => source as ImmutableList<T> ?? source.ToImmutableList();
+        public static ImmutableList<T> AsImmutableList<T>(this IEnumerable<T> source) => 
+            source as ImmutableList<T> ?? source.ToImmutableList();
 
-        public static ImmutableHashSet<T> AsImmutableHashSet<T>(this IEnumerable<T> source)
-            => source as ImmutableHashSet<T> ?? source.ToImmutableHashSet();
+        public static ImmutableHashSet<T> AsImmutableHashSet<T>(this IEnumerable<T> source) => 
+            source as ImmutableHashSet<T> ?? source.ToImmutableHashSet();
 
         /// Always returns a new array with predefined size (as opposed to `ToArray()`)
         /// In a performance critical context, it is preferable to allocate a new array and fill it

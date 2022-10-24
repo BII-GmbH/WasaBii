@@ -7,35 +7,20 @@ namespace BII.WasaBii.Core {
     public static class EnumerableConversionExtensions {
         
         /// Wraps a single object into an enumerable
-        public static IEnumerable<T> WrapAsEnumerable<T>(this T item) {
-            yield return item;
-        }
+        public static IEnumerable<T> WrapAsEnumerable<T>(this T item) => 
+            new[] { item };
 
-        public static IEnumerable<T> ToEnumerable<T>(this (T, T) tuple) {
-            yield return tuple.Item1;
-            yield return tuple.Item2;
-        }
+        public static IEnumerable<T> ToEnumerable<T>(this (T, T) tuple) => 
+            new[] { tuple.Item1, tuple.Item2 };
 
-        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T) tuple) {
-            yield return tuple.Item1;
-            yield return tuple.Item2;
-            yield return tuple.Item3;
-        }
+        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T) tuple)  =>
+            new[] { tuple.Item1, tuple.Item2, tuple.Item3 };
         
-        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T, T) tuple) {
-            yield return tuple.Item1;
-            yield return tuple.Item2;
-            yield return tuple.Item3;
-            yield return tuple.Item4;
-        }
-        
-        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T, T, T) tuple) {
-            yield return tuple.Item1;
-            yield return tuple.Item2;
-            yield return tuple.Item3;
-            yield return tuple.Item4;
-            yield return tuple.Item5;
-        }
+        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T, T) tuple) =>
+            new[] { tuple.Item1, tuple.Item2, tuple.Item3, tuple.Item4 };
+
+        public static IEnumerable<T> ToEnumerable<T>(this (T, T, T, T, T) tuple) =>
+            new[] { tuple.Item1, tuple.Item2, tuple.Item3, tuple.Item4, tuple.Item5 };
         
         /// <summary>
         /// Tries to cast <paramref name="source"/> to a <see cref="IReadOnlyCollection{T}"/>.

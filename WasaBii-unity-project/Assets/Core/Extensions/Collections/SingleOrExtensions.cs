@@ -22,17 +22,19 @@ namespace BII.WasaBii.Core {
             Func<TSource, TResult> elseResultGetter
         ) {
             var enumerator = enumerable.GetEnumerator();
-            if (!enumerator.MoveNext()) return then(Enumerable.Empty<TSource>());
+            if (!enumerator.MoveNext()) {
+                enumerator.Dispose();
+                return then(Enumerable.Empty<TSource>());
+            }
 
             var single = enumerator.Current;
-
-            return enumerator.MoveNext() ? then(completeEnumerable()) : elseResultGetter(single);
             
-            IEnumerable<TSource> completeEnumerable() {
-                yield return single;
-                do yield return enumerator.Current;
-                while (enumerator.MoveNext());
-            }
+            if (!enumerator.MoveNext()) {
+                enumerator.Dispose();
+                return elseResultGetter(single);
+            } 
+                
+            return then(enumerator.RemainingToEnumerable());
         }
 
         public static void IfNotSingle<T>(
@@ -42,18 +44,15 @@ namespace BII.WasaBii.Core {
         ) {
             var enumerator = enumerable.GetEnumerator();
             if (!enumerator.MoveNext()) {
+                enumerator.Dispose();
                 thenDo?.Invoke(Enumerable.Empty<T>());
             } else {
                 var single = enumerator.Current;
 
-                if (enumerator.MoveNext()) thenDo?.Invoke(completeEnumerable());
-                else elseDo?.Invoke(single);
-                
-                IEnumerable<T> completeEnumerable() {
-                    yield return single;
-                    do yield return enumerator.Current;
-                    while (enumerator.MoveNext());
-                }
+                if (!enumerator.MoveNext()) {
+                    enumerator.Dispose();
+                    elseDo?.Invoke(single);
+                } else thenDo?.Invoke(enumerator.RemainingToEnumerable());
             }
         }
         

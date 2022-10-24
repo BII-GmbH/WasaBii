@@ -29,14 +29,13 @@ namespace BII.WasaBii.Core {
                 return collection.Count > 0 ? then(collection) : elseResultGetter();
             
             var enumerator = enumerable.GetEnumerator();
-            if (!enumerator.MoveNext()) return elseResultGetter();
             
-            IEnumerable<TSource> completeEnumerable() {
-                do yield return enumerator.Current;
-                while (enumerator.MoveNext());
+            if (!enumerator.MoveNext()) {
+                enumerator.Dispose();
+                return elseResultGetter();
             }
 
-            return then(completeEnumerable());
+            return then(enumerator.RemainingToEnumerable());
         }
 
         public static void IfNotEmpty<T>(
@@ -53,17 +52,16 @@ namespace BII.WasaBii.Core {
             var enumerator = enumerable.GetEnumerator();
             if (!enumerator.MoveNext()) {
                 elseDo?.Invoke();
+                enumerator.Dispose();
                 return;
             }
 
-            if (thenDo == null) return;
-
-            static IEnumerable<T> completeEnumerable(IEnumerator<T> enumerator) {
-                do yield return enumerator.Current;
-                while (enumerator.MoveNext());
+            if (thenDo == null) {
+                enumerator.Dispose();
+                return;
             }
 
-            thenDo(completeEnumerable(enumerator));
+            thenDo(enumerator.RemainingToEnumerable());
         }
 
     }

@@ -12,7 +12,7 @@ namespace BII.WasaBii.Core {
             if (!it.MoveNext()) 
                 throw new IndexOutOfRangeException("Cannot deconstruct enumerable: no elements remaining.");
             head = it.Current;
-            tail = it.remainingToEnumerable();
+            tail = it.RemainingToEnumerable();
         }
         
         /// Behaves like <see cref="Deconstruct{T}"/> except that it returns an option
@@ -23,7 +23,7 @@ namespace BII.WasaBii.Core {
                 it.MoveNext(),
                 // Only ever executed immediately iff the result has a value => The `.Dispose()` later on does not apply.
                 // ReSharper disable twice AccessToDisposedClosure
-                () => (it.Current, it.remainingToEnumerable())
+                () => (it.Current, it.RemainingToEnumerable())
             );
             if(!result.HasValue) it.Dispose();
             return result;
@@ -31,7 +31,7 @@ namespace BII.WasaBii.Core {
         
         /// All remaining elements of the enumerator as an enumerable.
         /// Disposes the consumed enumerator.
-        private static IEnumerable<T> remainingToEnumerable<T>(this IEnumerator<T> enumerator) {
+        public static IEnumerable<T> RemainingToEnumerable<T>(this IEnumerator<T> enumerator) {
             using var e = enumerator;
             while (e.MoveNext()) yield return e.Current;
         }

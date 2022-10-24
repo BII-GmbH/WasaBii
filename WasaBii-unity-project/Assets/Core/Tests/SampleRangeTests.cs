@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Core.Tests {
     
-    public class RangeTests {
+    public class SampleRangeTests {
 
         [Test]
         public void NegativeSampleCountThrows() {

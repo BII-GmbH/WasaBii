@@ -53,8 +53,7 @@ namespace BII.WasaBii.Core {
     }
 
     public static class SequenceEqualityListExtensions {
-        public static SequenceEqualityList<T> ToSequenceEqualityList<T>(this IEnumerable<T> enumerable) =>
-            new(enumerable);
+        public static SequenceEqualityList<T> ToSequenceEqualityList<T>(this IEnumerable<T> enumerable) => new(enumerable);
     }
 
 }

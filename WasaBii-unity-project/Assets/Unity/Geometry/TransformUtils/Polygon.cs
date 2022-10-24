@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
-using UnityEngine;
 
 namespace BII.WasaBii.Unity.Geometry {
     
@@ -17,10 +16,8 @@ namespace BII.WasaBii.Unity.Geometry {
         public readonly SequenceEqualityList<LocalPosition> Vertices;
         
         /// <param name="vertices">Must be planar and in clockwise order.</param>
+        /// <remarks>Passing a <see cref="ImmutableArray{LocalPosition}"/> avoids unnecessary allocations.</remarks>
         public Polygon(IEnumerable<LocalPosition> vertices) => Vertices = vertices.ToSequenceEqualityList();
-        
-        /// <param name="vertices">Must be planar and in clockwise order.</param>
-        public Polygon(ImmutableArray<LocalPosition> vertices) => Vertices = vertices.ToSequenceEqualityList();
 
         public bool Equals(Polygon other) => other != null && Equals(Vertices, other.Vertices);
         public override bool Equals(object obj) => ReferenceEquals(this, obj) || obj is Polygon other && Equals(other);

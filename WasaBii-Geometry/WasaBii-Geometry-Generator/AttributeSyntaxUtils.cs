@@ -5,7 +5,7 @@ namespace WasaBii_Geometry_Generator;
 // Modified copy of https://stackoverflow.com/a/70486194
 public static class AttributeSyntaxUtils {
     
-    public sealed record NameTypeAndValue(string Name, string TypeFullName, object Value);
+    public sealed record NameTypeAndValue(string Name, string? TypeFullName, object Value);
 
     // Converts names like `string` to `System.String`
     private static string GetTypeFullName(this ITypeSymbol typeSymbol) =>
@@ -29,8 +29,8 @@ public static class AttributeSyntaxUtils {
             .Select(argument => 
                 new NameTypeAndValue(
                     argument.Item1,
-                    argument.Item2.Type.GetTypeFullName(),
-                    argument.Item2.Value
+                    argument.Item2.Type?.GetTypeFullName(),
+                    argument.Item2.Value!
                 )
             );
     }

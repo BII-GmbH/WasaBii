@@ -1,12 +1,12 @@
 ﻿namespace WasaBii.Geometry.Shared;
 
+public enum FieldType {
+    Float, Double, Length, Other
+}
+
 [AttributeUsage(AttributeTargets.Struct)]
 public sealed class GeometryHelper : Attribute {
 
-    public enum BaseType {
-        Float, Double, Length
-    }
-    
     /// <summary>
     /// Whether the fields are independent from each other, i.e.
     /// you can freely edit one without the object becoming invalid.
@@ -14,19 +14,25 @@ public sealed class GeometryHelper : Attribute {
     public readonly bool AreFieldsIndependent;
     
     /// <summary>
-    /// Whether the object consists pure.
-    /// This defines whether functions like `Dot` will be generated.
+    /// If not <see cref="Other"/>, functions like `Dot` will be generated. Non-null values are only valid if **all** fields
+    /// actually have that type.
     /// </summary>
-    public readonly bool IsBasic;
+    public readonly FieldType FieldType;
     
     /// <summary>
-    /// Whether the object represents something that has a magnitude. Only valid if <see cref="IsBasic"/> is true-
+    /// Whether the object represents something that has a magnitude. Only valid if <see cref="FieldType"/> it not <see cref="FieldType.Other"/>.
     /// </summary>
     public readonly bool HasMagnitude;
 
-    public GeometryHelper(bool areFieldsIndependent, bool isBasic, bool hasMagnitude) {
+    /// <summary>
+    /// Whether the object represents something that is directional. Only valid if <see cref="FieldType"/> it not <see cref="FieldType.Other"/>.
+    /// </summary>
+    public readonly bool HasDirection;
+
+    public GeometryHelper(bool areFieldsIndependent, FieldType fieldType, bool hasMagnitude, bool hasDirection) {
         AreFieldsIndependent = areFieldsIndependent;
-        IsBasic = isBasic;
+        FieldType = fieldType;
         HasMagnitude = hasMagnitude;
+        HasDirection = hasDirection;
     }
 }

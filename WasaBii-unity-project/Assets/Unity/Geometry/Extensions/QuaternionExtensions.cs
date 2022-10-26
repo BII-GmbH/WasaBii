@@ -15,6 +15,10 @@ namespace BII.WasaBii.Unity.Geometry {
             => !(float.IsNaN(quaternion.x) || float.IsNaN(quaternion.y) || float.IsNaN(quaternion.z) || float.IsNaN(quaternion.w)) 
                && (quaternion.x.Sqr() + quaternion.y.Sqr() + quaternion.z.Sqr() + quaternion.w.Sqr()).IsNearly(1);
 
+        public static Quaternion LerpTo(
+            this Quaternion from, Quaternion to, float progress, bool shouldClamp = true
+        ) => shouldClamp ? Quaternion.Lerp(from, to, progress) : Quaternion.LerpUnclamped(from, to, progress);
+
     }
     
 }

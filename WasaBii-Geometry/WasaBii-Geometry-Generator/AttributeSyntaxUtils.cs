@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace WasaBii_Geometry_Generator; 
+namespace BII.WasaBii.Geometry.Generator;
 
 // Modified copy of https://stackoverflow.com/a/70486194
 public static class AttributeSyntaxUtils {

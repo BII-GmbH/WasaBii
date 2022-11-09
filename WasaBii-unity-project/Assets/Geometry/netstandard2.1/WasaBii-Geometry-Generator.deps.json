@@ -7,15 +7,14 @@
   "targets": {
     ".NETStandard,Version=v2.1": {},
     ".NETStandard,Version=v2.1/": {
-      "WasaBii-Units-Generator/1.0.0": {
+      "WasaBii-Geometry-Generator/1.0.0": {
         "dependencies": {
           "Microsoft.CodeAnalysis.CSharp.CodeStyle": "3.9.0",
           "Microsoft.CodeAnalysis.CSharp.Features": "3.9.0",
-          "Newtonsoft.Json": "13.0.1",
-          "WasaBii-Units-Shared": "1.0.0"
+          "Newtonsoft.Json": "13.0.1"
         },
         "runtime": {
-          "WasaBii-Units-Generator.dll": {}
+          "WasaBii-Geometry-Generator.dll": {}
         }
       },
       "Humanizer.Core/2.2.0": {
@@ -1376,16 +1375,11 @@
             "fileVersion": "4.6.24705.1"
           }
         }
-      },
-      "WasaBii-Units-Shared/1.0.0": {
-        "runtime": {
-          "WasaBii-Units-Shared.dll": {}
-        }
       }
     }
   },
   "libraries": {
-    "WasaBii-Units-Generator/1.0.0": {
+    "WasaBii-Geometry-Generator/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -2082,11 +2076,6 @@
       "sha512": "sha512-5zJ0XDxAIg8iy+t4aMnQAu0MqVbqyvfoUVl1yDV61xdo3Vth45oA2FoY4pPkxYAH5f8ixpmTqXeEIya95x0aCQ==",
       "path": "system.xml.xdocument/4.3.0",
       "hashPath": "system.xml.xdocument.4.3.0.nupkg.sha512"
-    },
-    "WasaBii-Units-Shared/1.0.0": {
-      "type": "project",
-      "serviceable": false,
-      "sha512": ""
     }
   }
 }

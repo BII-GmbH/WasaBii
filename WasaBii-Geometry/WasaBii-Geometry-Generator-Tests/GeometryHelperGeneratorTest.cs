@@ -4,11 +4,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using BII.WasaBii.Geometry.Generator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
-using WasaBii.Geometry.Shared;
 
 namespace BII.WasaBii.UnitSystem;
 
@@ -39,7 +39,10 @@ using WasaBii.Geometry.Shared;
 using static WasaBii.Geometry.Shared.FieldType;
 
 namespace BII.WasaBii.Unity.Geometry {
-    [GeometryHelper(areFieldsIndependent: false, fieldType: Other, hasMagnitude: false, hasDirection: false)]
+
+    public struct Length { }
+
+    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Other, hasMagnitude: false, hasDirection: false)]
     public readonly partial struct GlobalRotation2 {
         public readonly Quaternion AsQuaternion;
     }
@@ -55,7 +58,7 @@ namespace BII.WasaBii.Unity.Geometry {
         public Length test() => Magnitude;
     }
 
-    [GeometryHelper(areFieldsIndependent: false, FieldType.Double, hasMagnitude: false, hasDirection: true)]
+    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Double, hasMagnitude: false, hasDirection: true)]
     public readonly partial struct GlobalDirection2 {
         public readonly double X, Y, Z;
     }

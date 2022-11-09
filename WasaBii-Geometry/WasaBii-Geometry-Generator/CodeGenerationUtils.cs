@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace BII.WasaBii.UnitSystem; 
+namespace BII.WasaBii.Geometry.Generator;
 
 using static SyntaxFactory;
 

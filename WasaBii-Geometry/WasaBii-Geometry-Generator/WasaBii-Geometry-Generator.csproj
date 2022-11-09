@@ -9,11 +9,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <OutputPath>..\..\WasaBii-unity-project\Assets\Unity\Geometry\TransformUtils\GeometryUtils\</OutputPath>
+    <OutputPath>..\..\WasaBii-unity-project\Assets\Geometry\</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <OutputPath>..\..\WasaBii-unity-project\Assets\Unity\Geometry\TransformUtils\GeometryUtils\</OutputPath>
+    <OutputPath>..\..\WasaBii-unity-project\Assets\Geometry\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,16 +23,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.9.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\WasaBii-Geometry-Shared\WasaBii-Geometry-Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\WasaBii-unity-project\Library\PackageCache\com.unity.nuget.newtonsoft-json@3.0.2\Runtime\Newtonsoft.Json.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="b1cf5f61-419c-4222-804b-ec256bfca407" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Shared/FieldType.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Extra/GeometryUtils.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Extra/GeometryUtils/netstandard2.1.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Generator-Tests/GeometryHelperGeneratorTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Generator-Tests/GeometryHelperGeneratorTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Generator/GeometryHelperGenerator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Generator/GeometryHelperGenerator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Generator/WasaBii-Geometry-Generator.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Generator/WasaBii-Geometry-Generator.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Shared/GeometryHelper.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Shared/GeometryHelper.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Shared/WasaBii-Geometry-Shared.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-Geometry/WasaBii-Geometry-Shared/WasaBii-Geometry-Shared.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/Test.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/Test.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/netstandard2.1.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/netstandard2.1/WasaBii-Geometry-Generator.deps.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/netstandard2.1/WasaBii-Geometry-Generator.deps.json.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/netstandard2.1/WasaBii-Geometry-Generator.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/netstandard2.1/WasaBii-Geometry-Generator.dll.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/netstandard2.1/WasaBii-Geometry-Shared.deps.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/netstandard2.1/WasaBii-Geometry-Shared.deps.json.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/netstandard2.1/WasaBii-Geometry-Shared.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/GeometryUtils/netstandard2.1/WasaBii-Geometry-Shared.dll.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/VectorLike.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/Geometry/TransformUtils/VectorLike.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/WasaBii-Unity.asmdef" beforeDir="false" afterPath="$PROJECT_DIR$/../../WasaBii-unity-project/Assets/Unity/WasaBii-Unity.asmdef" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProjectId" id="2HJ8RZ0N0bW4YAC8eRVJS5KWcXd" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b1cf5f61-419c-4222-804b-ec256bfca407" name="Changes" comment="" />
+      <created>1667991819111</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1667991819111</updated>
+      <workItem from="1667991822664" duration="3000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
+  <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+</project>

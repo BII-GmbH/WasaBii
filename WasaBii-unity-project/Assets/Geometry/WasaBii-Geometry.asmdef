@@ -1,19 +1,16 @@
 {
-    "name": "WasaBii-Unity",
-    "rootNamespace": "BII.WasaBii.Unity",
+    "name": "WasaBii-Geometry",
+    "rootNamespace": "BII.WasaBii.Geometry",
     "references": [
         "WasaBii-Core",
-        "WasaBii-Splines",
-        "WasaBii-Units",
-        "WasaBii-Geometry"
+        "WasaBii-Units"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [
-        "WasaBii-Geometry-Shared.dll",
-        "WasaBii-Units-Shared.dll"
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

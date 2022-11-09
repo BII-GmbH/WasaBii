@@ -1,5 +1,5 @@
 ﻿using System;
-using JetBrains.Annotations;
+using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using Quaternion = System.Numerics.Quaternion;
 using Vector3 = System.Numerics.Vector3;
@@ -76,11 +76,15 @@ namespace BII.WasaBii.UnitSystem {
         public static Angle Atan(Length opposite, Length adjacent) => Atan(opposite / adjacent);
         public static Angle Atan2(Length opposite, Length adjacent) => Atan2(opposite.SiValue, adjacent.SiValue);
         
+#if UNITY_5_3_OR_NEWER
+        
         // Caution: the System.Numerics.Quaternion functions expect angles to
         // be given in radians while the Unity equivalent expects degrees.
         // Also, it doesn't normalize the axis for you while Unity does.
         [Pure] public static Quaternion WithAxis(this Angle angle, Vector3 axis) => 
             Quaternion.CreateFromAxisAngle(Vector3.Normalize(axis), (float) angle.AsRadians());
+
+#endif
         
         public static bool IsInsideInterval(this Angle angle, Angle min, Angle max) {
             min = min.Normalized360();

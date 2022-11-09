@@ -3,21 +3,16 @@ using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Text;
-using Newtonsoft.Json;
-using WasaBii_Geometry_Generator;
-using WasaBii.Geometry.Shared;
 
-namespace BII.WasaBii.UnitSystem;
+namespace BII.WasaBii.Geometry.Generator;
 
 using static SyntaxFactory;
 using static SyntaxFactoryUtils;
 
 [Generator]
-public sealed class GeometryHelperGenerator : ISourceGenerator {
+public class GeometryHelperGenerator : ISourceGenerator {
     
     private static readonly DiagnosticDescriptor UnexpectedGenerationIssue = new(
         id: "WasaBiiGeometryHelpers",
@@ -35,7 +30,7 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
         // Ensure proper printing of decimal constants as valid C# code
         var origCulture = Thread.CurrentThread.CurrentCulture;
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-
+        
         var workspace = new AdhocWorkspace();
         
         try {
@@ -50,10 +45,12 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
                 var attributeArguments = attributeData.GetArgumentValues().ToArray();
                 
                 var areFieldsIndependent = (bool) attributeArguments.First(a => a.Name == "areFieldsIndependent").Value;
-                var fieldType = (FieldType) attributeArguments.First(a => a.Name == "fieldType").Value;
+                // For some reason, code generation will just silently die if I use `FieldType` as variable type.
+                // As long as it's temporary variables only, it seems to work :shrug:
+                var fieldType = (int) attributeArguments.First(a => a.Name == "fieldType").Value;
                 var hasMagnitude = (bool) attributeArguments.First(a => a.Name == "hasMagnitude").Value;
                 var hasDirection = (bool) attributeArguments.First(a => a.Name == "hasDirection").Value;
-
+        
                 var allMembers = new List<MemberDeclarationSyntax> {mkConstructor(typeDecl, allFields)};
                 if (areFieldsIndependent) {
                     allMembers.AddRange(mkMapAndScale(typeDecl, allFields, hasMagnitude));
@@ -62,14 +59,14 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
                     allMembers.Add(mkLerp(typeDecl, allFields));
                 }
                 
-                if(fieldType is not FieldType.Other){
+                if((FieldType) fieldType is not FieldType.Other){
                     allMembers.Add(mkDotProduct(typeDecl, allFields.Select(f => f.variable), fieldType));
-
+                
                     if (hasMagnitude) {
                         allMembers.Add(mkSqrMagnitude(allFields.Select(f => f.variable), fieldType));
                         allMembers.Add(mkMagnitude(fieldType));
                     }
-
+                
                     if (hasDirection) {
                         allMembers.Add(mkAngleTo(typeDecl, allFields.Select(f => f.variable), hasMagnitude));
                     }
@@ -87,7 +84,6 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
                 
                 var root = Formatter.Format(result.WrapInParentsOf(typeDecl), workspace);
                 var sourceText = root.GetText(Encoding.UTF8);
-
                 context.AddSource(
                     $"{typeDecl.Identifier.Text}.g.cs",
                     sourceText
@@ -214,25 +210,25 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
         }
     }
 
-    private static TypeSyntax typeFor(FieldType fieldType) => fieldType switch {
-        FieldType.Float => PredefinedType(Token(SyntaxKind.FloatKeyword)),
-        FieldType.Double => PredefinedType(Token(SyntaxKind.DoubleKeyword)),
-        FieldType.Length => IdentifierName("Length"),
-        _ => throw new InvalidEnumArgumentException(nameof(fieldType), (int)fieldType, typeof(TypeSyntax))
+    private static TypeSyntax typeFor(int fieldType) => fieldType switch {
+        (int) FieldType.Float => PredefinedType(Token(SyntaxKind.FloatKeyword)),
+        (int) FieldType.Double => PredefinedType(Token(SyntaxKind.DoubleKeyword)),
+        (int) FieldType.Length => IdentifierName("Length"),
+        _ => throw new InvalidEnumArgumentException($"{fieldType} is no valid value for {nameof(fieldType)}")
     };
     
-    private static TypeSyntax squareTypeFor(FieldType fieldType) => fieldType switch {
-        FieldType.Float => PredefinedType(Token(SyntaxKind.FloatKeyword)),
-        FieldType.Double => PredefinedType(Token(SyntaxKind.DoubleKeyword)),
-        FieldType.Length => IdentifierName("Area"),
-        _ => throw new InvalidEnumArgumentException(nameof(fieldType), (int)fieldType, typeof(TypeSyntax))
+    private static TypeSyntax squareTypeFor(int fieldType) => fieldType switch {
+        (int) FieldType.Float => PredefinedType(Token(SyntaxKind.FloatKeyword)),
+        (int) FieldType.Double => PredefinedType(Token(SyntaxKind.DoubleKeyword)),
+        (int) FieldType.Length => IdentifierName("Area"),
+        _ => throw new InvalidEnumArgumentException($"{fieldType} is no valid value for {nameof(fieldType)}")
     };
     
     /// Assumes all fields are `Length`s
     private MemberDeclarationSyntax mkDotProduct(
         TypeDeclarationSyntax typeDecl,
         IEnumerable<VariableDeclaratorSyntax> fields,
-        FieldType fieldType
+        int fieldType // Should be `FieldType`
     ) => MethodDeclaration(squareTypeFor(fieldType), Identifier("Dot"))
         .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
         .WithAttributeLists(AttributeList(Pure))
@@ -246,7 +242,7 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
     /// Assumes all fields are `Length`s
     private MemberDeclarationSyntax mkSqrMagnitude(
         IEnumerable<VariableDeclaratorSyntax> fields,
-        FieldType fieldType
+        int fieldType // Should be `FieldType`
     ) => PropertyDeclaration(
         attributeLists: AttributeList(Pure),
         modifiers: TokenList(Token(SyntaxKind.PublicKeyword)),
@@ -263,7 +259,9 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
     );
     
     /// Assumes `SqrMagnitude` exists
-    private MemberDeclarationSyntax mkMagnitude(FieldType fieldType) => 
+    private MemberDeclarationSyntax mkMagnitude(
+        int fieldType // Should be `FieldType`
+    ) => 
         PropertyDeclaration(
             attributeLists: AttributeList(Pure),
             modifiers: TokenList(Token(SyntaxKind.PublicKeyword)),
@@ -272,20 +270,20 @@ public sealed class GeometryHelperGenerator : ISourceGenerator {
             identifier: Identifier("Magnitude"),
             accessorList: null,
             expressionBody: ArrowExpressionClause(fieldType switch {
-                FieldType.Float => InvocationExpression(
+                (int)FieldType.Float => InvocationExpression(
                     MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         IdentifierName("Mathf"), IdentifierName("Sqrt")),
                     ArgumentList(Argument(IdentifierName("SqrMagnitude")))),
-                FieldType.Double => InvocationExpression(
+                (int)FieldType.Double => InvocationExpression(
                     MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         IdentifierName("Math"), IdentifierName("Sqrt")),
                     ArgumentList(Argument(IdentifierName("SqrMagnitude")))),
-                FieldType.Length => MemberAccessExpression(
+                (int)FieldType.Length => MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    IdentifierName("SqrMagnitude"), IdentifierName("Sqrt")),
-                _ => throw new InvalidEnumArgumentException(nameof(fieldType), (int)fieldType, typeof(FieldType))
+                    IdentifierName("SqrMagnitude"), IdentifierName("Sqrt")), 
+                _ => throw new InvalidEnumArgumentException($"{fieldType} is no valid value for {nameof(fieldType)}")
             }),
             initializer: null,
             Token(SyntaxKind.SemicolonToken)

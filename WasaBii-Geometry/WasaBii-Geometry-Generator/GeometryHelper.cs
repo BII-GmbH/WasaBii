@@ -1,4 +1,4 @@
-﻿namespace WasaBii.Geometry.Shared;
+﻿namespace BII.WasaBii.Geometry.Generator;
 
 [AttributeUsage(AttributeTargets.Struct)]
 public sealed class GeometryHelper : Attribute {

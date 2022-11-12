@@ -21,7 +21,6 @@ public class UnitGenerator : ISourceGenerator {
     public void Initialize(GeneratorInitializationContext context) { }
 
     public void Execute(GeneratorExecutionContext context) {
-        
         // Ensure proper printing of decimal constants as valid C# code
         var origCulture = Thread.CurrentThread.CurrentCulture;
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
@@ -48,6 +47,10 @@ public class UnitGenerator : ISourceGenerator {
                     $"{fileName}.g.cs",
                     source
                 );
+                context.AddSource(
+                    $"{fileName}PropertyDrawer.g.cs",
+                    GeneratePropertyDrawerSourceFor(unitDef)
+                );
             }
 
         }
@@ -58,7 +61,6 @@ public class UnitGenerator : ISourceGenerator {
             Thread.CurrentThread.CurrentCulture = origCulture;
         }
     }
-
     private static SourceText GenerateSourceFor(UnitDefinitions unitDef, UnitConversions conversions) {
         var unitsInclude = unitDef.Namespace.Equals("BII.WasaBii.UnitSystem") ? "" : "using BII.WasaBii.UnitSystem;\n";
         var res = $@"
@@ -75,6 +77,34 @@ using System.Collections.Generic;
 {string.Join("\n\n", unitDef.DivUnits.Select(d => UnitCodeGeneration.GenerateDerivedUnit(d, conversions, isMul: false)))}
 ";
         
+        return SourceText.From(
+            InNamespace(res, unitDef.Namespace), 
+            Encoding.UTF8
+        );
+    }
+
+    private static SourceText GeneratePropertyDrawerSourceFor(UnitDefinitions unitDef) {
+        var unitsInclude = unitDef.Namespace.Equals("BII.WasaBii.UnitSystem") ? "" : "using BII.WasaBii.UnitSystem;\n";
+
+        string makeDawerFor(IUnitDef unit) => $@"
+[CustomPropertyDrawer(typeof(UnitValueProxy<{unit.TypeName}>))]
+public sealed class {unit.TypeName}Editor : ValueWithUnitEditor<{unit.TypeName}, {unit.TypeName}.Unit> {{
+    protected override IUnitDescription<{unit.TypeName}.Unit> description =>
+        new {unit.TypeName}.Unit.Description();
+}}
+";
+        
+        var res = @$"
+#if UNITY_EDITOR
+
+using UnityEditor;
+using BII.WasaBii.Unity;
+using BII.WasaBii.Unity.Editor;
+{unitsInclude}
+
+{string.Join("", unitDef.BaseUnits.OfType<IUnitDef>().Concat(unitDef.DivUnits).Concat(unitDef.MulUnits).Select(makeDawerFor))}
+
+#endif";
         return SourceText.From(
             InNamespace(res, unitDef.Namespace), 
             Encoding.UTF8

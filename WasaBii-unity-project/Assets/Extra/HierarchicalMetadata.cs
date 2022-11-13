@@ -33,7 +33,7 @@ namespace BII.Utilities.Independent {
     //
     // But for some cases, this simple implementation does not suffice.
     // Sometimes, your metadata values aren't just instances of `T : TSupertype`.
-    // Instead, they may include additional data, e.g. some tags or a `Requirement<T>` that produced the metadata.
+    // Instead, they may include additional data, e.g. some tags or some factory that produced the metadata.
     // For these cases, there is a more abstract version of `HierarchicalMetadata<TSupertype, TValue>`.
     // You still query with subtypes of `TSupertype`, but the values you get are actually of type `TValue`.
     //
@@ -179,9 +179,10 @@ namespace BII.Utilities.Independent {
         /// All you need to do is implement the single `getKeyFromEntry` method. There is nothing else to consider.
         [Serializable][MustBeImmutable]
         public abstract class Immutable : WithQueries {
-            [SerializeInSubclasses] private readonly ImmutableDictionary<Type, TValue> _data;
+            private readonly ImmutableDictionary<Type, TValue> _data;
             protected override IReadOnlyDictionary<Type, TValue> data => _data;
             
+            // Note CR: Nullable so that this will work properly with e.g. JSON serialization without much boilerplate
             protected Immutable(IEnumerable<TValue>? entries) => 
                 _data = entries?
                     .SelectMany(e => allMetadataTypesFor(getKeyFromEntry(e).GetType()).Select(t => (t, e)))
@@ -198,7 +199,7 @@ namespace BII.Utilities.Independent {
         /// All you need to do is implement the single `getKeyFromEntry` method. There is nothing else to consider.
         [Serializable]
         public abstract class Mutable : WithQueries {
-            [SerializeInSubclasses] private readonly Dictionary<Type, TValue> _data = new();
+            private readonly Dictionary<Type, TValue> _data = new();
             
             // Note CR: As a possible optimization (depending on usage patterns),
             // we could just cache the whole hierarchy for each type, instead of just the (lowest) source type

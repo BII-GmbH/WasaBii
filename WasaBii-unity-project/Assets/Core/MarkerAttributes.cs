@@ -1,12 +1,6 @@
 using System;
 
 namespace BII.WasaBii.Core {
-    
-    [AttributeUsage(
-        AttributeTargets.Field,
-        AllowMultiple = false
-    )]
-    public class SerializeInSubclassesAttribute : Attribute { }
         
     /// <summary>
     /// Ensures that a type and all of its derived types is *immutable*,

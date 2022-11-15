@@ -12,25 +12,25 @@ using UnityEngine;
 namespace BII.WasaBii.Unity.Editor {
 
     /// <summary>
-    /// The base class for all <see cref="UnitValueProxy{TValue}"/> <see cref="PropertyDrawer"/>s. The
+    /// The base class for all <see cref="TUnitValue"/> <see cref="PropertyDrawer"/>s. The
     /// drawers for auto-generated unit value types are also auto-generated to inherit this.
     /// </summary>
-    public abstract class ValueWithUnitEditor<V, U> : PropertyDrawer 
-    where U : IUnit
-    where V : struct, IUnitValue<V, U> {
+    public abstract class ValueWithUnitEditor<TUnitValue, TUnit> : PropertyDrawer 
+    where TUnit : IUnit
+    where TUnitValue : struct, IUnitValue<TUnitValue, TUnit> {
         
         // For each unit type, the last selected unit (eg m vs km) is cached and displayed the next time an
         // editor of this unit type ist drawn
         private static readonly Dictionary<Type, int> _unitIndices = new();
 
-        protected abstract IUnitDescription<U> description { get; }
+        protected abstract IUnitDescription<TUnit> description { get; }
 
         private int unitIndex { 
             get => _unitIndices.GetOrAdd(
-                typeof(U),
+                typeof(TUnit),
                 () => description.AllUnits.ToList().IndexOf(description.SiUnit)
             );
-            set => _unitIndices[typeof(U)] = value; 
+            set => _unitIndices[typeof(TUnit)] = value; 
         }
 
         private const string serializedPropertyName = "_siValue";
@@ -40,7 +40,7 @@ namespace BII.WasaBii.Unity.Editor {
             EditorGUI.LabelField(position, label);
 
             property = property.FindPropertyRelative(serializedPropertyName);
-            var value = new UnitValueProxy<V>(siValue: property.doubleValue);
+            var value = new TUnitValue{SiValue = property.doubleValue};
             var newValue = unitField(label, value, position);
             if (Math.Abs(newValue.SiValue - value.SiValue) > double.Epsilon) {
                 Undo.RecordObject(property.serializedObject.targetObject, property.name);
@@ -50,7 +50,7 @@ namespace BII.WasaBii.Unity.Editor {
             EditorGUI.EndProperty();
         }
 
-        private UnitValueProxy<V> unitField(GUIContent label, UnitValueProxy<V> value, Rect position) {
+        private TUnitValue unitField(GUIContent label, TUnitValue value, Rect position) {
             position.height = EditorGUIUtility.singleLineHeight;
             var xMin = position.xMin;
             var popupWidth = position.width / 8;
@@ -61,8 +61,8 @@ namespace BII.WasaBii.Unity.Editor {
             position.xMin = xMin;
             position.xMax = xMax;
             var unit = description.AllUnits[unitIndex];
-            var newValue = Math.Max(0, EditorGUI.DoubleField(position, label, value.Value.As(unit)));
-            return new UnitValueProxy<V>(siValue: newValue * unit.SiFactor);
+            var newValue = Math.Max(0, EditorGUI.DoubleField(position, label, value.As(unit)));
+            return new TUnitValue{SiValue = newValue * unit.SiFactor};
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => EditorGUIUtility.singleLineHeight;

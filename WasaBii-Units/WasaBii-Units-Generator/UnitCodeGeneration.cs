@@ -8,12 +8,24 @@ public static class UnitCodeGeneration {
         var name = unit.TypeName;
         return $@"#region {name}
 
-[Serializable]
-public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
-    public double SiValue {{ init; get; }}
+// Non-readonly because units are designed to be serializable by Unity and Unity doesn't like readonly fields.
+// We ignore this for immutability validation since the struct is only ever truly mutable when the field it lives
+// in isn't `readonly`. This case will still be caught by the validation.
+[Serializable] [__IgnoreMustBeImmutable]
+public partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
+    
+    #if UNITY_2022_1_OR_NEWER
+    [SerializeField]
+    #endif
+    private double _siValue;
+
+    public double SiValue {{ 
+        init => _siValue = value; 
+        get => _siValue;
+    }}
     public Type UnitType => typeof(Unit);
     
-    public {name}(double value, Unit unit) => SiValue = value * unit.SiFactor;
+    public {name}(double value, Unit unit) => _siValue = value * unit.SiFactor;
 
     public static {name} Zero => new {name}{{SiValue = 0}};
     public static {name} Epsilon => new {name}{{SiValue = double.Epsilon}};

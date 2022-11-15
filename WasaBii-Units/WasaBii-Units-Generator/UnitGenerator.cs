@@ -93,7 +93,7 @@ using UnityEngine;
     private static SourceText GeneratePropertyDrawerSourceFor(UnitDefinitions unitDef) {
         var unitsInclude = unitDef.Namespace.Equals("BII.WasaBii.UnitSystem") ? "" : "using BII.WasaBii.UnitSystem;\n";
 
-        string makeDawerFor(IUnitDef unit) => $@"
+        string makeDrawerFor(IUnitDef unit) => $@"
 [CustomPropertyDrawer(typeof({unit.TypeName}))]
 public sealed class {unit.TypeName}Editor : ValueWithUnitEditor<{unit.TypeName}, {unit.TypeName}.Unit> {{
     protected override IUnitDescription<{unit.TypeName}.Unit> description =>
@@ -103,11 +103,9 @@ public sealed class {unit.TypeName}Editor : ValueWithUnitEditor<{unit.TypeName},
         
         var res = @$"
 using UnityEditor;
-using BII.WasaBii.Unity;
-using BII.WasaBii.Unity.Editor;
 {unitsInclude}
 
-{string.Join("", unitDef.BaseUnits.OfType<IUnitDef>().Concat(unitDef.DivUnits).Concat(unitDef.MulUnits).Select(makeDawerFor))}";
+{string.Join("", unitDef.BaseUnits.Cast<IUnitDef>().Concat(unitDef.DivUnits).Concat(unitDef.MulUnits).Select(makeDrawerFor))}";
         return SourceText.From(
             InNamespace(res, unitDef.Namespace), 
             Encoding.UTF8

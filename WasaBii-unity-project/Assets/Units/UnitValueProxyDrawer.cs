@@ -9,7 +9,7 @@ using BII.WasaBii.UnitSystem;
 using UnityEditor;
 using UnityEngine;
 
-namespace BII.WasaBii.Unity.Editor {
+namespace BII.WasaBii.UnitSystem {
 
     /// <summary>
     /// The base class for all <see cref="TUnitValue"/> <see cref="PropertyDrawer"/>s. The
@@ -56,7 +56,9 @@ namespace BII.WasaBii.Unity.Editor {
             var popupWidth = position.width / 8;
             position.xMin = position.xMax - popupWidth;
             position.width = popupWidth;
-            unitIndex = EditorGUI.Popup(position, unitIndex, description.AllUnits.Select(u => u.ShortName).ToArray());
+            // Unity automatically treats slashes in the popup options as a sign to generate sub-menus, so we
+            // replace it with another unicode fraction slash character. :mad_sob:
+            unitIndex = EditorGUI.Popup(position, unitIndex, description.AllUnits.Select(u => u.ShortName.Replace("/", "∕")).ToArray());
             var xMax = position.xMin;
             position.xMin = xMin;
             position.xMax = xMax;

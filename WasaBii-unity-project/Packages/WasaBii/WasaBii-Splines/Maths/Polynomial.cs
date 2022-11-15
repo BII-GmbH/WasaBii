@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 
-[assembly:InternalsVisibleTo("WasaBii-Splines-Tests")]
+[assembly:InternalsVisibleTo("WasaBii.Splines.Editor.Tests")]
 
 namespace BII.WasaBii.Splines.Maths {
 

@@ -1,10 +1,10 @@
 {
-    "name": "WasaBii-Unity",
-    "rootNamespace": "BII.WasaBii.Unity",
+    "name": "WasaBii.Extra",
+    "rootNamespace": "BII.WasaBii.Extra",
     "references": [
-        "WasaBii-Core",
-        "WasaBii-Splines",
-        "WasaBii-Units"
+        "WasaBii.Core",
+        "WasaBii.Units",
+        "WasaBii.Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

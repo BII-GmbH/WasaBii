@@ -1,10 +1,8 @@
 ﻿{
-  "name": "WasaBii-Core-ConventionValidation-Editor",
-  "rootNamespace": "BII.WasaBii",
+  "name": "WasaBii.Core.Editor.Tests",
+  "rootNamespace": "BII.WasaBii.Core.Tests",
   "references": [
-    "WasaBii-Core-ConventionValidation",
-    "WasaBii-Unity",
-    "WasaBii-Core"
+    "WasaBii.Core"
   ],
   "includePlatforms": [
     "Editor"
@@ -14,7 +12,9 @@
   "overrideReferences": false,
   "precompiledReferences": [],
   "autoReferenced": true,
-  "defineConstraints": [],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
   "versionDefines": [],
   "noEngineReferences": false
 }

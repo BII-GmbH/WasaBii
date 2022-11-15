@@ -1,8 +1,9 @@
 {
-    "name": "WasaBii-Undo",
-    "rootNamespace": "BII.WasaBii.Undo",
+    "name": "WasaBii.Core.ConventionValidation",
+    "rootNamespace": "BII.WasaBii",
     "references": [
-        "WasaBii-Core"
+        "WasaBii.Splines",
+        "WasaBii.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -12,5 +13,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true
+    "noEngineReferences": false
 }

@@ -1,9 +1,8 @@
 {
-    "name": "WasaBii-Splines",
-    "rootNamespace": "BII.WasaBii.Splines",
+    "name": "WasaBii.Undo",
+    "rootNamespace": "BII.WasaBii.Undo",
     "references": [
-        "WasaBii-Core",
-        "WasaBii-Units"
+        "WasaBii.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

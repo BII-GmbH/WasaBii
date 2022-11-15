@@ -1,5 +1,5 @@
 {
-    "name": "WasaBii-Core",
+    "name": "WasaBii.Core",
     "rootNamespace": "BII.WasaBii.Core",
     "references": [],
     "includePlatforms": [],

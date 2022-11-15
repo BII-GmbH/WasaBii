@@ -1,28 +1,25 @@
 {
-    "name": "WasaBii-Splines-CatmullRom-Tests",
+    "name": "WasaBii.Core.ConventionValidation.Editor.Tests",
     "rootNamespace": "BII.WasaBii",
     "references": [
         "WasaBii.Core",
-        "WasaBii.Splines",
-        "WasaBii.Units",
-        "WasaBii.Unity",
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "WasaBii.Core.ConventionValidation",
+        "WasaBii.Core.ConventionValidation.Editor",
+        "WasaBii.Unity"
     ],
     "includePlatforms": [
         "Editor"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll",
-        "WasaBii-Units-Shared.dll"
+        "System.Collections.Immutable.dll"
     ],
     "autoReferenced": false,
-    "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
-    ],
     "versionDefines": [],
     "noEngineReferences": false
 }

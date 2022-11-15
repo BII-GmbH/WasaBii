@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
+using WasaBii.Geometry.Shared;
 
 namespace BII.WasaBii.UnitSystem;
 

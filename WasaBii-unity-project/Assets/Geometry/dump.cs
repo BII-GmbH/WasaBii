@@ -8,9 +8,9 @@ namespace BII.WasaBii.Geometry
 {
     
     [GeometryHelper(areFieldsIndependent: true, fieldType: (int)FieldType.Length, hasMagnitude: true, hasDirection: true)]
-    public readonly partial struct GlobalOffset3 {
+    public partial struct GlobalOffset3 {
         public readonly Length X, Y, Z;
-        public Length test() => Magnitude;
+        public Length test() => this.Magnitude;
     }
 
 }

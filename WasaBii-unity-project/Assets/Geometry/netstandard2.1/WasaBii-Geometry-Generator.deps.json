@@ -11,7 +11,8 @@
         "dependencies": {
           "Microsoft.CodeAnalysis.CSharp.CodeStyle": "3.9.0",
           "Microsoft.CodeAnalysis.CSharp.Features": "3.9.0",
-          "Newtonsoft.Json": "13.0.1"
+          "Newtonsoft.Json": "13.0.1",
+          "WasaBii-Geometry-Shared": "1.0.0"
         },
         "runtime": {
           "WasaBii-Geometry-Generator.dll": {}
@@ -1375,6 +1376,11 @@
             "fileVersion": "4.6.24705.1"
           }
         }
+      },
+      "WasaBii-Geometry-Shared/1.0.0": {
+        "runtime": {
+          "WasaBii-Geometry-Shared.dll": {}
+        }
       }
     }
   },
@@ -2076,6 +2082,11 @@
       "sha512": "sha512-5zJ0XDxAIg8iy+t4aMnQAu0MqVbqyvfoUVl1yDV61xdo3Vth45oA2FoY4pPkxYAH5f8ixpmTqXeEIya95x0aCQ==",
       "path": "system.xml.xdocument/4.3.0",
       "hashPath": "system.xml.xdocument.4.3.0.nupkg.sha512"
+    },
+    "WasaBii-Geometry-Shared/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }

@@ -25,4 +25,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\WasaBii-Geometry-Shared\WasaBii-Geometry-Shared.csproj" />
+  </ItemGroup>
+
 </Project>

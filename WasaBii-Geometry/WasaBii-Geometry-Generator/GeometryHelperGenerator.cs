@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Text;
+using WasaBii.Geometry.Shared;
 
 namespace BII.WasaBii.Geometry.Generator;
 
@@ -31,8 +33,6 @@ public class GeometryHelperGenerator : ISourceGenerator {
         var origCulture = Thread.CurrentThread.CurrentCulture;
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
         
-        var workspace = new AdhocWorkspace();
-        
         try {
             foreach (var (typeDecl, attribute) in ((SyntaxReceiver)context.SyntaxReceiver!).GeometryHelpers) {
                 var fieldsDelcs = typeDecl.Members.OfType<FieldDeclarationSyntax>().ToArray();
@@ -50,7 +50,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 var fieldType = (int) attributeArguments.First(a => a.Name == "fieldType").Value;
                 var hasMagnitude = (bool) attributeArguments.First(a => a.Name == "hasMagnitude").Value;
                 var hasDirection = (bool) attributeArguments.First(a => a.Name == "hasDirection").Value;
-        
+                
                 var allMembers = new List<MemberDeclarationSyntax> {mkConstructor(typeDecl, allFields)};
                 if (areFieldsIndependent) {
                     allMembers.AddRange(mkMapAndScale(typeDecl, allFields, hasMagnitude));
@@ -82,8 +82,8 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     .WithMembers(List(allMembers))
                     .ClearTrivia();
                 
-                var root = Formatter.Format(result.WrapInParentsOf(typeDecl), workspace);
-                var sourceText = root.GetText(Encoding.UTF8);
+                var sourceText = SourceText.From(result.WrapInParentsOf(typeDecl).NormalizeWhitespace().ToFullString(), Encoding.UTF8);
+                
                 context.AddSource(
                     $"{typeDecl.Identifier.Text}.g.cs",
                     sourceText

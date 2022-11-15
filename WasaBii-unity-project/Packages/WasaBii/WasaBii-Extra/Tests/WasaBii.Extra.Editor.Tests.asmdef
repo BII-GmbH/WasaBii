@@ -1,0 +1,20 @@
+{
+    "name": "WasaBii.Extra.Editor.Tests",
+    "rootNamespace": "BII.WasaBii.Extra.Tests",
+    "references": [
+        "WasaBii.Extra"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "versionDefines": [],
+    "noEngineReferences": false
+}

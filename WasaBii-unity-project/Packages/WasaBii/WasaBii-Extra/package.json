@@ -1,0 +1,32 @@
+{
+  "name": "com.bii-gmbh.wasabii.extra",
+  "version": "1.0.0",
+  "displayName": "WasaBii Extra",
+  "description": "Collection of utilities used and maintained by the engineers @ Bii GmbH",
+  "unity": "2022.1",
+  "unityRelease": "1f1",
+  "documentationUrl": "https://github.com/BII-GmbH/WasaBii/wiki",
+  "changelogUrl": "https://github.com/BII-GmbH/WasaBii/blob/main/changelog.md",
+  "licensesUrl": "https://github.com/BII-GmbH/WasaBii/blob/main/LICENSE",
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.0.2",
+    "com.unity.test-framework": "1.1.33",
+    "com.bii-gmbh.wasabii.core": "1.0.0",
+    "com.bii-gmbh.wasabii.units": "1.0.0",
+    "com.bii-gmbh.wasabii.unity": "1.0.0"
+  },
+ "keywords": [
+    "utils",
+    "utilities",
+    "misc",
+    "helpful",
+    "wasabii",
+    "dprob"
+  ],
+  "author": {
+    "name": "BII GmbH",
+    "email": "info@bii-gmbh.com",
+    "url": "https://www.bii-gmbh.com/"
+  },
+  "hideInEditor": false
+}

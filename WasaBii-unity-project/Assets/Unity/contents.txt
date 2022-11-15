@@ -1,2 +1,0 @@
-﻿utils that depend on unity and any other modules, 
-coz I assume that most unity users would just import everything and delete afterwards.

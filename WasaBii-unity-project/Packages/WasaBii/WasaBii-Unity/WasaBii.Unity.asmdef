@@ -1,0 +1,18 @@
+{
+    "name": "WasaBii.Unity",
+    "rootNamespace": "BII.WasaBii.Unity",
+    "references": [
+        "WasaBii.Core",
+        "WasaBii.Splines",
+        "WasaBii.Units"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

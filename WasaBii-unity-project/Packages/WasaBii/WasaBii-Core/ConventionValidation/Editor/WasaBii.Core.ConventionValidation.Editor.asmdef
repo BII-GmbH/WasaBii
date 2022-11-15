@@ -1,0 +1,20 @@
+﻿{
+  "name": "WasaBii.Core.ConventionValidation.Editor",
+  "rootNamespace": "BII.WasaBii",
+  "references": [
+    "WasaBii.Core.ConventionValidation",
+    "WasaBii.Unity",
+    "WasaBii.Core"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

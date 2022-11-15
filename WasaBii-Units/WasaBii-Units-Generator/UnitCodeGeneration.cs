@@ -10,7 +10,7 @@ public static class UnitCodeGeneration {
 
 // Non-readonly because units are designed to be serializable by Unity and Unity doesn't like readonly fields.
 // We ignore this for immutability validation since the struct is only ever truly mutable when the field it lives
-// in isn't `readonly`. This case will still be catched by the validation.
+// in isn't `readonly`. This case will still be caught by the validation.
 [Serializable] [__IgnoreMustBeImmutable]
 public partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     

@@ -11,7 +11,7 @@ namespace BII.WasaBii.Unity.Geometry {
     /// A wrapper for a <see cref="Vector3"/> that represents a the difference between two world-space positions.
     /// Can also be viewed as a <see cref="GlobalDirection"/> with a length.
     [MustBeImmutable]
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct GlobalOffset : 
         GlobalDirectionLike<GlobalOffset>,
         HasMagnitude<GlobalOffset>, 

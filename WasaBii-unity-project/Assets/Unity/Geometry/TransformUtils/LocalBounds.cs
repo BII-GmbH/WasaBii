@@ -10,7 +10,7 @@ namespace BII.WasaBii.Unity.Geometry {
 
     /// A Unity-Independent data structure representing an AABB (axis-aligned bounding-box) in some local space.
     [MustBeImmutable]
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct LocalBounds : IsLocalVariant<LocalBounds, GlobalBounds>, GeometryHelper<LocalBounds> {
         
         public readonly LocalPosition Center;

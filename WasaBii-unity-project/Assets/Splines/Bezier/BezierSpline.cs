@@ -30,7 +30,7 @@ namespace BII.WasaBii.Splines.Bezier {
     /// it look less smooth.
     /// </summary>
     [JsonObject(IsReference = false)] // Treat as value type for serialization
-    [MustBeSerializable]
+    [Serializable]
     public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : struct where TDiff : struct {
 
         internal sealed record Cache(

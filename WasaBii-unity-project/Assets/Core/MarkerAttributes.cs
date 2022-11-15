@@ -1,41 +1,6 @@
 using System;
 
 namespace BII.WasaBii.Core {
-
-    [AttributeUsage(
-        AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct | AttributeTargets.Enum,
-        Inherited = false, // must be explicitly present on all subclasses as well
-        AllowMultiple = false
-    )]
-    public class MustBeSerializableAttribute : Attribute { }
-    
-    /// <summary>
-    /// Ignores the <see cref="MustBeSerializableAttribute"/> in a parent class.
-    /// A type with this annotation is skipped during serializability validation.
-    /// </summary>
-    /// <devremarks>
-    /// This is only for testing purposes. Some testing mocks may intentionally include non-serializable objects.\
-    /// Hence the two underscores in the name.
-    /// </devremarks>
-    // ReSharper disable once InconsistentNaming // intentional, should be used with great caution
-    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class | AttributeTargets.Struct, Inherited = true)]
-    public class __IgnoreMustBeSerializableAttribute : Attribute { }
-
-    [AttributeUsage(
-        AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct,
-        Inherited = true,
-        AllowMultiple = false
-    )]
-    public class CannotBeSerializedAttribute : __IgnoreMustBeSerializableAttribute {
-        public readonly string Reason;
-        public CannotBeSerializedAttribute(string reason) => Reason = reason;
-    }
-    
-    [AttributeUsage(
-        AttributeTargets.Field,
-        AllowMultiple = false
-    )]
-    public class SerializeInSubclassesAttribute : Attribute { }
         
     /// <summary>
     /// Ensures that a type and all of its derived types is *immutable*,

@@ -1,4 +1,5 @@
-﻿using BII.WasaBii.Core;
+﻿using System;
+using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -6,8 +7,7 @@ using UnityEngine;
 namespace BII.WasaBii.Unity.Geometry {
 
     /// A wrapper for a <see cref="Quaternion"/> that represents a world-space rotation.
-    [MustBeImmutable]
-    [MustBeSerializable]
+    [MustBeImmutable][Serializable]
     public readonly struct GlobalRotation : QuaternionLike<GlobalRotation>, IsGlobalVariant<GlobalRotation, LocalRotation> {
 
         public static readonly GlobalRotation Identity = FromGlobal(Quaternion.identity);

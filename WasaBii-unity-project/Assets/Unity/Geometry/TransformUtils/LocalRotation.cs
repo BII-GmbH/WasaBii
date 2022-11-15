@@ -8,7 +8,7 @@ namespace BII.WasaBii.Unity.Geometry {
 
     /// A wrapper for a <see cref="Quaternion"/> that represents a local rotation.
     [MustBeImmutable]
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct LocalRotation : QuaternionLike<LocalRotation>, IsLocalVariant<LocalRotation, GlobalRotation> {
 
         public static readonly LocalRotation Identity = FromLocal(Quaternion.identity);

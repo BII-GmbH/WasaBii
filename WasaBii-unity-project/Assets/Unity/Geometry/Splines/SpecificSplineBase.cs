@@ -15,7 +15,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
     /// the type of a low-level spline like <see cref="BezierSpline{TPos,TDiff}"/>
     /// or <see cref="CatmullRomSpline{TPos,TDiff}"/> by wrapping it.
     /// </summary>
-    [MustBeSerializable]
+    [Serializable]
     public abstract class SpecificSplineBase<TSelf, TPos, TDiff> : Spline<TPos, TDiff>.Copyable
     where TSelf : SpecificSplineBase<TSelf, TPos, TDiff> where TPos : struct where TDiff : struct {
 

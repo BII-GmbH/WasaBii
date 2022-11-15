@@ -8,6 +8,7 @@ public static class UnitCodeGeneration {
         var name = unit.TypeName;
         return $@"#region {name}
 
+[Serializable]
 public readonly partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     public double SiValue {{ init; get; }}
     public Type UnitType => typeof(Unit);

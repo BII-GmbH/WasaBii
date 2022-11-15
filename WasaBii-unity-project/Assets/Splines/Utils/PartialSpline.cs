@@ -15,7 +15,7 @@ namespace BII.WasaBii.Splines {
     
     /// A subset of the <see cref="Spline"/> in the interval from
     /// <see cref="StartLocation"/> to <see cref="EndLocation"/>.
-    [MustBeImmutable][MustBeSerializable]
+    [MustBeImmutable][Serializable]
     public readonly struct PartialSpline<TPos, TDiff> where TPos : struct where TDiff : struct {
         public readonly Spline<TPos, TDiff> Spline;
         public readonly SplineLocation StartLocation;

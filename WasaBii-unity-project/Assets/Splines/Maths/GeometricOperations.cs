@@ -11,7 +11,7 @@ namespace BII.WasaBii.Splines.Maths {
     /// as long as you provide an implementation for all the necessary geometric operations.
     /// Since C# does not have proper support for type classes 😢, this means passing an
     /// implementation of this interface wherever necessary.
-    [MustBeImmutable][MustBeSerializable]
+    [MustBeImmutable]
     public interface GeometricOperations<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {

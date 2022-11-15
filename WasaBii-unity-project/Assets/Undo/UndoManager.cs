@@ -23,8 +23,7 @@ namespace BII.WasaBii.Undo {
         internal UndoPlaceholder(LinkedListNode<SymmetricOperation> placeholderNode) =>
             this.placeholderNode = placeholderNode;
     }
-
-    [CannotBeSerialized("Undos are closure-based. Do not serialize closures.")]
+    
     public class UndoManager<TLabel> {
 
         public event Action? OnAfterActionRecorded;

@@ -9,7 +9,7 @@ namespace BII.WasaBii.Unity.Geometry {
     /// A wrapper for a <see cref="Vector3"/> that represents a world-space direction.
     /// Can also be viewed as a normalized <see cref="GlobalOffset"/>.
     [MustBeImmutable]
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct GlobalDirection : 
         GlobalDirectionLike<GlobalDirection>,
         IsGlobalVariant<GlobalDirection, LocalDirection>,

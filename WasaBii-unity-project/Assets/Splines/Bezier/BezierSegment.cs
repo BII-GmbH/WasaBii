@@ -87,7 +87,7 @@ namespace BII.WasaBii.Splines.Bezier {
     /// could result in numerical instabilities and inaccurate results. The default is the cubic bezier curve
     /// with just 2 handles. The curve will usually go in the direction of the handles without ever touching them.
     /// </summary>
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct BezierSegment<TPos, TDiff> where TPos : struct where TDiff : struct {
 
         public readonly TPos Start;

@@ -40,7 +40,7 @@ namespace BII.WasaBii.Core {
     
     /// A class that potentially wraps a value.
     /// Can be either Some(value) or None.
-    [MustBeSerializable]
+    [Serializable]
     public readonly struct Option<T> : IEquatable<T>, IEquatable<Option<T>> {
         
         // Fields are public for convenient support for pattern matching syntax

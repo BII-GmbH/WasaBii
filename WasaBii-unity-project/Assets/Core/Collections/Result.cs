@@ -37,6 +37,12 @@ namespace BII.WasaBii.Core {
         public static Result<TValue, TError> IfNotNull<TValue, TError>(
             TValue? value, Func<TError> whenNull
         ) where TValue : class => If(value != null, () => value!, whenNull);
+        
+        public static Result<TValue, Exception> Try<TValue>(
+            Func<TValue> valueConstructor
+        ) {
+            try { return valueConstructor(); } catch (Exception e) { return e; }
+        }
 
         public static Result<TValue, TError> Try<TValue, TError>(
             Func<TValue> valueConstructor,
@@ -284,12 +290,12 @@ namespace BII.WasaBii.Core {
     public static class ResultExtensions {
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfFailure<TError>(this Result<Nothing, TError> result) => result.ResultOrThrow();
+        public static void ThrowIfFailure<TValue, TError>(this Result<TValue, TError> result) => result.ResultOrThrow();
         
-        [Pure] public static Option<Result<TVal, TErr>> Flip<TVal, TErr>(this Result<Option<TVal>, TErr> result) =>
+        [Pure] public static Option<Result<TValue, TError>> Flip<TValue, TError>(this Result<Option<TValue>, TError> result) =>
             result.Match(
-                onSuccess: option => option.Map(Result.Success<TVal, TErr>),
-                onFailure: err => Option.Some(err.Failure<TVal, TErr>())
+                onSuccess: option => option.Map(Result.Success<TValue, TError>),
+                onFailure: err => Option.Some(err.Failure<TValue, TError>())
             );
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -300,24 +306,24 @@ namespace BII.WasaBii.Core {
             (result, current) => result.FlatMap(r => current.Map(r.Append))
         );
 
-        [Pure] public static Result<TRes, TErr> ToResult<TRes, TErr>(this Option<TRes> opt, Func<TErr> whenNoValue) =>
-            opt.Match(onHasValue: Result.Success<TRes, TErr>, onNone: () => Result.Failure<TRes, TErr>(whenNoValue()));
+        [Pure] public static Result<TValue, TError> ToResult<TValue, TError>(this Option<TValue> opt, Func<TError> whenNoValue) =>
+            opt.Match(onHasValue: Result.Success<TValue, TError>, onNone: () => Result.Failure<TValue, TError>(whenNoValue()));
         
-        [Pure] public static Result<T, TErr> OrError<T, TErr>(this Option<T> opt, Func<TErr> errorGetter) =>
-            opt.Match<Result<T,TErr>>(onHasValue: arg => arg.Success(), onNone: () => Result.Failure(errorGetter()));
+        [Pure] public static Result<TValue, TError> OrError<TValue, TError>(this Option<TValue> opt, Func<TError> errorGetter) =>
+            opt.Match<Result<TValue,TError>>(onHasValue: arg => arg.Success(), onNone: () => Result.Failure(errorGetter()));
         
-        [Pure] public static Result<TSuccess, TFailure> AsSuccess<TSuccess, TFailure>(
-            this Option<TSuccess> opt, Func<TFailure> failureIfNotPresent
+        [Pure] public static Result<TValue, TError> AsSuccess<TValue, TError>(
+            this Option<TValue> opt, Func<TError> failureIfNotPresent
         ) => opt.Match(
-            onHasValue: Result.Success<TSuccess, TFailure>, 
-            onNone: () => Result.Failure<TSuccess, TFailure>(failureIfNotPresent())
+            onHasValue: Result.Success<TValue, TError>, 
+            onNone: () => Result.Failure<TValue, TError>(failureIfNotPresent())
         );
         
-        [Pure] public static Result<TSuccess, TFailure> AsFailure<TSuccess, TFailure>(
-            this Option<TFailure> opt, Func<TSuccess> successIfNotPresent
+        [Pure] public static Result<TValue, TError> AsFailure<TValue, TError>(
+            this Option<TError> opt, Func<TValue> successIfNotPresent
         ) => opt.Match(
-            onHasValue: Result.Failure<TSuccess, TFailure>, 
-            onNone: () => Result.Success<TSuccess, TFailure>(successIfNotPresent())
+            onHasValue: Result.Failure<TValue, TError>, 
+            onNone: () => Result.Success<TValue, TError>(successIfNotPresent())
         );
     }
 }

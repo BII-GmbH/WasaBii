@@ -65,6 +65,7 @@ namespace BII.WasaBii.Undo.Tests {
 
     public class UndoManagerTest {
         private UndoManager<string> undoManager = null!; // always assigned in `Setup`
+        private readonly List<string> warnings = new();
 
         private static void fail() => Assert.Fail();
 
@@ -76,25 +77,36 @@ namespace BII.WasaBii.Undo.Tests {
                 undoManager.StopRecordingAction();
             }
         }
+        
+        private void assertNoWarnings() => 
+            Assert.That(warnings, Is.Empty, "There were undo manager warnings after the test.");
 
         [SetUp]
-        public void Setup() { undoManager = new UndoManager<string>(100); }
+        public void Setup() {
+            warnings.Clear();
+            undoManager = new UndoManager<string>(100, warning => warnings.Add(warning));
+        }
 
+        #region Basic Usage
+        
         [Test]
         public void WhenRegistering_ThenExecuted() {
             var called = false;
             undoManager.RegisterAndExecute(() => called = true, fail);
             Assert.That(called, Is.True);
+            Assert.That(warnings.Count, Is.EqualTo(1), "Expected 1 warning");
         }
 
         [Test]
         public void WhenUndoingNothing_ThenNothingHappens() {
             Assert.That(() => undoManager.Undo(), Throws.Nothing);
+            assertNoWarnings();
         }
 
         [Test]
         public void WhenRedoingNothing_ThenNothingHappens() {
             Assert.That(() => undoManager.Redo(), Throws.Nothing);
+            assertNoWarnings();
         }
 
         [Test]
@@ -109,6 +121,8 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.Undo();
 
             Assert.That(done, Is.False);
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -123,6 +137,8 @@ namespace BII.WasaBii.Undo.Tests {
 
             undoManager.Redo();
             Assert.That(done, Is.True);
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -145,6 +161,8 @@ namespace BII.WasaBii.Undo.Tests {
                 undoManager.Redo();
                 Assert.That(sum, Is.EqualTo(1));
             }
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -169,6 +187,8 @@ namespace BII.WasaBii.Undo.Tests {
 
             Assert.That(c1, Is.True);
             Assert.That(c2, Is.True);
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -179,6 +199,7 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.Undo();
 
             Assert.That(c1, Is.True);
+            Assert.That(warnings.Count, Is.EqualTo(1), "Expected 1 warning");
         }
 
         [Test]
@@ -188,6 +209,8 @@ namespace BII.WasaBii.Undo.Tests {
             var undone = undoManager.Undo(11);
 
             Assert.That(undone, Is.EqualTo(5));
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -198,6 +221,8 @@ namespace BII.WasaBii.Undo.Tests {
             var redone = undoManager.Redo(11);
 
             Assert.That(redone, Is.EqualTo(5));
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -209,13 +234,18 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.RegisterAndExecute(() => counter++, () => counter--);
 
             undoManager.StartRecordingAction("another test");
+            Assert.That(warnings.Count, Is.EqualTo(1), "Expected 1 warning");
+            
             undoManager.StopRecordingAction();
+            Assert.That(warnings.Count, Is.EqualTo(2), "Expected 2 warnings");
 
             Assert.That(counter, Is.EqualTo(2));
 
             undoManager.Undo(2);
 
             Assert.That(counter, Is.Zero);
+            
+            
         }
 
         [Test]
@@ -226,18 +256,22 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.StopRecordingAction();
 
             Assert.That(() => undoManager.StopRecordingAction(), Throws.InvalidOperationException);
+            
+            Assert.That(warnings.Count, Is.EqualTo(1), "Expected 1 warning");
         }
 
         [Test]
         public void WhenUndoingWhileRecording_ThenInvalidOperationException() {
             undoManager.StartRecordingAction("test");
             Assert.That(() => undoManager.Undo(), Throws.InvalidOperationException);
+            assertNoWarnings();
         }
 
         [Test]
         public void WhenRedoingWhileRecording_ThenInvalidOperationException() {
             undoManager.StartRecordingAction("test");
             Assert.That(() => undoManager.Redo(), Throws.InvalidOperationException);
+            assertNoWarnings();
         }
 
         [Test]
@@ -248,12 +282,13 @@ namespace BII.WasaBii.Undo.Tests {
                 fail
             ), Throws.InvalidOperationException);
             undoManager.StopRecordingAction();
+            Assert.That(warnings.Count, Is.EqualTo(1), "Expected 1 warning");
         }
 
         [Test]
-        public void WhenRegisteringDuringRegistration_WhenRecordingInInner_ThenWorks() {
+        public void WhenRegisteringDuringRegistration_WhenRecordingInInnerButNotOuter_ThenWorks() {
             bool? done = null;
-
+            
             Assert.That(() => undoManager.RegisterAndExecute(
                 () => {
                     undoManager.StartRecordingAction("test");
@@ -268,7 +303,11 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(undoManager.Undo(), Is.EqualTo(1));
 
             Assert.That(done, Is.False);
+            
+            Assert.That(warnings.Count, Is.EqualTo(1), "Expected 1 warning");
         }
+        
+        #endregion
 
         #region Exception Handling
 
@@ -306,6 +345,8 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(firstOperationDone, Is.False);
             Assert.That(lastOperationDone, Is.False);
             Assert.That(thrown, Is.True);
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -344,6 +385,8 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(firstOperationDone, Is.True);
             Assert.That(lastOperationDone, Is.True);
             Assert.That(doThrow, Is.True);
+            
+            assertNoWarnings();
         }
 
         #endregion
@@ -402,6 +445,8 @@ namespace BII.WasaBii.Undo.Tests {
 
             Assert.That(undoManager.Undo(2), Is.EqualTo(1));
             Assert.That(undidOrig, Is.True);
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -453,6 +498,8 @@ namespace BII.WasaBii.Undo.Tests {
 
             Assert.That(undoManager.Undo(2), Is.EqualTo(1));
             Assert.That(topLevelUndone, Is.True);
+            
+            assertNoWarnings();
         }
 
         #endregion
@@ -462,6 +509,7 @@ namespace BII.WasaBii.Undo.Tests {
         [Test]
         public void WhenRegisteringPlaceholderWithoutRecording_ThenException() {
             Assert.That(undoManager.RegisterUndoPlaceholder, Throws.InvalidOperationException);
+            assertNoWarnings();
         }
 
         [Test]
@@ -484,6 +532,8 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.Redo();
 
             Assert.That(done, Is.True);
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -522,6 +572,8 @@ namespace BII.WasaBii.Undo.Tests {
 
             Assert.That(done, Is.True);
             Assert.That(placeholderDone, Is.False);
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -535,6 +587,8 @@ namespace BII.WasaBii.Undo.Tests {
                 () => undoManager.RegisterAndExecute(SymmetricOperation.Empty, saveUndoAt: placeholder),
                 Throws.ArgumentException
             );
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -549,6 +603,8 @@ namespace BII.WasaBii.Undo.Tests {
                 () => undoManager.RegisterAndExecute(SymmetricOperation.Empty, saveUndoAt: placeholder),
                 Throws.ArgumentException
             );
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -556,6 +612,8 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.StartRecordingAction("test");
             var placeholder = undoManager.RegisterUndoPlaceholder();
             undoManager.AbortRecordingAction();
+            
+            Assert.That(warnings.Count, Is.EqualTo(1), "Expected 1 warning");
 
             undoManager.StartRecordingAction("test2");
 
@@ -563,6 +621,10 @@ namespace BII.WasaBii.Undo.Tests {
                 () => undoManager.RegisterAndExecute(SymmetricOperation.Empty, saveUndoAt: placeholder),
                 Throws.ArgumentException
             );
+
+            undoManager.StopRecordingAction();
+
+            Assert.That(warnings.Count, Is.EqualTo(2), "Expected 2 warnings");
         }
 
         #endregion
@@ -588,6 +650,8 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(labels[0], Is.EqualTo(secondLabel));
             Assert.That(labels[1], Is.EqualTo(firstLabel));
             Assert.That(undoManager.RedoLabels.IsEmpty());
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -610,6 +674,8 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(labels[0], Is.EqualTo(firstLabel));
             Assert.That(labels[1], Is.EqualTo(secondLabel));
             Assert.That(undoManager.UndoLabels.IsEmpty());
+            
+            assertNoWarnings();
         }
 
         #endregion
@@ -631,6 +697,8 @@ namespace BII.WasaBii.Undo.Tests {
             registerUndos(2);
 
             Assert.That(invokeCount, Is.EqualTo(3));
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -651,6 +719,8 @@ namespace BII.WasaBii.Undo.Tests {
 
             Assert.That(invokeCount, Is.EqualTo(1));
             Assert.That(totalUndoCount, Is.EqualTo(1));
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -670,6 +740,8 @@ namespace BII.WasaBii.Undo.Tests {
 
             Assert.That(invokeCount, Is.EqualTo(1));
             Assert.That(totalUndoCount, Is.EqualTo(2));
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -691,6 +763,8 @@ namespace BII.WasaBii.Undo.Tests {
 
             Assert.That(invokeCount, Is.EqualTo(1));
             Assert.That(totalRedoCount, Is.EqualTo(1));
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -712,6 +786,8 @@ namespace BII.WasaBii.Undo.Tests {
 
             Assert.That(invokeCount, Is.EqualTo(1));
             Assert.That(totalRedoCount, Is.EqualTo(2));
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -727,6 +803,8 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.PushUndoBuffer(uut);
 
             Assert.That(invokeCount, Is.EqualTo(1));
+            
+            assertNoWarnings();
         }
 
         [Test]
@@ -746,6 +824,8 @@ namespace BII.WasaBii.Undo.Tests {
             undoManager.PopUndoBuffer();
 
             Assert.That(invokeCount, Is.EqualTo(1));
+            
+            assertNoWarnings();
         }
 
         private class SingleElementUndoBuffer : DefaultUndoBuffer<string> {
@@ -822,6 +902,8 @@ namespace BII.WasaBii.Undo.Tests {
             Assert.That(action1Undone, Is.False);
 
             Assert.That(action2Done, Is.True);
+            
+            assertNoWarnings();
         }
 
 #endregion

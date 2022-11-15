@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BII.WasaBii.Core;
 using BII.WasaBii.Undos;
-using UnityEngine;
 
 namespace BII.WasaBii.Undo {
     
@@ -34,12 +33,16 @@ namespace BII.WasaBii.Undo {
 
         private bool _currentlyRegistering = false;
         private readonly UndoManagerState<TLabel> state;
+        private readonly Action<string> handleWarning;
 
         /// <param name="maxUndoStackSize">
         /// The default <see cref="UndoBuffer{TLabel}"/> will only store up to this many undo or redo operations.
         /// When the number of operations would exceed that number, the oldest operation is removed and freed.
         /// </param>
-        public UndoManager(int maxUndoStackSize) => state = new UndoManagerState<TLabel>(maxUndoStackSize);
+        public UndoManager(int maxUndoStackSize, Action<string> handleWarning) {
+            state = new UndoManagerState<TLabel>(maxUndoStackSize);
+            this.handleWarning = handleWarning;
+        }
 
         public void PushUndoBuffer(UndoBuffer<TLabel> customBuffer) {
             state.pushUndoBuffer(customBuffer);
@@ -196,7 +199,7 @@ namespace BII.WasaBii.Undo {
             // register only if no exception has been thrown
             if (!IsRecording) {
                 if (warningOnNotRecording)
-                    Debug.LogWarning("Registering an undo action while not recording. Is this intentional?");
+                    handleWarning("Registering an undo action while not recording. Is this intentional?");
                 operation.DisposeAfterDo.Invoke(); // not saved, so we dispose instantly if necessary
             } else {
                 if (saveUndoAt != null) {
@@ -226,7 +229,7 @@ namespace BII.WasaBii.Undo {
         /// </summary>
         public void StartRecordingAction(TLabel initialLabel) {
             if (IsRecording) {
-                Debug.LogWarning($"Started recording undo action {initialLabel} while the action " +
+                handleWarning($"Started recording undo action {initialLabel} while the action " +
                                  $"{state._currentActionLabel} was still recording. Stopping running recording...");
                 StopRecordingAction();
             }
@@ -253,7 +256,7 @@ namespace BII.WasaBii.Undo {
             if (!Equals(finalLabel, default(TLabel))) 
                 state._currentActionLabel = finalLabel;
 
-            if (state.recordedOperations.IsEmpty()) Debug.LogWarning(
+            if (state.recordedOperations.IsEmpty()) handleWarning(
                 $"Operation {state._currentActionLabel} saved without anything to undo.");
 
             var res = new UndoAction<TLabel>(state._currentActionLabel!, new Stack<SymmetricOperation>(state.recordedOperations));
@@ -326,7 +329,7 @@ namespace BII.WasaBii.Undo {
             if (!IsRecording) throw new InvalidOperationException(
                "Tried to abort recording an undo action without starting one.");
 
-            if (state.recordedOperations.IsNotEmpty()) Debug.LogWarning(
+            if (state.recordedOperations.IsNotEmpty()) handleWarning(
                 $"Operation {state._currentActionLabel} aborted with registered undos. These undos are discarded");
 
             var undoAction = new UndoAction<string>(

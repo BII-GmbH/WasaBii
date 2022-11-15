@@ -1,3 +1,0 @@
-﻿utils without any dependencies, not even unity. none.
-
-Includes Option & Result for now until someone has a better idea

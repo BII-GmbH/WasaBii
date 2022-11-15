@@ -9,11 +9,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <OutputPath>..\..\WasaBii-unity-project\Assets\Units\</OutputPath>
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Units\</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <OutputPath>..\..\WasaBii-unity-project\Assets\Units\</OutputPath>
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Units\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

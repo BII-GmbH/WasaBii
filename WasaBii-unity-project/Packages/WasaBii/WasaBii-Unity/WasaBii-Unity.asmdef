@@ -1,4 +1,5 @@
 {
+    "name": "WasaBii-Unity",
     "rootNamespace": "BII.WasaBii.Unity",
     "references": [
         "WasaBii-Core",

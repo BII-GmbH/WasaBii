@@ -10,7 +10,9 @@
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [
-        "Newtonsoft.Json.dll"
+        "Newtonsoft.Json.dll",
+        "WasaBii-Geometry-Shared.dll",
+        "WasaBii-Units-Shared.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

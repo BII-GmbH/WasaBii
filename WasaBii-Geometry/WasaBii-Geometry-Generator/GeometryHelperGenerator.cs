@@ -47,7 +47,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 var areFieldsIndependent = (bool) attributeArguments.First(a => a.Name == "areFieldsIndependent").Value;
                 // For some reason, code generation will just silently die if I use `FieldType` as variable type.
                 // As long as it's temporary variables only, it seems to work :shrug:
-                var fieldType = (int) attributeArguments.First(a => a.Name == "fieldType").Value;
+                var fieldType = (FieldType) attributeArguments.First(a => a.Name == "fieldType").Value;
                 var hasMagnitude = (bool) attributeArguments.First(a => a.Name == "hasMagnitude").Value;
                 var hasDirection = (bool) attributeArguments.First(a => a.Name == "hasDirection").Value;
                 
@@ -210,17 +210,17 @@ public class GeometryHelperGenerator : ISourceGenerator {
         }
     }
 
-    private static TypeSyntax typeFor(int fieldType) => fieldType switch {
-        (int) FieldType.Float => PredefinedType(Token(SyntaxKind.FloatKeyword)),
-        (int) FieldType.Double => PredefinedType(Token(SyntaxKind.DoubleKeyword)),
-        (int) FieldType.Length => IdentifierName("Length"),
+    private static TypeSyntax typeFor(FieldType fieldType) => fieldType switch {
+         FieldType.Float => PredefinedType(Token(SyntaxKind.FloatKeyword)),
+         FieldType.Double => PredefinedType(Token(SyntaxKind.DoubleKeyword)),
+         FieldType.Length => IdentifierName("Length"),
         _ => throw new InvalidEnumArgumentException($"{fieldType} is no valid value for {nameof(fieldType)}")
     };
     
-    private static TypeSyntax squareTypeFor(int fieldType) => fieldType switch {
-        (int) FieldType.Float => PredefinedType(Token(SyntaxKind.FloatKeyword)),
-        (int) FieldType.Double => PredefinedType(Token(SyntaxKind.DoubleKeyword)),
-        (int) FieldType.Length => IdentifierName("Area"),
+    private static TypeSyntax squareTypeFor(FieldType fieldType) => fieldType switch {
+         FieldType.Float => PredefinedType(Token(SyntaxKind.FloatKeyword)),
+         FieldType.Double => PredefinedType(Token(SyntaxKind.DoubleKeyword)),
+         FieldType.Length => IdentifierName("Area"),
         _ => throw new InvalidEnumArgumentException($"{fieldType} is no valid value for {nameof(fieldType)}")
     };
     
@@ -228,7 +228,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
     private MemberDeclarationSyntax mkDotProduct(
         TypeDeclarationSyntax typeDecl,
         IEnumerable<VariableDeclaratorSyntax> fields,
-        int fieldType // Should be `FieldType`
+        FieldType fieldType // Should be `FieldType`
     ) => MethodDeclaration(squareTypeFor(fieldType), Identifier("Dot"))
         .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
         .WithAttributeLists(AttributeList(Pure))
@@ -242,7 +242,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
     /// Assumes all fields are `Length`s
     private MemberDeclarationSyntax mkSqrMagnitude(
         IEnumerable<VariableDeclaratorSyntax> fields,
-        int fieldType // Should be `FieldType`
+        FieldType fieldType // Should be `FieldType`
     ) => PropertyDeclaration(
         attributeLists: AttributeList(Pure),
         modifiers: TokenList(Token(SyntaxKind.PublicKeyword)),
@@ -260,7 +260,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
     
     /// Assumes `SqrMagnitude` exists
     private MemberDeclarationSyntax mkMagnitude(
-        int fieldType // Should be `FieldType`
+        FieldType fieldType // Should be `FieldType`
     ) => 
         PropertyDeclaration(
             attributeLists: AttributeList(Pure),
@@ -269,18 +269,18 @@ public class GeometryHelperGenerator : ISourceGenerator {
             explicitInterfaceSpecifier: null,
             identifier: Identifier("Magnitude"),
             accessorList: null,
-            expressionBody: ArrowExpressionClause(fieldType switch {
-                (int)FieldType.Float => InvocationExpression(
+            expressionBody: ArrowExpressionClause(fieldType switch { 
+                FieldType.Float => InvocationExpression(
                     MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         IdentifierName("Mathf"), IdentifierName("Sqrt")),
                     ArgumentList(Argument(IdentifierName("SqrMagnitude")))),
-                (int)FieldType.Double => InvocationExpression(
+                FieldType.Double => InvocationExpression(
                     MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         IdentifierName("Math"), IdentifierName("Sqrt")),
                     ArgumentList(Argument(IdentifierName("SqrMagnitude")))),
-                (int)FieldType.Length => MemberAccessExpression(
+                FieldType.Length => MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     IdentifierName("SqrMagnitude"), IdentifierName("Sqrt")), 
                 _ => throw new InvalidEnumArgumentException($"{fieldType} is no valid value for {nameof(fieldType)}")

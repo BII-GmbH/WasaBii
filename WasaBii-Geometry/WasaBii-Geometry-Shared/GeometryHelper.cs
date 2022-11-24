@@ -1,4 +1,4 @@
-﻿namespace WasaBii.Geometry.Shared;
+﻿namespace BII.WasaBii.Geometry.Shared;
 
 [AttributeUsage(AttributeTargets.Struct)]
 public sealed class GeometryHelper : Attribute {
@@ -10,10 +10,9 @@ public sealed class GeometryHelper : Attribute {
     public readonly bool AreFieldsIndependent;
     
     /// <summary>
-    /// If not <see cref="Other"/>, functions like `Dot` will be generated. Non-null values are only valid if **all** fields
+    /// If not <see cref="FieldType.Other"/>, functions like `Dot` will be generated. Non-null values are only valid if **all** fields
     /// actually have that type.
     /// </summary>
-    // TODO DS: Fix.
     public readonly FieldType FieldType;
     
     /// <summary>

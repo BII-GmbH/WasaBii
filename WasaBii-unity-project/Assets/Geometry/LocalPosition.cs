@@ -22,9 +22,6 @@ namespace BII.WasaBii.Unity.Geometry {
 
         private LocalPosition(Vector3 local) => this.AsVector = local;
 
-        [Pure] public static LocalPosition FromGlobal(TransformProvider parent, Vector3 global) =>
-            FromLocal(parent.InverseTransformPoint(global));
-
         [Pure] public static LocalPosition FromLocal(Vector3 local) => new(local);
 
         [Pure] public static LocalPosition FromLocal(Length x, Length y, Length z) 
@@ -38,7 +35,7 @@ namespace BII.WasaBii.Unity.Geometry {
         /// Transforms the local position into global space, with <see cref="parent"/> as the parent.
         /// This is the inverse of <see cref="GlobalPosition.RelativeTo"/>
         [Pure] public GlobalPosition ToGlobalWith(TransformProvider parent) 
-            => GlobalPosition.FromLocal(parent, AsVector);
+            => parent.TransformPoint(this);
 
         [Pure]
         public LocalPosition TransformBy(LocalPose offset) =>

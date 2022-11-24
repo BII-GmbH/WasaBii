@@ -22,35 +22,35 @@ namespace BII.WasaBii.Unity.Geometry {
         /// <summary>
         /// Transforms a position from local space to global space
         /// </summary>
-        public Vector3 TransformPoint(Vector3 local) 
+        public GlobalPosition TransformPoint(LocalPosition local) 
             => LocalToGlobalMatrix * new Vector4(local.x, local.y, local.z, 1);
         /// <summary>
         /// Transforms a position from global space to local space
         /// </summary>
-        public Vector3 InverseTransformPoint(Vector3 global) 
+        public LocalPosition InverseTransformPoint(GlobalPosition global) 
             => GlobalToLocalMatrix * new Vector4(global.x, global.y, global.z, 1);
 
         /// <summary>
         /// Transforms a vector from local space to global space
         /// </summary>
-        public Vector3 TransformVector(Vector3 local) 
+        public GlobalOffset TransformVector(LocalOffset local) 
             => LocalToGlobalMatrix * new Vector4(local.x, local.y, local.z, 0);
         /// <summary>
         /// Transforms a vector from global to local space
         /// </summary>
-        public Vector3 InverseTransformVector(Vector3 global) 
+        public LocalOffset InverseTransformVector(GlobalOffset global) 
             => GlobalToLocalMatrix * new Vector4(global.x, global.y, global.z, 0);
 
         /// <summary>
         /// Transforms a quaternion from local space to global space
         /// </summary>
-        public Quaternion TransformQuaternion(Quaternion local)
+        public GlobalRotation TransformRotation(LocalRotation local)
             => LocalToGlobalMatrix.rotation * local;
 
         /// <summary>
         /// Transforms a quaternion from global to local space
         /// </summary>
-        public Quaternion InverseTransformQuaternion(Quaternion global)
+        public LocalRotation InverseTransformRotation(GlobalRotation global)
             => GlobalToLocalMatrix.rotation * global;
 
         public static TransformProvider From(Vector3? pos = null, Quaternion? rotation = null, Vector3? scale = null)

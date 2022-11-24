@@ -44,7 +44,7 @@ namespace BII.WasaBii.Unity.Geometry {
         public static Bounds WithSize(this Bounds bounds, Func<Vector3, Vector3> sizeGetter) =>
             bounds.WithSize(sizeGetter(bounds.size));
         
-        public static Bounds? TotalColliderBounds(this GameObject go) {
+        public static GlobalBounds? TotalColliderBounds(this GameObject go) {
             Physics.SyncTransforms(); // Enforces all colliders to update so we can be sure the bounds are valid.
             var wasActive = go.activeSelf;
             if (!wasActive) go.SetActive(true);
@@ -55,7 +55,7 @@ namespace BII.WasaBii.Unity.Geometry {
                     elseResult: (Bounds?) null
                 );
             if(!wasActive) go.SetActive(false);
-            return ret;
+            return ret?.AsGlobalBounds();
         }
 
 

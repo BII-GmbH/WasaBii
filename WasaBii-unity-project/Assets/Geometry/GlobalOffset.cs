@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -12,13 +11,16 @@ namespace BII.WasaBii.Unity.Geometry {
     /// Can also be viewed as a <see cref="GlobalDirection"/> with a length.
     [MustBeImmutable]
     [MustBeSerializable]
+    [GeometryHelper(areFieldsIndependent: true, fieldType: FieldType.Length, hasMagnitude: true, hasDirection: true)]
     public readonly struct GlobalOffset : 
         GlobalDirectionLike<GlobalOffset>,
         HasMagnitude<GlobalOffset>, 
         IsGlobalVariant<GlobalOffset, LocalOffset>,
         IEquatable<GlobalOffset> {
     
-        public Vector3 AsVector { get; }
+        public Length X { init; get; }
+        public Length Y { init; get; }
+        public Length Z { init; get; }
 
         public GlobalDirection Normalized => (GlobalDirection)this;
 

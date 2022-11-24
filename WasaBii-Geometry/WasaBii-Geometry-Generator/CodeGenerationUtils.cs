@@ -9,8 +9,9 @@ using static SyntaxFactory;
 public static class CodeGenerationUtils {
     
     private static readonly UsingDirectiveSyntax[] defaultIncludes = new string[]{
-        "System.Diagnostics.Contracts",
-        "System"
+        "BII.WasaBii.Core",
+        "System",
+        "JetBrains.Annotations"
     }.Select(str => UsingDirective(ParseName(str)).NormalizeWhitespace().AppendTrivia(LineFeed)).ToArray();
 
     public static SyntaxNode WrapInParentsOf<T>(this T node, SyntaxNode other) where T : MemberDeclarationSyntax => other.Parent switch {

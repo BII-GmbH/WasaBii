@@ -1,16 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
 using BII.WasaBii.UnitSystem;
-using UnityEngine;
-using WasaBii.Geometry.Shared;
+using BII.WasaBii.Geometry.Shared;
 
 namespace BII.WasaBii.Geometry
 {
     
     [GeometryHelper(areFieldsIndependent: true, fieldType: FieldType.Length, hasMagnitude: true, hasDirection: true)]
     public partial struct GlobalOffset3 {
-        public readonly Length X, Y, Z;
-        public Length test() => this.Magnitude;
+        public Length X { init; get; }
+        public Length Y { init; get; }
+        public Length Z { init; get; }
+        public Length test => this.Magnitude;
     }
 
 }

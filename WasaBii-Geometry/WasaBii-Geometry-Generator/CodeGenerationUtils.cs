@@ -7,6 +7,8 @@ namespace BII.WasaBii.Geometry.Generator;
 using static SyntaxFactory;
 
 public static class CodeGenerationUtils {
+
+    public const string UnityCompilerToken = "UNITY_2022_1_OR_NEWER";
     
     private static readonly UsingDirectiveSyntax[] defaultIncludes = new string[]{
         "BII.WasaBii.Core",
@@ -83,6 +85,17 @@ public static class CodeGenerationUtils {
             }
             yield return cur.AppendTrivia(trivia);
         }
+    }
+
+    public static bool TryFind<T>(this IEnumerable<T> enumerable, Func<T, bool> where, out T t) {
+        foreach (var e in enumerable)
+            if (where(e)) {
+                t = e;
+                return true;
+            }
+
+        t = default!;
+        return false;
     }
 
 }

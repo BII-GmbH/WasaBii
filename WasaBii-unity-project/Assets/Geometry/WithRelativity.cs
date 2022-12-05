@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
 
     /// The base for transform util types that have a built-in definition of what geometric
     /// space their values are given relative to. Specifically, an object is either encoded
@@ -27,7 +27,15 @@ namespace BII.WasaBii.Unity.Geometry {
     public interface IsGlobalVariant<TGlobal, out TLocal> : IsGlobal, GeometryHelper<TGlobal>
     where TGlobal : IsGlobalVariant<TGlobal, TLocal>
     where TLocal : IsLocalVariant<TLocal, TGlobal> {
+        /// <summary>
+        /// Transforms this value into the local space relative to the <see cref="parent"/>
+        /// </summary>
         [Pure] TLocal RelativeTo(TransformProvider parent);
+        /// <summary>
+        /// Transforms this value into the local space relative to the world origin. This is the same
+        /// as writing <code>RelativeTo(GlobalPose.Identity)</code>, but more efficient.
+        /// </summary>
+        TLocal RelativeToWorldZero { get; }
     }
 
     /// States that the implementing type works in local space and that the global variant is `TGlobal`.
@@ -35,7 +43,24 @@ namespace BII.WasaBii.Unity.Geometry {
     public interface IsLocalVariant<TLocal, out TGlobal> : IsLocal, GeometryHelper<TLocal>
     where TGlobal : IsGlobalVariant<TGlobal, TLocal>
     where TLocal : IsLocalVariant<TLocal, TGlobal> {
+        /// <summary>
+        /// Transforms this value into world space, assuming that it was
+        /// previously defined in local space relative to the <see cref="parent"/>
+        /// </summary>
         [Pure] TGlobal ToGlobalWith(TransformProvider parent);
+        
+        /// <summary>
+        /// Transforms this value into world space, assuming that it was
+        /// previously defined relative to the world origin. This is the same as
+        /// writing <code>ToGlobalWith(GlobalPose.Identity)</code>, but more efficient.
+        /// </summary>
+        TGlobal ToGlobalWithWorldZero { get; }
+        
+        /// <summary>
+        /// Transforms this value into another local space, assuming that the <see cref="offset"/>
+        /// is defined relative to the same parent as <see cref="this"/>. The result is relative to
+        /// <code>newParent = oldParent * offset</code>.
+        /// </summary>
         [Pure] TLocal TransformBy(LocalPose offset);
 
     }

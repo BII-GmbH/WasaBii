@@ -1,124 +1,103 @@
-﻿using System;
-using BII.WasaBii.Core;
+﻿using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
-using UnityEngine;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
 
-    /// A wrapper for a <see cref="Vector3"/> that represents a the difference between two world-space positions.
+    /// A 3D vector that represents a the difference between two world-space positions.
     /// Can also be viewed as a <see cref="GlobalDirection"/> with a length.
     [MustBeImmutable]
     [MustBeSerializable]
     [GeometryHelper(areFieldsIndependent: true, fieldType: FieldType.Length, hasMagnitude: true, hasDirection: true)]
-    public readonly struct GlobalOffset : 
+    public readonly partial struct GlobalOffset : 
         GlobalDirectionLike<GlobalOffset>,
-        HasMagnitude<GlobalOffset>, 
-        IsGlobalVariant<GlobalOffset, LocalOffset>,
-        IEquatable<GlobalOffset> {
+        IsGlobalVariant<GlobalOffset, LocalOffset> {
     
+        public static readonly GlobalOffset Up = FromGlobal(0, 1, 0);
+        public static readonly GlobalOffset Down = FromGlobal(0, -1, 0);
+        public static readonly GlobalOffset Left = FromGlobal(-1, 0, 0);
+        public static readonly GlobalOffset Right = FromGlobal(1, 0, 0);
+        public static readonly GlobalOffset Forward = FromGlobal(0, 0, 1);
+        public static readonly GlobalOffset Back = FromGlobal(0, 0, -1);
+        public static readonly GlobalOffset One = FromGlobal(1, 1, 1);
+        public static readonly GlobalOffset Zero = FromGlobal(0, 0, 0);
+
         public Length X { init; get; }
         public Length Y { init; get; }
         public Length Z { init; get; }
 
-        public GlobalDirection Normalized => (GlobalDirection)this;
+        public GlobalDirection Normalized => GlobalDirection.FromGlobal(X.SiValue, Y.SiValue, Z.SiValue);
 
-        private GlobalOffset(Vector3 global) => this.AsVector = global;
-
-        [Pure] public static GlobalOffset FromGlobal(Vector3 global) => new GlobalOffset(global);
+        [Pure] public static GlobalOffset FromGlobal(System.Numerics.Vector3 global)
+            => new() {X = global.X.Meters(), Y = global.Y.Meters(), Z = global.Z.Meters()};
 
         [Pure] public static GlobalOffset FromGlobal(Length x, Length y, Length z) 
-            => FromGlobal(new Vector3((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()));
+            => new() {X = x, Y = y, Z = z};
 
-        [Pure] public static GlobalOffset FromGlobal(float x, float y, float z) 
-            => FromGlobal(new Vector3(x, y, z));
+        [Pure] public static GlobalOffset FromGlobal(double x, double y, double z) 
+            => new() {X = x.Meters(), Y = y.Meters(), Z = z.Meters()};
 
-        [Pure] public static GlobalOffset FromLocal(TransformProvider parent, Vector3 local)
-            => FromGlobal(parent.TransformVector(local));
+        #if UNITY_2022_1_OR_NEWER
+        [Pure] public static GlobalOffset FromGlobal(UnityEngine.Vector3 global)
+            => new() {X = global.x.Meters(), Y = global.y.Meters(), Z = global.z.Meters()};
+        #endif
 
-        [Pure] public static Builder From(PositionProvider origin) => new Builder(origin);
+        [Pure] public static Builder From(GlobalPosition origin) => new Builder(origin);
 
-        /// Transforms the global offset into local space, relative to the <see cref="parent"/>.
+        /// <inheritdoc cref="TransformProvider.InverseTransformOffset"/>
         /// This is the inverse of <see cref="LocalOffset.ToGlobalWith"/>
         [Pure] public LocalOffset RelativeTo(TransformProvider parent)
-            => LocalOffset.FromGlobal(parent, AsVector);
+            => parent.InverseTransformOffset(this);
 
-        /// <inheritdoc cref="Vector3.Project"/>
-        [Pure] public GlobalOffset Project(GlobalDirection onNormal)
-            => Vector3.Project(AsVector, onNormal.AsVector).AsGlobalOffset();
+        public LocalOffset RelativeToWorldZero => LocalOffset.FromLocal(X, Y, Z);
 
-        /// <inheritdoc cref="Vector3.ProjectOnPlane"/>
-        [Pure] public GlobalOffset ProjectOnPlane(GlobalDirection planeNormal)
-            => Vector3.ProjectOnPlane(AsVector, planeNormal.AsVector).AsGlobalOffset();
+        /// Projects this offset onto the other one.
+        [Pure] public GlobalOffset Project(GlobalOffset other) => this.Dot(other) / other.SqrMagnitude * other;
 
-        public Length Length => AsVector.magnitude.Meters();
+        /// Projects this offset onto the given direction.
+        [Pure] public GlobalOffset Project(GlobalDirection onNormal) => this.Dot(onNormal) * onNormal;
 
-        [Pure] public static GlobalOffset operator +(GlobalOffset left, GlobalOffset right) =>
-            new GlobalOffset(left.AsVector + right.AsVector);
+        /// Projects this offset onto the plane defined by its normal.
+        [Pure] public GlobalOffset ProjectOnPlane(GlobalDirection planeNormal) => this - this.Project(planeNormal);
 
-        [Pure] public static GlobalOffset operator -(GlobalOffset left, GlobalOffset right) =>
-            new GlobalOffset(left.AsVector - right.AsVector);
+        /// Reflects this offset off the plane defined by the given normal
+        [Pure]
+        public GlobalOffset Reflect(GlobalDirection planeNormal) => this - 2 * this.Project(planeNormal);
 
-        [Pure] public static GlobalOffset operator -(GlobalOffset offset) => new GlobalOffset(-offset.AsVector);
+        public Length Dot(GlobalDirection normal) => X * normal.X + Y * normal.Y + Z * normal.Z;
 
-        [Pure] public static GlobalOffset operator *(float scalar, GlobalOffset offset) =>
-            (scalar * offset.AsVector).AsGlobalOffset();
-        [Pure] public static GlobalOffset operator /(GlobalOffset offset, float scalar) =>
-            (offset.AsVector / scalar).AsGlobalOffset();
+        [Pure] public static GlobalOffset operator +(GlobalOffset left, GlobalOffset right) => FromGlobal(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
+        [Pure] public static GlobalOffset operator -(GlobalOffset left, GlobalOffset right) => FromGlobal(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
 
-        [Pure] public static GlobalOffset operator *(GlobalOffset offset, float scalar) => scalar * offset;
-        
-        [Pure] public static GlobalOffset operator *(double scalar, GlobalOffset offset) => (float)scalar * offset;
-        [Pure] public static GlobalOffset operator *(GlobalOffset offset, double scalar) => (float)scalar * offset;
-        [Pure] public static GlobalOffset operator /(GlobalOffset offset, double scalar) => offset / (float)scalar;
-
-        [Pure] public static bool operator ==(GlobalOffset a, GlobalOffset b) => a.AsVector == b.AsVector;
-        [Pure] public static bool operator !=(GlobalOffset a, GlobalOffset b) => a.AsVector != b.AsVector;
-
-        [Pure] public bool Equals(GlobalOffset other) => this == other;
-        [Pure] public override bool Equals(object obj) => obj is GlobalOffset dir && this == dir;
-        [Pure] public override int GetHashCode() => AsVector.GetHashCode();
+        [Pure] public static GlobalOffset operator -(GlobalOffset offset) => FromGlobal(-offset.X, -offset.Y, -offset.Z);
 
         public readonly struct Builder {
-            private readonly PositionProvider origin;
-            public Builder(PositionProvider origin) => this.origin = origin;
-            [Pure] public GlobalOffset To(PositionProvider destination) => destination.Wrapped - origin.Wrapped;
+            private readonly GlobalPosition origin;
+            public Builder(GlobalPosition origin) => this.origin = origin;
+            [Pure] public GlobalOffset To(GlobalPosition destination) => destination - origin;
         }
 
-        public static GlobalOffset Up => Vector3.up.AsGlobalOffset();
-        public static GlobalOffset Down => Vector3.down.AsGlobalOffset();
-        public static GlobalOffset Left => Vector3.left.AsGlobalOffset();
-        public static GlobalOffset Right => Vector3.right.AsGlobalOffset();
-        public static GlobalOffset Forward => Vector3.forward.AsGlobalOffset();
-        public static GlobalOffset Back => Vector3.back.AsGlobalOffset();
-        public static GlobalOffset One => Vector3.one.AsGlobalOffset();
-        public static GlobalOffset Zero => Vector3.zero.AsGlobalOffset();
-        
         [Pure] public static GlobalOffset Lerp(
             GlobalOffset start, GlobalOffset end, double perc, bool shouldClamp = true
         ) => start.LerpTo(end, perc, shouldClamp);
-        
+
         [Pure] public static GlobalOffset Slerp(
             GlobalOffset start, GlobalOffset end, double perc, bool shouldClamp = true
         ) => start.SlerpTo(end, perc, shouldClamp);
 
-        [Pure] public GlobalOffset CopyWithDifferentValue(Vector3 newValue) => FromGlobal(newValue);
     }
 
     public static partial class OffsetExtensions {
         
-        [Pure] public static GlobalOffset AsGlobalOffset(this Vector3 globalOffset)
+        #if UNITY_2022_1_OR_NEWER
+        [Pure] public static GlobalOffset AsGlobalOffset(this UnityEngine.Vector3 globalOffset)
+            => GlobalOffset.FromGlobal(globalOffset);
+        #endif
+        
+        [Pure] public static GlobalOffset AsGlobalOffset(this System.Numerics.Vector3 globalOffset)
             => GlobalOffset.FromGlobal(globalOffset);
 
-        [Pure] public static GlobalOffset AsGlobalOffset(this System.Numerics.Vector3 globalOffset)
-            => globalOffset.ToUnityVector().AsGlobalOffset();
-
-        /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3)"/>
-        [Pure] public static GlobalOffset Reflect(
-            this GlobalOffset self, GlobalDirection planeNormal
-        ) => self.AsVector.Reflect(planeNormal.AsVector).AsGlobalOffset();
-        
     }
     
 }

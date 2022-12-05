@@ -13,7 +13,7 @@ namespace BII.WasaBii.Unity.Geometry {
         }
 
         public static void Apply(this Transform t, GlobalPosition pos, GlobalRotation rot) 
-            => t.Apply(pos.AsVector, rot.AsQuaternion);
+            => t.Apply(pos.AsNumericsVector, rot.AsQuaternion);
 
         public static void ApplyLocal(this Transform t, Vector3 pos, Quaternion rot) {
             t.localPosition = pos;

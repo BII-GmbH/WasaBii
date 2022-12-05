@@ -3,7 +3,7 @@ using BII.WasaBii.Core;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
 
     /// <see cref="LocalPosition"/> and <see cref="LocalRotation"/> combined.
     [MustBeImmutable]

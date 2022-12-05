@@ -29,7 +29,7 @@ namespace BII.WasaBii.Core {
         public static float DistanceTo(this Vector3 v1, Vector3 v2)
             => Vector3.Distance(v1, v2);
 
-        public static Vector3 Normalized(this Vector3 v) => v / v.Length();
+        public static Vector3 Normalized(this Vector3 v) => Vector3.Normalize(v);
     }
 
 }

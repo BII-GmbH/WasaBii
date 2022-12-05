@@ -57,11 +57,17 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 var hasMagnitude = (bool) attributeArguments.First(a => a.Name == "hasMagnitude").Value;
                 var hasDirection = (bool) attributeArguments.First(a => a.Name == "hasDirection").Value;
                 
-                // TODO DS: AsVector / AsUnityVector if 3
                 var allMembers = new List<MemberDeclarationSyntax>();
+
+                if (allFields.Length == 3 &&
+                    allFields.TryFind(t => t.identifier.ValueText.ToLower() == "x", out var x) &&
+                    allFields.TryFind(t => t.identifier.ValueText.ToLower() == "y", out var y) &&
+                    allFields.TryFind(t => t.identifier.ValueText.ToLower() == "z", out var z)) {
+                    allMembers.AddRange(mkAsVector(fieldType, x.identifier, y.identifier, z.identifier));
+                }
                 if (areFieldsIndependent) {
                     allMembers.AddRange(mkMapAndScale(typeDecl, allFields, hasMagnitude));
-                    // allMembers.AddRange(mkWithFieldMethods(typeDecl, allFields));
+                    allMembers.AddRange(mkWithFieldMethods(typeDecl, allFields));
                     allMembers.AddRange(mkMinMax(typeDecl, allFields));
                     // TODO DS: Lerp as static utility
                     allMembers.Add(mkLerp(typeDecl, allFields));
@@ -90,8 +96,8 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 var result = typeDecl
                     .WithBaseList(null)
                     .WithAttributeLists(List(Enumerable.Empty<AttributeListSyntax>()))
-                    .WithMembers(List(allMembers))
-                    .ClearTrivia();
+                    .ClearTrivia()
+                    .WithMembers(List(allMembers));
                 
                 var sourceText = SourceText.From(result.WrapInParentsOf(typeDecl).NormalizeWhitespace().ToFullString(), Encoding.UTF8);
                 
@@ -107,6 +113,39 @@ public class GeometryHelperGenerator : ISourceGenerator {
         finally {
             Thread.CurrentThread.CurrentCulture = origCulture;
         }
+    }
+
+    private IEnumerable<MemberDeclarationSyntax> mkAsVector(FieldType fieldType, SyntaxToken x, SyntaxToken y, SyntaxToken z) {
+        MemberDeclarationSyntax MkVector(TypeSyntax vectorType, string propertyName) => PropertyDeclaration(
+            vectorType,
+            Identifier(propertyName)
+        ).WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+            .WithExpressionBody(ArrowExpressionClause(ImplicitObjectCreationExpression()
+                .WithArgumentList(ArgumentList(new []{x, y, z}.Select(id => Argument(fieldType switch {
+                    FieldType.Float => IdentifierName(id),
+                    FieldType.Double => CastExpression(PredefinedType(Token(SyntaxKind.FloatKeyword)), IdentifierName(id)),
+                    FieldType.Length => CastExpression(
+                        PredefinedType(Token(SyntaxKind.FloatKeyword)), 
+                        InvocationExpression(MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName(id),
+                            IdentifierName("AsMeters")))
+                    ),
+                    _ => throw new InvalidEnumArgumentException(nameof(fieldType), (int)fieldType, typeof(FieldType))
+                }))))))
+            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+
+        yield return MkVector(
+            QualifiedName(QualifiedName(IdentifierName("System"), IdentifierName("Numerics")), IdentifierName("Vector3")), 
+            "AsNumericsVector"
+        );
+        yield return MkVector(
+            QualifiedName(IdentifierName("UnityEngine"), IdentifierName("Vector3")),
+            "AsUnityVector"
+        ).WithLeadingTrivia(trivia => trivia.Prepend(Trivia(
+            IfDirectiveTrivia(IdentifierName(CodeGenerationUtils.UnityCompilerToken), false, true, true))))
+        .WithTrailingTrivia(trivia => trivia.Append(Trivia(
+            EndIfDirectiveTrivia(false))));
     }
 
     private MethodDeclarationSyntax mkCopyMethod(TypeDeclarationSyntax typeDecl, SyntaxToken identifier, ParameterListSyntax parameters, IEnumerable<SyntaxToken> fields, IEnumerable<ExpressionSyntax> fieldInitializers) => 

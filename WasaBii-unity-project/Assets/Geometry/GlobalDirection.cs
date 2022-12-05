@@ -1,66 +1,65 @@
 using System;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
-using UnityEngine;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
 
-    /// A wrapper for a <see cref="Vector3"/> that represents a world-space direction.
+    /// A 3D vector that represents a world-space direction.
     /// Can also be viewed as a normalized <see cref="GlobalOffset"/>.
     [MustBeImmutable]
     [MustBeSerializable]
-    public readonly struct GlobalDirection : 
+    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Double, hasMagnitude: false, hasDirection: true)]
+    public readonly partial struct GlobalDirection : 
         GlobalDirectionLike<GlobalDirection>,
-        IsGlobalVariant<GlobalDirection, LocalDirection>,
-        IEquatable<GlobalDirection> {
+        IsGlobalVariant<GlobalDirection, LocalDirection> {
 
-        [Pure] public static GlobalDirection FromGlobal(Vector3 global) => new GlobalDirection(global);
+        public static readonly GlobalDirection Up = FromGlobal(0, 1, 0);
+        public static readonly GlobalDirection Down = FromGlobal(0, -1, 0);
+        public static readonly GlobalDirection Left = FromGlobal(-1, 0, 0);
+        public static readonly GlobalDirection Right = FromGlobal(1, 0, 0);
+        public static readonly GlobalDirection Forward = FromGlobal(0, 0, 1);
+        public static readonly GlobalDirection Back = FromGlobal(0, 0, -1);
+        public static readonly GlobalDirection One = FromGlobal(1, 1, 1);
+        public static readonly GlobalDirection Zero = FromGlobal(0, 0, 0);
+
+        public readonly double X, Y, Z;
+
+        public GlobalOffset AsOffsetWithLength1 => GlobalOffset.FromGlobal(X, Y, Z);
         
-        [Pure] public static GlobalDirection FromGlobal(Length x, Length y, Length z) 
-            => FromGlobal(new Vector3((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()));
+        private GlobalDirection(double x, double y, double z) {
+            var magnitude = Math.Sqrt(x * x + y * y + z * z);
+            X = x / magnitude;
+            Y = y / magnitude;
+            Z = z / magnitude;
+        }
+        
+        [Pure] public static GlobalDirection FromGlobal(System.Numerics.Vector3 global) => new(global.X, global.Y, global.Z);
 
-        [Pure] public static GlobalDirection FromGlobal(float x, float y, float z) 
-            => FromGlobal(new Vector3(x, y, z));
+        [Pure] public static GlobalDirection FromGlobal(double x, double y, double z) => new(x, y, z);
+        
+        #if UNITY_2022_1_OR_NEWER
+        [Pure] public static GlobalDirection FromGlobal(UnityEngine.Vector3 global) => new(global.x, global.y, global.z);
+        #endif
 
-        [Pure] public static GlobalDirection FromLocal(TransformProvider parent, Vector3 local)
-            => FromGlobal(parent.TransformVector(local));
-
-        public Vector3 AsVector { get; }
-
-        private GlobalDirection(Vector3 global) => this.AsVector = global.normalized;
-
-        /// Transforms the global direction into local space, relative to the <see cref="parent"/>.
+        /// <inheritdoc cref="TransformProvider.InverseTransformDirection"/>
         /// This is the inverse of <see cref="LocalDirection.ToGlobalWith"/>
-        [Pure] public LocalDirection RelativeTo(TransformProvider parent) => LocalDirection.FromGlobal(parent, AsVector);
+        [Pure] public LocalDirection RelativeTo(TransformProvider parent) => parent.InverseTransformDirection(this);
         
-        /// <inheritdoc cref="Vector3.Project"/>
-        [Pure] public GlobalDirection Project(GlobalDirection onNormal) => this.AsOffset.Project(onNormal).Normalized;
+        public LocalDirection RelativeToWorldZero => LocalDirection.FromLocal(X, Y, Z);
 
-        /// <inheritdoc cref="Vector3.ProjectOnPlane"/>
-        [Pure] public GlobalDirection ProjectOnPlane(GlobalDirection planeNormal) => this.AsOffset.ProjectOnPlane(planeNormal).Normalized;
+        /// Projects this direction onto the plane defined by its normal.
+        [Pure] public GlobalDirection ProjectOnPlane(GlobalDirection planeNormal) => 
+            this.AsOffsetWithLength1.ProjectOnPlane(planeNormal).Normalized;
 
-        public GlobalOffset AsOffset => (GlobalOffset) this;
-        
-        [Pure] public static explicit operator GlobalDirection(GlobalOffset offset) => new GlobalDirection(offset.AsVector);
-        [Pure] public static explicit operator GlobalOffset(GlobalDirection direction) => GlobalOffset.FromGlobal(direction.AsVector);
-        [Pure] public static bool operator ==(GlobalDirection a, GlobalDirection b) => a.AsVector == b.AsVector;
-        [Pure] public static bool operator !=(GlobalDirection a, GlobalDirection b) => a.AsVector != b.AsVector;
-        [Pure] public static GlobalOffset operator *(Length a, GlobalDirection b) => GlobalOffset.FromGlobal((float)a.AsMeters() * b.AsVector);
-        [Pure] public static GlobalDirection operator -(GlobalDirection offset) => GlobalDirection.FromGlobal(-offset.AsVector);
+        /// Reflects this direction off the plane defined by the given normal
+        [Pure]
+        public GlobalDirection Reflect(GlobalDirection planeNormal) => this.AsOffsetWithLength1.Reflect(planeNormal).Normalized;
 
-        [Pure] public bool Equals(GlobalDirection other) => this == other;
-        [Pure] public override bool Equals(object obj) => obj is GlobalDirection dir && this == dir;
-        [Pure] public override int GetHashCode() => AsVector.GetHashCode();
-        
-        public static GlobalDirection Up => Vector3.up.AsGlobalDirection();
-        public static GlobalDirection Down => Vector3.down.AsGlobalDirection();
-        public static GlobalDirection Left => Vector3.left.AsGlobalDirection();
-        public static GlobalDirection Right => Vector3.right.AsGlobalDirection();
-        public static GlobalDirection Forward => Vector3.forward.AsGlobalDirection();
-        public static GlobalDirection Back => Vector3.back.AsGlobalDirection();
-        public static GlobalDirection One => Vector3.one.AsGlobalDirection();
-        
+        [Pure] public static GlobalOffset operator *(Length a, GlobalDirection b) => GlobalOffset.FromGlobal(a * b.X, a * b.Y, a * b.Z);
+        [Pure] public static GlobalDirection operator -(GlobalDirection dir) => FromGlobal(-dir.X, -dir.Y, -dir.Z);
+
         [Pure] public static GlobalDirection Lerp(
             GlobalDirection start, GlobalDirection end, double perc, bool shouldClamp = true
         ) => start.LerpTo(end, perc, shouldClamp);
@@ -69,40 +68,35 @@ namespace BII.WasaBii.Unity.Geometry {
             GlobalDirection start, GlobalDirection end, double perc, bool shouldClamp = true
         ) => start.SlerpTo(end, perc, shouldClamp);
 
-        [Pure] public GlobalDirection CopyWithDifferentValue(Vector3 newValue) => FromGlobal(newValue);
-
     }
 
     public static partial class DirectionExtensions {
        
-       [Pure] public static GlobalDirection AsGlobalDirection(this Vector3 globalPosition) 
+       [Pure] public static GlobalDirection AsGlobalDirection(this System.Numerics.Vector3 globalPosition) 
            => GlobalDirection.FromGlobal(globalPosition);
 
-       [Pure] public static GlobalDirection AsGlobalDirection(this System.Numerics.Vector3 globalPosition) 
-           => globalPosition.ToUnityVector().AsGlobalDirection();
+       #if UNITY_2022_1_OR_NEWER
+       [Pure] public static GlobalDirection AsGlobalDirection(this UnityEngine.Vector3 globalPosition) 
+           => GlobalDirection.FromGlobal(globalPosition);
 
-       [Pure] public static GlobalDirection Forward(this Component component) =>
+       [Pure] public static GlobalDirection Forward(this UnityEngine.Component component) =>
            component.transform.forward.AsGlobalDirection();
 
-       [Pure] public static GlobalDirection Forward(this GameObject gameObject) =>
+       [Pure] public static GlobalDirection Forward(this UnityEngine.GameObject gameObject) =>
            gameObject.transform.forward.AsGlobalDirection();
 
-       [Pure] public static GlobalDirection Right(this Component component) =>
+       [Pure] public static GlobalDirection Right(this UnityEngine.Component component) =>
            component.transform.right.AsGlobalDirection();
 
-       [Pure] public static GlobalDirection Right(this GameObject gameObject) =>
+       [Pure] public static GlobalDirection Right(this UnityEngine.GameObject gameObject) =>
            gameObject.transform.right.AsGlobalDirection();
 
-       [Pure] public static GlobalDirection Up(this Component component) =>
+       [Pure] public static GlobalDirection Up(this UnityEngine.Component component) =>
            component.transform.up.AsGlobalDirection();
 
-       [Pure] public static GlobalDirection Up(this GameObject gameObject) =>
+       [Pure] public static GlobalDirection Up(this UnityEngine.GameObject gameObject) =>
            gameObject.transform.up.AsGlobalDirection();
-
-       /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3)"/>
-       [Pure] public static GlobalDirection Reflect(
-           this GlobalDirection self, GlobalDirection planeNormal
-       ) => self.AsVector.Reflect(planeNormal.AsVector).AsGlobalDirection();
+       #endif
 
     }
 

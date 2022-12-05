@@ -4,7 +4,7 @@ using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
 
     /// A wrapper for a <see cref="Quaternion"/> that represents a local rotation.
     [MustBeImmutable]

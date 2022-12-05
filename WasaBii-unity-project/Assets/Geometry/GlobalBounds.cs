@@ -66,7 +66,7 @@ namespace BII.WasaBii.Unity.Geometry {
             GlobalBounds.FromCenterSize(b.center.AsGlobalPosition(), b.size.AsGlobalOffset());
 
         [Pure] public static Bounds AsUnityBounds(this GlobalBounds bounds) => new Bounds(
-            center: bounds.Center.AsVector,
+            center: bounds.Center.AsNumericsVector,
             size: bounds.Size.AsVector
         );
         

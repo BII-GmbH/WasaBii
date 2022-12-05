@@ -2,23 +2,20 @@ using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
-using UnityEngine;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
 
-    public interface DirectionLike<TSelf> : VectorLike<TSelf>
-        where TSelf : struct, DirectionLike<TSelf> { }
+    public interface DirectionLike {
+        System.Numerics.Vector3 AsNumericsVector { get; }
+    }
 
-    public interface RelativeDirectionLike<out TRelativity> : VectorLike 
+    public interface DirectionLike<TSelf, out TRelativity> : DirectionLike
+        where TSelf : struct, DirectionLike<TSelf, TRelativity>, TRelativity
         where TRelativity : WithRelativity { }
 
-    public interface DirectionLike<TSelf, out TRelativity> : VectorLike<TSelf>, DirectionLike<TSelf>, RelativeDirectionLike<TRelativity>
-        where TSelf : struct, DirectionLike<TSelf, TRelativity> 
-        where TRelativity : WithRelativity { }
+    public interface GlobalDirectionLike<TSelf> : DirectionLike<TSelf, IsGlobal>, IsGlobal where TSelf : struct, GlobalDirectionLike<TSelf> { }
 
-    public interface GlobalDirectionLike<TSelf> : DirectionLike<TSelf, IsGlobal> where TSelf : struct, DirectionLike<TSelf, IsGlobal> { }
-
-    public interface LocalDirectionLike<TSelf> : DirectionLike<TSelf, IsLocal> where TSelf : struct, DirectionLike<TSelf, IsLocal> { }
+    public interface LocalDirectionLike<TSelf> : DirectionLike<TSelf, IsLocal>, IsLocal where TSelf : struct, LocalDirectionLike<TSelf> { }
 
     public static class DirectionLikeExtensions {
         
@@ -30,17 +27,17 @@ namespace BII.WasaBii.Unity.Geometry {
         ) where TRelativity : WithRelativity => 
             Vector3.SignedAngle(lhs.AsVector, rhs.AsVector, axis.AsVector).Degrees();
 
-        [Pure] public static double Dot<T>(this T a, T b) where T : struct, DirectionLike<T> => a.AsVector.Dot(b.AsVector);
+        [Pure] public static double Dot<T>(this T a, T b) where T : struct, DirectionLike => a.AsVector.Dot(b.AsVector);
 
-        [Pure] public static T Cross<T>(this T a, T b) where T : struct, DirectionLike<T> => a.CopyWithDifferentValue(a.AsVector.Cross(b.AsVector));
+        [Pure] public static T Cross<T>(this T a, T b) where T : struct, DirectionLike => a.CopyWithDifferentValue(a.AsVector.Cross(b.AsVector));
 
         [Pure] public static bool PointsInSameDirectionAs<TRelativity>(this RelativeDirectionLike<TRelativity> a, RelativeDirectionLike<TRelativity> b)
             where TRelativity : WithRelativity => a.AsVector.PointsInSameDirectionAs(b.AsVector);
         
-        [Pure] public static T Add<T>(this T a, T b) where T : struct, DirectionLike<T>, HasMagnitude<T>
+        [Pure] public static T Add<T>(this T a, T b) where T : struct, DirectionLike, HasMagnitude<T>
             => a.CopyWithDifferentValue(a.AsVector + b.AsVector);
         
-        [Pure] public static T Sum<T>(this IEnumerable<T> elements) where T : struct, DirectionLike<T>, HasMagnitude<T>
+        [Pure] public static T Sum<T>(this IEnumerable<T> elements) where T : struct, DirectionLike, HasMagnitude<T>
             => elements.Aggregate(Add);
 
     }

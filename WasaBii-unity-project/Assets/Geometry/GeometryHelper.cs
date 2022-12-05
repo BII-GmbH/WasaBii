@@ -2,18 +2,17 @@
 using System.Linq;
 using JetBrains.Annotations;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
     
     /// Supertype for all geometry utils.
     /// Those wrap low-level mathematical structures like vectors and quaternions in
     /// expressive typed helpers that give more context (e.g. position, offset, direction).
-    /// All geometry helpers have to implement linear and spherical interpolation (lerp & slerp)
+    /// All geometry helpers have to implement linear interpolation lerp
     /// as this is needed for several utility extensions like <code>Average</code>.
     public interface GeometryHelper<TSelf>
         where TSelf : GeometryHelper<TSelf> {
 
         [Pure] TSelf LerpTo(TSelf target, double progress, bool shouldClamp = true);
-        [Pure] TSelf SlerpTo(TSelf target, double progress, bool shouldClamp = true);
     }
 
     public static class GeometryHelperExtensions {

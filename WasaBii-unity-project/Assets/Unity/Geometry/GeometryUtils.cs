@@ -36,7 +36,7 @@ namespace BII.WasaBii.Unity.Geometry {
             var rotation = shouldClamp
                 ? Quaternion.Slerp(from.GlobalRotation, to.GlobalRotation, (float) progress)
                 : Quaternion.SlerpUnclamped(from.GlobalRotation, to.GlobalRotation, (float) progress);
-            return new GlobalPose(position.AsVector, rotation);
+            return new GlobalPose(position.AsNumericsVector, rotation);
         }
 
         // Note DS: This used to be calculated properly, but the algorithm was incorrect
@@ -45,7 +45,7 @@ namespace BII.WasaBii.Unity.Geometry {
         public static Length CalculateCirpingMovementLength(
             PositionProvider from, PositionProvider to, PositionProvider pivot, int sampleCount = 6
         ) => Range.Sample(t => Cirp(from, to, pivot, t), sampleCount, includeFrom: true, includeTo: true)
-            .Select(loc => loc.AsVector)
+            .Select(loc => loc.AsNumericsVector)
             .TotalPathLength();
 
         /// <summary>

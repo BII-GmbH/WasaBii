@@ -12,7 +12,7 @@ namespace BII.WasaBii.Unity.Geometry {
     [MustBeSerializable]
     public readonly struct GlobalPose : IsGlobalVariant<GlobalPose, LocalPose>, IEquatable<GlobalPose> {
         public static implicit operator TransformProvider(GlobalPose location)
-            => TransformProvider.From(location.Position.AsVector, location.Rotation.AsQuaternion, Vector3.one);
+            => TransformProvider.From(location.Position.AsNumericsVector, location.Rotation.AsQuaternion, Vector3.one);
         
         public static implicit operator PositionProvider(GlobalPose location)
             => new PositionProvider(location.Position);
@@ -22,7 +22,7 @@ namespace BII.WasaBii.Unity.Geometry {
         public readonly GlobalRotation Rotation;
         public readonly GlobalDirection Forward => Rotation * GlobalDirection.Forward;
 
-        public Vector3 GlobalPosition => Position.AsVector;
+        public Vector3 GlobalPosition => Position.AsNumericsVector;
         public Quaternion GlobalRotation => Rotation.AsQuaternion;
         public Vector3 GlobalForward => Forward.AsVector;
 
@@ -49,7 +49,7 @@ namespace BII.WasaBii.Unity.Geometry {
                 : Quaternion.FromToRotation(Vector3.forward, forward)
         ) { }
 
-        public GlobalPose(GlobalPosition position, GlobalDirection forward) : this(position.AsVector, forward.AsVector) { }
+        public GlobalPose(GlobalPosition position, GlobalDirection forward) : this(position.AsNumericsVector, forward.AsVector) { }
 
         [Pure] public bool Equals(GlobalPose other) => Position.Equals(other.Position) && Rotation.Equals(other.Rotation);
         [Pure] public override bool Equals(object obj) => obj is GlobalPose other && Equals(other);

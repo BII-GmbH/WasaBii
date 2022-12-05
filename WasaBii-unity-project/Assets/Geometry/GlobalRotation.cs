@@ -1,68 +1,81 @@
 ﻿using BII.WasaBii.Core;
+using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
-using UnityEngine;
+using System.Numerics;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
 
-    /// A wrapper for a <see cref="Quaternion"/> that represents a world-space rotation.
+    /// A quaternion-based representation of a world-space rotation.
     [MustBeImmutable]
     [MustBeSerializable]
-    public readonly struct GlobalRotation : QuaternionLike<GlobalRotation>, IsGlobalVariant<GlobalRotation, LocalRotation> {
+    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Other, hasMagnitude: false, hasDirection: false)]
+    public readonly partial struct GlobalRotation : IsGlobalVariant<GlobalRotation, LocalRotation> {
 
-        public static readonly GlobalRotation Identity = FromGlobal(Quaternion.identity);
+        public static readonly GlobalRotation Identity = FromGlobal(Quaternion.Identity);
 
-        public Quaternion AsQuaternion { get; }
-
-        private GlobalRotation(Quaternion local) => AsQuaternion = local;
+        public readonly Quaternion AsNumericsQuaternion;
         
-        [Pure] public static GlobalRotation FromGlobal(Quaternion global) => new GlobalRotation(global);
+        public GlobalRotation Inverse => Quaternion.Inverse(AsNumericsQuaternion).AsGlobalRotation();
 
-        [Pure] public static GlobalRotation FromLocal(TransformProvider parent, Quaternion local) =>
-            FromGlobal(parent.TransformQuaternion(local));
-
-        [Pure] public static GlobalRotation FromAngleAxis(Angle angle, GlobalDirection axis) => angle.WithAxis(axis);
+        private GlobalRotation(Quaternion local) => AsNumericsQuaternion = local;
         
-        [Pure] public static GlobalRotation FromTransform(Transform parent) => new GlobalRotation(parent.rotation);
+        [Pure] public static GlobalRotation FromGlobal(Quaternion global) => new(global);
 
-        /// Transforms the global rotation into local space, relative to the <see cref="parent"/>.
+        [Pure] public static GlobalRotation FromAngleAxis(Angle angle, GlobalDirection axis) => angle.WithAxis(axis.AsNumericsVector).AsGlobalRotation();
+        
+        #if UNITY_2022_1_OR_NEWER
+        [Pure] public static GlobalRotation FromGlobal(UnityEngine.Quaternion global) => new(global.ToSystemQuaternion());
+        #endif
+
+        /// <inheritdoc cref="TransformProvider.InverseTransformRotation"/>
         /// This is the inverse of <see cref="LocalRotation.ToGlobalWith"/>
         [Pure] public LocalRotation RelativeTo(TransformProvider parent) 
-            => LocalRotation.FromGlobal(parent, AsQuaternion);
+            => parent.InverseTransformRotation(this);
 
-        [Pure] public GlobalRotation AsLocalRotationOf(TransformProvider oldParent, TransformProvider newParent) 
-            => this.RelativeTo(oldParent).ToGlobalWith(newParent);
+        public LocalRotation RelativeToWorldZero => LocalRotation.FromLocal(AsNumericsQuaternion);
 
-        [Pure] public static GlobalOffset operator *(GlobalRotation rotation, GlobalOffset offset) => (rotation.AsQuaternion * offset.AsVector).AsGlobalOffset();
-        [Pure] public static GlobalOffset operator *(GlobalOffset offset, GlobalRotation rotation) => (rotation.AsQuaternion * offset.AsVector).AsGlobalOffset();
-        [Pure] public static GlobalDirection operator *(GlobalRotation rotation, GlobalDirection direction) => (rotation.AsQuaternion * direction.AsVector).AsGlobalDirection();
-        [Pure] public static GlobalDirection operator *(GlobalDirection direction, GlobalRotation rotation) => (rotation.AsQuaternion * direction.AsVector).AsGlobalDirection();
-        [Pure] public static GlobalRotation operator *(GlobalRotation left, GlobalRotation right) => new GlobalRotation(left.AsQuaternion * right.AsQuaternion);
-        [Pure] public static GlobalRotation operator /(GlobalRotation left, GlobalRotation right) => new GlobalRotation(left.AsQuaternion * right.AsQuaternion.Inverse());
-        [Pure] public static bool operator ==(GlobalRotation a, GlobalRotation b) => a.AsQuaternion == b.AsQuaternion;
-        [Pure] public static bool operator !=(GlobalRotation a, GlobalRotation b) => a.AsQuaternion != b.AsQuaternion;
-
-        [Pure] public bool Equals(GlobalRotation other) => this == other;
-        [Pure] public override bool Equals(object obj) => obj is GlobalRotation pos && this == pos;
-        [Pure] public override int GetHashCode() => AsQuaternion.GetHashCode();
+        [Pure] public static GlobalOffset operator *(GlobalRotation rotation, GlobalOffset offset) =>
+            Vector3.Transform(offset.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalOffset();
+        [Pure] public static GlobalOffset operator *(GlobalOffset offset, GlobalRotation rotation) =>
+            Vector3.Transform(offset.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalOffset();
+        [Pure] public static GlobalDirection operator *(GlobalRotation rotation, GlobalDirection direction) =>
+            Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalDirection();
+        [Pure] public static GlobalDirection operator *(GlobalDirection direction, GlobalRotation rotation) =>
+            Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalDirection();
+        [Pure] public static GlobalRotation operator *(GlobalRotation left, GlobalRotation right) => 
+            Quaternion.Concatenate(left.AsNumericsQuaternion, right.AsNumericsQuaternion).AsGlobalRotation();
 
         [Pure] public static GlobalRotation Lerp(
             GlobalRotation start, GlobalRotation end, double perc, bool shouldClamp = true
         ) => start.LerpTo(end, perc, shouldClamp);
-        
+
+        public GlobalRotation LerpTo(GlobalRotation target, double progress, bool shouldClamp = true) => 
+            Quaternion.Lerp(AsNumericsQuaternion, target.AsNumericsQuaternion, (float)(shouldClamp ? progress.Clamp01() : progress)).AsGlobalRotation();
+
         [Pure] public static GlobalRotation Slerp(
             GlobalRotation start, GlobalRotation end, double perc, bool shouldClamp = true
         ) => start.SlerpTo(end, perc, shouldClamp);
 
-        [Pure] public static Builder From(RelativeDirectionLike<IsGlobal> from) => new Builder(from);
+        public GlobalRotation SlerpTo(GlobalRotation target, double progress, bool shouldClamp = true) => 
+            Quaternion.Slerp(AsNumericsQuaternion, target.AsNumericsQuaternion, (float)(shouldClamp ? progress.Clamp01() : progress)).AsGlobalRotation();
+
+        [Pure] public static Builder From<T>(T from) where T : struct, GlobalDirectionLike<T> => 
+            new(from.AsNumericsVector);
+        
         public readonly struct Builder {
 
-            private readonly RelativeDirectionLike<IsGlobal> from;
-            public Builder(RelativeDirectionLike<IsGlobal> from) => this.from = from;
+            private readonly Vector3 from;
+            public Builder(Vector3 from) => this.from = from;
 
-            [Pure] public GlobalRotation To(RelativeDirectionLike<IsGlobal> to) => GlobalRotation.FromGlobal(
-                Quaternion.FromToRotation(from.AsVector, to.AsVector)
-            );
+            [Pure]
+            public GlobalRotation To<T>(T to) where T : struct, GlobalDirectionLike<T> => To(to.AsNumericsVector);
+            
+            [Pure]
+            public GlobalRotation To(Vector3 to) {
+                Vector3.
+                var axis = Vector3.Cross(from, to).AsGlobalDirection();
+            }
         }
 
         [Pure] public override string ToString() => AsQuaternion.ToString();

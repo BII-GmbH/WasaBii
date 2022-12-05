@@ -1,87 +1,80 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
-using UnityEngine;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
 
-    /// A wrapper for a <see cref="Vector3"/> that represents a the difference between two positions in the same local space.
+    /// A 3D vector that represents a the difference between two positions in the same local space.
     /// Can also be viewed as a <see cref="LocalDirection"/> with a length.
     [MustBeImmutable]
     [MustBeSerializable]
-    public readonly struct LocalOffset : 
+    [GeometryHelper(areFieldsIndependent: true, fieldType: FieldType.Length, hasMagnitude: true, hasDirection: true)]
+    public readonly partial struct LocalOffset : 
         LocalDirectionLike<LocalOffset>, 
-        HasMagnitude<LocalOffset>, 
-        IsLocalVariant<LocalOffset, GlobalOffset>,
-        IEquatable<LocalOffset> {
+        IsLocalVariant<LocalOffset, GlobalOffset> {
         
-        public Vector3 AsVector { get; }
+        public static readonly LocalOffset Up = FromLocal(0, 1, 0);
+        public static readonly LocalOffset Down = FromLocal(0, -1, 0);
+        public static readonly LocalOffset Left = FromLocal(-1, 0, 0);
+        public static readonly LocalOffset Right = FromLocal(1, 0, 0);
+        public static readonly LocalOffset Forward = FromLocal(0, 0, 1);
+        public static readonly LocalOffset Back = FromLocal(0, 0, -1);
+        public static readonly LocalOffset One = FromLocal(1, 1, 1);
+        public static readonly LocalOffset Zero = FromLocal(0, 0, 0);
 
-        public LocalDirection Normalized => (LocalDirection) this;
+        public Length X { init; get; }
+        public Length Y { init; get; }
+        public Length Z { init; get; }
 
-        public LocalPosition AsPosition => LocalPosition.FromLocal(AsVector);
+        public LocalDirection Normalized => LocalDirection.FromGlobal(X, Y, Z);
+        public LocalPosition AsPosition => LocalPosition.FromLocal(X, Y, Z);
 
-        private LocalOffset(Vector3 local) => this.AsVector = local;
-
-        [Pure] public static LocalOffset FromGlobal(TransformProvider parent, Vector3 global)
-            => FromLocal(parent.InverseTransformVector(global));
-
-        [Pure] public static LocalOffset FromLocal(Vector3 local)
-            => new LocalOffset(local);
+        [Pure] public static LocalOffset FromLocal(System.Numerics.Vector3 global)
+            => new() {X = global.X.Meters(), Y = global.Y.Meters(), Z = global.Z.Meters()};
 
         [Pure] public static LocalOffset FromLocal(Length x, Length y, Length z) 
-            => FromLocal(new Vector3((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()));
+            => new() {X = x, Y = y, Z = z};
 
-        [Pure] public static LocalOffset FromLocal(float x, float y, float z) 
-            => FromLocal(new Vector3(x, y, z));
+        [Pure] public static LocalOffset FromLocal(double x, double y, double z) 
+            => new() {X = x.Meters(), Y = y.Meters(), Z = z.Meters()};
+
+        #if UNITY_2022_1_OR_NEWER
+        [Pure] public static LocalOffset FromLocal(UnityEngine.Vector3 global)
+            => new() {X = global.x.Meters(), Y = global.y.Meters(), Z = global.z.Meters()};
+        #endif
 
         [Pure] public static Builder From(LocalPosition origin) => new Builder(origin);
 
-        /// Transforms the local offset into global space, with <see cref="parent"/> as the parent.
+        /// <inheritdoc cref="TransformProvider.TransformOffset"/>
         /// This is the inverse of <see cref="GlobalOffset.RelativeTo"/>
-        [Pure] public GlobalOffset ToGlobalWith(TransformProvider parent)
-            => GlobalOffset.FromLocal(parent, AsVector);
+        [Pure]
+        public GlobalOffset ToGlobalWith(TransformProvider parent) => parent.TransformOffset(this);
+
+        public GlobalOffset ToGlobalWithWorldZero => GlobalOffset.FromGlobal(X, Y, Z);
 
         [Pure] public LocalOffset TransformBy(LocalPose offset) => offset.Rotation * this;
         
-        /// <inheritdoc cref="Vector3.Project"/>
-        [Pure] public LocalOffset Project(LocalDirection onNormal)
-            => Vector3.Project(AsVector, onNormal.AsVector).AsLocalOffset();
+        /// Projects this offset onto the other one.
+        [Pure] public LocalOffset Project(LocalOffset other) => this.Dot(other) / other.SqrMagnitude * other;
 
-        /// <inheritdoc cref="Vector3.ProjectOnPlane"/>
-        [Pure] public LocalOffset ProjectOnPlane(LocalDirection planeNormal)
-            => Vector3.ProjectOnPlane(AsVector, planeNormal.AsVector).AsLocalOffset();
+        /// Projects this offset onto the given direction.
+        [Pure] public LocalOffset Project(LocalDirection onNormal) => this.Dot(onNormal) * onNormal;
 
-        public Length Length => AsVector.magnitude.Meters();
+        /// Projects this offset onto the plane defined by its normal.
+        [Pure] public LocalOffset ProjectOnPlane(LocalDirection planeNormal) => this - this.Project(planeNormal);
 
-        [Pure] public static LocalOffset operator +(LocalOffset left, LocalOffset right) =>
-            new LocalOffset(left.AsVector + right.AsVector);
+        /// Reflects this offset off the plane defined by the given normal
+        [Pure]
+        public LocalOffset Reflect(LocalDirection planeNormal) => this - 2 * this.Project(planeNormal);
 
-        [Pure] public static LocalOffset operator -(LocalOffset left, LocalOffset right) =>
-            new LocalOffset(left.AsVector - right.AsVector);
+        public Length Dot(LocalDirection normal) => X * normal.X + Y * normal.Y + Z * normal.Z;
 
-        [Pure] public static LocalOffset operator -(LocalOffset offset) => new LocalOffset(-offset.AsVector);
+        [Pure] public static LocalOffset operator +(LocalOffset left, LocalOffset right) => FromLocal(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
 
-        [Pure] public static LocalOffset operator *(float scalar, LocalOffset offset) =>
-            (scalar * offset.AsVector).AsLocalOffset();
-        [Pure] public static LocalOffset operator /(LocalOffset offset, float scalar) =>
-            (offset.AsVector / scalar).AsLocalOffset();
+        [Pure] public static LocalOffset operator -(LocalOffset left, LocalOffset right) => FromLocal(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
 
-        [Pure] public static LocalOffset operator *(LocalOffset offset, float scalar) => scalar * offset;
-
-        [Pure] public static LocalOffset operator *(double scalar, LocalOffset offset) => (float)scalar * offset;
-        [Pure] public static LocalOffset operator *(LocalOffset offset, double scalar) => (float)scalar * offset;
-        [Pure] public static LocalOffset operator /(LocalOffset offset, double scalar) => offset / (float)scalar;
-        
-        [Pure] public static bool operator ==(LocalOffset a, LocalOffset b) => a.AsVector == b.AsVector;
-        [Pure] public static bool operator !=(LocalOffset a, LocalOffset b) => a.AsVector != b.AsVector;
-
-        [Pure] public bool Equals(LocalOffset other) => this == other;
-        [Pure] public override bool Equals(object obj) => obj is LocalOffset dir && this == dir;
-        [Pure] public override int GetHashCode() => AsVector.GetHashCode();
+        [Pure] public static LocalOffset operator -(LocalOffset offset) => FromLocal(-offset.X, -offset.Y, -offset.Z);
 
         public readonly struct Builder {
             private readonly LocalPosition origin;
@@ -89,15 +82,6 @@ namespace BII.WasaBii.Unity.Geometry {
             [Pure] public LocalOffset To(LocalPosition destination) => destination - origin;
         }
 
-        public static LocalOffset Up => Vector3.up.AsLocalOffset();
-        public static LocalOffset Down => Vector3.down.AsLocalOffset();
-        public static LocalOffset Left => Vector3.left.AsLocalOffset();
-        public static LocalOffset Right => Vector3.right.AsLocalOffset();
-        public static LocalOffset Forward => Vector3.forward.AsLocalOffset();
-        public static LocalOffset Back => Vector3.back.AsLocalOffset();
-        public static LocalOffset One => Vector3.one.AsLocalOffset();
-        public static LocalOffset Zero => Vector3.zero.AsLocalOffset();
-        
         [Pure] public static LocalOffset Lerp(
             LocalOffset start, LocalOffset end, double perc, bool shouldClamp = true
         ) => start.LerpTo(end, perc, shouldClamp);
@@ -105,23 +89,19 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static LocalOffset Slerp(
             LocalOffset start, LocalOffset end, double perc, bool shouldClamp = true
         ) => start.SlerpTo(end, perc, shouldClamp);
-
-        [Pure] public LocalOffset CopyWithDifferentValue(Vector3 newValue) => FromLocal(newValue);
+        
     }
     
     public static partial class OffsetExtensions {
         
-        [Pure] public static LocalOffset AsLocalOffset(this Vector3 localOffset)
+        #if UNITY_2022_1_OR_NEWER
+        [Pure] public static LocalOffset AsLocalOffset(this UnityEngine.Vector3 localOffset)
             => LocalOffset.FromLocal(localOffset);
+        #endif
 
         [Pure] public static LocalOffset AsLocalOffset(this System.Numerics.Vector3 localOffset)
-            => localOffset.ToUnityVector().AsLocalOffset();
+            => LocalOffset.FromLocal(localOffset);
 
-        /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3)"/>
-        [Pure] public static LocalOffset Reflect(
-            this LocalOffset self, LocalDirection planeNormal
-        ) => self.AsVector.Reflect(planeNormal.AsVector).AsLocalOffset();
-        
     }
 
 }

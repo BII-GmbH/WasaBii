@@ -2,7 +2,7 @@
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 
-namespace BII.WasaBii.Geometry.Geometry
+namespace BII.WasaBii.Geometry
 {
     public static class QuaternionExtensions
     {
@@ -19,12 +19,5 @@ namespace BII.WasaBii.Geometry.Geometry
             var vec = new Vector3(axis.Y + axis.Z, axis.Z - axis.X, -axis.X - axis.Y);
             return Vector3.SignedAngle(vec, q * vec, axis).Degrees();
         }
-
-        [Pure] public static Angle AngleTo<T>(this T self, T other) 
-        where T : struct, QuaternionLike<T> =>
-            Quaternion.Angle(self.AsQuaternion, other.AsQuaternion).Degrees();
-
-        [Pure] public static T Inverse<T>(this T t) where T : struct, QuaternionLike<T> => 
-            t.CopyWithDifferentValue(t.AsQuaternion.Inverse());
     }
 }

@@ -1,90 +1,117 @@
-using System;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace BII.WasaBii.Geometry {
 
-    /// A wrapper for a <see cref="Quaternion"/> that represents a local rotation.
+    /// A quaternion-based representation of a local rotation relative to an undefined parent.
     [MustBeImmutable]
     [MustBeSerializable]
-    public readonly struct LocalRotation : QuaternionLike<LocalRotation>, IsLocalVariant<LocalRotation, GlobalRotation> {
+    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Other, hasMagnitude: false, hasDirection: false)]
+    public readonly partial struct LocalRotation : IsLocalVariant<LocalRotation, GlobalRotation> {
 
-        public static readonly LocalRotation Identity = FromLocal(Quaternion.identity);
+        public static readonly LocalRotation Identity = FromLocal(System.Numerics.Quaternion.Identity);
 
-        public Quaternion AsQuaternion { get; }
-
-        private LocalRotation(Quaternion local) => AsQuaternion = local;
+        public System.Numerics.Quaternion AsNumericsQuaternion { get; init; }
         
-        [Pure] public static LocalRotation FromGlobal(TransformProvider parent, Quaternion global) => 
-            FromLocal(parent.InverseTransformQuaternion(global));
+        public LocalRotation Inverse => AsNumericsQuaternion.Inverse().AsLocalRotation();
 
-        [Pure] public static LocalRotation FromLocal(Quaternion local) => new(local);
-
-        [Pure] public static LocalRotation FromAngleAxis(Angle angle, LocalDirection axis) => angle.WithAxis(axis);
+        private LocalRotation(System.Numerics.Quaternion local) => AsNumericsQuaternion = local;
         
-        [Pure] public static LocalRotation FromTransform(Transform parent) => new(parent.localRotation);
+        
+        [Pure] public static LocalRotation FromLocal(System.Numerics.Quaternion global) => new(global);
 
-        /// Transforms the local rotation into global space, with <see cref="parent"/> as the parent.
+        [Pure] public static LocalRotation FromAngleAxis(Angle angle, LocalDirection axis) => angle.WithAxis(axis.AsNumericsVector).AsLocalRotation();
+        
+        #if UNITY_2022_1_OR_NEWER
+        public UnityEngine.Quaternion AsUnityQuaternion => AsNumericsQuaternion.ToUnityQuaternion();
+        
+        [Pure] public static LocalRotation FromLocal(UnityEngine.Quaternion local) => new(local.ToSystemQuaternion());
+        #endif
+
+        /// <inheritdoc cref="TransformProvider.TransformRotation"/>
         /// This is the inverse of <see cref="GlobalRotation.RelativeTo"/>
         [Pure] public GlobalRotation ToGlobalWith(TransformProvider parent) 
-            => GlobalRotation.FromLocal(parent, AsQuaternion);
+            => parent.TransformRotation(this);
 
+        public GlobalRotation ToGlobalWithWorldZero => GlobalRotation.FromGlobal(AsNumericsQuaternion);
+
+        // TODO DS: this
         [Pure] public LocalRotation TransformBy(LocalPose offset) => offset.Rotation * this;
         
-        [Pure] public static LocalOffset operator *(LocalRotation rotation, LocalOffset offset) => (rotation.AsQuaternion * offset.AsVector).AsLocalOffset();
-        [Pure] public static LocalOffset operator *(LocalOffset offset, LocalRotation rotation) => (rotation.AsQuaternion * offset.AsVector).AsLocalOffset();
-        [Pure] public static LocalDirection operator *(LocalRotation rotation, LocalDirection direction) => (rotation.AsQuaternion * direction.AsVector).AsLocalDirection();
-        [Pure] public static LocalDirection operator *(LocalDirection direction, LocalRotation rotation) => (rotation.AsQuaternion * direction.AsVector).AsLocalDirection();
-        [Pure] public static LocalRotation operator *(LocalRotation left, LocalRotation right) => new(left.AsQuaternion * right.AsQuaternion);
-        [Pure] public static LocalRotation operator /(LocalRotation left, LocalRotation right) => new(left.AsQuaternion * right.AsQuaternion.Inverse());
-        [Pure] public static bool operator ==(LocalRotation a, LocalRotation b) => a.AsQuaternion == b.AsQuaternion;
-        [Pure] public static bool operator !=(LocalRotation a, LocalRotation b) => a.AsQuaternion != b.AsQuaternion;
-
-        [Pure] public bool Equals(LocalRotation other) => this == other;
-        [Pure] public override bool Equals(object obj) => obj is LocalRotation pos && this == pos;
-        [Pure] public override int GetHashCode() => AsQuaternion.GetHashCode();
-
+        [Pure] public static LocalOffset operator *(LocalRotation rotation, LocalOffset offset) => 
+            System.Numerics.Vector3.Transform(offset.AsNumericsVector, rotation.AsNumericsQuaternion).AsLocalOffset();
+        [Pure] public static LocalOffset operator*(LocalOffset offset, LocalRotation rotation) => rotation * offset;
+        
+        [Pure] public static LocalDirection operator *(LocalRotation rotation, LocalDirection direction) => 
+            System.Numerics.Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsLocalDirection();
+        [Pure] public static LocalDirection operator *(LocalDirection direction, LocalRotation rotation) => rotation * direction;
+        
+        [Pure] public static LocalRotation operator *(LocalRotation left, LocalRotation right) => 
+            new(System.Numerics.Quaternion.Concatenate(left.AsNumericsQuaternion, right.AsNumericsQuaternion));
+        
         [Pure] public static LocalRotation Lerp(
             LocalRotation start, LocalRotation end, double perc, bool shouldClamp = true
         ) => start.LerpTo(end, perc, shouldClamp);
         
+        public LocalRotation LerpTo(LocalRotation target, double progress, bool shouldClamp = true) => 
+            System.Numerics.Quaternion.Lerp(AsNumericsQuaternion, target.AsNumericsQuaternion, (float)(shouldClamp ? progress.Clamp01() : progress)).AsLocalRotation();
+
         [Pure] public static LocalRotation Slerp(
             LocalRotation start, LocalRotation end, double perc, bool shouldClamp = true
         ) => start.SlerpTo(end, perc, shouldClamp);
 
-        [Pure] public LocalRotation Map(Func<Quaternion, Quaternion> f) => LocalRotation.FromLocal(f(AsQuaternion));
+        public LocalRotation SlerpTo(LocalRotation target, double progress, bool shouldClamp = true) => 
+            System.Numerics.Quaternion.Slerp(AsNumericsQuaternion, target.AsNumericsQuaternion, (float)(shouldClamp ? progress.Clamp01() : progress)).AsLocalRotation();
 
-        [Pure] public static Builder From(RelativeDirectionLike<IsLocal> from) => new(from);
+        [Pure] public static Builder From<T>(T from) where T : struct, LocalDirectionLike<T> => 
+            new(from switch {
+                LocalDirection dir => dir.AsNumericsVector,
+                _ => from.AsNumericsVector.Normalized()
+            });
+        
         public readonly struct Builder {
 
-            private readonly RelativeDirectionLike<IsLocal> from;
-            public Builder(RelativeDirectionLike<IsLocal> from) => this.from = from;
+            private readonly System.Numerics.Vector3 from;
+            
+            /// <param name="from">Must be normalized</param>
+            public Builder(System.Numerics.Vector3 from) => this.from = from;
 
-            [Pure] public LocalRotation To(RelativeDirectionLike<IsLocal> to) => LocalRotation.FromLocal(
-                Quaternion.FromToRotation(from.AsVector, to.AsVector)
+            [Pure]
+            public LocalRotation To<T>(T to, T? axisIfOpposite = null) where T : struct, LocalDirectionLike<T> => To(
+                to switch {
+                    LocalDirection dir => dir.AsNumericsVector,
+                    _ => to.AsNumericsVector.Normalized()
+                },
+                axisIfOpposite: axisIfOpposite?.AsNumericsVector
             );
+
+            /// <param name="to">Must be normalized</param>
+            [Pure]
+            public LocalRotation To(System.Numerics.Vector3 to, System.Numerics.Vector3? axisIfOpposite = null) => 
+                from.RotationTo(to, axisIfOpposite).AsLocalRotation();
         }
 
-        [Pure] public override string ToString() => AsQuaternion.ToString();
+        [Pure] public Angle AngleOn(LocalDirection axis) 
+            => this.AsNumericsQuaternion.AngleOn(axis.AsNumericsVector);
 
-        [Pure] public LocalRotation CopyWithDifferentValue(Quaternion newValue) => FromLocal(newValue);
+        [Pure] public override string ToString() => AsNumericsQuaternion.ToString();
 
     }
 
-    public static partial class RotationExtensions {
+    public static class LocalRotationExtensions {
+        [Pure] public static LocalRotation AsLocalRotation(this System.Numerics.Quaternion localRotation) 
+            => BII.WasaBii.Geometry.LocalRotation.FromLocal(localRotation);
         
-        [Pure] public static LocalRotation AsLocalRotation(this Quaternion localRotation) 
-            => Geometry.LocalRotation.FromLocal(localRotation);
-
-        [Pure] public static LocalRotation LocalRotation(this Component component) 
-            => Geometry.LocalRotation.FromLocal(component.transform.localRotation);
-        [Pure] public static LocalRotation LocalRotation(this GameObject gameObject) 
-            => Geometry.LocalRotation.FromLocal(gameObject.transform.localRotation);
-
-        [Pure] public static Angle AngleOn(this LocalRotation rot, LocalDirection axis) 
-            => rot.AsQuaternion.AngleOn(axis.AsVector);
+        #if UNITY_2022_1_OR_NEWER
+        [Pure] public static LocalRotation AsLocalRotation(this UnityEngine.Quaternion localRotation) 
+            => BII.WasaBii.Geometry.LocalRotation.FromLocal(localRotation);
+        [Pure] public static LocalRotation LocalRotation(this UnityEngine.Component component) 
+            => BII.WasaBii.Geometry.LocalRotation.FromLocal(component.transform.rotation);
+        [Pure] public static LocalRotation LocalRotation(this UnityEngine.GameObject gameObject) 
+            => BII.WasaBii.Geometry.LocalRotation.FromLocal(gameObject.transform.rotation);
+        #endif
 
     }
 

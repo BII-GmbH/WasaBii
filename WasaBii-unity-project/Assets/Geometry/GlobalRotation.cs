@@ -1,5 +1,6 @@
 ﻿using System;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry.Geometry;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
@@ -14,9 +15,9 @@ namespace BII.WasaBii.Geometry {
 
         public static readonly GlobalRotation Identity = FromGlobal(System.Numerics.Quaternion.Identity);
 
-        public readonly System.Numerics.Quaternion AsNumericsQuaternion;
+        public System.Numerics.Quaternion AsNumericsQuaternion { get; init; }
         
-        public GlobalRotation Inverse => System.Numerics.Quaternion.Inverse(AsNumericsQuaternion).AsGlobalRotation();
+        public GlobalRotation Inverse => AsNumericsQuaternion.Inverse().AsGlobalRotation();
 
         private GlobalRotation(System.Numerics.Quaternion local) => AsNumericsQuaternion = local;
         
@@ -39,12 +40,10 @@ namespace BII.WasaBii.Geometry {
 
         [Pure] public static GlobalOffset operator *(GlobalRotation rotation, GlobalOffset offset) =>
             System.Numerics.Vector3.Transform(offset.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalOffset();
-        [Pure] public static GlobalOffset operator *(GlobalOffset offset, GlobalRotation rotation) =>
-            System.Numerics.Vector3.Transform(offset.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalOffset();
+        [Pure] public static GlobalOffset operator *(GlobalOffset offset, GlobalRotation rotation) => rotation * offset;
         [Pure] public static GlobalDirection operator *(GlobalRotation rotation, GlobalDirection direction) =>
             System.Numerics.Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalDirection();
-        [Pure] public static GlobalDirection operator *(GlobalDirection direction, GlobalRotation rotation) =>
-            System.Numerics.Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalDirection();
+        [Pure] public static GlobalDirection operator *(GlobalDirection direction, GlobalRotation rotation) => rotation * direction;
         [Pure] public static GlobalRotation operator *(GlobalRotation left, GlobalRotation right) => 
             System.Numerics.Quaternion.Concatenate(left.AsNumericsQuaternion, right.AsNumericsQuaternion).AsGlobalRotation();
 
@@ -83,27 +82,15 @@ namespace BII.WasaBii.Geometry {
                 },
                 axisIfOpposite: axisIfOpposite?.AsNumericsVector
             );
-            
+
             /// <param name="to">Must be normalized</param>
             [Pure]
-            public GlobalRotation To(System.Numerics.Vector3 to, System.Numerics.Vector3? axisIfOpposite = null) {
-                // https://stackoverflow.com/a/1171995
-                var normal = System.Numerics.Vector3.Cross(from, to);
-                var dot = System.Numerics.Vector3.Dot(from, to);
-                return new GlobalRotation(dot switch {
-                    // vectors are parallel, no rotation
-                    >= 0.9999f => System.Numerics.Quaternion.Identity,
-                    // vectors are opposite, rotate 180° around any axis
-                    <= -0.9999f =>  System.Numerics.Quaternion.CreateFromAxisAngle(axisIfOpposite ?? System.Numerics.Vector3.UnitY, MathF.PI),
-                    _ => System.Numerics.Quaternion.Normalize(new System.Numerics.Quaternion(normal, dot))
-                });
-            }
+            public GlobalRotation To(System.Numerics.Vector3 to, System.Numerics.Vector3? axisIfOpposite = null) => 
+                from.RotationTo(to, axisIfOpposite).AsGlobalRotation();
         }
-
-        #if UNITY_2022_1_OR_NEWER
+        
         [Pure] public Angle AngleOn(GlobalDirection axis) 
-            => this.AsUnityQuaternion.AngleOn(axis.AsUnityVector);
-        #endif
+            => this.AsNumericsQuaternion.AngleOn(axis.AsNumericsVector);
 
         [Pure] public override string ToString() => AsNumericsQuaternion.ToString();
 

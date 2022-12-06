@@ -34,51 +34,52 @@ public class GeometryHelperGenerator : ISourceGenerator {
         
         try {
             foreach (var (typeDecl, attribute) in ((SyntaxReceiver)context.SyntaxReceiver!).GeometryHelpers) {
-                var fieldsDecls = typeDecl.Members.OfType<FieldDeclarationSyntax>()
-                    .Where(f => f.Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword));
-                var initializablePropertyDecls = typeDecl.Members.OfType<PropertyDeclarationSyntax>()
-                    .Where(p => p.Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword)
-                        && (p.AccessorList?.Accessors.Any(a => a.Kind() 
-                            is SyntaxKind.InitAccessorDeclaration or SyntaxKind.SetAccessorDeclaration) ?? false));
-                var allFields = fieldsDecls.Select(f => f.Declaration)
-                    .SelectMany(decl => decl.Variables
-                        .Select(variable => (type: decl.Type, identifier: variable.Identifier)))
-                    .Concat(initializablePropertyDecls.Select(prop => (type: prop.Type, identifier: prop.Identifier)))
-                    .ToArray();
+                var wrappedFieldDecl = typeDecl.Members.OfType<FieldDeclarationSyntax>()
+                    .Where(f => f.Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword))
+                    .Select(f => f.Declaration)
+                    .SelectMany(decl => decl.Variables.Select(variable => (type: decl.Type, identifier: variable.Identifier)))
+                    .Concat(typeDecl.Members.OfType<PropertyDeclarationSyntax>()
+                        .Where(p => p.Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword)
+                            && (p.AccessorList?.Accessors.Any(a => a.Kind() 
+                                is SyntaxKind.InitAccessorDeclaration or SyntaxKind.SetAccessorDeclaration) ?? false))
+                        .Select(p => (type: p.Type, indentifier: p.Identifier))
+                    ).Single();
+                
                 var semanticModel = context.Compilation.GetSemanticModel(typeDecl.SyntaxTree);
                 var attributeData = semanticModel.GetDeclaredSymbol(typeDecl)!.GetAttributes()
                     .First(a => a.AttributeClass!.Name == nameof(GeometryHelper));
                 var attributeArguments = attributeData.GetArgumentValues().ToArray();
                 
                 var areFieldsIndependent = (bool) attributeArguments.First(a => a.Name == "areFieldsIndependent").Value;
-                // For some reason, code generation will just silently die if I use `FieldType` as variable type.
-                // As long as it's temporary variables only, it seems to work :shrug:
-                var fieldType = (FieldType) attributeArguments.First(a => a.Name == "fieldType").Value;
+                // var fieldType = (FieldType) attributeArguments.First(a => a.Name == "fieldType").Value;
                 var hasMagnitude = (bool) attributeArguments.First(a => a.Name == "hasMagnitude").Value;
                 var hasDirection = (bool) attributeArguments.First(a => a.Name == "hasDirection").Value;
+
+                var isVector = TypeSymbolFor(wrappedFieldDecl.type, semanticModel) is INamedTypeSymbol {
+                    Name: "Vector3", ContainingNamespace: {Name: "Numerics", ContainingNamespace: {Name: "System", ContainingNamespace: null}}
+                };
+                
+                var isQuaternion = TypeSymbolFor(wrappedFieldDecl.type, semanticModel) is INamedTypeSymbol {
+                    Name: "Quaternion ", ContainingNamespace: {Name: "Numerics", ContainingNamespace: {Name: "System", ContainingNamespace: null}}
+                };
                 
                 var allMembers = new List<MemberDeclarationSyntax>();
 
-                if (allFields.Length == 3 &&
-                    allFields.TryFind(t => t.identifier.ValueText.ToLower() == "x", out var x) &&
-                    allFields.TryFind(t => t.identifier.ValueText.ToLower() == "y", out var y) &&
-                    allFields.TryFind(t => t.identifier.ValueText.ToLower() == "z", out var z)) {
-                    allMembers.AddRange(mkAsVector(fieldType, x.identifier, y.identifier, z.identifier));
-                }
                 if (areFieldsIndependent) {
                     allMembers.AddRange(mkMapAndScale(typeDecl, allFields, hasMagnitude));
                     allMembers.AddRange(mkWithFieldMethods(typeDecl, allFields));
                     allMembers.AddRange(mkMinMax(typeDecl, allFields));
                     // TODO DS: Lerp as static utility
                     allMembers.Add(mkLerp(typeDecl, allFields));
-                }
+                } else if(allFields.Length == 1)
+                    allMembers.AddRange(mkMapAndScale(typeDecl, allFields, hasMagnitude));
                 
                 if(fieldType is not FieldType.Other){
                     allMembers.Add(mkDotProduct(typeDecl, allFields.Select(f => f.identifier), fieldType));
                 
                     if (hasMagnitude) {
-                        allMembers.Add(mkSqrMagnitude(allFields.Select(f => f.identifier), fieldType));
-                        allMembers.Add(mkMagnitude(fieldType));
+                        allMembers.Add(mkSqrMagnitude(allFields.Select(f => f.identifier)));
+                        allMembers.Add(mkMagnitude());
                     }
                 
                     if (hasDirection) {
@@ -115,39 +116,6 @@ public class GeometryHelperGenerator : ISourceGenerator {
         }
     }
 
-    private IEnumerable<MemberDeclarationSyntax> mkAsVector(FieldType fieldType, SyntaxToken x, SyntaxToken y, SyntaxToken z) {
-        MemberDeclarationSyntax MkVector(TypeSyntax vectorType, string propertyName) => PropertyDeclaration(
-            vectorType,
-            Identifier(propertyName)
-        ).WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
-            .WithExpressionBody(ArrowExpressionClause(ImplicitObjectCreationExpression()
-                .WithArgumentList(ArgumentList(new []{x, y, z}.Select(id => Argument(fieldType switch {
-                    FieldType.Float => IdentifierName(id),
-                    FieldType.Double => CastExpression(PredefinedType(Token(SyntaxKind.FloatKeyword)), IdentifierName(id)),
-                    FieldType.Length => CastExpression(
-                        PredefinedType(Token(SyntaxKind.FloatKeyword)), 
-                        InvocationExpression(MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            IdentifierName(id),
-                            IdentifierName("AsMeters")))
-                    ),
-                    _ => throw new InvalidEnumArgumentException(nameof(fieldType), (int)fieldType, typeof(FieldType))
-                }))))))
-            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
-
-        yield return MkVector(
-            QualifiedName(QualifiedName(IdentifierName("System"), IdentifierName("Numerics")), IdentifierName("Vector3")), 
-            "AsNumericsVector"
-        );
-        yield return MkVector(
-            QualifiedName(IdentifierName("UnityEngine"), IdentifierName("Vector3")),
-            "AsUnityVector"
-        ).WithLeadingTrivia(trivia => trivia.Prepend(Trivia(
-            IfDirectiveTrivia(IdentifierName(CodeGenerationUtils.UnityCompilerToken), false, true, true))))
-        .WithTrailingTrivia(trivia => trivia.Append(Trivia(
-            EndIfDirectiveTrivia(false))));
-    }
-
     private MethodDeclarationSyntax mkCopyMethod(TypeDeclarationSyntax typeDecl, SyntaxToken identifier, ParameterListSyntax parameters, IEnumerable<SyntaxToken> fields, IEnumerable<ExpressionSyntax> fieldInitializers) => 
         MethodDeclaration(
             attributeLists: AttributeList(Pure),
@@ -163,14 +131,10 @@ public class GeometryHelperGenerator : ISourceGenerator {
         ).WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
     
     private ExpressionSyntax makeCopy(IEnumerable<SyntaxToken> fields, IEnumerable<ExpressionSyntax> fieldInitializers) => 
-        ImplicitObjectCreationExpression().WithInitializer(InitializerExpression(
-            SyntaxKind.ObjectInitializerExpression,
-            SeparatedList<SyntaxNode>(fields.Zip(fieldInitializers, (f, e) => 
-                AssignmentExpression(
-                    SyntaxKind.SimpleAssignmentExpression,
-                    IdentifierName(f),
-                    e
-                )))));
+        ImplicitObjectCreationExpression().WithArgumentList(
+            ArgumentList(SeparatedList(fields.Zip(fieldInitializers, (f, e) => 
+                Argument(e).WithNameColon(NameColon(IdentifierName(f)))
+                ))));
 
     private sealed class CompareTypeSyntaxByNane : IEqualityComparer<TypeSyntax> {
         public bool Equals(TypeSyntax x, TypeSyntax y) => x.ToFullString().Equals(y.ToFullString());
@@ -318,12 +282,11 @@ public class GeometryHelperGenerator : ISourceGenerator {
     
     /// Assumes all fields are `Length`s
     private MemberDeclarationSyntax mkSqrMagnitude(
-        IEnumerable<SyntaxToken> fields,
-        FieldType fieldType
+        IEnumerable<SyntaxToken> fields
     ) => PropertyDeclaration(
         attributeLists: NoAttributes,
         modifiers: TokenList(Token(SyntaxKind.PublicKeyword)),
-        type: squareTypeFor(fieldType),
+        type: IdentifierName("Area"),
         explicitInterfaceSpecifier: null,
         identifier: Identifier("SqrMagnitude"),
         accessorList: null,
@@ -336,32 +299,17 @@ public class GeometryHelperGenerator : ISourceGenerator {
     );
     
     /// Assumes `SqrMagnitude` exists
-    private MemberDeclarationSyntax mkMagnitude(
-        FieldType fieldType
-    ) => 
+    private MemberDeclarationSyntax mkMagnitude() => 
         PropertyDeclaration(
             attributeLists: NoAttributes,
             modifiers: TokenList(Token(SyntaxKind.PublicKeyword)),
-            type: typeFor(fieldType),
+            type: IdentifierName("Length"),
             explicitInterfaceSpecifier: null,
             identifier: Identifier("Magnitude"),
             accessorList: null,
-            expressionBody: ArrowExpressionClause(fieldType switch { 
-                FieldType.Float => InvocationExpression(
-                    MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName("Mathf"), IdentifierName("Sqrt")),
-                    ArgumentList(Argument(IdentifierName("SqrMagnitude")))),
-                FieldType.Double => InvocationExpression(
-                    MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName("Math"), IdentifierName("Sqrt")),
-                    ArgumentList(Argument(IdentifierName("SqrMagnitude")))),
-                FieldType.Length => MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    IdentifierName("SqrMagnitude"), IdentifierName("Sqrt")), 
-                _ => throw new InvalidEnumArgumentException($"{fieldType} is no valid value for {nameof(fieldType)}")
-            }),
+            expressionBody: ArrowExpressionClause(MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                IdentifierName("SqrMagnitude"), IdentifierName("Sqrt"))),
             initializer: null,
             Token(SyntaxKind.SemicolonToken)
         );

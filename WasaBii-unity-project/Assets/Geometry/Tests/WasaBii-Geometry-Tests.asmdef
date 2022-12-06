@@ -1,12 +1,10 @@
 ﻿{
-  "name": "WasaBii-Splines-Tests",
+  "name": "WasaBii-Geometry-Tests",
   "rootNamespace": "BII.WasaBii",
   "references": [
     "WasaBii-Core",
     "WasaBii-Geometry",
-    "WasaBii-Splines",
     "WasaBii-Units",
-    "WasaBii-Unity",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],

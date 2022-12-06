@@ -1,16 +1,12 @@
-using System;
+﻿using System.Numerics;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
-using UnityEngine;
 
-namespace BII.WasaBii.Unity.Geometry {
-    
-    public static class QuaternionLikeExtensions {
+namespace BII.WasaBii.Geometry.Geometry
+{
+    public static class QuaternionExtensions
+    {
         
-        [Pure]
-        public static T Map<T>(this T t, Func<Quaternion, Quaternion> f) where T : struct, QuaternionLike<T>
-            => t.CopyWithDifferentValue(f(t.AsQuaternion));
-
         [Pure] public static Quaternion Inverse(this Quaternion q) => Quaternion.Inverse(q);
         
         [Pure] public static Angle AngleOn(this Quaternion q, Vector3 axis) {
@@ -20,7 +16,7 @@ namespace BII.WasaBii.Unity.Geometry {
             // axis dot vec = axis.x * (axis.y + axis.z) + axis.y * (axis.z - axis.x) + axis.z * (-axis.x - axis.y)
             //     = x*y-y*x + x*z-z*x + y*z-y*z
             //     = 0
-            var vec = new Vector3(axis.y + axis.z, axis.z - axis.x, -axis.x - axis.y);
+            var vec = new Vector3(axis.Y + axis.Z, axis.Z - axis.X, -axis.X - axis.Y);
             return Vector3.SignedAngle(vec, q * vec, axis).Degrees();
         }
 
@@ -30,7 +26,5 @@ namespace BII.WasaBii.Unity.Geometry {
 
         [Pure] public static T Inverse<T>(this T t) where T : struct, QuaternionLike<T> => 
             t.CopyWithDifferentValue(t.AsQuaternion.Inverse());
-
     }
-
 }

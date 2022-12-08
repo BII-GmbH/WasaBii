@@ -67,7 +67,7 @@ public class UnitGenerator : ISourceGenerator {
     private static SourceText GenerateSourceFor(UnitDefinitions unitDef, UnitConversions conversions) {
         var unitsInclude = unitDef.Namespace.Equals("BII.WasaBii.UnitSystem") ? "" : "using BII.WasaBii.UnitSystem;\n";
         var res = $@"
-using BII.WasaBii.Core;
+using BII.WasaBii.Core; // TODO CR PREMERGE: remove this and ensure that immutability annotations are available here
 using System;
 using System.Collections.Generic;
 #if UNITY_2022_1_OR_NEWER

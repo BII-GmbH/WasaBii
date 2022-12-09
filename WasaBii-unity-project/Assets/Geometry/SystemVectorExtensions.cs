@@ -34,6 +34,18 @@ namespace BII.WasaBii.Core {
 
         public static Angle AngleTo(this Vector3 a, Vector3 b) => Angles.Acos(Vector3.Dot(a, b));
 
+        public static Vector3 Min(this Vector3 a, Vector3 b) => new(
+            MathF.Min(a.X, b.X),
+            MathF.Min(a.Y, b.Y),
+            MathF.Min(a.Z, b.Z)
+        );
+
+        public static Vector3 Max(this Vector3 a, Vector3 b) => new(
+            MathF.Max(a.X, b.X),
+            MathF.Max(a.Y, b.Y),
+            MathF.Max(a.Z, b.Z)
+        );
+
         /// <summary>
         /// Returns a quaternion <c>q</c> such that Vector3.Transform(<paramref name="from"/>, <c>q</c>) == <paramref name="to"/>.
         /// </summary>

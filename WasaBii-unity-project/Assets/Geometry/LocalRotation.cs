@@ -8,12 +8,12 @@ namespace BII.WasaBii.Geometry {
     /// A quaternion-based representation of a local rotation relative to an undefined parent.
     [MustBeImmutable]
     [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Other, hasMagnitude: false, hasDirection: false)]
+    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasDirection: false)]
     public readonly partial struct LocalRotation : IsLocalVariant<LocalRotation, GlobalRotation> {
 
         public static readonly LocalRotation Identity = FromLocal(System.Numerics.Quaternion.Identity);
 
-        public System.Numerics.Quaternion AsNumericsQuaternion { get; init; }
+        public System.Numerics.Quaternion AsNumericsQuaternion { get; }
         
         public LocalRotation Inverse => AsNumericsQuaternion.Inverse().AsLocalRotation();
 

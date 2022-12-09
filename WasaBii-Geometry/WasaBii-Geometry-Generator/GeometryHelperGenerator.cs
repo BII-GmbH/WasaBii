@@ -27,67 +27,78 @@ public class GeometryHelperGenerator : ISourceGenerator {
     public void Initialize(GeneratorInitializationContext context) =>
         context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 
+    private enum WrappedType {
+        Vector, Quaternion, Other
+    }
+
     public void Execute(GeneratorExecutionContext context) {
         // Ensure proper printing of decimal constants as valid C# code
         var origCulture = Thread.CurrentThread.CurrentCulture;
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
         
-        try {
-            foreach (var (typeDecl, attribute) in ((SyntaxReceiver)context.SyntaxReceiver!).GeometryHelpers) {
-                var wrappedFieldDecl = typeDecl.Members.OfType<FieldDeclarationSyntax>()
+        foreach (var (typeDecl, attribute) in ((SyntaxReceiver)context.SyntaxReceiver!).GeometryHelpers) {
+            try {
+                var wrappedFieldDecls = typeDecl.Members.OfType<FieldDeclarationSyntax>()
                     .Where(f => f.Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword))
                     .Select(f => f.Declaration)
                     .SelectMany(decl => decl.Variables.Select(variable => (type: decl.Type, identifier: variable.Identifier)))
                     .Concat(typeDecl.Members.OfType<PropertyDeclarationSyntax>()
                         .Where(p => p.Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword)
-                            && (p.AccessorList?.Accessors.Any(a => a.Kind() 
-                                is SyntaxKind.InitAccessorDeclaration or SyntaxKind.SetAccessorDeclaration) ?? false))
-                        .Select(p => (type: p.Type, indentifier: p.Identifier))
-                    ).Single();
-                
+                            && (p.AccessorList?.Accessors.All(a => a.Kind() 
+                                is not SyntaxKind.SetAccessorDeclaration || a.Body == null || a.ExpressionBody == null) ?? false))
+                        .Select(p => (type: p.Type, identifier: p.Identifier))
+                    ).ToList();
+
                 var semanticModel = context.Compilation.GetSemanticModel(typeDecl.SyntaxTree);
                 var attributeData = semanticModel.GetDeclaredSymbol(typeDecl)!.GetAttributes()
                     .First(a => a.AttributeClass!.Name == nameof(GeometryHelper));
                 var attributeArguments = attributeData.GetArgumentValues().ToArray();
                 
                 var areFieldsIndependent = (bool) attributeArguments.First(a => a.Name == "areFieldsIndependent").Value;
-                // var fieldType = (FieldType) attributeArguments.First(a => a.Name == "fieldType").Value;
                 var hasMagnitude = (bool) attributeArguments.First(a => a.Name == "hasMagnitude").Value;
                 var hasDirection = (bool) attributeArguments.First(a => a.Name == "hasDirection").Value;
 
-                var isVector = TypeSymbolFor(wrappedFieldDecl.type, semanticModel) is INamedTypeSymbol {
-                    Name: "Vector3", ContainingNamespace: {Name: "Numerics", ContainingNamespace: {Name: "System", ContainingNamespace: null}}
+                var isVector = wrappedFieldDecls.Count == 1 && TypeSymbolFor(wrappedFieldDecls[0].type, semanticModel) is INamedTypeSymbol {
+                    Name: "Vector3", ContainingNamespace: {Name: "Numerics", ContainingNamespace: {Name: "System", ContainingNamespace.IsGlobalNamespace: true }}
                 };
                 
-                var isQuaternion = TypeSymbolFor(wrappedFieldDecl.type, semanticModel) is INamedTypeSymbol {
-                    Name: "Quaternion ", ContainingNamespace: {Name: "Numerics", ContainingNamespace: {Name: "System", ContainingNamespace: null}}
+                var isQuaternion = wrappedFieldDecls.Count == 1 && TypeSymbolFor(wrappedFieldDecls[0].type, semanticModel) is INamedTypeSymbol {
+                    Name: "Quaternion ", ContainingNamespace: {Name: "Numerics", ContainingNamespace: {Name: "System", ContainingNamespace.IsGlobalNamespace: true}}
                 };
+
+                var wrappedType = isVector 
+                    ? WrappedType.Vector 
+                    : isQuaternion ? WrappedType.Quaternion : WrappedType.Other;
                 
                 var allMembers = new List<MemberDeclarationSyntax>();
 
+                if(wrappedFieldDecls.Count == 1)
+                    allMembers.AddRange(mkAccessorProperties(wrappedType, wrappedFieldDecls[0].identifier, hasMagnitude));
+                
+                allMembers.AddRange(mkMapAndScale(typeDecl, areFieldsIndependent, wrappedFieldDecls, hasMagnitude));
                 if (areFieldsIndependent) {
-                    allMembers.AddRange(mkMapAndScale(typeDecl, allFields, hasMagnitude));
-                    allMembers.AddRange(mkWithFieldMethods(typeDecl, allFields));
-                    allMembers.AddRange(mkMinMax(typeDecl, allFields));
-                    // TODO DS: Lerp as static utility
-                    allMembers.Add(mkLerp(typeDecl, allFields));
-                } else if(allFields.Length == 1)
-                    allMembers.AddRange(mkMapAndScale(typeDecl, allFields, hasMagnitude));
-                
-                if(fieldType is not FieldType.Other){
-                    allMembers.Add(mkDotProduct(typeDecl, allFields.Select(f => f.identifier), fieldType));
-                
-                    if (hasMagnitude) {
-                        allMembers.Add(mkSqrMagnitude(allFields.Select(f => f.identifier)));
-                        allMembers.Add(mkMagnitude());
+                    if(isVector) {
+                        allMembers.AddRange(mkWithFieldMethods(typeDecl, wrappedFieldDecls[0].identifier));
+                        allMembers.AddRange(mkMinMax(typeDecl, wrappedFieldDecls[0].identifier));
                     }
+                    // TODO DS: Lerp as static utility
+                    // allMembers.Add(mkLerp(typeDecl, allFields));
+                }
+                
+                // if(fieldType is not FieldType.Other){
+                //     allMembers.Add(mkDotProduct(typeDecl, allFields.Select(f => f.identifier), fieldType));
+                //
+                //     if (hasMagnitude) {
+                //         allMembers.Add(mkSqrMagnitude(allFields.Select(f => f.identifier)));
+                //         allMembers.Add(mkMagnitude());
+                //     }
                 
                     if (hasDirection) {
                         allMembers.Add(mkAngleTo(typeDecl, hasMagnitude));
                     }
-                }
+                // }
                 // allMembers.Add(mkSlerp(typeDecl, allFields, isBasic));
-                allMembers.Add(mkIsNearly(typeDecl, allFields, semanticModel, fieldType));
+                // allMembers.Add(mkIsNearly(typeDecl, allFields, semanticModel, fieldType));
                 
                 // TODO DS: Equzality
                 
@@ -107,16 +118,37 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     sourceText
                 );
             }
+            catch (Exception e) {
+                context.ReportDiagnostic(Diagnostic.Create(UnexpectedGenerationIssue, Location.None, e.Message));
+            }
         }
-        catch (Exception e) {
-            context.ReportDiagnostic(Diagnostic.Create(UnexpectedGenerationIssue, Location.None, e.Message));
-        }
-        finally {
-            Thread.CurrentThread.CurrentCulture = origCulture;
-        }
+        Thread.CurrentThread.CurrentCulture = origCulture;
     }
 
-    private MethodDeclarationSyntax mkCopyMethod(TypeDeclarationSyntax typeDecl, SyntaxToken identifier, ParameterListSyntax parameters, IEnumerable<SyntaxToken> fields, IEnumerable<ExpressionSyntax> fieldInitializers) => 
+    private IEnumerable<MemberDeclarationSyntax> mkAccessorProperties(WrappedType wrappedType, SyntaxToken wrappedIdentifier, bool hasMagnitude) {
+        MemberDeclarationSyntax mk(string field) {
+            var fieldMember = MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                IdentifierName(wrappedIdentifier),
+                IdentifierName(field));
+            return PropertyDeclaration(
+                    type: hasMagnitude ? IdentifierName("Length") : PredefinedType(Token(SyntaxKind.FloatKeyword)),
+                    identifier: field
+                ).WithExpressionBody(ArrowExpressionClause(
+                    hasMagnitude ? InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, fieldMember, IdentifierName("Meters"))) : fieldMember
+                ))
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+        }
+
+        return wrappedType switch {
+            WrappedType.Vector => new[]{"X", "Y", "Z"}.Select(mk),
+            WrappedType.Quaternion => new[]{"X", "Y", "Z", "W"}.Select(mk),
+            _ => Enumerable.Empty<MemberDeclarationSyntax>()
+        };
+    }
+
+    private MethodDeclarationSyntax mkCopyMethod(TypeDeclarationSyntax typeDecl, SyntaxToken identifier, ParameterListSyntax parameters, ArgumentListSyntax arg) => 
         MethodDeclaration(
             attributeLists: AttributeList(Pure),
             modifiers: TokenList(Token(SyntaxKind.PublicKeyword)),
@@ -127,14 +159,11 @@ public class GeometryHelperGenerator : ISourceGenerator {
             parameters,
             constraintClauses: List<TypeParameterConstraintClauseSyntax>(),
             body: null,
-            expressionBody: ArrowExpressionClause(makeCopy(fields, fieldInitializers))
+            expressionBody: ArrowExpressionClause(makeCopy(arg))
         ).WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
     
-    private ExpressionSyntax makeCopy(IEnumerable<SyntaxToken> fields, IEnumerable<ExpressionSyntax> fieldInitializers) => 
-        ImplicitObjectCreationExpression().WithArgumentList(
-            ArgumentList(SeparatedList(fields.Zip(fieldInitializers, (f, e) => 
-                Argument(e).WithNameColon(NameColon(IdentifierName(f)))
-                ))));
+    private ExpressionSyntax makeCopy(ArgumentListSyntax arg) => 
+        ImplicitObjectCreationExpression().WithArgumentList(arg);
 
     private sealed class CompareTypeSyntaxByNane : IEqualityComparer<TypeSyntax> {
         public bool Equals(TypeSyntax x, TypeSyntax y) => x.ToFullString().Equals(y.ToFullString());
@@ -142,10 +171,32 @@ public class GeometryHelperGenerator : ISourceGenerator {
         public int GetHashCode(TypeSyntax obj) => obj.ToFullString().GetHashCode();
     }
 
-    private IEnumerable<MemberDeclarationSyntax> mkMapAndScale(TypeDeclarationSyntax typeDecl,
-        IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields, bool hasMagnitude) {
-        if (fields.Select(f => f.type).Distinct(new CompareTypeSyntaxByNane()).SingleOrDefault() is { } fieldType) {
-            yield return mkCopyMethod(
+    private IEnumerable<MemberDeclarationSyntax> mkMapAndScale(
+        TypeDeclarationSyntax typeDecl, bool areFieldsIndependent, 
+        IReadOnlyList<(TypeSyntax type, SyntaxToken id)> fields, bool hasMagnitude
+    ) {
+        if (fields.Count > 1) {
+            for (var i = 0; i < fields.Count; i++) {
+                yield return mkCopyMethod( // e.g. pose.MapPosition(GlobalPosition => GlobalPosition)
+                    typeDecl,
+                    Identifier($"Map{fields[i].id}"),
+                    ParameterList(Parameter(
+                        List(Enumerable.Empty<AttributeListSyntax>()),
+                        TokenList(),
+                        GenericName(Identifier("Func"), TypeArgumentList(fields[i].type, fields[i].type)),
+                        Identifier("mapping"),
+                        null
+                    )),
+                    ArgumentList(fields.Take(i).Select(f => Argument(IdentifierName(f.id))).Append(
+                        Argument(InvocationExpression(
+                            IdentifierName("mapping"),
+                            ArgumentList(Argument(IdentifierName(fields[i].id))))
+                        )).Concat(fields.Skip(i + 2).Select(f => Argument(IdentifierName(f.id)))))
+                );
+            }
+        } else {
+            var (fieldType, fieldId) = fields[0];
+            yield return mkCopyMethod( // e.g. pos.Map(Vector3 => Vector3)
                 typeDecl,
                 Identifier("Map"),
                 ParameterList(Parameter(
@@ -155,12 +206,45 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     Identifier("mapping"),
                     null
                 )),
-                fields.Select(f => f.identifier),
-                fields.Select(f => InvocationExpression(
+                ArgumentList(Argument(InvocationExpression(
                     IdentifierName("mapping"),
-                    ArgumentList(Argument(IdentifierName(f.identifier)))
-                ))
+                    ArgumentList(Argument(IdentifierName(fieldId)))
+                )))
             );
+            if(areFieldsIndependent) {
+                yield return mkCopyMethod( // e.g. pos.Map(Length => Length)
+                    typeDecl,
+                    Identifier("Map"),
+                    ParameterList(Parameter(
+                        List(Enumerable.Empty<AttributeListSyntax>()),
+                        TokenList(),
+                        GenericName(Identifier("Func"), TypeArgumentList(IdentifierName("Length"), IdentifierName("Length"))),
+                        Identifier("mapping"),
+                        null
+                    )),
+                    ArgumentList(
+                        Argument(InvocationExpression(IdentifierName("mapping"), ArgumentList(Argument(IdentifierName("X"))))),
+                        Argument(InvocationExpression(IdentifierName("mapping"), ArgumentList(Argument(IdentifierName("Y"))))),
+                        Argument(InvocationExpression(IdentifierName("mapping"), ArgumentList(Argument(IdentifierName("Z")))))
+                    )
+                );
+                yield return mkCopyMethod( // e.g. pos.Map(float => float)
+                    typeDecl,
+                    Identifier("Map"),
+                    ParameterList(Parameter(
+                        List(Enumerable.Empty<AttributeListSyntax>()),
+                        TokenList(),
+                        GenericName(Identifier("Func"), TypeArgumentList(PredefinedType(Token(SyntaxKind.FloatKeyword)), PredefinedType(Token(SyntaxKind.FloatKeyword)))),
+                        Identifier("mapping"),
+                        null
+                    )),
+                    ArgumentList(
+                        Argument(InvocationExpression(IdentifierName("mapping"), ArgumentList(Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(fieldId), IdentifierName("X")))))),
+                        Argument(InvocationExpression(IdentifierName("mapping"), ArgumentList(Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(fieldId), IdentifierName("Y")))))),
+                        Argument(InvocationExpression(IdentifierName("mapping"), ArgumentList(Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(fieldId), IdentifierName("Z"))))))
+                    )
+                );
+            }
             if(hasMagnitude) {
                 var result = IdentifierName(typeDecl.Identifier);
                 var valueParameter = Parameter(Identifier("value")).WithType(IdentifierName(typeDecl.Identifier));
@@ -211,74 +295,70 @@ public class GeometryHelperGenerator : ISourceGenerator {
         yield return mkBinaryOperator(result, token, parameter2, parameter1, expression);
     }
 
-    private IEnumerable<MethodDeclarationSyntax> mkWithFieldMethods(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields) {
-        for (var i = 0; i < fields.Count; i++) {
-            var (type, identifier) = fields[i];
+    private IEnumerable<MethodDeclarationSyntax> mkWithFieldMethods(TypeDeclarationSyntax typeDecl, SyntaxToken fieldId) {
+        var fields = new[] { "X", "Y", "Z" };
+        for(var i = 0; i < fields.Length; i++)
+            foreach (var isLength in new[]{ true, false }) {
+                TypeSyntax type = isLength ? IdentifierName("Length") : PredefinedType(Token(SyntaxKind.FloatKeyword));
 
-            static IEnumerable<ExpressionSyntax> asArguments(IEnumerable<(TypeSyntax, SyntaxToken identifier)> args)
-                => args.Select(f => IdentifierName(f.identifier));
-            MethodDeclarationSyntax mkMethod(ParameterSyntax parameter, ExpressionSyntax constructorArgument) => 
-                mkCopyMethod(
-                    typeDecl,
-                    identifier: Identifier($"With{identifier}"),
-                    parameters: ParameterList(parameter),
-                    fields.Select(f => f.identifier),
-                    asArguments(fields.Take(i))
-                        .Append(constructorArgument)
-                        .Concat(asArguments(fields.Skip(i + 1))));
+                IEnumerable<ExpressionSyntax> asArguments(IEnumerable<string> args)
+                    => args.Select(a => isLength
+                        ? (ExpressionSyntax) IdentifierName(a)
+                        : MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName(fieldId),
+                            IdentifierName(a)));
+                MethodDeclarationSyntax mkMethod(ParameterSyntax parameter, ExpressionSyntax constructorArgument) => 
+                    mkCopyMethod(
+                        typeDecl,
+                        identifier: Identifier($"With{fields[i]}"),
+                        parameters: ParameterList(parameter),
+                        ArgumentList(
+                            asArguments(fields.Take(i))
+                                .Append(constructorArgument)
+                                .Concat(asArguments(fields.Skip(i + 1)))
+                                .Select(Argument)
+                        )
+                        
+                    );
 
-            yield return mkMethod(
-                Parameter(
-                    List(Enumerable.Empty<AttributeListSyntax>()),
-                    TokenList(),
-                    type,
-                    Identifier(identifier.Text.ToLower()),
-                    null
-                ), 
-                IdentifierName(identifier.Text.ToLower()));
-            yield return mkMethod(
-                Parameter(
-                    List(Enumerable.Empty<AttributeListSyntax>()),
-                    TokenList(),
-                    GenericName(Identifier("Func"), TypeArgumentList(type, type)),
-                    Identifier("mapping"),
-                    null
-                ), 
-                InvocationExpression(
-                    IdentifierName("mapping"),
-                    ArgumentList(Argument(IdentifierName(identifier))))
-                );
-        }
+                yield return mkMethod(
+                    Parameter(
+                        List(Enumerable.Empty<AttributeListSyntax>()),
+                        TokenList(),
+                        type,
+                        Identifier(fields[i].ToLower()),
+                        null
+                    ), 
+                    IdentifierName(fields[i].ToLower()));
+                yield return mkMethod(
+                    Parameter(
+                        List(Enumerable.Empty<AttributeListSyntax>()),
+                        TokenList(),
+                        GenericName(Identifier("Func"), TypeArgumentList(type, type)),
+                        Identifier("mapping"),
+                        null
+                    ), 
+                    InvocationExpression(
+                        IdentifierName("mapping"),
+                        ArgumentList(asArguments(new []{fields[i]}).Select(Argument)))
+                    );
+            }
     }
 
-    private static TypeSyntax typeFor(FieldType fieldType) => fieldType switch {
-         FieldType.Float => PredefinedType(Token(SyntaxKind.FloatKeyword)),
-         FieldType.Double => PredefinedType(Token(SyntaxKind.DoubleKeyword)),
-         FieldType.Length => IdentifierName("Length"),
-        _ => throw new InvalidEnumArgumentException($"{fieldType} is no valid value for {nameof(fieldType)}")
-    };
-    
-    private static TypeSyntax squareTypeFor(FieldType fieldType) => fieldType switch {
-         FieldType.Float => PredefinedType(Token(SyntaxKind.FloatKeyword)),
-         FieldType.Double => PredefinedType(Token(SyntaxKind.DoubleKeyword)),
-         FieldType.Length => IdentifierName("Area"),
-        _ => throw new InvalidEnumArgumentException($"{fieldType} is no valid value for {nameof(fieldType)}")
-    };
-    
-    /// Assumes all fields are `Length`s
-    private MemberDeclarationSyntax mkDotProduct(
-        TypeDeclarationSyntax typeDecl,
-        IEnumerable<SyntaxToken> fields,
-        FieldType fieldType
-    ) => MethodDeclaration(squareTypeFor(fieldType), Identifier("Dot"))
-        .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
-        .WithAttributeLists(AttributeList(Pure))
-        .WithParameterList(ParameterList(Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier))))
-        .WithExpressionBody(ArrowExpressionClause(
-            fields
-                .Select(f => BinaryExpression(SyntaxKind.MultiplyExpression, IdentifierName(f), MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("other"), IdentifierName(f))))
-                .Aggregate((sum, toAdd) => BinaryExpression(SyntaxKind.AddExpression, sum, toAdd))))
-        .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+    // /// Assumes all fields are `Length`s
+    // private MemberDeclarationSyntax mkDotProduct(
+    //     TypeDeclarationSyntax typeDecl,
+    //     IEnumerable<SyntaxToken> fields
+    // ) => MethodDeclaration(squareTypeFor(fieldType), Identifier("Dot"))
+    //     .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+    //     .WithAttributeLists(AttributeList(Pure))
+    //     .WithParameterList(ParameterList(Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier))))
+    //     .WithExpressionBody(ArrowExpressionClause(
+    //         fields
+    //             .Select(f => BinaryExpression(SyntaxKind.MultiplyExpression, IdentifierName(f), MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("other"), IdentifierName(f))))
+    //             .Aggregate((sum, toAdd) => BinaryExpression(SyntaxKind.AddExpression, sum, toAdd))))
+    //     .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
     
     /// Assumes all fields are `Length`s
     private MemberDeclarationSyntax mkSqrMagnitude(
@@ -315,27 +395,23 @@ public class GeometryHelperGenerator : ISourceGenerator {
         );
 
     /// Assumes all fields have a `.Min` and `.Max` (extension) method
-    private IEnumerable<MethodDeclarationSyntax> mkMinMax(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields) {
+    private IEnumerable<MethodDeclarationSyntax> mkMinMax(TypeDeclarationSyntax typeDecl, SyntaxToken field) {
         MethodDeclarationSyntax make(string operation) => mkCopyMethod(
             typeDecl,
             Identifier(operation),
             ParameterList(Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier))),
-            fields.Select(f => f.identifier),
-            fields.Select(f => InvocationExpression(
+            ArgumentList(Argument(InvocationExpression(
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    IdentifierName("Units"),
-                    IdentifierName(operation)),
-                ArgumentList(
-                    Argument(MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    ThisExpression(),
-                    IdentifierName(f.identifier))),
-                    Argument(MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    IdentifierName("other"),
-                    IdentifierName(f.identifier)))))
-            )
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName("other"),
+                        IdentifierName(field)
+                    ),
+                    IdentifierName(operation)
+                ),
+                ArgumentList(Argument(IdentifierName(field)))
+            )))
         );
 
         yield return make("Min");
@@ -343,45 +419,45 @@ public class GeometryHelperGenerator : ISourceGenerator {
     }
 
     /// Assumes all fields are either `Length` or have a `.IsNearly(other, double)`
-    private MethodDeclarationSyntax mkIsNearly(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields, SemanticModel semanticModel, FieldType fieldType) =>
-        MethodDeclaration(PredefinedType(Token(SyntaxKind.BoolKeyword)), Identifier("IsNearly"))
-            .WithAttributeLists(AttributeList(Pure))
-            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
-            .WithParameterList(ParameterList(
-                Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier)),
-                Parameter(Identifier("threshold"))
-                    .WithType(PredefinedType(Token(SyntaxKind.FloatKeyword)))
-                    .WithDefault(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1E-6f))))
-            ))
-            .WithExpressionBody(ArrowExpressionClause(fields
-                .Select(f => (ExpressionSyntax) InvocationExpression(
-                    MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName(f.identifier),
-                        IdentifierName("IsNearly")),
-                    ArgumentList(
-                        Argument(MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            IdentifierName("other"),
-                            IdentifierName(f.identifier)
-                        )),
-                        Argument(fieldType switch {
-                            FieldType.Float or FieldType.Other => IdentifierName("threshold"),
-                            FieldType.Double => CastExpression(PredefinedType(Token(SyntaxKind.DoubleKeyword)), IdentifierName("threshold")),
-                            FieldType.Length => InvocationExpression(
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    IdentifierName("threshold"),
-                                    IdentifierName("Meters"))),
-                            _ => throw new InvalidEnumArgumentException(nameof(fieldType), (int)fieldType, typeof(FieldType))
-                        }
-                    ))))
-                .Aggregate((res, single) => BinaryExpression(
-                    SyntaxKind.LogicalAndExpression,
-                    res, single
-                ))
-            ))
-            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+    // private MethodDeclarationSyntax mkIsNearly(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields, SemanticModel semanticModel, FieldType fieldType) =>
+    //     MethodDeclaration(PredefinedType(Token(SyntaxKind.BoolKeyword)), Identifier("IsNearly"))
+    //         .WithAttributeLists(AttributeList(Pure))
+    //         .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+    //         .WithParameterList(ParameterList(
+    //             Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier)),
+    //             Parameter(Identifier("threshold"))
+    //                 .WithType(PredefinedType(Token(SyntaxKind.FloatKeyword)))
+    //                 .WithDefault(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1E-6f))))
+    //         ))
+    //         .WithExpressionBody(ArrowExpressionClause(fields
+    //             .Select(f => (ExpressionSyntax) InvocationExpression(
+    //                 MemberAccessExpression(
+    //                     SyntaxKind.SimpleMemberAccessExpression,
+    //                     IdentifierName(f.identifier),
+    //                     IdentifierName("IsNearly")),
+    //                 ArgumentList(
+    //                     Argument(MemberAccessExpression(
+    //                         SyntaxKind.SimpleMemberAccessExpression,
+    //                         IdentifierName("other"),
+    //                         IdentifierName(f.identifier)
+    //                     )),
+    //                     Argument(fieldType switch {
+    //                         FieldType.Float or FieldType.Other => IdentifierName("threshold"),
+    //                         FieldType.Double => CastExpression(PredefinedType(Token(SyntaxKind.DoubleKeyword)), IdentifierName("threshold")),
+    //                         FieldType.Length => InvocationExpression(
+    //                             MemberAccessExpression(
+    //                                 SyntaxKind.SimpleMemberAccessExpression,
+    //                                 IdentifierName("threshold"),
+    //                                 IdentifierName("Meters"))),
+    //                         _ => throw new InvalidEnumArgumentException(nameof(fieldType), (int)fieldType, typeof(FieldType))
+    //                     }
+    //                 ))))
+    //             .Aggregate((res, single) => BinaryExpression(
+    //                 SyntaxKind.LogicalAndExpression,
+    //                 res, single
+    //             ))
+    //         ))
+    //         .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
     
     private MemberDeclarationSyntax mkAngleTo(TypeDeclarationSyntax typeDecl, bool hasMagnitude) {
         var dotProductRes = InvocationExpression(
@@ -421,34 +497,34 @@ public class GeometryHelperGenerator : ISourceGenerator {
             .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
     }
 
-    /// Assumes all fields have a `.LerpTo(other, double)`
-    private MethodDeclarationSyntax mkLerp(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields) =>
-        MethodDeclaration(IdentifierName(typeDecl.Identifier), Identifier("LerpTo"))
-            .WithAttributeLists(AttributeList(Pure))
-            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
-            .WithParameterList(ParameterList(
-                Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier)),
-                Parameter(Identifier("progress")).WithType(PredefinedType(Token(SyntaxKind.DoubleKeyword))),
-                Parameter(Identifier("shouldClamp")).WithType(PredefinedType(Token(SyntaxKind.BoolKeyword))).WithDefault(EqualsValueClause(LiteralExpression(SyntaxKind.TrueLiteralExpression)))))
-            .WithExpressionBody(ArrowExpressionClause(
-                makeCopy(
-                    fields.Select(f => f.identifier),
-                    fields
-                        .Select(f => InvocationExpression(
-                            MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                IdentifierName(f.identifier),
-                                IdentifierName("LerpTo")),
-                            ArgumentList(
-                                Argument(MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    IdentifierName("other"),
-                                    IdentifierName(f.identifier))),
-                                Argument(IdentifierName("progress")),
-                                Argument(IdentifierName("shouldClamp"))))
-                ))
-            ))
-            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+    // /// Assumes all fields have a `.LerpTo(other, double)`
+    // private MethodDeclarationSyntax mkLerp(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields) =>
+    //     MethodDeclaration(IdentifierName(typeDecl.Identifier), Identifier("LerpTo"))
+    //         .WithAttributeLists(AttributeList(Pure))
+    //         .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+    //         .WithParameterList(ParameterList(
+    //             Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier)),
+    //             Parameter(Identifier("progress")).WithType(PredefinedType(Token(SyntaxKind.DoubleKeyword))),
+    //             Parameter(Identifier("shouldClamp")).WithType(PredefinedType(Token(SyntaxKind.BoolKeyword))).WithDefault(EqualsValueClause(LiteralExpression(SyntaxKind.TrueLiteralExpression)))))
+    //         .WithExpressionBody(ArrowExpressionClause(
+    //             makeCopy(
+    //                 fields.Select(f => f.identifier),
+    //                 fields
+    //                     .Select(f => InvocationExpression(
+    //                         MemberAccessExpression(
+    //                             SyntaxKind.SimpleMemberAccessExpression,
+    //                             IdentifierName(f.identifier),
+    //                             IdentifierName("LerpTo")),
+    //                         ArgumentList(
+    //                             Argument(MemberAccessExpression(
+    //                                 SyntaxKind.SimpleMemberAccessExpression,
+    //                                 IdentifierName("other"),
+    //                                 IdentifierName(f.identifier))),
+    //                             Argument(IdentifierName("progress")),
+    //                             Argument(IdentifierName("shouldClamp"))))
+    //             ))
+    //         ))
+    //         .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
 
     // /// Assumes all fields are `Length` (<see cref="isBasic"/> == true) or all fields have a `.SlerpTo(other, double)`
     // private MethodDeclarationSyntax mkSlerp(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields, bool isBasic) =>

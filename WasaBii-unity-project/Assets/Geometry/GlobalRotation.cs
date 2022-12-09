@@ -1,6 +1,4 @@
-﻿using System;
-using BII.WasaBii.Core;
-using BII.WasaBii.Geometry.Geometry;
+﻿using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
@@ -10,12 +8,12 @@ namespace BII.WasaBii.Geometry {
     /// A quaternion-based representation of a world-space rotation.
     [MustBeImmutable]
     [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Other, hasMagnitude: false, hasDirection: false)]
+    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasDirection: false)]
     public readonly partial struct GlobalRotation : IsGlobalVariant<GlobalRotation, LocalRotation> {
 
         public static readonly GlobalRotation Identity = FromGlobal(System.Numerics.Quaternion.Identity);
 
-        public System.Numerics.Quaternion AsNumericsQuaternion { get; init; }
+        public System.Numerics.Quaternion AsNumericsQuaternion { get; }
         
         public GlobalRotation Inverse => AsNumericsQuaternion.Inverse().AsGlobalRotation();
 

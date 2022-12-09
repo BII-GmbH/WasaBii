@@ -1,19 +1,20 @@
 ﻿using System;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry.Shared;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace BII.WasaBii.Geometry {
 
     /// <see cref="LocalPosition"/> and <see cref="LocalRotation"/> combined.
     [MustBeImmutable]
     [MustBeSerializable]
-    public readonly struct LocalPose : IsLocalVariant<LocalPose, GlobalPose>, IEquatable<LocalPose> {
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: false, hasDirection: false)]
+    public readonly partial struct LocalPose : IsLocalVariant<LocalPose, GlobalPose>, IEquatable<LocalPose> {
         
-        public static readonly LocalPose Identity = new LocalPose(Vector3.zero, Quaternion.identity);
+        public static readonly LocalPose Identity = new LocalPose(LocalPosition.Zero, LocalRotation.Identity);
         
-        public readonly LocalPosition Position;
-        public readonly LocalRotation Rotation;
+        public LocalPosition Position { get; }
+        public LocalRotation Rotation { get; }
         public LocalDirection Forward => Rotation * LocalDirection.Forward;
 
         public LocalPose(LocalPosition position, LocalRotation rotation) {
@@ -21,50 +22,45 @@ namespace BII.WasaBii.Geometry {
             Rotation = rotation;
         }
 
-        public LocalPose(Vector3 position, Quaternion rotation) :
-            this(position.AsLocalPosition(), rotation.AsLocalRotation())
-        { }
+        public LocalPose(LocalPosition position, LocalDirection forward) : this(
+            position, LocalRotation.From(LocalDirection.Forward).To(forward)
+        ) {}
 
         public LocalPose(System.Numerics.Vector3 position, System.Numerics.Quaternion rotation) : 
-            this(position.ToUnityVector(), rotation.ToUnityQuaternion()) {}
+            this(position.AsLocalPosition(), rotation.AsLocalRotation()) { }
 
-        public LocalPose(Transform transform) : this(transform.LocalPosition(), transform.LocalRotation()) { }
+        public LocalPose(System.Numerics.Vector3 position, System.Numerics.Vector3 forward) : 
+            this(position.AsLocalPosition(), forward.AsLocalDirection()) { }
 
-        public LocalPose(GlobalPose worldLocation, TransformProvider transform) : this(
-            worldLocation.Position.RelativeTo(transform),
-            worldLocation.Rotation.RelativeTo(transform)
-        ) { }
-        
-        // Note DS: If `value` is a multitude of `Vector3.forward`, `Quaternion.FromToRotation` has an
-        // ambiguous result which can lead to unexpected rotations, e.g. upside-down rails.
-        // In this case, `LookRotation` yields a better result. However, this approach has
-        // similar issues if `value` is a multitude of `Vector3.up`. In every other case,
-        // the results are approximately equal. Thus, we switch between the two methods
-        // depending on the angle between `value` and `forward`.
+        #if UNITY_2022_1_OR_NEWER
+        public LocalPose(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation) :
+            this(position.AsLocalPosition(), rotation.AsLocalRotation()) { }
+        public LocalPose(UnityEngine.Vector3 position, UnityEngine.Vector3 forward) :
+            this(position.AsLocalPosition(), forward.AsLocalDirection()) { }
+        #endif
 
-        public LocalPose(Vector3 position, Vector3 forward) : this(
-            position,
-            forward.normalized.Dot(Vector3.forward).Abs() > 0.5f
-                ? Quaternion.LookRotation(forward)
-                : Quaternion.FromToRotation(Vector3.forward, forward)
-        ) { }
+        public LocalPose Inverse {
+            get {
+                var invRot = Rotation.Inverse;
+                return new LocalPose((-Position.AsOffset * invRot).AsPosition, invRot);
+            }
+        }
 
-        public LocalPose(LocalPosition position, LocalDirection forward) : this(
-            position.AsVector, forward.AsVector
-        ) {}
-        
-        public LocalPose Inverse => new LocalPose(-Position, Rotation.Inverse());
-        
-        public static LocalPose operator +(LocalPose a, LocalPose b) => new LocalPose(
+        public static LocalPose operator +(LocalPose a, LocalPose b) => new(
             a.Position + b.Position.AsOffset,
             b.Rotation * a.Rotation
         );
         
-        public static LocalPose operator -(LocalPose a, LocalPose b) => new LocalPose(
+        public static LocalPose operator -(LocalPose a, LocalPose b) => new(
             a.Position - b.Position.AsOffset,
-            b.Rotation.Inverse() * a.Rotation
+            b.Rotation.Inverse * a.Rotation
         );
         
+        public static LocalPose operator *(LocalPose parent, LocalPose local) => new(
+            parent.Position + parent.Rotation * local.Position.AsOffset,
+            parent.Rotation * local.Rotation
+        );
+
         /// Transforms the local pose into global space, with <see cref="parent"/> as the parent.
         /// This is the inverse of <see cref="GlobalPose.RelativeTo"/>
         [Pure] public GlobalPose ToGlobalWith(TransformProvider parent) => 

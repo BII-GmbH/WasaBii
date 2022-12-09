@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
-using UnityEngine;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
     
     /// A polygon consisting of any finite number of vertices that define its boundaries.
     /// The vertices are given in clockwise order and are expected to be planar. Note

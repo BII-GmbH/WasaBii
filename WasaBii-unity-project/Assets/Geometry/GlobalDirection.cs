@@ -10,44 +10,44 @@ namespace BII.WasaBii.Geometry {
     /// Can also be viewed as a normalized <see cref="GlobalOffset"/>.
     [MustBeImmutable]
     [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Double, hasMagnitude: false, hasDirection: true)]
+    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasDirection: true)]
     public readonly partial struct GlobalDirection : 
         GlobalDirectionLike<GlobalDirection>,
         IsGlobalVariant<GlobalDirection, LocalDirection> {
 
-        public static readonly GlobalDirection Up = FromGlobal(0, 1, 0);
-        public static readonly GlobalDirection Down = FromGlobal(0, -1, 0);
-        public static readonly GlobalDirection Left = FromGlobal(-1, 0, 0);
-        public static readonly GlobalDirection Right = FromGlobal(1, 0, 0);
-        public static readonly GlobalDirection Forward = FromGlobal(0, 0, 1);
-        public static readonly GlobalDirection Back = FromGlobal(0, 0, -1);
-        public static readonly GlobalDirection One = FromGlobal(1, 1, 1);
-        public static readonly GlobalDirection Zero = FromGlobal(0, 0, 0);
+        public static readonly GlobalDirection Up = new(0, 1, 0);
+        public static readonly GlobalDirection Down = new(0, -1, 0);
+        public static readonly GlobalDirection Left = new(-1, 0, 0);
+        public static readonly GlobalDirection Right = new(1, 0, 0);
+        public static readonly GlobalDirection Forward = new(0, 0, 1);
+        public static readonly GlobalDirection Back = new(0, 0, -1);
+        public static readonly GlobalDirection One = new(1, 1, 1);
+        public static readonly GlobalDirection Zero = new(0, 0, 0);
 
-        public readonly double X, Y, Z;
-
-        public GlobalOffset AsOffsetWithLength1 => GlobalOffset.FromGlobal(X, Y, Z);
+        public System.Numerics.Vector3 AsNumericsVector { get; }
         
-        private GlobalDirection(double x, double y, double z) {
-            var magnitude = Math.Sqrt(x * x + y * y + z * z);
-            X = x / magnitude;
-            Y = y / magnitude;
-            Z = z / magnitude;
+        public GlobalOffset AsOffsetWithLength1 => new(AsNumericsVector);
+        
+        public GlobalDirection(float x, float y, float z) {
+            var magnitude = MathF.Sqrt(x * x + y * y + z * z);
+            AsNumericsVector = new(x / magnitude, y / magnitude, z / magnitude);
         }
         
-        [Pure] public static GlobalDirection FromGlobal(System.Numerics.Vector3 global) => new(global.X, global.Y, global.Z);
+        public GlobalDirection(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
 
-        [Pure] public static GlobalDirection FromGlobal(double x, double y, double z) => new(x, y, z);
-        
+        public GlobalDirection(Length x, Length y, Length z) : this(
+            (float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()
+        ) { }
+
         #if UNITY_2022_1_OR_NEWER
-        [Pure] public static GlobalDirection FromGlobal(UnityEngine.Vector3 global) => new(global.x, global.y, global.z);
+        public GlobalDirection(UnityEngine.Vector3 local) : this(local.ToSystemVector()) { }
         #endif
 
         /// <inheritdoc cref="TransformProvider.InverseTransformDirection"/>
         /// This is the inverse of <see cref="LocalDirection.ToGlobalWith"/>
         [Pure] public LocalDirection RelativeTo(TransformProvider parent) => parent.InverseTransformDirection(this);
         
-        public LocalDirection RelativeToWorldZero => LocalDirection.FromLocal(X, Y, Z);
+        public LocalDirection RelativeToWorldZero => new(AsNumericsVector);
 
         /// Projects this direction onto the plane defined by its normal.
         [Pure] public GlobalDirection ProjectOnPlane(GlobalDirection planeNormal) => 
@@ -56,9 +56,12 @@ namespace BII.WasaBii.Geometry {
         /// Reflects this direction off the plane defined by the given normal
         [Pure]
         public GlobalDirection Reflect(GlobalDirection planeNormal) => this.AsOffsetWithLength1.Reflect(planeNormal).Normalized;
+        
+        public float Dot(GlobalDirection other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector);
 
-        [Pure] public static GlobalOffset operator *(Length a, GlobalDirection b) => GlobalOffset.FromGlobal(a * b.X, a * b.Y, a * b.Z);
-        [Pure] public static GlobalDirection operator -(GlobalDirection dir) => FromGlobal(-dir.X, -dir.Y, -dir.Z);
+        [Pure] public static GlobalOffset operator *(Length a, GlobalDirection b) => new((float)a.AsMeters() * b.AsNumericsVector);
+        [Pure] public static GlobalOffset operator *(GlobalDirection b, Length a) => a * b;
+        [Pure] public static GlobalDirection operator -(GlobalDirection dir) => new(-dir.AsNumericsVector);
 
         [Pure] public static GlobalDirection Lerp(
             GlobalDirection start, GlobalDirection end, double perc, bool shouldClamp = true
@@ -73,11 +76,11 @@ namespace BII.WasaBii.Geometry {
     public static partial class DirectionExtensions {
        
        [Pure] public static GlobalDirection AsGlobalDirection(this System.Numerics.Vector3 globalPosition) 
-           => GlobalDirection.FromGlobal(globalPosition);
+           => new(globalPosition);
 
        #if UNITY_2022_1_OR_NEWER
        [Pure] public static GlobalDirection AsGlobalDirection(this UnityEngine.Vector3 globalPosition) 
-           => GlobalDirection.FromGlobal(globalPosition);
+           => new(globalPosition);
 
        [Pure] public static GlobalDirection Forward(this UnityEngine.Component component) =>
            component.transform.forward.AsGlobalDirection();

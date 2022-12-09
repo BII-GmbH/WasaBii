@@ -6,7 +6,7 @@ using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
 
     /// A Unity-Independent data structure representing an AABB (axis-aligned bounding-box) in global space.
     [MustBeImmutable]

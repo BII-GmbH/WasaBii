@@ -10,44 +10,44 @@ namespace BII.WasaBii.Geometry {
     /// Can also be viewed as a normalized <see cref="LocalOffset"/>.
     [MustBeImmutable]
     [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Double, hasMagnitude: false, hasDirection: true)]
+    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasDirection: true)]
     public readonly partial struct LocalDirection :
         LocalDirectionLike<LocalDirection>,
         IsLocalVariant<LocalDirection, GlobalDirection> {
 
-        public static readonly LocalDirection Up = FromLocal(0, 1, 0);
-        public static readonly LocalDirection Down = FromLocal(0, -1, 0);
-        public static readonly LocalDirection Left = FromLocal(-1, 0, 0);
-        public static readonly LocalDirection Right = FromLocal(1, 0, 0);
-        public static readonly LocalDirection Forward = FromLocal(0, 0, 1);
-        public static readonly LocalDirection Back = FromLocal(0, 0, -1);
-        public static readonly LocalDirection One = FromLocal(1, 1, 1);
-        public static readonly LocalDirection Zero = FromLocal(0, 0, 0);
+        public static readonly LocalDirection Up = new(0, 1, 0);
+        public static readonly LocalDirection Down = new(0, -1, 0);
+        public static readonly LocalDirection Left = new(-1, 0, 0);
+        public static readonly LocalDirection Right = new(1, 0, 0);
+        public static readonly LocalDirection Forward = new(0, 0, 1);
+        public static readonly LocalDirection Back = new(0, 0, -1);
+        public static readonly LocalDirection One = new(1, 1, 1);
+        public static readonly LocalDirection Zero = new(0, 0, 0);
 
-        public readonly double X, Y, Z;
+        public System.Numerics.Vector3 AsNumericsVector { get; }
 
-        public LocalOffset AsOffsetWithLength1 => LocalOffset.FromLocal(X, Y, Z);
+        public LocalOffset AsOffsetWithLength1 => new(AsNumericsVector);
 
-        private LocalDirection(double x, double y, double z) {
-            var magnitude = Math.Sqrt(x * x + y * y + z * z);
-            X = x / magnitude;
-            Y = y / magnitude;
-            Z = z / magnitude;
+        public LocalDirection(float x, float y, float z) {
+            var magnitude = MathF.Sqrt(x * x + y * y + z * z);
+            AsNumericsVector = new(x / magnitude, y / magnitude, z / magnitude);
         }
         
-        [Pure] public static LocalDirection FromLocal(System.Numerics.Vector3 local) => new(local.X, local.Y, local.Z);
+        public LocalDirection(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
 
-        [Pure] public static LocalDirection FromLocal(double x, double y, double z) => new(x, y, z);
-        
+        public LocalDirection(Length x, Length y, Length z) : this(
+            (float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()
+        ) { }
+
         #if UNITY_2022_1_OR_NEWER
-        [Pure] public static LocalDirection FromLocal(UnityEngine.Vector3 local) => new(local.x, local.y, local.z);
+        public LocalDirection(UnityEngine.Vector3 local) : this(local.ToSystemVector()) { }
         #endif
 
         /// <inheritdoc cref="TransformProvider.TransformDirection"/>
         /// This is the inverse of <see cref="GlobalDirection.RelativeTo"/>
         [Pure] public GlobalDirection ToGlobalWith(TransformProvider parent) => parent.TransformDirection(this);
         
-        public GlobalDirection ToGlobalWithWorldZero => GlobalDirection.FromGlobal(X, Y, Z);
+        public GlobalDirection ToGlobalWithWorldZero => new(AsNumericsVector);
 
         [Pure] public LocalDirection TransformBy(LocalPose offset) => offset.Rotation * this;
         
@@ -59,9 +59,11 @@ namespace BII.WasaBii.Geometry {
         [Pure]
         public LocalDirection Reflect(LocalDirection planeNormal) => this.AsOffsetWithLength1.Reflect(planeNormal).Normalized;
 
-        [Pure] public static LocalOffset operator *(Length a, LocalDirection b) => LocalOffset.FromLocal(a * b.X, a * b.Y, a * b.Z);
-        [Pure] public static LocalOffset operator *(LocalDirection b, Length a) => LocalOffset.FromLocal(a * b.X, a * b.Y, a * b.Z);
-        [Pure] public static LocalDirection operator -(LocalDirection dir) => FromLocal(-dir.X, -dir.Y, -dir.Z);
+        public float Dot(LocalDirection other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector);
+
+        [Pure] public static LocalOffset operator *(Length a, LocalDirection b) => new((float)a.AsMeters() * b.AsNumericsVector);
+        [Pure] public static LocalOffset operator *(LocalDirection b, Length a) => a * b;
+        [Pure] public static LocalDirection operator -(LocalDirection dir) => new(-dir.AsNumericsVector);
 
         [Pure] public static LocalDirection Lerp(
             LocalDirection start, LocalDirection end, double perc, bool shouldClamp = true
@@ -77,11 +79,11 @@ namespace BII.WasaBii.Geometry {
        
         #if UNITY_2022_1_OR_NEWER
        [Pure] public static LocalDirection AsLocalDirection(this UnityEngine.Vector3 localDirection) 
-           => LocalDirection.FromLocal(localDirection);
+           => new(localDirection);
        #endif
        
        [Pure] public static LocalDirection AsLocalDirection(this System.Numerics.Vector3 localDirection) 
-           => LocalDirection.FromLocal(localDirection);
+           => new(localDirection);
 
     }
 

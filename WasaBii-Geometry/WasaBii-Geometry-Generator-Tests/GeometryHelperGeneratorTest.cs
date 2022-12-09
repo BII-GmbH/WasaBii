@@ -35,34 +35,20 @@ public class GeneratorTests
         
         Compilation comp = CreateCompilation(@"
 using BII.WasaBii.UnitSystem;
-using UnityEngine;
-using WasaBii.Geometry.Shared;
-using static WasaBii.Geometry.Shared.FieldType;
+using BII.WasaBii.Geometry.Shared;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Geometry {
 
     public struct Length { }
 
-    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Other, hasMagnitude: false, hasDirection: false)]
-    public readonly partial struct GlobalRotation2 {
-        public readonly Quaternion AsQuaternion;
-    }
-
-    [GeometryHelper(areFieldsIndependent: true, fieldType: FieldType.Length, hasMagnitude: false, hasDirection: false)]
-    public readonly partial struct GlobalPosition2 {
-        public readonly Length X, Y, Z;
-    }
-
-    [GeometryHelper(areFieldsIndependent: true, fieldType: FieldType.Length, hasMagnitude: true, hasDirection: true)]
+    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasDirection: true)]
     public readonly partial struct GlobalOffset2 {
-        public readonly Length X, Y, Z;
-        public Length test() => Magnitude;
+        public System.Numerics.Vector3 AsNumericsVector { get; }
+        
+        public GlobalOffset AsOffsetWithLength1 => new(AsNumericsVector);
+        public GlobalOffset2(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
     }
 
-    [GeometryHelper(areFieldsIndependent: false, fieldType: FieldType.Double, hasMagnitude: false, hasDirection: true)]
-    public readonly partial struct GlobalDirection2 {
-        public readonly double X, Y, Z;
-    }
 }");
         var newComp = RunGenerators(comp, out var generatorDiags, Array.Empty<AdditionalText>(), new GeometryHelperGenerator());
 

@@ -9,38 +9,21 @@ namespace BII.WasaBii.Geometry {
     /// Can also be viewed as a <see cref="GlobalDirection"/> with a length.
     [MustBeImmutable]
     [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: true, fieldType: FieldType.Length, hasMagnitude: true, hasDirection: true)]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasDirection: true)]
     public readonly partial struct GlobalOffset : 
         GlobalDirectionLike<GlobalOffset>,
         IsGlobalVariant<GlobalOffset, LocalOffset> {
     
-        public static readonly GlobalOffset Up = FromGlobal(0, 1, 0);
-        public static readonly GlobalOffset Down = FromGlobal(0, -1, 0);
-        public static readonly GlobalOffset Left = FromGlobal(-1, 0, 0);
-        public static readonly GlobalOffset Right = FromGlobal(1, 0, 0);
-        public static readonly GlobalOffset Forward = FromGlobal(0, 0, 1);
-        public static readonly GlobalOffset Back = FromGlobal(0, 0, -1);
-        public static readonly GlobalOffset One = FromGlobal(1, 1, 1);
-        public static readonly GlobalOffset Zero = FromGlobal(0, 0, 0);
+        public System.Numerics.Vector3 AsNumericsVector { get; }
 
-        public Length X { init; get; }
-        public Length Y { init; get; }
-        public Length Z { init; get; }
+        public GlobalDirection Normalized => new(AsNumericsVector);
 
-        public GlobalDirection Normalized => GlobalDirection.FromGlobal(X.SiValue, Y.SiValue, Z.SiValue);
-
-        [Pure] public static GlobalOffset FromGlobal(System.Numerics.Vector3 global)
-            => new() {X = global.X.Meters(), Y = global.Y.Meters(), Z = global.Z.Meters()};
-
-        [Pure] public static GlobalOffset FromGlobal(Length x, Length y, Length z) 
-            => new() {X = x, Y = y, Z = z};
-
-        [Pure] public static GlobalOffset FromGlobal(double x, double y, double z) 
-            => new() {X = x.Meters(), Y = y.Meters(), Z = z.Meters()};
+        public GlobalOffset(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap;
+        public GlobalOffset(float x, float y, float z) => AsNumericsVector = new(x, y, z);
+        public GlobalOffset(Length x, Length y, Length z) => AsNumericsVector = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
 
         #if UNITY_2022_1_OR_NEWER
-        [Pure] public static GlobalOffset FromGlobal(UnityEngine.Vector3 global)
-            => new() {X = global.x.Meters(), Y = global.y.Meters(), Z = global.z.Meters()};
+        public GlobalOffset(UnityEngine.Vector3 global) => AsNumericsVector = global.ToSystemVector();
         #endif
 
         [Pure] public static Builder From(GlobalPosition origin) => new Builder(origin);
@@ -50,7 +33,7 @@ namespace BII.WasaBii.Geometry {
         [Pure] public LocalOffset RelativeTo(TransformProvider parent)
             => parent.InverseTransformOffset(this);
 
-        public LocalOffset RelativeToWorldZero => LocalOffset.FromLocal(X, Y, Z);
+        public LocalOffset RelativeToWorldZero => new(AsNumericsVector);
 
         /// Projects this offset onto the other one.
         [Pure] public GlobalOffset Project(GlobalOffset other) => this.Dot(other) / other.SqrMagnitude * other;
@@ -65,12 +48,17 @@ namespace BII.WasaBii.Geometry {
         [Pure]
         public GlobalOffset Reflect(GlobalDirection planeNormal) => this - 2 * this.Project(planeNormal);
 
-        public Length Dot(GlobalDirection normal) => X * normal.X + Y * normal.Y + Z * normal.Z;
+        public Length Dot(GlobalDirection normal) => System.Numerics.Vector3.Dot(AsNumericsVector, normal.AsNumericsVector).Meters();
 
-        [Pure] public static GlobalOffset operator +(GlobalOffset left, GlobalOffset right) => FromGlobal(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
-        [Pure] public static GlobalOffset operator -(GlobalOffset left, GlobalOffset right) => FromGlobal(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
+        public Area Dot(LocalOffset other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector).SquareMeters();
 
-        [Pure] public static GlobalOffset operator -(GlobalOffset offset) => FromGlobal(-offset.X, -offset.Y, -offset.Z);
+        public Area SqrMagnitude => AsNumericsVector.LengthSquared().SquareMeters();
+        public Length Magnitude => AsNumericsVector.Length().Meters();
+
+        [Pure] public static GlobalOffset operator +(GlobalOffset left, GlobalOffset right) => new(left.AsNumericsVector + right.AsNumericsVector);
+        [Pure] public static GlobalOffset operator -(GlobalOffset left, GlobalOffset right) => new(left.AsNumericsVector - right.AsNumericsVector);
+
+        [Pure] public static GlobalOffset operator -(GlobalOffset offset) => new(-offset.AsNumericsVector);
 
         public readonly struct Builder {
             private readonly GlobalPosition origin;
@@ -92,11 +80,11 @@ namespace BII.WasaBii.Geometry {
         
         #if UNITY_2022_1_OR_NEWER
         [Pure] public static GlobalOffset AsGlobalOffset(this UnityEngine.Vector3 globalOffset)
-            => GlobalOffset.FromGlobal(globalOffset);
+            => new(globalOffset);
         #endif
         
         [Pure] public static GlobalOffset AsGlobalOffset(this System.Numerics.Vector3 globalOffset)
-            => GlobalOffset.FromGlobal(globalOffset);
+            => new(globalOffset);
 
     }
     

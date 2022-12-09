@@ -8,27 +8,19 @@ namespace BII.WasaBii.Geometry {
     /// A 3D vector that represents a world-space position.
     [MustBeImmutable]
     [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: true, fieldType: FieldType.Length, hasMagnitude: false, hasDirection: false)]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: false, hasDirection: false)]
     public readonly partial struct GlobalPosition : IsGlobalVariant<GlobalPosition, LocalPosition> {
         
-        public static readonly GlobalPosition Zero = FromGlobal(Length.Zero, Length.Zero, Length.Zero);
+        public static readonly GlobalPosition Zero = new(Length.Zero, Length.Zero, Length.Zero);
 
-        public Length X { init; get; }
-        public Length Y { init; get; }
-        public Length Z { init; get; }
-        
-        [Pure] public static GlobalPosition FromGlobal(System.Numerics.Vector3 global)
-            => new() {X = global.X.Meters(), Y = global.Y.Meters(), Z = global.Z.Meters()};
+        public readonly System.Numerics.Vector3 AsNumericsVector;
 
-        [Pure] public static GlobalPosition FromGlobal(Length x, Length y, Length z) 
-            => new() {X = x, Y = y, Z = z};
-
-        [Pure] public static GlobalPosition FromGlobal(double x, double y, double z) 
-            => new() {X = x.Meters(), Y = y.Meters(), Z = z.Meters()};
+        public GlobalPosition(System.Numerics.Vector3 asNumericsVector) => AsNumericsVector = asNumericsVector;
+        public GlobalPosition(float x, float y, float z) => AsNumericsVector = new(x, y, z);
+        public GlobalPosition(Length x, Length y, Length z) => AsNumericsVector = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
 
         #if UNITY_2022_1_OR_NEWER
-        [Pure] public static GlobalPosition FromGlobal(UnityEngine.Vector3 global)
-            => new() {X = global.x.Meters(), Y = global.y.Meters(), Z = global.z.Meters()};
+        public GlobalPosition(UnityEngine.Vector3 global) => AsNumericsVector = global.ToSystemVector();
         #endif
 
         /// <inheritdoc cref="TransformProvider.InverseTransformPoint"/>
@@ -36,12 +28,12 @@ namespace BII.WasaBii.Geometry {
         [Pure] public LocalPosition RelativeTo(TransformProvider parent) 
             => parent.InverseTransformPoint(this);
 
-        public LocalPosition RelativeToWorldZero => new() {X = X, Y = Y, Z = Z};
+        public LocalPosition RelativeToWorldZero => new(AsNumericsVector);
 
-        [Pure] public static GlobalPosition operator +(GlobalPosition left, GlobalOffset right) => FromGlobal(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
-        [Pure] public static GlobalPosition operator -(GlobalPosition left, GlobalOffset right) => FromGlobal(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
-        [Pure] public static GlobalOffset operator -(GlobalPosition left, GlobalPosition right) => GlobalOffset.FromGlobal(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
-        [Pure] public static GlobalPosition operator -(GlobalPosition pos) => FromGlobal(-pos.X, -pos.Y, -pos.Z);
+        [Pure] public static GlobalPosition operator +(GlobalPosition left, GlobalOffset right) => new(left.AsNumericsVector + right.AsNumericsVector);
+        [Pure] public static GlobalPosition operator -(GlobalPosition left, GlobalOffset right) => new(left.AsNumericsVector - right.AsNumericsVector);
+        [Pure] public static GlobalOffset operator -(GlobalPosition left, GlobalPosition right) => new(left.AsNumericsVector - right.AsNumericsVector);
+        [Pure] public static GlobalPosition operator -(GlobalPosition pos) => new(-pos.AsNumericsVector);
         [Pure] public override string ToString() => AsNumericsVector.ToString();
         
         [Pure] public static GlobalPosition Lerp(
@@ -72,16 +64,16 @@ namespace BII.WasaBii.Geometry {
     public static partial class PositionExtensions {
         
         [Pure] public static GlobalPosition AsGlobalPosition(this System.Numerics.Vector3 globalPosition)
-            => Geometry.GlobalPosition.FromGlobal(globalPosition);
+            => new(globalPosition);
 
         #if UNITY_2022_1_OR_NEWER
         [Pure] public static GlobalPosition AsGlobalPosition(this UnityEngine.Vector3 globalPosition) 
-            => Geometry.GlobalPosition.FromGlobal(globalPosition);
+            => new(globalPosition);
 
         [Pure] public static GlobalPosition GlobalPosition(this UnityEngine.Component component) 
-            => Geometry.GlobalPosition.FromGlobal(component.transform.position);
+            => new(component.transform.position);
         [Pure] public static GlobalPosition GlobalPosition(this UnityEngine.GameObject gameObject) 
-            => Geometry.GlobalPosition.FromGlobal(gameObject.transform.position);
+            => new(gameObject.transform.position);
         
         #endif
 

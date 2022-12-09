@@ -27,6 +27,7 @@ namespace BII.WasaBii.Geometry {
     /// to implement an overload per supported type for all `RelativeTo` and `ToGlobalWith` methods.
     /// Also, it provides a central and maintainable way to manage all supported types.
     /// </summary>
+    [StructLayout(LayoutKind.Explicit)]
     public readonly struct TransformProvider {
 
         public enum Type : byte {

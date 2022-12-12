@@ -15,10 +15,8 @@ namespace RoslynAnalyzerTemplate
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RoslynAnalyzerTemplateCodeFixProvider)), Shared]
     public class RoslynAnalyzerTemplateCodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(RoslynAnalyzerTemplate.DiagnosticId); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => 
+            ImmutableArray.Create(RoslynAnalyzerTemplate.DiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {

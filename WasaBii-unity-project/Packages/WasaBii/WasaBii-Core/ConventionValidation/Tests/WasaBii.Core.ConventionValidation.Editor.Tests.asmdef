@@ -4,8 +4,7 @@
     "references": [
         "WasaBii.Core",
         "WasaBii.Core.ConventionValidation",
-        "WasaBii.Core.ConventionValidation.Editor",
-        "WasaBii.Unity"
+        "WasaBii.Core.ConventionValidation.Editor"
     ],
     "includePlatforms": [
         "Editor"

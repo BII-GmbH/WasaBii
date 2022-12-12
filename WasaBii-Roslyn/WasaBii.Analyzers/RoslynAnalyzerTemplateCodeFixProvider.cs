@@ -16,7 +16,7 @@ namespace RoslynAnalyzerTemplate
     public class RoslynAnalyzerTemplateCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds => 
-            ImmutableArray.Create(RoslynAnalyzerTemplate.DiagnosticId);
+            ImmutableArray.Create(BII.WasaBii.Analyzers.MustBeImmutableAnalyzer.DiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {

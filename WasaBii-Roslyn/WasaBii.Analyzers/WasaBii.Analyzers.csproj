@@ -20,6 +20,9 @@
   <ItemGroup Condition="Exists('$(TargetPath)')">
     <Analyzer Include="$(TargetPath)" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WasaBii.Analyzers.Shared\WasaBii.Analyzers.Shared.csproj" />
+  </ItemGroup>
 
   <!-- For pack -->
   <PropertyGroup>

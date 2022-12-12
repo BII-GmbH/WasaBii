@@ -1,5 +1,5 @@
 ﻿namespace System.Runtime.CompilerServices {
-    public static class IsExternalInit {}
+    public static partial class IsExternalInit {}
 }
 
 namespace BII.WasaBii.UnitSystem {

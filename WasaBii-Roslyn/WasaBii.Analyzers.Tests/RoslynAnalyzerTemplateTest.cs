@@ -23,7 +23,7 @@ public class RoslynAnalyzerTemplateTest
     public async Task EmptySourceCode_NoDiagnosticReport()
     {
         const string source = "";
-        var analyzer = new RoslynAnalyzerTemplate();
+        var analyzer = new BII.WasaBii.Analyzers.MustBeImmutableAnalyzer();
         var diagnostics = await DiagnosticAnalyzerRunner.Run(analyzer, source);
 
         Assert.That(diagnostics.Length, Is.EqualTo(0));
@@ -36,7 +36,7 @@ public class RoslynAnalyzerTemplateTest
     public async Task TypeNameContainingLowercase_ReportOneDiagnostic()
     {
         var source = ReadCodes("TypeNameContainingLowercase.cs");
-        var analyzer = new RoslynAnalyzerTemplate();
+        var analyzer = new BII.WasaBii.Analyzers.MustBeImmutableAnalyzer();
         var diagnostics = await DiagnosticAnalyzerRunner.Run(analyzer, source);
 
         var actual = diagnostics

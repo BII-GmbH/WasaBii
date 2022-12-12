@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>WasaBii_Units_Generator_Tests</RootNamespace>
+    <RootNamespace>BII.WasaBii.UnitSystem.Tests</RootNamespace>
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>

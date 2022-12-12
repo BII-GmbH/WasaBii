@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
 
-namespace BII.WasaBii.UnitSystem;
+namespace BII.WasaBii.UnitSystem.Tests;
 
 // https://gist.github.com/chsienki/2955ed9336d7eb22bcb246840bfeb05c
 

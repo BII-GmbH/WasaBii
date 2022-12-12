@@ -5,7 +5,7 @@
     <LangVersion>default</LangVersion>
     <Nullable>enable</Nullable>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <RootNamespace>RoslynAnalyzerTemplate</RootNamespace>
+    <RootNamespace>BII.WasaBii.Analyzers</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -43,6 +43,12 @@
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildOutputs</TargetsForTfmSpecificContentInPackage>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <developmentDependency>true</developmentDependency>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Analyzers\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Analyzers\</OutputPath>
   </PropertyGroup>
 
   <Target Name="PackBuildOutputs" DependsOnTargets="SatelliteDllsProjectOutputGroup;DebugSymbolsProjectOutputGroup">

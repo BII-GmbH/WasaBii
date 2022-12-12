@@ -5,7 +5,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <RootNamespace>RoslynAnalyzerTemplate.Test</RootNamespace>
+    <RootNamespace>BII.WasaBii.Analyzers.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

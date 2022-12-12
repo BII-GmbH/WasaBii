@@ -4,21 +4,25 @@
     "references": [
         "WasaBii.Core",
         "WasaBii.Core.ConventionValidation",
-        "WasaBii.Core.ConventionValidation.Editor"
+        "WasaBii.Core.ConventionValidation.Editor",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
     ],
     "includePlatforms": [
         "Editor"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "System.Collections.Immutable.dll"
+        "System.Collections.Immutable.dll",
+        "nunit.framework.dll",
+        "WasaBii.Analyzers.Shared.dll"
     ],
     "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }

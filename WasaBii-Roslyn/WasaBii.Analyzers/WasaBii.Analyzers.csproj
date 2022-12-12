@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>default</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <RootNamespace>BII.WasaBii.Analyzers</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.9.0" /><!-- Keep v3.5 for use less than Unity 2021.2 -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Apply this analyzer myself to this project -->
+  <ItemGroup Condition="Exists('$(TargetPath)')">
+    <Analyzer Include="$(TargetPath)" />
+  </ItemGroup>
+
+  <!-- For pack -->
+  <PropertyGroup>
+    <!-- Required elements-->
+    <id>RoslynAnalyzerTemplate</id><!-- Must be unique within the hosting gallery -->
+    <version></version>
+    <description></description>
+    <authors></authors>
+
+    <!-- Optional elements -->
+    <projectUrl>https://github.com/nowsprinting/RoslynAnalyzerTemplate</projectUrl>
+    <license></license>
+    <icon></icon>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <copyright></copyright>
+    <title></title>
+
+    <!-- For analyzer package -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildOutputs</TargetsForTfmSpecificContentInPackage>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <developmentDependency>true</developmentDependency>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Core\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Core\</OutputPath>
+  </PropertyGroup>
+
+  <Target Name="PackBuildOutputs" DependsOnTargets="SatelliteDllsProjectOutputGroup;DebugSymbolsProjectOutputGroup">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(TargetDir)\*.dll" PackagePath="analyzers\dotnet\cs" />
+      <TfmSpecificPackageFile Include="@(SatelliteDllsProjectOutputGroupOutput->'%(FinalOutputPath)')" PackagePath="analyzers\dotnet\cs\%(SatelliteDllsProjectOutputGroupOutput.Culture)\" />
+    </ItemGroup>
+  </Target>
+
+</Project>

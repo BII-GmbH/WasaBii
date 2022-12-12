@@ -199,9 +199,9 @@ namespace BII.WasaBii.Splines.Tests {
         public void NormalizeMonotoneRisingQuadratic1DSplineLocations() {
             
             // Calculating the t values for a given length is difficult, so we only use a quadratic polynomial.
-            var p0 = 2;
-            var p1 = 8;
-            var p2 = 8;
+            const int p0 = 2;
+            const int p1 = 8;
+            const int p2 = 8;
             var polynomial = new Polynomial<double, double>(new OneDimensionalOps(), p0, p1, p2);
 
             // length(t) is p1*t + p2*t²

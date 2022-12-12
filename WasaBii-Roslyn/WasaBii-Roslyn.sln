@@ -1,16 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii-Units-Shared", "WasaBii-Units-Shared\WasaBii-Units-Shared.csproj", "{A0E4209B-88A6-4959-9FA9-E0DED5973B99}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Units.Shared", "WasaBii.Units.Shared\WasaBii.Units.Shared.csproj", "{A0E4209B-88A6-4959-9FA9-E0DED5973B99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii-Units-Generator", "WasaBii-Units-Generator\WasaBii-Units-Generator.csproj", "{C1CE8B4C-775D-4BB5-B1A1-C976322BE4D3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Units.Generator", "WasaBii.Units.Generator\WasaBii.Units.Generator.csproj", "{C1CE8B4C-775D-4BB5-B1A1-C976322BE4D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii-Units-Generator-Tests", "WasaBii-Units-Generator-Tests\WasaBii-Units-Generator-Tests.csproj", "{1AD1BEEE-5FEC-4B7A-A437-20B125411958}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Units.Generator.Tests", "WasaBii.Units.Generator.Tests\WasaBii.Units.Generator.Tests.csproj", "{1AD1BEEE-5FEC-4B7A-A437-20B125411958}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii-Analyzers-Shared", "WasaBii-Analyzers-Shared\WasaBii-Analyzers-Shared.csproj", "{A0E4209B-88A6-4959-9FA9-E0DED5973B00}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Analyzers.Shared", "WasaBii.Analyzers.Shared\WasaBii.Analyzers.Shared.csproj", "{A0E4209B-88A6-4959-9FA9-E0DED5973B00}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii-Analyzers", "WasaBii-Analyzers\WasaBii-Analyzers.csproj", "{1FA708B1-87F8-4244-89E4-26087BB74760}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Analyzers", "WasaBii.Analyzers\WasaBii.Analyzers.csproj", "{1FA708B1-87F8-4244-89E4-26087BB74760}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii-Analyzers-Tests", "WasaBii-Analyzers-Tests\WasaBii-Analyzers-Tests.csproj", "{4ECDB3FA-0F8F-4EEB-A0F1-3A19167F3B89}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Analyzers.Tests", "WasaBii.Analyzers.Tests\WasaBii.Analyzers.Tests.csproj", "{4ECDB3FA-0F8F-4EEB-A0F1-3A19167F3B89}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzers", "Analyzers", "{B158751C-4E14-4075-81B3-8E1F1A89158C}"
 EndProject
@@ -43,12 +43,12 @@ Global
 		{4ECDB3FA-0F8F-4EEB-A0F1-3A19167F3B89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4ECDB3FA-0F8F-4EEB-A0F1-3A19167F3B89}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A0E4209B-88A6-4959-9FA9-E0DED5973B00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-    {A0E4209B-88A6-4959-9FA9-E0DED5973B00}.Debug|Any CPU.Build.0 = Debug|Any CPU
-    {A0E4209B-88A6-4959-9FA9-E0DED5973B00}.Release|Any CPU.ActiveCfg = Release|Any CPU
-    {A0E4209B-88A6-4959-9FA9-E0DED5973B00}.Release|Any CPU.Build.0 = Release|Any CPU
+				{A0E4209B-88A6-4959-9FA9-E0DED5973B00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+				{A0E4209B-88A6-4959-9FA9-E0DED5973B00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+				{A0E4209B-88A6-4959-9FA9-E0DED5973B00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-	  {A0E4209B-88A6-4959-9FA9-E0DED5973B00} = {B158751C-4E14-4075-81B3-8E1F1A89158C}
+			{A0E4209B-88A6-4959-9FA9-E0DED5973B00} = {B158751C-4E14-4075-81B3-8E1F1A89158C}
 		{1FA708B1-87F8-4244-89E4-26087BB74760} = {B158751C-4E14-4075-81B3-8E1F1A89158C}
 		{4ECDB3FA-0F8F-4EEB-A0F1-3A19167F3B89} = {B158751C-4E14-4075-81B3-8E1F1A89158C}
 		{C1CE8B4C-775D-4BB5-B1A1-C976322BE4D3} = {CC84EBED-6394-4A50-9177-4B1C0EDD0666}

@@ -45,10 +45,10 @@
     <developmentDependency>true</developmentDependency>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Core\</OutputPath>
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Core\Analyzers\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Core\</OutputPath>
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Core\Analyzers\</OutputPath>
   </PropertyGroup>
 
   <Target Name="PackBuildOutputs" DependsOnTargets="SatelliteDllsProjectOutputGroup;DebugSymbolsProjectOutputGroup">

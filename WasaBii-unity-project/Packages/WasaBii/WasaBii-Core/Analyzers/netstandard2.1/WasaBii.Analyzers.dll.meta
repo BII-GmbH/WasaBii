@@ -1,7 +1,5 @@
 fileFormatVersion: 2
-guid: 5f73332ec724e3e4ba30790d40243b02
-labels:
-- RoslynAnalyzer
+guid: 06c89d1d886bd9e46959518cb2510db2
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -9,7 +7,7 @@ PluginImporter:
   executionOrder: {}
   defineConstraints: []
   isPreloaded: 0
-  isOverridable: 0
+  isOverridable: 1
   isExplicitlyReferenced: 1
   validateReferences: 0
   platformData:

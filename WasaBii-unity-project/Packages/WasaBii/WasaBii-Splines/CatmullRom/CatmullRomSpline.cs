@@ -6,7 +6,6 @@ using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
-using Newtonsoft.Json;
 
 namespace BII.WasaBii.Splines.CatmullRom {
     
@@ -22,7 +21,6 @@ namespace BII.WasaBii.Splines.CatmullRom {
     /// derivatives produce sudden kinks in the curve. Catmull-rom splines never produce loops within a single
     /// segment, i.e. between two succinct points.
     /// </summary>
-    [JsonObject(IsReference = false)] // Treat as value type for serialization
     [Serializable]
     public sealed class CatmullRomSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : struct where TDiff : struct {
 
@@ -32,22 +30,24 @@ namespace BII.WasaBii.Splines.CatmullRom {
             SplineType? splineType = null
         ) : this(handles.Prepend(startHandle).Append(endHandle), ops, splineType) {}
 
-        public CatmullRomSpline(IEnumerable<TPos> allHandlesIncludingMarginHandles, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null) {
-            handles = ImmutableArray.CreateRange(allHandlesIncludingMarginHandles);
-            if (handles.Length < 4)
-                throw new ArgumentException(
-                    $"Cannot construct a Catmull-Rom spline from {handles.Length} handles, at least 4 are needed"
-                );
+        public CatmullRomSpline(
+            IEnumerable<TPos> allHandlesIncludingMarginHandles, 
+            GeometricOperations<TPos, TDiff> ops, 
+            SplineType? splineType = null
+        ) {
+            // Note CR: Serialization might pass only `default` parameters, so we support this case here
+            if (allHandlesIncludingMarginHandles != default) {
+                handles = ImmutableArray.CreateRange(allHandlesIncludingMarginHandles);
+                if (handles.Length < 4)
+                    throw new ArgumentException(
+                        $"Cannot construct a Catmull-Rom spline from {handles.Length} handles, at least 4 are needed"
+                    );
+            } else handles = ImmutableArray<TPos>.Empty;
+            
             Type = splineType ?? SplineType.Centripetal;
             cachedSegmentLengths = new Lazy<ImmutableArray<Lazy<Length>>>(() => prepareSegmentLengthCache(this));
             this.Ops = ops;
         }
-
-        // The non-nullable fields are not set and thus null, but
-        // they should always be set via reflection, so this is fine.
-    #pragma warning disable 8618
-        [JsonConstructor] private CatmullRomSpline() => cachedSegmentLengths = new Lazy<ImmutableArray<Lazy<Length>>>(() => prepareSegmentLengthCache(this));
-    #pragma warning restore 8618
 
         private readonly ImmutableArray<TPos> handles;
 

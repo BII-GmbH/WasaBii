@@ -6,7 +6,6 @@ using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
-using Newtonsoft.Json;
 
 namespace BII.WasaBii.Splines.Bezier {
     
@@ -29,7 +28,6 @@ namespace BII.WasaBii.Splines.Bezier {
     /// animations since humans are very good at seeing discontinuous acceleration in a movement, which makes
     /// it look less smooth.
     /// </summary>
-    [JsonObject(IsReference = false)] // Treat as value type for serialization
     [Serializable]
     public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : struct where TDiff : struct {
 
@@ -57,14 +55,21 @@ namespace BII.WasaBii.Splines.Bezier {
 
         public GeometricOperations<TPos, TDiff> Ops { get; }
         
-        public BezierSpline(IEnumerable<BezierSegment<TPos, TDiff>> segments, GeometricOperations<TPos, TDiff> ops) {
-            Segments = segments.ToImmutableArray();
-            foreach(var (l, r) in Segments.PairwiseSliding())
-                if (ops.Distance(l.End, r.Start) > Length.Epsilon)
-                    throw new ArgumentException(
-                        "Tried to construct a discontinuous spline. Each segment must "
-                        + "start at the exact position where the previous one ended."
-                    );
+        public BezierSpline(
+            IEnumerable<BezierSegment<TPos, TDiff>> segments, 
+            GeometricOperations<TPos, TDiff> ops
+        ) {
+            // Note CR: Serialization might pass only `default` parameters, so we support this case here
+            if (segments != default) {
+                Segments = segments.ToImmutableArray();
+                foreach(var (l, r) in Segments.PairwiseSliding())
+                    if (ops.Distance(l.End, r.Start) > Length.Epsilon)
+                        throw new ArgumentException(
+                            "Tried to construct a discontinuous spline. Each segment must "
+                            + "start at the exact position where the previous one ended."
+                        );
+            } else Segments = ImmutableArray<BezierSegment<TPos, TDiff>>.Empty;
+            
             Ops = ops;
             cache = new Lazy<Cache>(initCache);
         }
@@ -84,12 +89,6 @@ namespace BII.WasaBii.Splines.Bezier {
 
         [Pure] public Spline<TPos, TDiff> CopyWithDifferentHandleDistance(Length desiredHandleDistance) =>
             BezierSplineCopyUtils.CopyWithDifferentHandleDistance(this, desiredHandleDistance);
-
-        // The non-nullable fields are not set and thus null, but
-        // they should always be set via reflection, so this is fine.
-        #pragma warning disable 8618
-        [JsonConstructor] private BezierSpline() => cache = new Lazy<Cache>(initCache);
-        #pragma warning restore 8618
 
         private Cache initCache() => new(
             Segments.Select(s => new Lazy<SplineSegment<TPos, TDiff>>(() => s.ToSplineSegment(Ops))).ToImmutableArray()

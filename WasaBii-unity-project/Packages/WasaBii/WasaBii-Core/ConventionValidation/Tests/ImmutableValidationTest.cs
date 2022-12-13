@@ -1,68 +1,54 @@
 using System.Collections.Immutable;
-using System.Linq;
-using BII.WasaBii.Core.Editor;
-using NUnit.Framework;
 
 // We don't care about the actual values of the fields in our dummy classes. Let them be null.
 #nullable disable
 
 namespace BII.WasaBii.Core.Tests {
     public class ImmutableValidationTest {
-        
-        // TODO CR: Once old graph stuff is removed, make named tests for each case
 
-        [Test]
-        public void EnsureAllActualTypesImmutable() {
-            Assert.That(
-                CompileTimeImmutableValidation.ValidateAllTypes(), 
-                Is.Empty, 
-                "Immutability validation failed for types in project"
-            );
-        }
-
-        [Test]
-        public void TestTrueImmutableErrorCases() {
-            foreach (var shouldFail in new []{
-                typeof(MutableStruct),
-                typeof(FieldNotReadonly),
-                typeof(AutoPropertyFieldNotReadonly),
-                typeof(MutableFieldType),
-                typeof(NotReadOnlyFieldInBase),
-                typeof(MutableFieldTypeInBase),
-                typeof(HasNonImmutableInterfaceField), 
-                typeof(HasNonImmutableAbstractField),
-                typeof(ImmutableArrayOfMutable),
-                typeof(ImmutableListOfMutable),
-                typeof(ImmutableHashSetOfMutable),
-                typeof(ImmutableDictionaryOfMutableKeys),
-                typeof(ImmutableDictionaryOfMutableValues)
-            }) {
-                Assert.That(() => 
-                    ImmutableValidation.ValidateTrueImmutability(shouldFail), 
-                    Is.Not.Empty, 
-                    shouldFail.Name
-                );
-            }
-        }
-        
-        [Test]
-        public void TestTrueImmutableSuccessCases() {
-            foreach (var shouldWork in new []{
-                typeof(MustBeImmutableWithInterfaceField),
-                typeof(MustBeImmutableWithAbstractField),
-                typeof(SupportsImmutableArray),
-                typeof(SupportsImmutableList),
-                typeof(SupportsImmutableHashSet),
-                typeof(SupportsImmutableDictionary),
-                typeof(MustBeImmutableWithEnumField)
-            }) {
-                var failMessages = ImmutableValidation.ValidateTrueImmutability(shouldWork).ToList();
-                Assert.That(failMessages, Is.Empty, 
-                    "Must but immutable but was not: [" + shouldWork + "]. See next lines for failures.\n" 
-                        + string.Join("\n\n", failMessages)
-                );
-            }
-        }
+        // [Test]
+        // public void TestTrueImmutableErrorCases() {
+        //     foreach (var shouldFail in new []{
+        //         typeof(MutableStruct),
+        //         typeof(FieldNotReadonly),
+        //         typeof(AutoPropertyFieldNotReadonly),
+        //         typeof(MutableFieldType),
+        //         typeof(NotReadOnlyFieldInBase),
+        //         typeof(MutableFieldTypeInBase),
+        //         typeof(HasNonImmutableInterfaceField), 
+        //         typeof(HasNonImmutableAbstractField),
+        //         typeof(ImmutableArrayOfMutable),
+        //         typeof(ImmutableListOfMutable),
+        //         typeof(ImmutableHashSetOfMutable),
+        //         typeof(ImmutableDictionaryOfMutableKeys),
+        //         typeof(ImmutableDictionaryOfMutableValues)
+        //     }) {
+        //         Assert.That(() => 
+        //             ImmutableValidation.ValidateTrueImmutability(shouldFail), 
+        //             Is.Not.Empty, 
+        //             shouldFail.Name
+        //         );
+        //     }
+        // }
+        //
+        // [Test]
+        // public void TestTrueImmutableSuccessCases() {
+        //     foreach (var shouldWork in new []{
+        //         typeof(MustBeImmutableWithInterfaceField),
+        //         typeof(MustBeImmutableWithAbstractField),
+        //         typeof(SupportsImmutableArray),
+        //         typeof(SupportsImmutableList),
+        //         typeof(SupportsImmutableHashSet),
+        //         typeof(SupportsImmutableDictionary),
+        //         typeof(MustBeImmutableWithEnumField)
+        //     }) {
+        //         var failMessages = ImmutableValidation.ValidateTrueImmutability(shouldWork).ToList();
+        //         Assert.That(failMessages, Is.Empty, 
+        //             "Must but immutable but was not: [" + shouldWork + "]. See next lines for failures.\n" 
+        //                 + string.Join("\n\n", failMessages)
+        //         );
+        //     }
+        // }
         
         // Mutable Simple Types
 

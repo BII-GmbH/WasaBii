@@ -12,7 +12,7 @@ public class UnitGenerator : ISourceGenerator {
     private static readonly DiagnosticDescriptor UnexpectedUnitGenerationIssue = new(
         id: "WasaBiiUnits",
         title: "Unexpected Unit Generation Issue",
-        messageFormat: "Unexpected issue while generating unit source code:\n{0}",
+        messageFormat: "Unexpected issue while generating unit source code:\n{0}\n-----\n{1}",
         category: "WasaBii",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
@@ -58,7 +58,7 @@ public class UnitGenerator : ISourceGenerator {
 
         }
         catch (Exception e) {
-            context.ReportDiagnostic(Diagnostic.Create(UnexpectedUnitGenerationIssue, Location.None, e.Message));
+            context.ReportDiagnostic(Diagnostic.Create(UnexpectedUnitGenerationIssue, Location.None, e.Message, e.StackTrace));
         }
         finally {
             Thread.CurrentThread.CurrentCulture = origCulture;

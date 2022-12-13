@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using BII.WasaBii.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
@@ -56,7 +57,8 @@ public class GeneratorTests
                 MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.1.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").Location),
                 MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location),
                 MetadataReference.CreateFromFile(typeof(System.Object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(IUnitValue).Assembly.Location) 
+                MetadataReference.CreateFromFile(typeof(IUnitValue).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(MustBeImmutableAttribute).Assembly.Location)
             },
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );

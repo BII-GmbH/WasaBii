@@ -1,9 +1,10 @@
 ﻿#pragma warning disable RS1026 // we don't want weird validation race conditions when one type-to-be-validated references another.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using BII.WasaBii.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -49,7 +50,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
         id: "WasaBiiImmutability", // TODO CR: do we want release tracking?
         title: "Type is not immutable",
         messageFormat: "Type '{0}' is not immutable: {1}",
-        category: "Immutability",
+        category: "WasaBii",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: "Type marked with [MustBeImmutable] is not guaranteed to be immutable."
@@ -62,24 +63,26 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
     //  => We validate the fields' actual substituted types, even when declared as a generic type.
 
     public override void Initialize(AnalysisContext context) {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
         var allViolations = new Dictionary<ITypeSymbol, IReadOnlyCollection<ImmutablityViolation>>(SymbolEqualityComparer.Default); 
         var topLevelToValidate = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default); 
+        var seen = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default); 
         
         // Step 1: collect all violations
         
         context.RegisterCompilationStartAction(compilationContext => {
+
             var comp = compilationContext.Compilation;
 
             bool IsAssignableTo(ITypeSymbol baseType, ITypeSymbol subType) {
                 var conversion = comp.ClassifyConversion(subType, baseType);
                 // User-defined implicit conversions do not guarantee an immutable source
-                return conversion.IsImplicit && !conversion.IsUserDefined; 
+                return conversion is {IsImplicit: true, IsUserDefined: false}; 
             }
             
-            var mustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(MustBeImmutableAttribute).FullName)!;
-            var ignoreMustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(__IgnoreMustBeImmutableAttribute).FullName)!;
+            // var mustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(MustBeImmutableAttribute).FullName)!;
+            // var ignoreMustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(__IgnoreMustBeImmutableAttribute).FullName)!;
 
             var allowedTypes = new[] {
                 // Technically, a lazy can be stateful depending on the factory closure.
@@ -97,11 +100,13 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
             bool Equal(ISymbol? a, ISymbol? b) => SymbolEqualityComparer.Default.Equals(a, b);
 
             compilationContext.RegisterSyntaxNodeAction(ctx => {
+
                 var model = ctx.SemanticModel;
                 if (ctx.Node is TypeDeclarationSyntax tds) {
-                    var typeInfo = model.GetTypeInfo(tds).Type!; 
+                    var typeInfo = model.GetDeclaredSymbol(tds)!;
                     // TODO CR PREMERGE: ensure that subtypes appropriately inherit the attribute here
-                    if (typeInfo.GetAttributes().Any(a => Equal(a.AttributeClass, mustBeImmutableSymbol))) {
+                    // if (typeInfo.GetAttributes().Any(a => Equal(a.AttributeClass, mustBeImmutableSymbol))) {
+                    if (typeInfo.GetAttributes().Any(a => a.AttributeClass?.Name == "MustBeImmutableAttribute")) {
                         topLevelToValidate.Add(typeInfo);
                         ValidateWithContextAndRemember(typeInfo, new("[MustBeImmutable]"), allowAbstract: true);
                     }
@@ -126,7 +131,11 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                         yield break;
                     }
 
-                    if (type.GetAttributes().Any(a => Equal(a.AttributeClass, ignoreMustBeImmutableSymbol))) 
+                    if (seen.Contains(type)) yield break; // circular reference, otherwise would have a violation entry
+                    seen.Add(type);
+
+                    // if (type.GetAttributes().Any(a => Equal(a.AttributeClass, ignoreMustBeImmutableSymbol))) 
+                    if (type.GetAttributes().Any(a => a.AttributeClass?.Name == "__IgnoreMustBeImmutableAttribute"))
                         yield break;
 
                     // Explicitly forbid dynamic types and object references: They could be anything! 
@@ -206,8 +215,10 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                     // Unless we allow them explicitly, all abstract types must be marked with an attribute
                     //  so that all subtypes will be either validated or ignored.
                     if (!allowAbstract && type.IsAbstract && !type.GetAttributes()
-                            .Any(a => Equal(a.AttributeClass, mustBeImmutableSymbol) ||
-                                      Equal(a.AttributeClass, ignoreMustBeImmutableSymbol))
+                            // .Any(a => Equal(a.AttributeClass, mustBeImmutableSymbol) ||
+                            //           Equal(a.AttributeClass, ignoreMustBeImmutableSymbol))
+                            .Any(a => a.AttributeClass?.Name == "MustBeImmutableAttribute" ||
+                                      a.AttributeClass?.Name == "__IgnoreMustBeImmutableAttribute")
                     ) yield return ImmutablityViolation.From(NotImmutableReason.NonImmutableAbstractFieldType);
 
                     // Validate all fields in the whole inheritance hierarchy and their field types
@@ -229,9 +240,8 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                             )) yield return violation;
                         }
                         
-                        currentType = namedType.BaseType;
+                        currentType = currentType.BaseType;
                         contextStack = contextStack.Push(new($"base type {currentType}"));
-                        
                     } while (currentType != null && !Equal(currentType, comp.GetSpecialType(SpecialType.System_Object)));
                 }
 

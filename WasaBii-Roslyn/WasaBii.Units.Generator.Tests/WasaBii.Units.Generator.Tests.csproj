@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WasaBii.Analyzers.Shared\WasaBii.Analyzers.Shared.csproj" />
     <ProjectReference Include="..\WasaBii.Units.Generator\WasaBii.Units.Generator.csproj" />
   </ItemGroup>
 

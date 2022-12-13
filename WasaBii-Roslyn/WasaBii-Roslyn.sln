@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Units.Generator.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Analyzers.Shared", "WasaBii.Analyzers.Shared\WasaBii.Analyzers.Shared.csproj", "{A0E4209B-88A6-4959-9FA9-E0DED5973B00}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Analyzers", "WasaBii.Analyzers\WasaBii.Analyzers.csproj", "{1FA708B1-87F8-4244-89E4-26087BB74760}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Analyzers.Immutable", "WasaBii.Analyzers.Immutable\WasaBii.Analyzers.Immutable.csproj", "{1FA708B1-87F8-4244-89E4-26087BB74760}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Analyzers.Tests", "WasaBii.Analyzers.Tests\WasaBii.Analyzers.Tests.csproj", "{4ECDB3FA-0F8F-4EEB-A0F1-3A19167F3B89}"
 EndProject

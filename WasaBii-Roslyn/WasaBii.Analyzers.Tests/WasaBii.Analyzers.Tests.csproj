@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WasaBii.Analyzers\WasaBii.Analyzers.csproj">
+    <ProjectReference Include="..\WasaBii.Analyzers.Immutable\WasaBii.Analyzers.Immutable.csproj">
       <PrivateAssets>all</PrivateAssets>
       <!-- If enabling the target analyzer in this test project, set ReferenceOutputAssembly="false" and OutputItemType="Analyzer".
             See https://www.meziantou.net/referencing-an-analyzer-from-a-project.htm -->

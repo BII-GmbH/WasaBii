@@ -67,7 +67,6 @@ public class UnitGenerator : ISourceGenerator {
     private static SourceText GenerateSourceFor(UnitDefinitions unitDef, UnitConversions conversions) {
         var unitsInclude = unitDef.Namespace.Equals("BII.WasaBii.UnitSystem") ? "" : "using BII.WasaBii.UnitSystem;\n";
         var res = $@"
-using static System.Runtime.CompilerServices.IsExternalInit;
 using BII.WasaBii.Core;
 using System;
 using System.Collections.Generic;
@@ -86,7 +85,12 @@ using UnityEngine;
 ";
         
         return SourceText.From(
-            InNamespace(res, unitDef.Namespace), 
+            @"// Convince the compiler to enable the `init` keyword
+namespace System.Runtime.CompilerServices {
+    internal static class IsExternalInit {}
+}
+
+" + InNamespace(res, unitDef.Namespace), 
             Encoding.UTF8
         );
     }

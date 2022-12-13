@@ -33,7 +33,7 @@ public class GeneratorTests
     public void EnsureExampleCompiles() {
         var resourceText = testJson;
         
-        Compilation comp = CreateCompilation("namespace System.Runtime.CompilerServices { public static class IsExternalInit {} }");
+        Compilation comp = CreateCompilation();
         var newComp = RunGenerators(comp, out var generatorDiags, new [] {
             new HardCodedText(resourceText, "test.units.json")
         }, new UnitGenerator());

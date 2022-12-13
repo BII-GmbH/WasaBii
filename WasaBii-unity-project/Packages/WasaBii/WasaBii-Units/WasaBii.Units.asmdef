@@ -10,7 +10,8 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "WasaBii.Analyzers.Shared.dll",
-        "WasaBii.Units.Shared.dll"
+        "WasaBii.Units.Shared.dll",
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

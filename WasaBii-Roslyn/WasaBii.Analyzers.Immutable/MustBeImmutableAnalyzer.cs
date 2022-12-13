@@ -44,10 +44,12 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
         public ImmutablityViolation AddContext(ContextPathPart contextPathPart) =>
             this with {Context = this.Context.Push(contextPathPart)};
-    }; 
+    };
+
+    public const string DiagnosticId = "WasaBiiImmutability";
 
     private static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-        id: "WasaBiiImmutability", // TODO CR: do we want release tracking?
+        id: DiagnosticId, // TODO CR: do we want release tracking?
         title: "Type is not immutable",
         messageFormat: "Type '{0}' is not immutable: {1}",
         category: "WasaBii",
@@ -67,8 +69,8 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
         var allViolations = new Dictionary<ITypeSymbol, IReadOnlyCollection<ImmutablityViolation>>(SymbolEqualityComparer.Default); 
         var topLevelToValidate = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default); 
-        var seen = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default); 
-        
+        var seen = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+
         // Step 1: collect all violations
         
         context.RegisterCompilationStartAction(compilationContext => {
@@ -108,7 +110,8 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                     // if (typeInfo.GetAttributes().Any(a => Equal(a.AttributeClass, mustBeImmutableSymbol))) {
                     if (typeInfo.GetAttributes().Any(a => a.AttributeClass?.Name == "MustBeImmutableAttribute")) {
                         topLevelToValidate.Add(typeInfo);
-                        ValidateWithContextAndRemember(typeInfo, new("[MustBeImmutable]"), allowAbstract: true);
+                        if (!seen.Contains(typeInfo)) 
+                            ValidateWithContextAndRemember(typeInfo, new("[MustBeImmutable]"), allowAbstract: true);
                     }
                 }
                 
@@ -251,6 +254,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
         // Step 2: report all collected violations
         
         context.RegisterCompilationAction(ctx => {
+            //ctx.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None, "hello world", "!"));
             foreach (var type in topLevelToValidate)
             foreach (var location in type.Locations)
             foreach (var violation in allViolations[type]) {
@@ -259,7 +263,6 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                 ctx.ReportDiagnostic(Diagnostic.Create(
                     Descriptor, 
                     location, 
-                    DiagnosticSeverity.Error, 
                     $"{type.ContainingNamespace}.{type.Name}", 
                     violationStr
                 ));

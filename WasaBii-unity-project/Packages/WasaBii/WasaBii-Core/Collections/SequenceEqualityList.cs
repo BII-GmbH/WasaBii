@@ -11,7 +11,7 @@ namespace BII.WasaBii.Core {
     /// Creates a copy of the wrapped list so that even
     /// if the original gets mutated, the contents of
     /// `this` remains unchanged.
-    [Serializable][MustBeImmutable]
+    [Serializable]
     public sealed class SequenceEqualityList<T> : IReadOnlyList<T>, IEquatable<IEnumerable<T>>, IEquatable<SequenceEqualityList<T>> {
         
         private readonly ImmutableArray<T> wrapped;

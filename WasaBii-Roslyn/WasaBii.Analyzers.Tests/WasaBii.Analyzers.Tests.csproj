@@ -30,6 +30,7 @@
       <!-- If enabling the target analyzer in this test project, set ReferenceOutputAssembly="false" and OutputItemType="Analyzer".
             See https://www.meziantou.net/referencing-an-analyzer-from-a-project.htm -->
     </ProjectReference>
+    <ProjectReference Include="..\WasaBii.Analyzers.Shared\WasaBii.Analyzers.Shared.csproj" />
   </ItemGroup>
 
 </Project>

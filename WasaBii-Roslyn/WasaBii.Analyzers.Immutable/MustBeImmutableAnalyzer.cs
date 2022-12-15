@@ -1,6 +1,5 @@
 ﻿#pragma warning disable RS1026 // we don't want weird validation race conditions when one type-to-be-validated references another.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;

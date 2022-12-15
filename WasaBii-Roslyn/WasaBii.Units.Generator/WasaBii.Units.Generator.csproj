@@ -5,6 +5,7 @@
     <RootNamespace>BII.WasaBii.UnitSystem</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsRoslynComponent>true</IsRoslynComponent>
     <LangVersion>default</LangVersion>
   </PropertyGroup>
 

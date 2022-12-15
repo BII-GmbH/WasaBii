@@ -60,7 +60,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
         category: "WasaBii",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "Type marked with [MustBeImmutable] is not guaranteed to be immutable."
+        description: "Validate types marked with [MustBeImmutable]"
     );
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
@@ -70,7 +70,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
     //  => We validate the fields' actual substituted types, even when declared as a generic type.
 
     public override void Initialize(AnalysisContext context) {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.ReportDiagnostics);
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
         var allViolations = new Dictionary<ITypeSymbol, IReadOnlyCollection<ImmutablityViolation>>(SymbolEqualityComparer.Default); 
         var topLevelToValidate = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default); 

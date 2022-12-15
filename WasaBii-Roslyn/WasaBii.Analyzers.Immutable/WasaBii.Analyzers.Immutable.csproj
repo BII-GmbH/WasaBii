@@ -16,47 +16,20 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup Condition="Exists('$(TargetPath)')">
+    <Analyzer Include="$(TargetPath)" />
+    <Analyzer Include="$(TargetPath)\..\WasaBii.Analyzers.Shared.dll" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\WasaBii.Analyzers.Shared\WasaBii.Analyzers.Shared.csproj" />
   </ItemGroup>
 
-  <!-- Apply this analyzer myself to this project -->
-
-  <!-- For pack -->
-  <PropertyGroup>
-    <!-- Required elements-->
-    <id>RoslynAnalyzerTemplate</id><!-- Must be unique within the hosting gallery -->
-    <version></version>
-    <description></description>
-    <authors></authors>
-
-    <!-- Optional elements -->
-    <projectUrl>https://github.com/nowsprinting/RoslynAnalyzerTemplate</projectUrl>
-    <license></license>
-    <icon></icon>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <copyright></copyright>
-    <title></title>
-
-    <!-- For analyzer package -->
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <IncludeSymbols>false</IncludeSymbols>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildOutputs</TargetsForTfmSpecificContentInPackage>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <developmentDependency>true</developmentDependency>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Core\Analyzers\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Core\Analyzers\</OutputPath>
   </PropertyGroup>
-
-  <Target Name="PackBuildOutputs" DependsOnTargets="SatelliteDllsProjectOutputGroup;DebugSymbolsProjectOutputGroup">
-    <ItemGroup>
-      <TfmSpecificPackageFile Include="$(TargetDir)\*.dll" PackagePath="analyzers\dotnet\cs" />
-      <TfmSpecificPackageFile Include="@(SatelliteDllsProjectOutputGroupOutput->'%(FinalOutputPath)')" PackagePath="analyzers\dotnet\cs\%(SatelliteDllsProjectOutputGroupOutput.Culture)\" />
-    </ItemGroup>
-  </Target>
 
 </Project>

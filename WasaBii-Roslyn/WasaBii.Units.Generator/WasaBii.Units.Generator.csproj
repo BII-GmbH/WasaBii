@@ -31,7 +31,7 @@
 
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\..\..\..\Program Files\Unity\2021.2.2f1\Editor\Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <HintPath>C:\Program Files\Unity\2022.1.1f1\Editor\Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
 

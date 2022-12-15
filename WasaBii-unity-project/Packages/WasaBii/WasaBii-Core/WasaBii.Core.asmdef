@@ -8,7 +8,6 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "System.Collections.Immutable.dll",
-        "Newtonsoft.Json.dll",
         "WasaBii.Analyzers.Shared.dll"
     ],
     "autoReferenced": true,

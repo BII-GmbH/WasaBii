@@ -12,10 +12,6 @@ using Assert = NUnit.Framework.Assert;
 
 namespace RoslynAnalyzerTemplate.Test;
 
-/// <summary>
-/// This test is an examples of using the Dena.CodeAnalysis.Testing test helper library.
-/// <see cref="https://github.com/DeNA/Dena.CodeAnalysis.Testing"/>
-/// </summary>
 [TestFixture]
 public class RoslynAnalyzerTemplateTest {
     

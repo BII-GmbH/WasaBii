@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using BII.WasaBii.Core;
 using Microsoft.CodeAnalysis;
@@ -32,7 +31,9 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
         HasUnboundGenericParameter
     }
 
-    public sealed record ContextPathPart(string Desc); // TODO CR: 
+    public sealed record ContextPathPart(string Desc) {
+        public override string ToString() => Desc;
+    }
 
     public sealed record ImmutablityViolation(
         ImmutableStack<ContextPathPart> Context,
@@ -271,7 +272,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                 foreach (var location in type.Locations)
                 foreach (var violation in allViolations[type]) {
                     // TODO CR PREMERGE: better locations
-                    var violationStr = $"{string.Join(" / ", violation.Context.Reverse())}: {violation.Reason}";
+                    var violationStr = $"{string.Join(" / ", violation.Context)}: {violation.Reason}";
                     ctx.ReportDiagnostic(Diagnostic.Create(
                         Descriptor, 
                         location, 

@@ -10,8 +10,9 @@ namespace BII.WasaBii.Geometry {
     /// Can also be viewed as a normalized <see cref="GlobalOffset"/>.
     [MustBeImmutable]
     [MustBeSerializable]
+    [Serializable]
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasDirection: true)]
-    public readonly partial struct GlobalDirection : 
+    public partial struct GlobalDirection : 
         GlobalDirectionLike<GlobalDirection>,
         IsGlobalVariant<GlobalDirection, LocalDirection> {
 
@@ -24,16 +25,20 @@ namespace BII.WasaBii.Geometry {
         public static readonly GlobalDirection One = new(1, 1, 1);
         public static readonly GlobalDirection Zero = new(0, 0, 0);
 
-        public System.Numerics.Vector3 AsNumericsVector { get; }
+#if UNITY_2022_1_OR_NEWER
+        [UnityEngine.SerializeField]
+        private System.Numerics.Vector3 _underlying;
+#endif
+        public System.Numerics.Vector3 AsNumericsVector => _underlying;
         
         public GlobalOffset AsOffsetWithLength1 => new(AsNumericsVector);
         
         public GlobalDirection(float x, float y, float z) {
             var magnitude = MathF.Sqrt(x * x + y * y + z * z);
-            AsNumericsVector = new(x / magnitude, y / magnitude, z / magnitude);
+            _underlying = new(x / magnitude, y / magnitude, z / magnitude);
         }
         
-        public GlobalDirection(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
+        public GlobalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized();
 
         public GlobalDirection(Length x, Length y, Length z) : this(
             (float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()

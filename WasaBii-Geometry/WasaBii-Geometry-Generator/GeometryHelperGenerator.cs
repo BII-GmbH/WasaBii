@@ -44,8 +44,8 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     .SelectMany(decl => decl.Variables.Select(variable => (type: decl.Type, identifier: variable.Identifier)))
                     .Concat(typeDecl.Members.OfType<PropertyDeclarationSyntax>()
                         .Where(p => p.Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword)
-                            && (p.AccessorList?.Accessors.All(a => a.Kind() 
-                                is not SyntaxKind.SetAccessorDeclaration || a.Body == null || a.ExpressionBody == null) ?? false))
+                            && (p.AccessorList?.Accessors.Any(a => a.Kind() 
+                                is SyntaxKind.GetAccessorDeclaration && a.Body == null && a.ExpressionBody == null) ?? false))
                         .Select(p => (type: p.Type, identifier: p.Identifier))
                     ).ToList();
 

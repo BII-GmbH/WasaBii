@@ -37,13 +37,16 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
     public sealed record ImmutablityViolation(
         ImmutableStack<ContextPathPart> Context,
-        NotImmutableReason Reason
+        NotImmutableReason Reason,
+        ImmutableArray<Location> Locations
     ) {
-        public static ImmutablityViolation From(NotImmutableReason reason) => 
-            new(ImmutableStack<ContextPathPart>.Empty, reason);
-        
-        public static ImmutablityViolation From(ContextPathPart lastContext, NotImmutableReason reason) =>
-            new(ImmutableStack<ContextPathPart>.Empty.Push(lastContext), reason);
+        public static ImmutablityViolation From(
+            NotImmutableReason reason, ImmutableArray<Location> locations
+        ) => new(ImmutableStack<ContextPathPart>.Empty, reason, locations);
+
+        public static ImmutablityViolation From(
+            ContextPathPart lastContext, NotImmutableReason reason, ImmutableArray<Location> locations
+        ) => new(ImmutableStack<ContextPathPart>.Empty.Push(lastContext), reason, locations);
 
         public ImmutablityViolation AddContext(ContextPathPart contextPathPart) =>
             this with {Context = this.Context.Push(contextPathPart)};
@@ -54,7 +57,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
         id: DiagnosticId, // TODO CR: do we want release tracking?
         title: "Type is not immutable",
-        messageFormat: "Type '{0}' is not immutable: {1}",
+        messageFormat: "This causes '{0}' to not be immutable: {1}",
         category: "WasaBii",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
@@ -128,7 +131,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                     ) {
                         topLevelToValidate.Add(typeInfo);
                         if (!seen.Contains(typeInfo))
-                            ValidateWithContextAndRemember(typeInfo, new("[MustBeImmutable]"), allowAbstract: true);
+                            ValidateWithContextAndRemember(typeInfo, lastContext: null, allowAbstract: true);
                     }
                 }
 
@@ -157,7 +160,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
                     // Explicitly forbid dynamic types and object references: They could be anything! 
                     if (Equal(type, comp.GetSpecialType(SpecialType.System_Object)) || type is IDynamicTypeSymbol) {
-                        yield return ImmutablityViolation.From(NotImmutableReason.IsUntypedReference);
+                        yield return ImmutablityViolation.From(NotImmutableReason.IsUntypedReference, type.Locations);
                         yield break;
                     }
 
@@ -168,7 +171,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
                     // We need a named symbol for generic shenanigans etc; all exceptions should be checked before this
                     if (type is not INamedTypeSymbol namedType) {
-                        yield return ImmutablityViolation.From(NotImmutableReason.UnexpectedNonNamedType);
+                        yield return ImmutablityViolation.From(NotImmutableReason.UnexpectedNonNamedType, type.Locations);
                         yield break;
                     }
 
@@ -197,7 +200,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                     if (type.IsTupleType) {
                         var tup = namedType.TupleUnderlyingType ?? namedType; // resolve named tuples
                         var violations = tup.TypeArguments
-                            .SelectMany(targ => ValidateWithContextAndRemember(targ, new($"tuple member of type {targ.Name}")));
+                            .SelectMany(targ => ValidateWithContextAndRemember(targ, new($"tuple member of type `{targ.Name}`")));
                         foreach (var violation in violations) yield return violation;
                         yield break;
                     }
@@ -207,8 +210,9 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                     foreach (var typeArg in namedType.TypeArguments) { // empty if not generic
                         if (typeArg.TypeKind is TypeKind.TypeParameter or TypeKind.Unknown)
                             yield return ImmutablityViolation.From(
-                                new($"generic param {typeArg.Name}"), 
-                                NotImmutableReason.HasUnboundGenericParameter
+                                new($"generic param `{typeArg.Name}`"), 
+                                NotImmutableReason.HasUnboundGenericParameter,
+                                typeArg.Locations
                             );
                         // Otherwise type is bound and we can check the fields recursively
                     }
@@ -220,12 +224,12 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                         && type.AllInterfaces.Contains(iEnumerableSymbol)
                     ) {
                         if (!namedType.IsGenericType)
-                            yield return ImmutablityViolation.From(NotImmutableReason.ImmutableCollectionWithoutGenerics);
+                            yield return ImmutablityViolation.From(NotImmutableReason.ImmutableCollectionWithoutGenerics, namedType.Locations);
                         else
                             foreach (var generic in namedType.TypeArguments) 
                             foreach (var violation in ValidateWithContextAndRemember(
                                 generic, 
-                                new($"element of type {generic.Name}"))
+                                new($"element of type `{generic.Name}`"))
                             ) yield return violation;
                         yield break;
                     }
@@ -237,7 +241,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                             //           Equal(a.AttributeClass, ignoreMustBeImmutableSymbol))
                             .Any(a => a.AttributeClass?.Name == "MustBeImmutableAttribute" ||
                                       a.AttributeClass?.Name == "__IgnoreMustBeImmutableAttribute")
-                    ) yield return ImmutablityViolation.From(NotImmutableReason.NonImmutableAbstractFieldType);
+                    ) yield return ImmutablityViolation.From(NotImmutableReason.NonImmutableAbstractFieldType, type.Locations);
 
                     // Validate all fields in the whole inheritance hierarchy and their field types
                     var currentType = namedType;
@@ -248,18 +252,23 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
                             if (!field.IsReadOnly)
                                 yield return new ImmutablityViolation(
-                                    contextStack.Push(new($"field {field.Name} of type {field.Type.Name}")), 
-                                    NotImmutableReason.NonReadonlyField
+                                    contextStack.Push(new($"field `{field.Name}: {field.Type.Name}`")), 
+                                    NotImmutableReason.NonReadonlyField,
+                                    field.Locations
                                 );
 
                             foreach (var violation in ValidateWithContextAndRemember(
                                  field.Type, 
-                                 new($"field {field.Name} of type {field.Type.Name}")
-                            )) yield return violation;
+                                 new($"field `{field.Name}: {field.Type.Name}`")
+                            )) yield return violation with {
+                                Locations = Equal(currentType, namedType) 
+                                    ? field.Locations 
+                                    : namedType.BaseType!.Locations
+                            };
                         }
                         
                         currentType = currentType.BaseType;
-                        contextStack = contextStack.Push(new($"base type {currentType}"));
+                        contextStack = contextStack.Push(new($"base type `{currentType}`"));
                     } while (currentType != null && !Equal(currentType, comp.GetSpecialType(SpecialType.System_Object)));
                 }
 
@@ -267,12 +276,10 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
             
             // Step 2: report all collected violations
             compilationContext.RegisterCompilationEndAction(ctx => {
-                //ctx.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None, "hello world", "!"));
                 foreach (var type in topLevelToValidate)
-                foreach (var location in type.Locations)
-                foreach (var violation in allViolations[type]) {
-                    // TODO CR PREMERGE: better locations
-                    var violationStr = $"{string.Join(" / ", violation.Context)}: {violation.Reason}";
+                foreach (var violation in allViolations[type]) 
+                foreach (var location in violation.Locations) {
+                    var violationStr = $"{violation.Reason} ({string.Join(" / ", violation.Context)})";
                     ctx.ReportDiagnostic(Diagnostic.Create(
                         Descriptor, 
                         location, 

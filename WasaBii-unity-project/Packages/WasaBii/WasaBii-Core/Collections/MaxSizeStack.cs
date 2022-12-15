@@ -5,15 +5,9 @@ using System.Collections.Generic;
 namespace BII.WasaBii.Core {
 
     [MustBeImmutable]
-    public struct DELETEME
-    {
-        public struct Foo
-        {
-            public int defNotImmutable;
-        }
-
+    public struct DELETEME {
+        public struct Foo { public int defNotImmutable; }
         public Foo foo;
-
     }
 
     /// Special stack implementation which limits its size

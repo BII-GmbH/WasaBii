@@ -16,6 +16,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\WasaBii.Analyzers.Shared\WasaBii.Analyzers.Shared.csproj" />
+  </ItemGroup>
+
   <!-- Apply this analyzer myself to this project -->
 
   <!-- For pack -->

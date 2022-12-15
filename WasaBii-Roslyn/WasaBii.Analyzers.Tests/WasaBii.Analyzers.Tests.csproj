@@ -21,7 +21,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="JunitXml.TestLogger" Version="3.0.114" />
-    <PackageReference Include="Dena.CodeAnalysis.Testing" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>

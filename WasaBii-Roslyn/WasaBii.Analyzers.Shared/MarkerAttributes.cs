@@ -36,11 +36,12 @@ namespace BII.WasaBii.Core {
     /// A type with this annotation is skipped during immutability validation.
     /// </summary>
     /// <devremarks>
-    /// This is only for testing purposes. Some testing mocks may intentionally include mutability.\
-    /// Hence the two underscores in the name.
+    /// This is only for testing purposes and for emergencies or prototypes. Hence the two underscores in the name.
+    /// Some testing mocks may intentionally include mutability.
+    /// Not inherited, because we want this to be explicitly present on every non-validated type.
     /// </devremarks>
     // ReSharper disable once InconsistentNaming // intentional, should be used with great caution
-    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class | AttributeTargets.Struct, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class | AttributeTargets.Struct, Inherited = false)]
     public sealed class __IgnoreMustBeImmutableAttribute : Attribute { }
 
 }

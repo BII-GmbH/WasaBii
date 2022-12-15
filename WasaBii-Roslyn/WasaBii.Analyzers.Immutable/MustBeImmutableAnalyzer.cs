@@ -1,10 +1,12 @@
 ﻿#pragma warning disable RS1026 // we don't want weird validation race conditions when one type-to-be-validated references another.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using BII.WasaBii.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -83,8 +85,13 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                 return conversion is {IsImplicit: true, IsUserDefined: false}; 
             }
             
-            // var mustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(MustBeImmutableAttribute).FullName)!;
-            // var ignoreMustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(__IgnoreMustBeImmutableAttribute).FullName)!;
+            var mustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(MustBeImmutableAttribute).FullName);
+            var ignoreMustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(__IgnoreMustBeImmutableAttribute).FullName);
+
+            if (mustBeImmutableSymbol == null || ignoreMustBeImmutableSymbol == null) 
+                return; // attributes not referenced in compilation unit, so nothing to check
+            
+            var iEnumerableSymbol = comp.GetTypeByMetadataName(typeof(IEnumerable).FullName);
 
             var allowedTypes = new[] {
                 // Technically, a lazy can be stateful depending on the factory closure.
@@ -102,24 +109,35 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
             bool Equal(ISymbol? a, ISymbol? b) => SymbolEqualityComparer.Default.Equals(a, b);
 
             compilationContext.RegisterSyntaxNodeAction(ctx => {
-
                 var model = ctx.SemanticModel;
                 if (ctx.Node is TypeDeclarationSyntax tds) {
                     var typeInfo = model.GetDeclaredSymbol(tds)!;
-                    // TODO CR PREMERGE: ensure that subtypes appropriately inherit the attribute here
-                    // if (typeInfo.GetAttributes().Any(a => Equal(a.AttributeClass, mustBeImmutableSymbol))) {
-                    if (typeInfo.GetAttributes().Any(a => a.AttributeClass?.Name == "MustBeImmutableAttribute")) {
+
+                    bool HasAttribute(INamedTypeSymbol t) =>
+                        t.GetAttributes().Any(a => Equal(a.AttributeClass, mustBeImmutableSymbol));
+
+                    IEnumerable<INamedTypeSymbol> AllBaseTypesOf(INamedTypeSymbol t) {
+                        var curr = t;
+                        do { yield return curr; } while ((curr = curr.BaseType) != null);
+                    }
+
+                    if (HasAttribute(typeInfo) 
+                        || typeInfo.AllInterfaces.Any(HasAttribute) 
+                        || AllBaseTypesOf(typeInfo).Any(HasAttribute)
+                    ) {
                         topLevelToValidate.Add(typeInfo);
-                        if (!seen.Contains(typeInfo)) 
+                        if (!seen.Contains(typeInfo))
                             ValidateWithContextAndRemember(typeInfo, new("[MustBeImmutable]"), allowAbstract: true);
                     }
                 }
-                
+
                 // Idea: Mutually recurse between these two to properly add the context step by step and accumulate issues upwards
 
                 IEnumerable<ImmutablityViolation> ValidateWithContextAndRemember(
                     ITypeSymbol type, ContextPathPart? lastContext, bool allowAbstract = false
                 ) {
+                    if (allViolations.TryGetValue(type, out var existingViolations))
+                        return existingViolations;
                     var violations = ValidateType(type, allowAbstract);
                     var wrapped = lastContext == null
                         ? violations.ToList()
@@ -129,16 +147,11 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                 }
                 
                 IEnumerable<ImmutablityViolation> ValidateType(ITypeSymbol type, bool allowAbstract) {
-                    if (allViolations.TryGetValue(type, out var existingViolations)) {
-                        foreach (var v in existingViolations) yield return v;
-                        yield break;
-                    }
-
                     if (seen.Contains(type)) yield break; // circular reference, otherwise would have a violation entry
                     seen.Add(type);
 
-                    // if (type.GetAttributes().Any(a => Equal(a.AttributeClass, ignoreMustBeImmutableSymbol))) 
-                    if (type.GetAttributes().Any(a => a.AttributeClass?.Name == "__IgnoreMustBeImmutableAttribute"))
+                    // Note CR: attribute is not inherited, so must be placed on every class here
+                    if (type.GetAttributes().Any(a => Equal(a.AttributeClass, ignoreMustBeImmutableSymbol))) 
                         yield break;
 
                     // Explicitly forbid dynamic types and object references: They could be anything! 
@@ -201,8 +214,9 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
                     // We allow all immutable collections even though they might internally be mutable
                     if (
-                        type.ContainingAssembly.Name == typeof(ImmutableArray).Namespace.Split(",").First() 
-                        && type.ContainingNamespace.Name == typeof(ImmutableArray).Namespace
+                        iEnumerableSymbol != null
+                        && type.ContainingAssembly.Name == typeof(ImmutableArray).Namespace.Split(",").First() 
+                        && type.AllInterfaces.Contains(iEnumerableSymbol)
                     ) {
                         if (!namedType.IsGenericType)
                             yield return ImmutablityViolation.From(NotImmutableReason.ImmutableCollectionWithoutGenerics);
@@ -249,24 +263,23 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                 }
 
             }, SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration, SyntaxKind.RecordDeclaration);
-        });
-        
-        // Step 2: report all collected violations
-        
-        context.RegisterCompilationAction(ctx => {
-            //ctx.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None, "hello world", "!"));
-            foreach (var type in topLevelToValidate)
-            foreach (var location in type.Locations)
-            foreach (var violation in allViolations[type]) {
-                // TODO CR PREMERGE: better locations
-                var violationStr = $"{string.Join(" / ", violation.Context.Reverse())}: {violation.Reason}";
-                ctx.ReportDiagnostic(Diagnostic.Create(
-                    Descriptor, 
-                    location, 
-                    $"{type.ContainingNamespace}.{type.Name}", 
-                    violationStr
-                ));
-            }
+            
+            // Step 2: report all collected violations
+            compilationContext.RegisterCompilationEndAction(ctx => {
+                //ctx.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None, "hello world", "!"));
+                foreach (var type in topLevelToValidate)
+                foreach (var location in type.Locations)
+                foreach (var violation in allViolations[type]) {
+                    // TODO CR PREMERGE: better locations
+                    var violationStr = $"{string.Join(" / ", violation.Context.Reverse())}: {violation.Reason}";
+                    ctx.ReportDiagnostic(Diagnostic.Create(
+                        Descriptor, 
+                        location, 
+                        $"{type.ContainingNamespace}.{type.Name}", 
+                        violationStr
+                    ));
+                }
+            });
         });
     }
 }

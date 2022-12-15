@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using BII.WasaBii.Analyzers;
 using BII.WasaBii.Core;
-using Dena.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -117,6 +116,16 @@ public class RoslynAnalyzerTemplateTest {
             }");
     
     [Test]
+    public Task FieldsNotReadonly_TwoDiagnostics() =>
+        AssertDiagnostics(2, @"
+            [MustBeImmutable] 
+            public sealed class FieldNotReadonly { 
+                public readonly int Foo = 0;
+                public int Bar = 0;
+                public int Baz = 1337;
+            }");
+    
+    [Test]
     public Task AutoPropertyFieldWithSet_OneDiagnostic() =>
         AssertDiagnostics(1, @"
             [MustBeImmutable] 
@@ -127,8 +136,8 @@ public class RoslynAnalyzerTemplateTest {
         ");
     
     [Test]
-    public Task AutoPropertyFieldWithInit_OneDiagnostic() =>
-        AssertDiagnostics(1, @"
+    public Task AutoPropertyFieldWithInit_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
             namespace System.Runtime.CompilerServices { public static class IsExternalInit { } }
             [MustBeImmutable] 
             public sealed class AutoPropertyFieldWithInit { 

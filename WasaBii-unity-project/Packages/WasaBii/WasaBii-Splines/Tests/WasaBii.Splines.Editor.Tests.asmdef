@@ -1,0 +1,26 @@
+﻿{
+  "name": "WasaBii.Splines.Editor.Tests",
+  "rootNamespace": "BII.WasaBii",
+  "references": [
+    "WasaBii.Core",
+    "WasaBii-Geometry",
+    "WasaBii.Splines",
+    "WasaBii.Units",
+    "WasaBii.Unity"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "WasaBii-Units-Shared.dll"
+  ],
+  "autoReferenced": false,
+  "versionDefines": [],
+  "noEngineReferences": false
+}

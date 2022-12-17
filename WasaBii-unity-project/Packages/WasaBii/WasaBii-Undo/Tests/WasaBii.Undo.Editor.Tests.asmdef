@@ -1,0 +1,21 @@
+﻿{
+    "name": "WasaBii.Undo.Editor.Tests",
+    "rootNamespace": "BII.WasaBii.Undo.Tests",
+    "references": [
+        "WasaBii.Core",
+        "WasaBii.Undo"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "versionDefines": [],
+    "noEngineReferences": false
+}

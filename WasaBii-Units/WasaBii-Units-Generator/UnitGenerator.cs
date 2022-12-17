@@ -21,10 +21,11 @@ public class UnitGenerator : ISourceGenerator {
     public void Initialize(GeneratorInitializationContext context) { }
 
     public void Execute(GeneratorExecutionContext context) {
-        
         // Ensure proper printing of decimal constants as valid C# code
         var origCulture = Thread.CurrentThread.CurrentCulture;
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
+        var isUnityEditor = context.ParseOptions.PreprocessorSymbolNames.Contains("UNITY_EDITOR");
 
         try {
 
@@ -38,7 +39,7 @@ public class UnitGenerator : ISourceGenerator {
                         Defs: JsonConvert.DeserializeObject<UnitDefinitions>(f.GetText()!.ToString())!
                     );
                 }).ToList();
-
+            
             foreach (var (fileName, unitDef) in unitDefs) {
                 // Step 1: Pre-parse and find all possible conversions
                 var conversions = UnitConversions.AllConversionsFor(unitDef);
@@ -48,6 +49,11 @@ public class UnitGenerator : ISourceGenerator {
                     $"{fileName}.g.cs",
                     source
                 );
+                if(isUnityEditor)
+                    context.AddSource(
+                        $"{fileName}PropertyDrawer.g.cs",
+                        GeneratePropertyDrawerSourceFor(unitDef)
+                    );
             }
 
         }
@@ -58,12 +64,15 @@ public class UnitGenerator : ISourceGenerator {
             Thread.CurrentThread.CurrentCulture = origCulture;
         }
     }
-
     private static SourceText GenerateSourceFor(UnitDefinitions unitDef, UnitConversions conversions) {
         var unitsInclude = unitDef.Namespace.Equals("BII.WasaBii.UnitSystem") ? "" : "using BII.WasaBii.UnitSystem;\n";
         var res = $@"
+using BII.WasaBii.Core;
 using System;
 using System.Collections.Generic;
+#if UNITY_2022_1_OR_NEWER
+using UnityEngine;
+#endif
 {unitsInclude}
 
 {string.Join("\n\n", unitDef.BaseUnits.Select(b => UnitCodeGeneration.GenerateBaseUnit(b, conversions)))}
@@ -75,6 +84,28 @@ using System.Collections.Generic;
 {string.Join("\n\n", unitDef.DivUnits.Select(d => UnitCodeGeneration.GenerateDerivedUnit(d, conversions, isMul: false)))}
 ";
         
+        return SourceText.From(
+            InNamespace(res, unitDef.Namespace), 
+            Encoding.UTF8
+        );
+    }
+
+    private static SourceText GeneratePropertyDrawerSourceFor(UnitDefinitions unitDef) {
+        var unitsInclude = unitDef.Namespace.Equals("BII.WasaBii.UnitSystem") ? "" : "using BII.WasaBii.UnitSystem;\n";
+
+        string makeDrawerFor(IUnitDef unit) => $@"
+[CustomPropertyDrawer(typeof({unit.TypeName}))]
+public sealed class {unit.TypeName}Editor : ValueWithUnitEditor<{unit.TypeName}, {unit.TypeName}.Unit> {{
+    protected override IUnitDescription<{unit.TypeName}.Unit> description =>
+        new {unit.TypeName}.Unit.Description();
+}}
+";
+        
+        var res = @$"
+using UnityEditor;
+{unitsInclude}
+
+{string.Join("", unitDef.BaseUnits.Cast<IUnitDef>().Concat(unitDef.DivUnits).Concat(unitDef.MulUnits).Select(makeDrawerFor))}";
         return SourceText.From(
             InNamespace(res, unitDef.Namespace), 
             Encoding.UTF8

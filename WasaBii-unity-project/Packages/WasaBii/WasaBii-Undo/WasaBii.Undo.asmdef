@@ -1,0 +1,16 @@
+{
+    "name": "WasaBii.Undo",
+    "rootNamespace": "BII.WasaBii.Undo",
+    "references": [
+        "WasaBii.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

@@ -4,12 +4,6 @@ using System.Collections.Generic;
 
 namespace BII.WasaBii.Core {
 
-    [MustBeImmutable]
-    public struct DeleteMe {
-        public struct Foo { public int DefNotImmutable; }
-        public Foo FooField;
-    }
-
     /// Special stack implementation which limits its size
     /// to the given value. If a push causes the content to
     /// exceed that size, then the oldest entry is disposed

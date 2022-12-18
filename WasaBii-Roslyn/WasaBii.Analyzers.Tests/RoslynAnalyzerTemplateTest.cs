@@ -56,32 +56,6 @@ public class RoslynAnalyzerTemplateTest {
     [Test]
     public Task EmptySourceCode_NoDiagnostics() => AssertDiagnostics(0, "");
 
-    /// <summary>
-    /// Test analyze for containing lowercase type name in source code
-    /// </summary>
-    // [Test]
-    // public async Task TypeNameContainingLowercase_ReportOneDiagnostic()
-    // {
-    //     var source = ReadCodes("TypeNameContainingLowercase.cs");
-    //     var analyzer = new BII.WasaBii.Analyzers.MustBeImmutableAnalyzer();
-    //     var diagnostics = await DiagnosticAnalyzerRunner.Run(analyzer, source);
-    //
-    //     var actual = diagnostics
-    //         .Where(x => x.Id != "CS1591") // Ignore "Missing XML comment for publicly visible type or member"
-    //         .Where(x => x.Id != "CS8019") // Ignore "Unnecessary using directive"
-    //         .ToArray();
-    //
-    //     Assert.That(actual.Length, Is.EqualTo(1));
-    //     Assert.That(actual.First().Id, Is.EqualTo("RoslynAnalyzerTemplate0001"));
-    //     Assert.That(actual.First().GetMessage(), Is.EqualTo("Type name 'TypeName' contains lowercase letters"));
-    //
-    //     LocationAssert.HaveTheSpan(
-    //         new LinePosition(9, 10),
-    //         new LinePosition(9, 18),
-    //         actual.First().Location
-    //     );
-    // }
-
     // TODO CR PREMERGE: more test cases, esp including generics
     
     // Enums
@@ -144,11 +118,11 @@ public class RoslynAnalyzerTemplateTest {
     [Test]
     public Task MutableFieldType_OneDiagnostic() =>
         AssertDiagnostics(1, @"
-            public struct MutableStruct { public int Foo; }
+            public sealed class MutableClass { public int Foo; }
             [MustBeImmutable] 
             public sealed class MutableFieldType { 
                 public readonly int Foo = 0;
-                public readonly MutableStruct Bar = default;
+                public readonly MutableClass Bar = default;
             }");
     
     // Mutable Base Types
@@ -164,12 +138,12 @@ public class RoslynAnalyzerTemplateTest {
     [Test]
     public Task HasMutableFieldType_OneDiagnostic() =>
         AssertDiagnostics(1, @"
-            public struct MutableStruct { public int Foo; }
+            public sealed class MutableClass { public int Foo; }
 
             [MustBeImmutable] 
             public abstract class HasMutableFieldType { 
                 public readonly int Foo = 0;
-                public readonly MutableStruct Bar = default;
+                public readonly MutableClass Bar = default;
             }");
     
     [Test]
@@ -182,10 +156,10 @@ public class RoslynAnalyzerTemplateTest {
     [Test]
     public Task MutableFieldTypeInBase_OneDiagnostic() =>
         AssertDiagnostics(1, @"
-            public struct MutableStruct { public int Foo; }
+            public sealed class MutableClass { public int Foo; }
             public abstract class HasMutableFieldType { 
                 public readonly int Foo = 0;
-                public readonly MutableStruct Bar = default;
+                public readonly MutableClass Bar = default;
             }
 
             [MustBeImmutable] 
@@ -211,6 +185,29 @@ public class RoslynAnalyzerTemplateTest {
             [MustBeImmutable] 
             public sealed class HasNonImmutableAbstractField {
                 public readonly CouldBeMutableAbstractClass Foo = default;
+            }");
+    
+    // Mutable structs referenced as readonly
+    
+    [Test]
+    public Task TopLevelMutableStructInReadOnlyField_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            public struct Vec { public float X, Y, Z; }
+
+            [MustBeImmutable] 
+            public sealed class TopLevelMutableStructInReadOnlyField {
+                public readonly Vec Vector = default;
+            }");
+    
+    [Test]
+    public Task NestedMutableStructsInReadOnlyField_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            public struct Float { public float Value; }
+            public struct Vec { public Float X, Y, Z; }
+
+            [MustBeImmutable] 
+            public sealed class NestedMutableStructsInReadOnlyField {
+                public readonly Vec Vector = default;
             }");
 
     // Immutable Abstract Field Types
@@ -303,54 +300,54 @@ public class RoslynAnalyzerTemplateTest {
     public Task RejectsImmutableListWithMutable_OneDiagnostic() =>
         AssertDiagnostics(1, @"
             using System.Collections.Immutable;
-            public struct MutableStruct { public int Foo; }
+            public sealed class MutableClass { public int Foo; }
 
             [MustBeImmutable] 
             public sealed class ImmutableListOfMutable {
-                public readonly ImmutableList<MutableStruct> Foo = default;
+                public readonly ImmutableList<MutableClass> Foo = default;
             }");
     
     [Test]
     public Task RejectsImmutableArrayWithMutable_OneDiagnostic() =>
         AssertDiagnostics(1, @"
             using System.Collections.Immutable;
-            public struct MutableStruct { public int Foo; }
+            public sealed class MutableClass { public int Foo; }
 
             [MustBeImmutable] 
             public sealed class ImmutableArrayOfMutable {
-                public readonly ImmutableArray<MutableStruct> Foo = default;
+                public readonly ImmutableArray<MutableClass> Foo = default;
             }");
     
     [Test]
     public Task RejectsImmutableHashSetWithMutable_OneDiagnostic() =>
         AssertDiagnostics(1, @"
             using System.Collections.Immutable;
-            public struct MutableStruct { public int Foo; }
+            public sealed class MutableClass { public int Foo; }
 
             [MustBeImmutable] 
             public sealed class ImmutableHashSetOfMutable {
-                public readonly ImmutableHashSet<MutableStruct> Foo = default;
+                public readonly ImmutableHashSet<MutableClass> Foo = default;
             }");
     
     [Test]
     public Task RejectsImmutableDictWithMutableKeys_OneDiagnostic() =>
         AssertDiagnostics(1, @"
             using System.Collections.Immutable;
-            public struct MutableStruct { public int Foo; }
+            public sealed class MutableClass { public int Foo; }
 
             [MustBeImmutable] 
             public sealed class ImmutableDictionaryOfMutableKeys {
-                public readonly ImmutableDictionary<MutableStruct, int> Foo = default;
+                public readonly ImmutableDictionary<MutableClass, int> Foo = default;
             }");
     
     [Test]
     public Task RejectsImmutableDictWithMutableValues_OneDiagnostic() =>
         AssertDiagnostics(1, @"
             using System.Collections.Immutable;
-            public struct MutableStruct { public int Foo; }
+            public sealed class MutableClass { public int Foo; }
 
             [MustBeImmutable] 
             public sealed class ImmutableDictionaryOfMutableValues {
-                public readonly ImmutableDictionary<char, MutableStruct> Foo = default;
+                public readonly ImmutableDictionary<char, MutableClass> Foo = default;
             }");
 }

@@ -56,9 +56,9 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
         id: DiagnosticId, // TODO CR: do we want release tracking?
         title: "Type is not immutable",
-        messageFormat: "This causes '{0}' to not be immutable: {1}",
+        messageFormat: "'{0}' not immutable: {1}",
         category: "WasaBii",
-        defaultSeverity: DiagnosticSeverity.Error,
+        defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Validate types marked with [MustBeImmutable]"
     );
@@ -100,12 +100,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                 // Technically, a lazy can be stateful depending on the factory closure.
                 // However, that would be stupid. We cannot validate this, so we just trust you people here.
                 "System.Lazy",
-                // Allowed for convenience and because we usually use them as if they were immutable.
-                "System.Numerics.Vector3",
-                "System.Numerics.Quaternion",
-                // Guids are practically immutable, but not implemented in an immutable fashion
-                "System.Guid",
-                // Types are effectively immutable
+                // Types are effectively immutable.
                 "System.Type"
             }.Select(t => comp.GetTypeByMetadataName(t)!).ToImmutableHashSet(SymbolEqualityComparer.Default);
 
@@ -130,18 +125,18 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                     ) {
                         topLevelToValidate.Add(typeInfo);
                         if (!seen.Contains(typeInfo))
-                            ValidateWithContextAndRemember(typeInfo, lastContext: null, allowAbstract: true);
+                            ValidateWithContextAndRemember(typeInfo, lastContext: null, isReferencedAsField: false);
                     }
                 }
 
                 // Idea: Mutually recurse between these two to properly add the context step by step and accumulate issues upwards
 
                 IEnumerable<ImmutablityViolation> ValidateWithContextAndRemember(
-                    ITypeSymbol type, ContextPathPart? lastContext, bool allowAbstract = false
+                    ITypeSymbol type, ContextPathPart? lastContext, bool isReferencedAsField = true
                 ) {
                     if (allViolations.TryGetValue(type, out var existingViolations))
                         return existingViolations;
-                    var violations = ValidateType(type, allowAbstract);
+                    var violations = ValidateType(type, isReferencedAsField);
                     var wrapped = lastContext == null
                         ? violations.ToList()
                         : violations.Select(v => v.AddContext(lastContext)).ToList();
@@ -149,7 +144,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                     return wrapped;
                 }
                 
-                IEnumerable<ImmutablityViolation> ValidateType(ITypeSymbol type, bool allowAbstract) {
+                IEnumerable<ImmutablityViolation> ValidateType(ITypeSymbol type, bool isReferencedAsField) {
                     if (seen.Contains(type)) yield break; // circular reference, otherwise would have a violation entry
                     seen.Add(type);
 
@@ -176,17 +171,6 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
                     // Also allow if it is one of the specifically allowed convenience types
                     if (allowedTypes.Contains(namedType)) yield break;
-                    
-                    // TODO CR PREMERGE: externally defined allowed types go here
-
-                    // // Allowed for convenience and because we usually use them as if they were immutable.
-                    // typeof(Vector3), typeof(Quaternion), typeof(Color),
-                    // // Same is true for the (normalized) spline location
-                    // typeof(SplineLocation), typeof(NormalizedSplineLocation),
-                    // // Guids are practically immutable, but not implemented in an immutable fashion
-                    // typeof(Guid),
-                    // // Types are effectively immutable
-                    // typeof(Type)
 
                     // Enums are always immutable; detectable by whether they have an underlying type.
                     if (namedType.EnumUnderlyingType != null) yield break;
@@ -233,13 +217,11 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                         yield break;
                     }
                     
-                    // Unless we allow them explicitly, all abstract types must be marked with an attribute
-                    //  so that all subtypes will be either validated or ignored.
-                    if (!allowAbstract && type.IsAbstract && !type.GetAttributes()
-                            // .Any(a => Equal(a.AttributeClass, mustBeImmutableSymbol) ||
-                            //           Equal(a.AttributeClass, ignoreMustBeImmutableSymbol))
-                            .Any(a => a.AttributeClass?.Name == "MustBeImmutableAttribute" ||
-                                      a.AttributeClass?.Name == "__IgnoreMustBeImmutableAttribute")
+                    // As long as we referenced it as a field, all abstract types must be marked 
+                    //  with an attribute so that all subtypes will be either validated or ignored.
+                    if (isReferencedAsField && type.IsAbstract && !type.GetAttributes()
+                            .Any(a => Equal(a.AttributeClass, mustBeImmutableSymbol) ||
+                                      Equal(a.AttributeClass, ignoreMustBeImmutableSymbol))
                     ) yield return ImmutablityViolation.From(NotImmutableReason.NonImmutableAbstractFieldType, type.Locations);
 
                     // Validate all fields in the whole inheritance hierarchy and their field types
@@ -249,7 +231,13 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                         foreach (var field in currentType.GetMembers().OfType<IFieldSymbol>()) {
                             if (field.IsConst) continue;
 
-                            if (!field.IsReadOnly)
+                            // All fields in reference types must be marked as readonly.
+                            // All fields in top level structs (= marked with the attribute) must be readonly too.
+                            // But if we encounter a non-readonly struct field that has been stored in a field,
+                            //  then at some point that struct or a containing struct need to be in a readonly field.
+                            // This essentially causes all members beneath to be readonly, recursively.
+                            // = We allow non-readonly fields only in structs that are in a readonly field
+                            if (!field.IsReadOnly && (type.TypeKind != TypeKind.Struct || !isReferencedAsField))
                                 yield return new ImmutablityViolation(
                                     contextStack.Push(new($"field `{field.Name}: {field.Type.Name}`")), 
                                     NotImmutableReason.NonReadonlyField,

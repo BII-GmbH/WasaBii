@@ -84,6 +84,17 @@ public class RoslynAnalyzerTemplateTest {
                 public readonly ImmutabilityTestEnum Enum;
             }");
     
+    // Unmanaged
+    
+    [Test]
+    public Task NestedLevelUnmanagedMutable_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] 
+            public class NestedLevelUnmanagedMutable<T> where T : unmanaged { public readonly T Field; }
+
+            public struct Unmanaged { public int Field; }
+            public class EnsureIsUnmanaged : NestedLevelUnmanagedMutable<Unmanaged> { }");
+
     // Tuples
 
     [Test]

@@ -29,7 +29,7 @@ namespace BII.WasaBii.Splines.Bezier {
     /// it look less smooth.
     /// </summary>
     [Serializable]
-    public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : struct where TDiff : struct {
+    public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : unmanaged where TDiff : unmanaged {
 
         internal sealed record Cache(
             ImmutableArray<Lazy<SplineSegment<TPos, TDiff>>> SplineSegments
@@ -76,7 +76,7 @@ namespace BII.WasaBii.Splines.Bezier {
 
         [Pure] public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
             Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
-        ) where TPosNew : struct where TDiffNew : struct
+        ) where TPosNew : unmanaged where TDiffNew : unmanaged
             => new BezierSpline<TPosNew, TDiffNew>(Segments.Select(s => s.Map<TPosNew, TDiffNew>(positionMapping)), newOps);
 
         [Pure] public Spline<TPos, TDiff> Reversed => new BezierSpline<TPos, TDiff>(Segments.Reverse().Select(s => s.Reversed), Ops);

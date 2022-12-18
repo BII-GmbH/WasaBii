@@ -22,7 +22,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
     /// segment, i.e. between two succinct points.
     /// </summary>
     [Serializable]
-    public sealed class CatmullRomSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : struct where TDiff : struct {
+    public sealed class CatmullRomSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : unmanaged where TDiff : unmanaged {
 
         public CatmullRomSpline(
             TPos startHandle, IEnumerable<TPos> handles, TPos endHandle, 
@@ -86,7 +86,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
         [Pure] public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
             Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
-        ) where TPosNew : struct where TDiffNew : struct => 
+        ) where TPosNew : unmanaged where TDiffNew : unmanaged => 
             new CatmullRomSpline<TPosNew, TDiffNew>(HandlesIncludingMargin.Select(positionMapping), newOps, Type);
 
         [Pure] public Spline<TPos, TDiff> Reversed => new CatmullRomSpline<TPos, TDiff>(HandlesIncludingMargin.Reverse(), Ops, Type);
@@ -146,19 +146,19 @@ namespace BII.WasaBii.Splines.CatmullRom {
         }
 
         public static TPos BeginMarginHandle<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> spline)
-        where TPos : struct where TDiff : struct =>
+        where TPos : unmanaged where TDiff : unmanaged =>
             spline.HandlesIncludingMargin[0];
 
         public static TPos EndMarginHandle<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> spline)
-        where TPos : struct where TDiff : struct =>
+        where TPos : unmanaged where TDiff : unmanaged =>
             spline.HandlesIncludingMargin[^1];
         
         public static TPos FirstHandle<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> spline)
-        where TPos : struct where TDiff : struct =>
+        where TPos : unmanaged where TDiff : unmanaged =>
             spline.Handles[0];
 
         public static TPos LastHandle<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> spline)
-        where TPos : struct where TDiff : struct =>
+        where TPos : unmanaged where TDiff : unmanaged =>
             spline.Handles[^1];
 
         /// Returns all the positions of spline handles that are between the given locations on the spline.
@@ -170,7 +170,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         [Pure]
         public static IEnumerable<TPos> HandlesBetween<TPos, TDiff>(
             this CatmullRomSpline<TPos, TDiff> spline, SplineLocation start, SplineLocation end
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             var fromNormalized = spline.Normalize(start);
             var toNormalized = spline.Normalize(end);
 

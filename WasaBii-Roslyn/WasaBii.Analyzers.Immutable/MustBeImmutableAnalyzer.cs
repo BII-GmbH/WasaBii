@@ -166,7 +166,8 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                     // Numbers and readonly unmanaged structs fulfill this constraint.
                     // Non-unmanaged readonly structs however may contain references
                     //  to mutable objects and need to be validated separately.
-                    if (type.IsReadOnly && type.IsUnmanagedType) yield break;
+                    // Unmanaged mutable structs need to be referenced via a readonly field at some point.
+                    if ((type.IsReadOnly || isReferencedAsField) && type.IsUnmanagedType) yield break;
                     
                     // If any field either is or references a generic type,
                     //  then we need to check that that type is immutable via constraints.

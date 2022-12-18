@@ -15,8 +15,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
     /// Describes the area between two spline handles (p1 and p2), 
     /// with the supporting handles p0 and p3
     internal readonly struct CatmullRomSegment<TPos, TDiff> 
-        where TPos : struct 
-        where TDiff : struct {
+        where TPos : unmanaged 
+        where TDiff : unmanaged {
 
         public readonly TPos P0, P1, P2, P3;
         public TPos Start => P1;
@@ -79,8 +79,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// 0.0f is at P1, 1.0f is at P2 and the values in between are lerped. 
         public static (CatmullRomSegment<TPos, TDiff> Segment, double NormalizedOvershoot)? 
             CatmullRomSegmentAt<TPos, TDiff>(CatmullRomSpline<TPos, TDiff> spline, NormalizedSplineLocation location) 
-        where TPos : struct 
-        where TDiff : struct {
+        where TPos : unmanaged 
+        where TDiff : unmanaged {
             if(spline == null)
                 throw new ArgumentNullException(nameof(spline));
             

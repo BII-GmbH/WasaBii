@@ -33,8 +33,8 @@ namespace BII.WasaBii.Splines.Maths {
             SplineLocation location,
             SplineLocation? splineLocationOvershootTolerance = null
         ) 
-            where TPos : struct 
-            where TDiff : struct {
+            where TPos : unmanaged 
+            where TDiff : unmanaged {
 
             var currentSegmentIdx = SplineSegmentIndex.Zero;
             var remainingDistanceToLocation = location.Value;
@@ -74,8 +74,8 @@ namespace BII.WasaBii.Splines.Maths {
             this Spline<TPos, TDiff> spline,
             NormalizedSplineLocation t
         )  
-            where TPos : struct 
-            where TDiff : struct {
+            where TPos : unmanaged 
+            where TDiff : unmanaged {
 
             var location = SplineLocation.Zero;
             var lastSegmentIndex = MathD.FloorToInt(t.Value);
@@ -107,8 +107,8 @@ namespace BII.WasaBii.Splines.Maths {
             IEnumerable<SplineLocation> locations,
             SplineLocation? splineLocationOvershootTolerance = null
         ) 
-            where TPos : struct 
-            where TDiff : struct {
+            where TPos : unmanaged 
+            where TDiff : unmanaged {
             // Explanation of the algorithm:
             // To convert from an (absolute) spline location to a normalized spline location, two things are needed:
             // - The index of the segment the position is in

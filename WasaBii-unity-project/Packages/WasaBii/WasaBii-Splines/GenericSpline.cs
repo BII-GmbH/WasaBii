@@ -9,8 +9,8 @@ namespace BII.WasaBii.Splines {
     
     [MustBeImmutable]
     public interface Spline<TPos, TDiff>
-        where TPos : struct 
-        where TDiff : struct {
+        where TPos : unmanaged 
+        where TDiff : unmanaged {
         
         IEnumerable<SplineSegment<TPos, TDiff>> Segments { get; }
         int SegmentCount { get; }
@@ -22,7 +22,7 @@ namespace BII.WasaBii.Splines {
         GeometricOperations<TPos, TDiff> Ops { get; }
 
         [Pure] Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps) 
-            where TPosNew : struct where TDiffNew : struct; 
+            where TPosNew : unmanaged where TDiffNew : unmanaged; 
             
         public interface Copyable : Spline<TPos, TDiff> {
 
@@ -47,7 +47,7 @@ namespace BII.WasaBii.Splines {
     public static class GenericSplineExtensions {
         
         public static Length Length<TPos, TDiff>(this Spline<TPos, TDiff> spline) 
-        where TPos : struct where TDiff : struct => spline.Segments.Sum(s => s.Length);
+        where TPos : unmanaged where TDiff : unmanaged => spline.Segments.Sum(s => s.Length);
 
     }
 

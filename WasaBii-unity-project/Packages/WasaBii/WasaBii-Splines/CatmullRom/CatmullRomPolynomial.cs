@@ -8,8 +8,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
         
         [Pure]
         internal static Option<Polynomial<TPos, TDiff>> FromSplineAt<TPos, TDiff>(CatmullRomSpline<TPos, TDiff> spline, SplineSegmentIndex idx) 
-        where TPos : struct 
-        where TDiff : struct => 
+        where TPos : unmanaged 
+        where TDiff : unmanaged => 
             CatmullRomSegment.CatmullRomSegmentAt(spline, NormalizedSplineLocation.From(idx)) is { Segment: var segment } 
                 ? segment.ToPolynomial(spline.Type.ToAlpha()) 
                 : Option.None;

@@ -29,7 +29,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
             TPos endMarginHandle, 
             GeometricOperations<TPos, TDiff> ops, 
             SplineType? type = null
-        ) where TPos : struct where TDiff : struct => 
+        ) where TPos : unmanaged where TDiff : unmanaged => 
             FromHandlesIncludingMargin(
                 interpolatedHandles.Prepend(beginMarginHandle).Append(endMarginHandle), 
                 ops,
@@ -56,7 +56,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
             TPos endMarginHandle, 
             GeometricOperations<TPos, TDiff> ops, 
             SplineType? type = null
-        ) where TPos : struct where TDiff : struct => 
+        ) where TPos : unmanaged where TDiff : unmanaged => 
             FromHandlesIncludingMarginOrThrow(
                 interpolatedHandles.Prepend(beginMarginHandle).Append(endMarginHandle), 
                 ops,
@@ -76,7 +76,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// </exception>
         public static CatmullRomSpline<TPos, TDiff> FromHandlesOrThrow<TPos, TDiff>(
             IEnumerable<TPos> source, GeometricOperations<TPos, TDiff> ops, SplineType? splineType = null, bool shouldLoop = false
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             var positions = source.AsReadOnlyCollection();
             if (positions.Count < 2)
                 throw new InsufficientNodePositionsException(positions.Count, 2);
@@ -96,7 +96,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// Returns <see cref="NotEnoughHandles"/> if too few positions are provided
         public static Result<CatmullRomSpline<TPos, TDiff>, NotEnoughHandles> FromHandles<TPos, TDiff>(
             IEnumerable<TPos> source, GeometricOperations<TPos, TDiff> ops, SplineType? type = null, bool shouldLoop = false
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             var positions = source.AsReadOnlyCollection();
             if (positions.Count < 2) return new NotEnoughHandles(positions.Count, 2);
             var handles = shouldLoop ? positions.Append(positions.First()) : positions;
@@ -120,7 +120,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
             IEnumerable<TPos> allHandlesIncludingMargin, 
             GeometricOperations<TPos, TDiff> ops, 
             SplineType? type = null
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             var positions = allHandlesIncludingMargin.AsReadOnlyCollection();
             return Result.If(
                 positions.Count >= 4,
@@ -147,7 +147,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
             IEnumerable<TPos> allHandlesIncludingMargin, 
             GeometricOperations<TPos, TDiff> ops, 
             SplineType? type = null
-        ) where TPos : struct where TDiff : struct 
+        ) where TPos : unmanaged where TDiff : unmanaged 
             => FromHandlesIncludingMargin(allHandlesIncludingMargin, ops, type)
                 .ResultOrThrow(error => new InsufficientNodePositionsException(error.HandlesProvided, 4));
 
@@ -165,7 +165,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// </exception>
         private static (TPos BeginHandle, TPos EndHandle) calculateSplineMarginHandles<TPos, TDiff>(
             this IEnumerable<TPos> handlePositions, GeometricOperations<TPos, TDiff> ops, bool shouldLoop
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             var positions = handlePositions.AsReadOnlyList();
             if (positions.Count < 2)
                 throw new InsufficientNodePositionsException(positions.Count, 2);
@@ -176,7 +176,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         }
 
         private static TPos pointReflect<TPos, TDiff>(this TPos self, TPos on, GeometricOperations<TPos, TDiff> ops)
-            where TPos : struct where TDiff : struct 
+            where TPos : unmanaged where TDiff : unmanaged 
             => ops.Add(on, ops.Sub(on, self));
     }
 

@@ -13,8 +13,8 @@ namespace BII.WasaBii.Splines.Maths {
     /// implementation of this interface wherever necessary.
     [MustBeImmutable]
     public interface GeometricOperations<TPos, TDiff>
-        where TPos : struct 
-        where TDiff : struct {
+        where TPos : unmanaged 
+        where TDiff : unmanaged {
         
         [Pure] TPos Add(TPos d1, TDiff d2);
         [Pure] TDiff Add(TDiff d1, TDiff d2);
@@ -41,19 +41,19 @@ namespace BII.WasaBii.Splines.Maths {
 
         [Pure]
         public static TPos Add<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TPos p, TDiff d1, TDiff d2) 
-            where TPos : struct where TDiff : struct => ops.Add(ops.Add(p, d1), d2);
+            where TPos : unmanaged where TDiff : unmanaged => ops.Add(ops.Add(p, d1), d2);
 
         [Pure]
         public static TPos Add<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TPos p, TDiff d1, TDiff d2, TDiff d3) 
-            where TPos : struct where TDiff : struct => ops.Add(ops.Add(p, d1, d2), d3);
+            where TPos : unmanaged where TDiff : unmanaged => ops.Add(ops.Add(p, d1, d2), d3);
 
         [Pure]
         public static TDiff Add<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TDiff d1, TDiff d2, TDiff d3) 
-            where TPos : struct where TDiff : struct => ops.Add(ops.Add(d1, d2), d3);
+            where TPos : unmanaged where TDiff : unmanaged => ops.Add(ops.Add(d1, d2), d3);
 
         [Pure]
         public static TDiff Sub<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TDiff d1, TDiff d2, TDiff d3) 
-            where TPos : struct where TDiff : struct => ops.Sub(ops.Sub(d1, d2), d3);
+            where TPos : unmanaged where TDiff : unmanaged => ops.Sub(ops.Sub(d1, d2), d3);
 
     }
     

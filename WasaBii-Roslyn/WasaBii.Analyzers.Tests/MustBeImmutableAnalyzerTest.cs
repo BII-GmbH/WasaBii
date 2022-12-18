@@ -16,7 +16,9 @@ namespace RoslynAnalyzerTemplate.Test;
 public class RoslynAnalyzerTemplateTest {
     
     private MustBeImmutableAnalyzer _analyzer = null!;
-    
+
+#region Test Utils
+
     [SetUp]
     public void SetUp() { _analyzer = new(); }
     
@@ -54,14 +56,18 @@ public class RoslynAnalyzerTemplateTest {
             "Incorrect amount of diagnostics"
         );
     }
+    
+#endregion
+
+#region Simple Edge Cases
 
     [Test]
     public Task EmptySourceCode_NoDiagnostics() => AssertDiagnostics(0, "");
+    
+    [Test]
+    public Task ClassWithType_NoDiagnostics() =>
+        AssertDiagnostics(0, "[MustBeImmutable] public class ClassWithType { public readonly System.Type TypeRef; }");
 
-    // TODO CR PREMERGE: more test cases, esp including generic substitutions
-    
-    // Ignoring
-    
     [Test]
     public Task IgnoreMustBeImmutable_IgnoresMutability() =>
         AssertDiagnostics(0, @"
@@ -71,8 +77,6 @@ public class RoslynAnalyzerTemplateTest {
             public sealed class ClassWithIgnoredField {
                 public readonly MutableClass Ignored;
             }");
-    
-    // Enums
     
     [Test]
     public Task ClassWithEnum_NoDiagnostics() =>
@@ -84,8 +88,6 @@ public class RoslynAnalyzerTemplateTest {
                 public readonly ImmutabilityTestEnum Enum;
             }");
     
-    // Unmanaged
-    
     [Test]
     public Task NestedLevelUnmanagedMutable_NoDiagnostics() =>
         AssertDiagnostics(0, @"
@@ -94,8 +96,10 @@ public class RoslynAnalyzerTemplateTest {
 
             public struct Unmanaged { public int Field; }
             public class EnsureIsUnmanaged : NestedLevelUnmanagedMutable<Unmanaged> { }");
+    
+#endregion
 
-    // Tuples
+#region Tuples
 
     [Test]
     public Task TupleWithMutables_TwoDiagnostics() =>
@@ -172,13 +176,9 @@ public class RoslynAnalyzerTemplateTest {
                 public readonly (int, float, Wrapper<Wrapper<T>>) Tuple = default;
             }");
     
-    // Type
-    
-    [Test]
-    public Task ClassWithType_NoDiagnostics() =>
-        AssertDiagnostics(0, "[MustBeImmutable] public class ClassWithType { public readonly System.Type TypeRef; }");
+#endregion
 
-    // Mutable Simple Types
+#region Mutable Simple Cases
 
     [Test]
     public Task MutableStruct_OneDiagnostic() =>
@@ -233,7 +233,9 @@ public class RoslynAnalyzerTemplateTest {
                 public readonly MutableClass Bar = default;
             }");
     
-    // Mutable Base Types
+#endregion
+
+#region Base Types
     
     [Test]
     public Task HasNotReadOnlyField_OneDiagnostic() =>
@@ -273,7 +275,27 @@ public class RoslynAnalyzerTemplateTest {
             [MustBeImmutable] 
             public sealed class MutableFieldTypeInBase : HasMutableFieldType {}");
 
-    // Mutable Abstract Field Types
+    [Test]
+    public Task MutableSubtypeOfMustBeImmutableInterface_OneDiagnostic() =>
+        AssertDiagnostics(1, @"
+            [MustBeImmutable] public interface MustBeImmutableInterface {}
+
+            public sealed class MutableSubtypeOfMustBeImmutableInterface : MustBeImmutableInterface { 
+                public int Foo;
+            }");
+    
+    [Test]
+    public Task MutableSubtypeOfMustBeImmutableAbstract_OneDiagnostic() =>
+        AssertDiagnostics(1, @"
+            [MustBeImmutable] public abstract class MustBeImmutableAbstractClass {}
+
+            public sealed class MutableSubtypeOfMustBeImmutableAbstract : MustBeImmutableAbstractClass {
+                public int Foo;
+            }");
+
+#endregion
+    
+#region Abstract Field Types
     
     [Test]
     public Task HasNonImmutableInterfaceField_OneDiagnostic() =>
@@ -295,7 +317,29 @@ public class RoslynAnalyzerTemplateTest {
                 public readonly CouldBeMutableAbstractClass Foo = default;
             }");
     
-    // Mutable structs referenced as readonly
+    [Test]
+    public Task MustBeImmutableWithInterfaceField_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] public interface MustBeImmutableInterface {}
+
+            [MustBeImmutable] 
+            public sealed class MustBeImmutableWithInterfaceField {
+                public readonly MustBeImmutableInterface Foo = default;
+            }");
+    
+    [Test]
+    public Task MustBeImmutableWithAbstractField_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] public abstract class MustBeImmutableAbstractClass {}
+
+            [MustBeImmutable] 
+            public sealed class MustBeImmutableWithAbstractField {
+                public readonly MustBeImmutableAbstractClass Foo = default;
+            }");
+    
+#endregion
+    
+#region Mutable Structs as Readonly Fields
     
     [Test]
     public Task TopLevelMutableStructInReadOnlyField_NoDiagnostics() =>
@@ -317,49 +361,11 @@ public class RoslynAnalyzerTemplateTest {
             public sealed class NestedMutableStructsInReadOnlyField {
                 public readonly Vec Vector = default;
             }");
+    
+#endregion
+    
+#region Immutable Collection Support
 
-    // Immutable Abstract Field Types
-    
-    [Test]
-    public Task MustBeImmutableWithInterfaceField_NoDiagnostics() =>
-        AssertDiagnostics(0, @"
-            [MustBeImmutable] public interface MustBeImmutableInterface {}
-
-            [MustBeImmutable] 
-            public sealed class MustBeImmutableWithInterfaceField {
-                public readonly MustBeImmutableInterface Foo = default;
-            }");
-    
-    [Test]
-    public Task MustBeImmutableWithAbstractField_NoDiagnostics() =>
-        AssertDiagnostics(0, @"
-            [MustBeImmutable] public abstract class MustBeImmutableAbstractClass {}
-
-            [MustBeImmutable] 
-            public sealed class MustBeImmutableWithAbstractField {
-                public readonly MustBeImmutableAbstractClass Foo = default;
-            }");
-    
-    // Mutable with immutable base types
-    
-    [Test]
-    public Task MutableSubtypeOfMustBeImmutableInterface_OneDiagnostic() =>
-        AssertDiagnostics(1, @"
-            [MustBeImmutable] public interface MustBeImmutableInterface {}
-
-            public sealed class MutableSubtypeOfMustBeImmutableInterface : MustBeImmutableInterface { 
-                public int Foo;
-            }");
-    
-    [Test]
-    public Task MutableSubtypeOfMustBeImmutableAbstract_OneDiagnostic() =>
-        AssertDiagnostics(1, @"
-            [MustBeImmutable] public abstract class MustBeImmutableAbstractClass {}
-
-            public sealed class MutableSubtypeOfMustBeImmutableAbstract : MustBeImmutableAbstractClass {
-                public int Foo;
-            }");
-    
     // Immutable Collection Support (a subset of all types)
     
     [Test]
@@ -459,7 +465,9 @@ public class RoslynAnalyzerTemplateTest {
                 public readonly ImmutableDictionary<char, MutableClass> Foo = default;
             }");
     
-    // Generic Types
+#endregion
+    
+#region Generics Support
     
     [Test]
     public Task HasUnconstrainedGeneric_Unused_NoDiagnostics() =>
@@ -557,4 +565,7 @@ public class RoslynAnalyzerTemplateTest {
 
             [MustBeImmutable] 
             public class SubstitutedImmutable<[__IgnoreMustBeImmutable] T> { public readonly Wrapper<Wrapper<T>> Field; }");
+    
+#endregion
+
 }

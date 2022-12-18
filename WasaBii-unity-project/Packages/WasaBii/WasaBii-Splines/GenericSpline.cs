@@ -7,6 +7,7 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
     
+    [MustBeImmutable]
     public interface Spline<TPos, TDiff>
         where TPos : struct 
         where TDiff : struct {

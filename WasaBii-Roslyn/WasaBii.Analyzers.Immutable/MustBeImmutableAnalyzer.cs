@@ -26,8 +26,9 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
         UnexpectedNonNamedType, 
         // We only allow immutable collections where we can validate the contained type
         ImmutableCollectionWithoutGenerics,
-        // For unbounded generics, we cannot ensure immutability without knowing all usages
-        HasUnboundGenericParameter
+        // A generic parameter must either be bounded, or constrained to either
+        //  a base type with [MustBeImmutable] or annotated directly with [__IgnoreMustBeImmutable]
+        NotImmutableUnboundGenericParameter
     }
 
     public sealed record ContextPathPart(string Desc) {
@@ -58,7 +59,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
         title: "Type is not immutable",
         messageFormat: "'{0}' not immutable: {1}",
         category: "WasaBii",
-        defaultSeverity: DiagnosticSeverity.Warning,
+        defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: "Validate types marked with [MustBeImmutable]"
     );
@@ -94,6 +95,19 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
             if (mustBeImmutableSymbol == null || ignoreMustBeImmutableSymbol == null) 
                 return; // attributes not referenced in compilation unit, so nothing to check
             
+            bool HasAttributeDirect(ISymbol t, ISymbol attribute) =>
+                t.GetAttributes().Any(a => Equal(a.AttributeClass, attribute));
+            
+            bool HasAttribute(ITypeSymbol t, ISymbol attribute) {
+                IEnumerable<ITypeSymbol> AllBaseTypesOf(ITypeSymbol t) {
+                    var curr = t;
+                    do { yield return curr; } while ((curr = curr.BaseType) != null);
+                }
+                return HasAttributeDirect(t, attribute) 
+                       || t.AllInterfaces.Any(i => HasAttributeDirect(i, attribute)) 
+                       || AllBaseTypesOf(t).Any(b => HasAttributeDirect(b, attribute));
+            }
+            
             var iEnumerableSymbol = comp.GetTypeByMetadataName(typeof(IEnumerable).FullName);
 
             var allowedTypes = new[] {
@@ -108,21 +122,11 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
             compilationContext.RegisterSyntaxNodeAction(ctx => {
                 var model = ctx.SemanticModel;
+
                 if (ctx.Node is TypeDeclarationSyntax tds) {
                     var typeInfo = model.GetDeclaredSymbol(tds)!;
 
-                    bool HasAttribute(INamedTypeSymbol t) =>
-                        t.GetAttributes().Any(a => Equal(a.AttributeClass, mustBeImmutableSymbol));
-
-                    IEnumerable<INamedTypeSymbol> AllBaseTypesOf(INamedTypeSymbol t) {
-                        var curr = t;
-                        do { yield return curr; } while ((curr = curr.BaseType) != null);
-                    }
-
-                    if (HasAttribute(typeInfo) 
-                        || typeInfo.AllInterfaces.Any(HasAttribute) 
-                        || AllBaseTypesOf(typeInfo).Any(HasAttribute)
-                    ) {
+                    if (HasAttribute(typeInfo, mustBeImmutableSymbol)) {
                         topLevelToValidate.Add(typeInfo);
                         if (!seen.Contains(typeInfo))
                             ValidateWithContextAndRemember(typeInfo, lastContext: null, isReferencedAsField: false);
@@ -163,9 +167,29 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                     // Non-unmanaged readonly structs however may contain references
                     //  to mutable objects and need to be validated separately.
                     if (type.IsReadOnly && type.IsUnmanagedType) yield break;
+                    
+                    // If any field either is or references a generic type,
+                    //  then we need to check that that type is immutable via constraints.
 
-                    // We need a named symbol for generic shenanigans etc; all exceptions should be checked before this
+                    if (type is ITypeParameterSymbol typeParam) {
+                        if (HasAttributeDirect(typeParam, ignoreMustBeImmutableSymbol)) {
+                            // No violation, just ignore
+                        } else {
+                            // We need to ensure that any type constraint has the attribute
+                            if (!typeParam.ConstraintTypes.Any(ct => HasAttribute(ct, mustBeImmutableSymbol)))
+                                yield return ImmutablityViolation.From(
+                                    new($"generic param `{typeParam.Name}`"), 
+                                    NotImmutableReason.NotImmutableUnboundGenericParameter,
+                                    typeParam.Locations
+                                );
+                        }
+                        // Otherwise type is bound and we can check the fields recursively
+
+                        yield break; // Is generic, so we must rely on validation of constraint types
+                    }
+
                     if (type is not INamedTypeSymbol namedType) {
+                        // We need a named symbol for generic shenanigans etc; all exceptions should be checked before this
                         yield return ImmutablityViolation.From(NotImmutableReason.UnexpectedNonNamedType, type.Locations);
                         yield break;
                     }
@@ -175,18 +199,6 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
                     // We also allow strings. Who mutates string references?
                     if (IsAssignableTo(comp.GetSpecialType(SpecialType.System_String), type)) yield break;
-
-                    // Ensure that all generics are bound to concrete values;
-                    //  otherwise they could be substituted for mutable values
-                    foreach (var typeArg in namedType.TypeArguments) { // empty if not generic
-                        if (typeArg.TypeKind is TypeKind.TypeParameter or TypeKind.Unknown)
-                            yield return ImmutablityViolation.From(
-                                new($"generic param `{typeArg.Name}`"), 
-                                NotImmutableReason.HasUnboundGenericParameter,
-                                typeArg.Locations
-                            );
-                        // Otherwise type is bound and we can check the fields recursively
-                    }
 
                     // We allow all immutable collections even though they might internally be mutable
                     if (

@@ -23,7 +23,9 @@ public class RoslynAnalyzerTemplateTest {
     private static Compilation CreateCompilation(string source) => 
         CSharpCompilation.Create("compilation",
             new[] { CSharpSyntaxTree.ParseText(
-                source.Replace("[MustBeImmutable]", "[BII.WasaBii.Core.MustBeImmutable]"), 
+                source
+                    .Replace("[MustBeImmutable]", "[BII.WasaBii.Core.MustBeImmutable]")
+                    .Replace("[__IgnoreMustBeImmutable]", "[BII.WasaBii.Core.__IgnoreMustBeImmutable]"), 
                 new CSharpParseOptions(LanguageVersion.Preview)) 
             },
             new[] {
@@ -56,7 +58,19 @@ public class RoslynAnalyzerTemplateTest {
     [Test]
     public Task EmptySourceCode_NoDiagnostics() => AssertDiagnostics(0, "");
 
-    // TODO CR PREMERGE: more test cases, esp including generics
+    // TODO CR PREMERGE: more test cases, esp including generic substitutions
+    
+    // Ignoring
+    
+    [Test]
+    public Task IgnoreMustBeImmutable_IgnoresMutability() =>
+        AssertDiagnostics(0, @"
+            [__IgnoreMustBeImmutable] public class MutableClass { public int Foo; }
+
+            [MustBeImmutable]  
+            public sealed class ClassWithIgnoredField {
+                public readonly MutableClass Ignored;
+            }");
     
     // Enums
     
@@ -87,6 +101,64 @@ public class RoslynAnalyzerTemplateTest {
             [MustBeImmutable] 
             public sealed class TupleWithImmutableOnly { 
                 public readonly (int, float, TupleWithImmutableOnly) Tuple = default;
+            }");
+    
+    // TODO CR: Right now we get a diagnostic for both `World` and `Item2`; thereby yielding duplicate results.
+    //          Fix this to only include the field names, somehow. At some point. Not critical.
+    [Test]
+    public Task NamedTupleWithMutables_TwoDiagnosticsPerField() =>
+        AssertDiagnostics(4, @"
+            public sealed class MutableClass { public int Foo; }
+            [MustBeImmutable] 
+            public sealed class TupleWithMutables { 
+                public readonly (int Hello, MutableClass World, float Whats, MutableClass Up) Tuple = default;
+            }");
+    
+    [Test]
+    public Task NamedTupleWithImmutableOnly_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] 
+            public sealed class TupleWithImmutableOnly { 
+                public readonly (int Good, float Bye, TupleWithImmutableOnly World) Tuple = default;
+            }");
+    
+    [Test]
+    public Task TupleWithConstrainedGeneric_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] public interface Constrained { }
+
+            [MustBeImmutable] 
+            public sealed class TupleWithConstrainedGeneric<T> where T : Constrained { 
+                public readonly (int, float, T) Tuple = default;
+            }");
+    
+    [Test]
+    public Task TupleWithUnconstrainedGeneric_OneDiagnostics() =>
+        AssertDiagnostics(1, @"
+            [MustBeImmutable] 
+            public sealed class TupleWithUnconstrainedGeneric<T> { 
+                public readonly (int, float, T) Tuple = default;
+            }");
+    
+    [Test]
+    public Task TupleWithNestedConstrainedGeneric_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            public class Wrapper<T> { public readonly T Value; }
+            [MustBeImmutable] public interface Constrained { }
+
+            [MustBeImmutable] 
+            public sealed class TupleWithConstrainedGeneric<T> where T : Constrained { 
+                public readonly (int, float, Wrapper<Wrapper<T>>) Tuple = default;
+            }");
+    
+    [Test]
+    public Task TupleWithNestedUnconstrainedGeneric_OneDiagnostics() =>
+        AssertDiagnostics(1, @"
+            public class Wrapper<T> { public readonly T Value; }
+
+            [MustBeImmutable] 
+            public sealed class TupleWithUnconstrainedGeneric<T> { 
+                public readonly (int, float, Wrapper<Wrapper<T>>) Tuple = default;
             }");
     
     // Type
@@ -375,4 +447,103 @@ public class RoslynAnalyzerTemplateTest {
             public sealed class ImmutableDictionaryOfMutableValues {
                 public readonly ImmutableDictionary<char, MutableClass> Foo = default;
             }");
+    
+    // Generic Types
+    
+    [Test]
+    public Task HasUnconstrainedGeneric_Unused_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] 
+            public class HasUnconstrainedGeneric<T> { }");
+    
+    [Test]
+    public Task HasUnconstrainedGeneric_AsField_OneDiagnostic() =>
+        AssertDiagnostics(1, @"
+            [MustBeImmutable] 
+            public class HasUnconstrainedGenericAsField<T> { public readonly T Field; }");
+    
+    [Test]
+    public Task HasIgnoredUnconstrainedGeneric_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] 
+            public class HasIgnoredUnconstrainedGeneric<[__IgnoreMustBeImmutable] T> { 
+                public readonly T Field;
+            }");
+    
+    [Test]
+    public Task HasConstrainedGeneric_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] public class ImmutableBase { }
+
+            [MustBeImmutable] 
+            public class HasIgnoredUnconstrainedGeneric<T> where T : ImmutableBase { 
+                public readonly T Field;
+            }");
+    
+    [Test]
+    public Task ConditionallyImmutable_WithSubstitutedImmutable_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            public class Wrapper<T> { public readonly T Value; }
+
+            [MustBeImmutable] 
+            public class SubstitutedImmutable { public readonly Wrapper<int> Field; }");
+    
+    [Test]
+    public Task ConditionallyImmutable_WithSubstitutedMutable_OneDiagnostic() =>
+        AssertDiagnostics(1, @"
+            public class MutableClass { public int Foo; }
+            public class Wrapper<T> { public readonly T Value; }
+
+            [MustBeImmutable] 
+            public class SubstitutedImmutable { public readonly Wrapper<MutableClass> Field; }");
+    
+    [Test]
+    public Task ConditionallyImmutable_WithSubstitutedUnconstrained_OneDiagnostic() =>
+        AssertDiagnostics(1, @"
+            public class Wrapper<T> { public readonly T Value; }
+
+            [MustBeImmutable] 
+            public class SubstitutedImmutable<T> { public readonly Wrapper<T> Field; }");
+    
+    [Test]
+    public Task ConditionallyImmutable_WithSubstitutedConstrained_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] public interface Constrained { }
+            public class Wrapper<T> { public readonly T Value; }
+
+            [MustBeImmutable] 
+            public class SubstitutedImmutable<T> where T : Constrained { public readonly Wrapper<T> Field; }");
+    
+    [Test]
+    public Task ConditionallyImmutable_WithSubstitutedIgnored_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            public class Wrapper<T> { public readonly T Value; }
+
+            [MustBeImmutable] 
+            public class SubstitutedImmutable<[__IgnoreMustBeImmutable] T> { public readonly Wrapper<T> Field; }");
+    
+    [Test]
+    public Task ConditionallyImmutable_WithSubstitutedUnconstrained_Nested_OneDiagnostic() =>
+        AssertDiagnostics(1, @"
+            public class Wrapper<T> { public readonly T Value; }
+
+            [MustBeImmutable] 
+            public class SubstitutedImmutable<T> { public readonly Wrapper<Wrapper<T>> Field; }");
+    
+    [Test]
+    public Task ConditionallyImmutable_WithSubstitutedConstrained_Nested_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] public interface Constrained { }
+            public class Wrapper<T> { public readonly T Value; }
+
+            [MustBeImmutable] 
+            public class SubstitutedImmutable<T> where T : Constrained { public readonly Wrapper<Wrapper<T>> Field; }");
+    
+    [Test]
+    public Task ConditionallyImmutable_WithSubstitutedIgnored_Nested_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            public class Wrapper<T> { public readonly T Value; }
+
+            [MustBeImmutable] 
+            public class SubstitutedImmutable<[__IgnoreMustBeImmutable] T> { public readonly Wrapper<Wrapper<T>> Field; }");
 }

@@ -34,6 +34,7 @@ public sealed class MustBeImmutableAttribute : Attribute { }
 /// <summary>
 /// Ignores the <see cref="MustBeImmutableAttribute"/> in a parent class.
 /// A type with this annotation is skipped during immutability validation.
+/// Type parameters with this are also not required to have a constraint with <see cref="MustBeImmutableAttribute"/>.
 /// </summary>
 /// <devremarks>
 /// This is only for testing purposes and for emergencies or prototypes. Hence the two underscores in the name.
@@ -41,5 +42,11 @@ public sealed class MustBeImmutableAttribute : Attribute { }
 /// Not inherited, because we want this to be explicitly present on every non-validated type.
 /// </devremarks>
 // ReSharper disable InconsistentNaming // intentional, should be used with great caution
-[AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class | AttributeTargets.Struct, Inherited = false)]
+[AttributeUsage(
+    AttributeTargets.Interface 
+    | AttributeTargets.Class 
+    | AttributeTargets.Struct 
+    | AttributeTargets.GenericParameter, 
+    Inherited = false
+)]
 public sealed class __IgnoreMustBeImmutableAttribute : Attribute { }

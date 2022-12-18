@@ -87,7 +87,7 @@ using UnityEngine;
         return SourceText.From(
             @"// Convince the compiler to enable the `init` keyword
 namespace System.Runtime.CompilerServices {
-    internal static class IsExternalInit {}
+    internal static partial class IsExternalInit {}
 }
 
 " + InNamespace(res, unitDef.Namespace), 

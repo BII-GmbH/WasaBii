@@ -53,7 +53,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
 
     public const string DiagnosticId = "WasaBiiImmutability";
 
-    private static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Descriptor = new(
         id: DiagnosticId, // TODO CR: do we want release tracking?
         title: "Type is not immutable",
         messageFormat: "'{0}' not immutable: {1}",

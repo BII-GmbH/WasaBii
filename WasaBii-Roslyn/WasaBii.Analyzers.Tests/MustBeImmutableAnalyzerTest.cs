@@ -80,7 +80,7 @@ public class RoslynAnalyzerTemplateTest {
             public sealed class TupleWithMutables { 
                 public readonly (int, MutableClass, float, MutableClass) Tuple = default;
             }");
-
+    
     [Test]
     public Task TupleWithImmutableOnly_NoDiagnostics() =>
         AssertDiagnostics(0, @"
@@ -88,13 +88,19 @@ public class RoslynAnalyzerTemplateTest {
             public sealed class TupleWithImmutableOnly { 
                 public readonly (int, float, TupleWithImmutableOnly) Tuple = default;
             }");
+    
+    // Type
+    
+    [Test]
+    public Task ClassWithType_NoDiagnostics() =>
+        AssertDiagnostics(0, "[MustBeImmutable] public class ClassWithType { public readonly System.Type TypeRef; }");
 
     // Mutable Simple Types
 
     [Test]
     public Task MutableStruct_OneDiagnostic() =>
         AssertDiagnostics(1, "[MustBeImmutable] public struct MutableStruct { public int Foo; }");
-    
+
     [Test]
     public Task FieldNotReadonly_OneDiagnostic() =>
         AssertDiagnostics(1, @"

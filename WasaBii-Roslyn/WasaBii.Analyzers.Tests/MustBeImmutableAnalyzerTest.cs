@@ -66,8 +66,27 @@ public class RoslynAnalyzerTemplateTest {
             public enum ImmutabilityTestEnum { Bagger, Two, EightEight }
 
             [MustBeImmutable]  
-            public readonly struct MustBeImmutableWithEnumField {
+            public sealed class ClassWithEnum {
                 public readonly ImmutabilityTestEnum Enum;
+            }");
+    
+    // Tuples
+
+    [Test]
+    public Task TupleWithMutables_TwoDiagnostics() =>
+        AssertDiagnostics(2, @"
+            public sealed class MutableClass { public int Foo; }
+            [MustBeImmutable] 
+            public sealed class TupleWithMutables { 
+                public readonly (int, MutableClass, float, MutableClass) Tuple = default;
+            }");
+
+    [Test]
+    public Task TupleWithImmutableOnly_NoDiagnostics() =>
+        AssertDiagnostics(0, @"
+            [MustBeImmutable] 
+            public sealed class TupleWithImmutableOnly { 
+                public readonly (int, float, TupleWithImmutableOnly) Tuple = default;
             }");
 
     // Mutable Simple Types

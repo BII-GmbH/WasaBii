@@ -136,6 +136,10 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                 ) {
                     if (allViolations.TryGetValue(type, out var existingViolations))
                         return existingViolations;
+                    
+                    if (!seen.Add(type)) // circular reference, otherwise would have a violation entry
+                        return Enumerable.Empty<ImmutablityViolation>();
+                    
                     var violations = ValidateType(type, isReferencedAsField);
                     var wrapped = lastContext == null
                         ? violations.ToList()
@@ -145,9 +149,6 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                 }
                 
                 IEnumerable<ImmutablityViolation> ValidateType(ITypeSymbol type, bool isReferencedAsField) {
-                    if (seen.Contains(type)) yield break; // circular reference, otherwise would have a violation entry
-                    seen.Add(type);
-
                     // Note CR: attribute is not inherited, so must be placed on every class here
                     if (type.GetAttributes().Any(a => Equal(a.AttributeClass, ignoreMustBeImmutableSymbol))) 
                         yield break;
@@ -172,21 +173,8 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer
                     // Also allow if it is one of the specifically allowed convenience types
                     if (allowedTypes.Contains(namedType)) yield break;
 
-                    // Enums are always immutable; detectable by whether they have an underlying type.
-                    if (namedType.EnumUnderlyingType != null) yield break;
-
                     // We also allow strings. Who mutates string references?
                     if (IsAssignableTo(comp.GetSpecialType(SpecialType.System_String), type)) yield break;
-                    
-                    // We also allow tuples, as long as their contained values are immutable,
-                    //  even though value tuples are technically mutable, for convenience.
-                    if (type.IsTupleType) {
-                        var tup = namedType.TupleUnderlyingType ?? namedType; // resolve named tuples
-                        var violations = tup.TypeArguments
-                            .SelectMany(targ => ValidateWithContextAndRemember(targ, new($"tuple member of type `{targ.Name}`")));
-                        foreach (var violation in violations) yield return violation;
-                        yield break;
-                    }
 
                     // Ensure that all generics are bound to concrete values;
                     //  otherwise they could be substituted for mutable values

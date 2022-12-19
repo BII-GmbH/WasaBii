@@ -121,8 +121,8 @@ public class RoslynAnalyzerTemplateTest {
     // TODO CR: Right now we get a diagnostic for both `World` and `Item2`; thereby yielding duplicate results.
     //          Fix this to only include the field names, somehow. At some point. Not critical.
     [Test]
-    public Task NamedTupleWithMutables_TwoDiagnosticsPerField() =>
-        AssertDiagnostics(4, @"
+    public Task NamedTupleWithMutables_TwoDiagnostics() =>
+        AssertDiagnostics(2, @"
             public sealed class MutableClass { public int Foo; }
             [MustBeImmutable] 
             public sealed class TupleWithMutables { 

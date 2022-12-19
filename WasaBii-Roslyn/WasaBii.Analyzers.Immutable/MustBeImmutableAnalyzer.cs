@@ -251,7 +251,10 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                 var currentType = namedType;
                 var contextStack = ImmutableStack<ContextPathPart>.Empty;
                 do {
-                    foreach (var field in currentType.GetMembers().OfType<IFieldSymbol>()) {
+                    foreach (var field in currentType.IsTupleType 
+                                 ? currentType.TupleElements // In case of named tuples, ignore ItemN etc
+                                 : currentType.GetMembers().OfType<IFieldSymbol>()
+                    ) {
                         if (field.IsConst) continue;
 
                         // ReSharper disable once AccessToModifiedClosure // intentional

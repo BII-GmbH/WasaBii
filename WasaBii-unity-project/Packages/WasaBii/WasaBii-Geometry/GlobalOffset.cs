@@ -1,4 +1,5 @@
-﻿using BII.WasaBii.Core;
+﻿using System;
+using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
@@ -8,8 +9,8 @@ namespace BII.WasaBii.Geometry {
     /// A 3D vector that represents a the difference between two world-space positions.
     /// Can also be viewed as a <see cref="GlobalDirection"/> with a length.
     [MustBeImmutable]
-    [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasDirection: true)]
+    [Serializable]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
     public readonly partial struct GlobalOffset : 
         GlobalDirectionLike<GlobalOffset>,
         IsGlobalVariant<GlobalOffset, LocalOffset> {
@@ -50,7 +51,7 @@ namespace BII.WasaBii.Geometry {
 
         public Length Dot(GlobalDirection normal) => System.Numerics.Vector3.Dot(AsNumericsVector, normal.AsNumericsVector).Meters();
 
-        public Area Dot(LocalOffset other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector).SquareMeters();
+        public Area Dot(GlobalOffset other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector).SquareMeters();
 
         public Area SqrMagnitude => AsNumericsVector.LengthSquared().SquareMeters();
         public Length Magnitude => AsNumericsVector.Length().Meters();

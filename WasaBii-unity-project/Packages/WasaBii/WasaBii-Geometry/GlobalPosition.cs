@@ -1,4 +1,5 @@
-﻿using BII.WasaBii.Core;
+﻿using System;
+using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
@@ -7,8 +8,8 @@ namespace BII.WasaBii.Geometry {
 
     /// A 3D vector that represents a world-space position.
     [MustBeImmutable]
-    [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: false, hasDirection: false)]
+    [Serializable]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
     public readonly partial struct GlobalPosition : IsGlobalVariant<GlobalPosition, LocalPosition> {
         
         public static readonly GlobalPosition Zero = new(Length.Zero, Length.Zero, Length.Zero);

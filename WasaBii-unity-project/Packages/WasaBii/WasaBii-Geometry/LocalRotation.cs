@@ -1,3 +1,4 @@
+using System;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
@@ -7,8 +8,8 @@ namespace BII.WasaBii.Geometry {
 
     /// A quaternion-based representation of a local rotation relative to an undefined parent.
     [MustBeImmutable]
-    [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasDirection: false)]
+    [Serializable]
+    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
     public readonly partial struct LocalRotation : IsLocalVariant<LocalRotation, GlobalRotation> {
 
         public static readonly LocalRotation Identity = FromLocal(System.Numerics.Quaternion.Identity);

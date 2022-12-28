@@ -17,11 +17,11 @@ public sealed class GeometryHelper : Attribute {
     /// <summary>
     /// Whether the object represents something that is directional. Only valid if <see cref="FieldType"/> it not <see cref="FieldType.Other"/>.
     /// </summary>
-    public readonly bool HasDirection;
+    public readonly bool HasOrientation;
 
-    public GeometryHelper(bool areFieldsIndependent, bool hasMagnitude, bool hasDirection) {
+    public GeometryHelper(bool areFieldsIndependent, bool hasMagnitude, bool hasOrientation) {
         AreFieldsIndependent = areFieldsIndependent;
         HasMagnitude = hasMagnitude;
-        HasDirection = hasDirection;
+        HasOrientation = hasOrientation;
     }
 }

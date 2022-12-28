@@ -10,7 +10,7 @@ namespace BII.WasaBii.Geometry {
     /// Can also be viewed as a normalized <see cref="GlobalOffset"/>.
     [MustBeImmutable]
     [Serializable]
-    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasDirection: true)]
+    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
     public partial struct GlobalDirection : 
         GlobalDirectionLike<GlobalDirection>,
         IsGlobalVariant<GlobalDirection, LocalDirection> {

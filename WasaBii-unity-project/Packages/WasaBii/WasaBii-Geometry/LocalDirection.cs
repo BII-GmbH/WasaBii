@@ -9,8 +9,8 @@ namespace BII.WasaBii.Geometry {
     /// A 3D vector that represents a local direction.
     /// Can also be viewed as a normalized <see cref="LocalOffset"/>.
     [MustBeImmutable]
-    [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasDirection: true)]
+    [Serializable]
+    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
     public readonly partial struct LocalDirection :
         LocalDirectionLike<LocalDirection>,
         IsLocalVariant<LocalDirection, GlobalDirection> {

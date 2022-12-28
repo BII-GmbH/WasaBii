@@ -8,8 +8,8 @@ namespace BII.WasaBii.Geometry {
     /// A 3D vector that represents a the difference between two positions in the same local space.
     /// Can also be viewed as a <see cref="LocalDirection"/> with a length.
     [MustBeImmutable]
-    [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasDirection: true)]
+    [Serializable]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
     public readonly partial struct LocalOffset : 
         LocalDirectionLike<LocalOffset>, 
         IsLocalVariant<LocalOffset, GlobalOffset> {

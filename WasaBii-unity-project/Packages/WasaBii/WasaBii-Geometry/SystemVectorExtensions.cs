@@ -46,6 +46,19 @@ namespace BII.WasaBii.Core {
             MathF.Max(a.Z, b.Z)
         );
 
+        public static Vector3 LerpTo(this Vector3 from, Vector3 to, double progress, bool shouldClamp = true) =>
+            Vector3.Lerp(from, to, (float)(shouldClamp ? Math.Clamp(progress, 0, 1) : progress));
+        
+        // https://en.wikipedia.org/wiki/Slerp
+        public static Vector3 SlerpTo(this Vector3 from, Vector3 to, double progress, bool shouldClamp = true) {
+            var theta = from.AngleTo(to);
+            if (shouldClamp) progress = Math.Clamp(progress, 0, 1);
+            return (
+                (float)((1 - progress) * theta).Sin() * from
+                 + (float)(progress * theta).Sin() * to
+            ) / (float) theta.Sin();
+        }
+
         /// <summary>
         /// Returns a quaternion <c>q</c> such that Vector3.Transform(<paramref name="from"/>, <c>q</c>) == <paramref name="to"/>.
         /// </summary>

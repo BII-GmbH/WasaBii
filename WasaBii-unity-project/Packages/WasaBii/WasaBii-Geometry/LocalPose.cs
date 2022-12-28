@@ -8,8 +8,8 @@ namespace BII.WasaBii.Geometry {
     /// <see cref="LocalPosition"/> and <see cref="LocalRotation"/> combined.
     [MustBeImmutable]
 <<<<<<<< HEAD:WasaBii-unity-project/Assets/Geometry/LocalPose.cs
-    [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: false, hasDirection: false)]
+    [Serializable]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: false, hasOrientation: false)]
     public readonly partial struct LocalPose : IsLocalVariant<LocalPose, GlobalPose>, IEquatable<LocalPose> {
 ========
     [Serializable]

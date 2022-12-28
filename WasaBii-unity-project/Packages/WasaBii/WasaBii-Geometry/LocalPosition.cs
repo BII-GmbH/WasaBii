@@ -7,8 +7,8 @@ namespace BII.WasaBii.Geometry {
 
     /// A 3D vector that represents a local position relative to an undefined parent.
     [MustBeImmutable]
-    [MustBeSerializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: false, hasDirection: false)]
+    [Serializable]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
     public readonly partial struct LocalPosition : IsLocalVariant<LocalPosition, GlobalPosition> {
 
         public static readonly LocalPosition Zero = new(Length.Zero, Length.Zero, Length.Zero);

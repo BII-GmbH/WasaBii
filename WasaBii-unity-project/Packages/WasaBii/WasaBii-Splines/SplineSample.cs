@@ -4,8 +4,8 @@ using BII.WasaBii.Splines.Maths;
 
 namespace BII.WasaBii.Splines {
     public readonly struct SplineSample<TPos, TDiff>
-        where TPos : struct 
-        where TDiff : struct {
+        where TPos : unmanaged 
+        where TDiff : unmanaged {
         
         public readonly SplineSegment<TPos, TDiff> Segment;
         

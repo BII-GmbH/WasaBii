@@ -10,7 +10,7 @@ namespace BII.WasaBii.Geometry {
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
-    public readonly partial struct GlobalRotation : IsGlobalVariant<GlobalRotation, LocalRotation> {
+    public partial struct GlobalRotation : IsGlobalVariant<GlobalRotation, LocalRotation> {
 
         public static readonly GlobalRotation Identity = FromGlobal(System.Numerics.Quaternion.Identity);
 
@@ -45,20 +45,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static GlobalDirection operator *(GlobalDirection direction, GlobalRotation rotation) => rotation * direction;
         [Pure] public static GlobalRotation operator *(GlobalRotation left, GlobalRotation right) => 
             System.Numerics.Quaternion.Concatenate(left.AsNumericsQuaternion, right.AsNumericsQuaternion).AsGlobalRotation();
-
-        [Pure] public static GlobalRotation Lerp(
-            GlobalRotation start, GlobalRotation end, double perc, bool shouldClamp = true
-        ) => start.LerpTo(end, perc, shouldClamp);
-
-        public GlobalRotation LerpTo(GlobalRotation target, double progress, bool shouldClamp = true) => 
-            System.Numerics.Quaternion.Lerp(AsNumericsQuaternion, target.AsNumericsQuaternion, (float)(shouldClamp ? progress.Clamp01() : progress)).AsGlobalRotation();
-
-        [Pure] public static GlobalRotation Slerp(
-            GlobalRotation start, GlobalRotation end, double perc, bool shouldClamp = true
-        ) => start.SlerpTo(end, perc, shouldClamp);
-
-        public GlobalRotation SlerpTo(GlobalRotation target, double progress, bool shouldClamp = true) => 
-            System.Numerics.Quaternion.Slerp(AsNumericsQuaternion, target.AsNumericsQuaternion, (float)(shouldClamp ? progress.Clamp01() : progress)).AsGlobalRotation();
 
         [Pure] public static Builder From<T>(T from) where T : struct, GlobalDirectionLike<T> => 
             new(from switch {

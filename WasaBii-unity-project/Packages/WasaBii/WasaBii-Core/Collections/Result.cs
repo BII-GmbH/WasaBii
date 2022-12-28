@@ -117,11 +117,13 @@ namespace BII.WasaBii.Core {
 
         public bool WasSuccessful => Status == ValueStatus.Value;
         public bool WasFailure => Status == ValueStatus.Error;
-        
-        public TValue ResultOrThrow(Func<Exception>? exception = null) => 
-            WasSuccessful 
-                ? ResultOrDefault! 
-                : throw exception?.Invoke() ?? new InvalidOperationException("Not a successful result: " + ErrorOrDefault);
+
+        public TValue ResultOrThrow(Func<Exception>? exception = null) => WasSuccessful
+            ? ResultOrDefault!
+            : throw exception?.Invoke()
+                ?? (ErrorOrDefault is Exception ex
+                    ? new InvalidOperationException("Not a successful result", ex)
+                    : new InvalidOperationException("Not a successful result: " + ErrorOrDefault));
         
         public TValue ResultOrThrow(Func<TError, Exception> exception) => 
             WasSuccessful 

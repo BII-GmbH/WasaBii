@@ -10,7 +10,7 @@ namespace BII.WasaBii.Splines.Bezier {
         /// positions being moved by a certain offset which depends on the spline's tangent at these points.
         public static BezierSpline<TPos, TDiff> CopyWithOffset<TPos, TDiff>(
             BezierSpline<TPos, TDiff> original, Func<TDiff, TDiff> tangentToOffset
-        ) where TPos : struct where TDiff : struct => new(
+        ) where TPos : unmanaged where TDiff : unmanaged => new(
             original.Segments.Select(s => {
                 var ops = original.Ops;
                 var startVelocity = s.StartVelocity(ops);
@@ -36,7 +36,7 @@ namespace BII.WasaBii.Splines.Bezier {
         /// independent of the spline's tangent at these points.
         public static BezierSpline<TPos, TDiff> CopyWithStaticOffset<TPos, TDiff>(
             BezierSpline<TPos, TDiff> original, TDiff offset
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             TPos computePosition(TPos node) => original.Ops.Add(node, offset);
             return new BezierSpline<TPos, TDiff>(
                 original.Segments.Select(s => s.Map(computePosition)),
@@ -48,7 +48,7 @@ namespace BII.WasaBii.Splines.Bezier {
         /// <paramref name="original"/>, but different spacing
         /// between the handles.
         public static BezierSpline<TPos, TDiff> CopyWithDifferentHandleDistance<TPos, TDiff>(BezierSpline<TPos, TDiff> original, Length desiredHandleDistance)
-        where TPos : struct where TDiff : struct => BezierSpline.FromHandlesWithVelocities(
+        where TPos : unmanaged where TDiff : unmanaged => BezierSpline.FromHandlesWithVelocities(
             original.SampleSplineEvery(desiredHandleDistance).Select(sample => sample.PositionAndTangent),
             original.Ops
         );

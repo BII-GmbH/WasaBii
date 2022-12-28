@@ -12,20 +12,20 @@ namespace BII.WasaBii.Splines.Maths {
     internal static class Polynomial {
         
         public static Polynomial<TPos, TDiff> Quadratic<TPos, TDiff> (TPos a, TDiff b, TDiff c, GeometricOperations<TPos, TDiff> ops)
-        where TPos : struct 
-        where TDiff : struct =>
+        where TPos : unmanaged 
+        where TDiff : unmanaged =>
             new(ops, a, b, c);
 
         public static Polynomial<TPos, TDiff> Cubic<TPos, TDiff> (TPos a, TDiff b, TDiff c, TDiff d, GeometricOperations<TPos, TDiff> ops)
-        where TPos : struct 
-        where TDiff : struct =>
+        where TPos : unmanaged 
+        where TDiff : unmanaged =>
             new(ops, a, b, c, d);
 
     }
     
     internal readonly struct Polynomial<TPos, TDiff> 
-        where TPos : struct 
-        where TDiff : struct {
+        where TPos : unmanaged 
+        where TDiff : unmanaged {
     
         /// All coefficients of the polynomial function except the first. Eg. a cubic polynomial has
         /// three <see cref="TailC"/> entries and is calculated in the form of: A + Bt + Ct² + Dt³

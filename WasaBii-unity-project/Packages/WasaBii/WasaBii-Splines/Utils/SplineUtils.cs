@@ -8,12 +8,12 @@ namespace BII.WasaBii.Splines {
         [Pure]
         public static Option<SplineSample<TPos, TDiff>> TryQuery<TPos, TDiff>(
             this Spline<TPos, TDiff> spline, NormalizedSplineLocation location
-        ) where TPos : struct where TDiff : struct => SplineSample<TPos, TDiff>.From(spline, location);
+        ) where TPos : unmanaged where TDiff : unmanaged => SplineSample<TPos, TDiff>.From(spline, location);
 
         [Pure]
         public static Option<SplineSample<TPos, TDiff>> TryQuery<TPos, TDiff>(
             this Spline<TPos, TDiff> spline, SplineLocation location
-        ) where TPos : struct where TDiff : struct => SplineSample<TPos, TDiff>.From(spline, location);
+        ) where TPos : unmanaged where TDiff : unmanaged => SplineSample<TPos, TDiff>.From(spline, location);
         
     }
     

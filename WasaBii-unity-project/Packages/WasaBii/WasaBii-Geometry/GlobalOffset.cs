@@ -11,7 +11,7 @@ namespace BII.WasaBii.Geometry {
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
-    public readonly partial struct GlobalOffset : 
+    public partial struct GlobalOffset : 
         GlobalDirectionLike<GlobalOffset>,
         IsGlobalVariant<GlobalOffset, LocalOffset> {
     

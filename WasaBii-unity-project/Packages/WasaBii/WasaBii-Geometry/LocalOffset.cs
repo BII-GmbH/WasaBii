@@ -1,3 +1,4 @@
+using System;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
@@ -10,7 +11,7 @@ namespace BII.WasaBii.Geometry {
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
-    public readonly partial struct LocalOffset : 
+    public partial struct LocalOffset : 
         LocalDirectionLike<LocalOffset>, 
         IsLocalVariant<LocalOffset, GlobalOffset> {
         

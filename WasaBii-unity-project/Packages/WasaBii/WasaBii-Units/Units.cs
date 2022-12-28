@@ -165,6 +165,7 @@ namespace BII.WasaBii.UnitSystem {
             IUnitValueOf<TUnit> value
         ) where TUnit : IUnit => MostFittingDisplayUnitFor(value, AllUnitsOf<TUnit>(), areUnitsSorted: false);
 
+        // TODO CR for maintainer: provide default format with most fitting unit & implement analyzer to prefer this over .ToString()
         public static string Format<TUnit>(
             this IUnitValueOf<TUnit> value, 
             TUnit unit, 

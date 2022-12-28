@@ -28,7 +28,7 @@ namespace BII.WasaBii.Splines {
             Func<TWithSpline, Spline<TPos, TDiff>> splineSelector,
             TPos position,
             int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) where TPos : struct where TDiff : struct => 
+        ) where TPos : unmanaged where TDiff : unmanaged => 
             queryClosestPositionOnSplinesTo(
                 splines,
                 queryFunction: withSpline => splineSelector(withSpline).QueryClosestPositionOnSplineTo(position, samples)
@@ -56,7 +56,7 @@ namespace BII.WasaBii.Splines {
             Func<TWithSpline, Spline<TPos, TDiff>> splineSelector,
             TPos position,
             int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        )where TPos : struct where TDiff : struct 
+        )where TPos : unmanaged where TDiff : unmanaged 
             => splines.QueryClosestPositionOnSplinesTo(splineSelector, position, samples).GetOrThrow(() => new ArgumentException(
                 $"All splines given to {nameof(QueryClosestPositionOnSplinesToOrThrow)} were not valid and a query could therefore not be performed!"
             ));
@@ -64,7 +64,7 @@ namespace BII.WasaBii.Splines {
         private static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff> queryResult)> queryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff>(
             IEnumerable<TWithSpline> splines,
             Func<TWithSpline, Option<ClosestOnSplineQueryResult<TPos, TDiff>>> queryFunction
-        ) where TPos : struct where TDiff : struct => 
+        ) where TPos : unmanaged where TDiff : unmanaged => 
             splines.Collect(spline => queryFunction(spline).Map(queryResult => (spline, queryResult)))
                 .MinBy(t => t.queryResult.Distance);
     }

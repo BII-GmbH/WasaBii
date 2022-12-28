@@ -32,9 +32,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static bool PointsInSameDirectionAs<TRelativity>(this RelativeDirectionLike<TRelativity> a, RelativeDirectionLike<TRelativity> b)
             where TRelativity : WithRelativity => a.AsVector.PointsInSameDirectionAs(b.AsVector);
         
-        [Pure] public static T Add<T>(this T a, T b) where T : struct, DirectionLike, HasMagnitude<T>
-            => a.CopyWithDifferentValue(a.AsVector + b.AsVector);
-        
         [Pure] public static T Sum<T>(this IEnumerable<T> elements) where T : struct, DirectionLike, HasMagnitude<T>
             => elements.Aggregate(Add);
 

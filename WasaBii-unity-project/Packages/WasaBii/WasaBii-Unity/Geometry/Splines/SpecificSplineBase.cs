@@ -17,7 +17,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
     /// </summary>
     [Serializable]
     public abstract class SpecificSplineBase<TSelf, TPos, TDiff> : Spline<TPos, TDiff>.Copyable
-    where TSelf : SpecificSplineBase<TSelf, TPos, TDiff> where TPos : struct where TDiff : struct {
+    where TSelf : SpecificSplineBase<TSelf, TPos, TDiff> where TPos : unmanaged where TDiff : unmanaged {
 
         public readonly Spline<TPos, TDiff> Wrapped;
 
@@ -47,7 +47,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         [Pure] public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
             Func<TPos, TPosNew> positionMapping,
             GeometricOperations<TPosNew, TDiffNew> newOps
-        ) where TPosNew : struct where TDiffNew : struct => Wrapped.Map(positionMapping, newOps);
+        ) where TPosNew : unmanaged where TDiffNew : unmanaged => Wrapped.Map(positionMapping, newOps);
 
         /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineToOrThrow{TPos, TDiff}"/>
         [Pure]

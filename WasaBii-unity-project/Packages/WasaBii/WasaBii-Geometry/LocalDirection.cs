@@ -11,7 +11,7 @@ namespace BII.WasaBii.Geometry {
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
-    public readonly partial struct LocalDirection :
+    public partial struct LocalDirection :
         LocalDirectionLike<LocalDirection>,
         IsLocalVariant<LocalDirection, GlobalDirection> {
 

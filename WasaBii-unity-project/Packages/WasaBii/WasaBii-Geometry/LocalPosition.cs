@@ -1,3 +1,4 @@
+using System;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
@@ -9,7 +10,7 @@ namespace BII.WasaBii.Geometry {
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
-    public readonly partial struct LocalPosition : IsLocalVariant<LocalPosition, GlobalPosition> {
+    public partial struct LocalPosition : IsLocalVariant<LocalPosition, GlobalPosition> {
 
         public static readonly LocalPosition Zero = new(Length.Zero, Length.Zero, Length.Zero);
         

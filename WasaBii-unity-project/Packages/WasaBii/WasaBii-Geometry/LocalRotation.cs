@@ -10,7 +10,7 @@ namespace BII.WasaBii.Geometry {
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
-    public readonly partial struct LocalRotation : IsLocalVariant<LocalRotation, GlobalRotation> {
+    public partial struct LocalRotation : IsLocalVariant<LocalRotation, GlobalRotation> {
 
         public static readonly LocalRotation Identity = FromLocal(System.Numerics.Quaternion.Identity);
 

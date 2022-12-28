@@ -24,7 +24,7 @@ namespace BII.WasaBii.Geometry {
 
     /// States that the implementing type works in global space and that the local variant is `TLocal`.
     /// Hence, it offers a method to transform it into local space given the parent.
-    public interface IsGlobalVariant<TGlobal, out TLocal> : IsGlobal, GeometryHelper<TGlobal>
+    public interface IsGlobalVariant<TGlobal, out TLocal> : IsGlobal
     where TGlobal : IsGlobalVariant<TGlobal, TLocal>
     where TLocal : IsLocalVariant<TLocal, TGlobal> {
         /// <summary>
@@ -40,7 +40,7 @@ namespace BII.WasaBii.Geometry {
 
     /// States that the implementing type works in local space and that the global variant is `TGlobal`.
     /// Hence, it offers a method to transform it into global space given the parent.
-    public interface IsLocalVariant<TLocal, out TGlobal> : IsLocal, GeometryHelper<TLocal>
+    public interface IsLocalVariant<TLocal, out TGlobal> : IsLocal
     where TGlobal : IsGlobalVariant<TGlobal, TLocal>
     where TLocal : IsLocalVariant<TLocal, TGlobal> {
         /// <summary>

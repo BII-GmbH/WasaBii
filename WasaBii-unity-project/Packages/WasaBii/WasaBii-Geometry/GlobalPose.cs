@@ -10,12 +10,10 @@ namespace BII.WasaBii.Geometry {
     /// <see cref="GlobalPosition"/> and <see cref="GlobalRotation"/> combined.
     [MustBeImmutable]
     [Serializable]
-    public readonly struct GlobalPose : IsGlobalVariant<GlobalPose, LocalPose>, IEquatable<GlobalPose> {
+    public partial struct GlobalPose : IsGlobalVariant<GlobalPose, LocalPose>, IEquatable<GlobalPose> {
         public static implicit operator TransformProvider(GlobalPose location)
             => TransformProvider.From(location.Position.AsNumericsVector, location.Rotation.AsQuaternion, Vector3.one);
         
-        public static implicit operator PositionProvider(GlobalPose location)
-            => new PositionProvider(location.Position);
         public static readonly GlobalPose Identity = new GlobalPose(Vector3.zero, Quaternion.identity);
 
         public readonly GlobalPosition Position;

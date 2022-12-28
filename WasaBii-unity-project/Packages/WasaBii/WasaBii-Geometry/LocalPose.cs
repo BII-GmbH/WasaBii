@@ -7,14 +7,9 @@ namespace BII.WasaBii.Geometry {
 
     /// <see cref="LocalPosition"/> and <see cref="LocalRotation"/> combined.
     [MustBeImmutable]
-<<<<<<<< HEAD:WasaBii-unity-project/Assets/Geometry/LocalPose.cs
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: false, hasOrientation: false)]
-    public readonly partial struct LocalPose : IsLocalVariant<LocalPose, GlobalPose>, IEquatable<LocalPose> {
-========
-    [Serializable]
-    public readonly struct LocalPose : IsLocalVariant<LocalPose, GlobalPose>, IEquatable<LocalPose> {
->>>>>>>> main:WasaBii-unity-project/Packages/WasaBii/WasaBii-Unity/Geometry/TransformUtils/LocalPose.cs
+    public partial struct LocalPose : IsLocalVariant<LocalPose, GlobalPose>, IEquatable<LocalPose> {
         
         public static readonly LocalPose Identity = new LocalPose(LocalPosition.Zero, LocalRotation.Identity);
         

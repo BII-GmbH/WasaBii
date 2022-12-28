@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 
 namespace BII.WasaBii.Core {
 
@@ -15,7 +14,7 @@ namespace BII.WasaBii.Core {
         private readonly IReadOnlyList<T> wrapped;
         public ReverseList(IReadOnlyList<T> wrapped) => this.wrapped = wrapped;
         
-        [JsonConstructor] private ReverseList(IEnumerable<T> wrapped) 
+        public ReverseList(IEnumerable<T> wrapped) 
             : this(wrapped as IReadOnlyList<T> ?? wrapped.ToList()) { }
 
         public IEnumerator<T> GetEnumerator() {

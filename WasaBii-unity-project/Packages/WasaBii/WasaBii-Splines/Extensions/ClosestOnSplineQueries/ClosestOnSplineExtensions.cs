@@ -27,7 +27,7 @@ namespace BII.WasaBii.Splines {
             this Spline<TPos, TDiff> spline,
             TPos position,
             int samples = DefaultClosestOnSplineSamples
-        ) where TPos : struct where TDiff : struct => 
+        ) where TPos : unmanaged where TDiff : unmanaged => 
             spline.QueryClosestPositionOnSplineTo(position, samples).GetOrThrow(() => 
                 new ArgumentException(
                     $"The spline given to {nameof(QueryClosestPositionOnSplineToOrThrow)} was not valid and a query could therefore not be performed!"
@@ -54,7 +54,7 @@ namespace BII.WasaBii.Splines {
             this Spline<TPos, TDiff> spline,
             TPos position,
             int samples = DefaultClosestOnSplineSamples
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
 
             // 0: The position is on the plane,
             // > 0: The position is above the plane (in the direction of the normal)

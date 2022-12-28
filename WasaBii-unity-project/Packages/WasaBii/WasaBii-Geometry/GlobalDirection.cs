@@ -26,8 +26,8 @@ namespace BII.WasaBii.Geometry {
 
 #if UNITY_2022_1_OR_NEWER
         [UnityEngine.SerializeField]
-        private System.Numerics.Vector3 _underlying;
 #endif
+        private System.Numerics.Vector3 _underlying;
         public System.Numerics.Vector3 AsNumericsVector => _underlying;
         
         public GlobalOffset AsOffsetWithLength1 => new(AsNumericsVector);

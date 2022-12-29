@@ -24,16 +24,20 @@ namespace BII.WasaBii.Geometry {
         public static readonly LocalDirection One = new(1, 1, 1);
         public static readonly LocalDirection Zero = new(0, 0, 0);
 
-        public System.Numerics.Vector3 AsNumericsVector { get; }
+        #if UNITY_2022_1_OR_NEWER
+        [UnityEngine.SerializeField]
+        #endif
+        private System.Numerics.Vector3 _underlying;
+        public System.Numerics.Vector3 AsNumericsVector => _underlying;
+        
+        #if UNITY_2022_1_OR_NEWER
+        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+        #endif
 
         public LocalOffset AsOffsetWithLength1 => new(AsNumericsVector);
 
-        public LocalDirection(float x, float y, float z) {
-            var magnitude = MathF.Sqrt(x * x + y * y + z * z);
-            AsNumericsVector = new(x / magnitude, y / magnitude, z / magnitude);
-        }
-        
-        public LocalDirection(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
+        public LocalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized();
+        public LocalDirection(float x, float y, float z) : this(new System.Numerics.Vector3(x, y, z)) { }
 
         public LocalDirection(Length x, Length y, Length z) : this(
             (float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()
@@ -65,17 +69,9 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static LocalOffset operator *(LocalDirection b, Length a) => a * b;
         [Pure] public static LocalDirection operator -(LocalDirection dir) => new(-dir.AsNumericsVector);
 
-        [Pure] public static LocalDirection Lerp(
-            LocalDirection start, LocalDirection end, double perc, bool shouldClamp = true
-        ) => start.LerpTo(end, perc, shouldClamp);
-        
-        [Pure] public static LocalDirection Slerp(
-            LocalDirection start, LocalDirection end, double perc, bool shouldClamp = true
-        ) => start.SlerpTo(end, perc, shouldClamp);
-
     }
 
-    public static partial class DirectionExtensions {
+    public static partial class LocalDirectionExtensions {
        
         #if UNITY_2022_1_OR_NEWER
        [Pure] public static LocalDirection AsLocalDirection(this UnityEngine.Vector3 localDirection) 

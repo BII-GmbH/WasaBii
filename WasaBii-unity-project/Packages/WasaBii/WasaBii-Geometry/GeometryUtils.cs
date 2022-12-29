@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Numerics;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
@@ -16,8 +15,7 @@ namespace BII.WasaBii.Geometry {
             var b = (to - pivot).WithY(0);
             var diff = a.SlerpTo(b, progress, shouldClamp);
             return (pivot + diff)
-                .WithY((float) MathD.Lerp(from.Y, to.Y, progress, shouldClamp))
-                .AsGlobalPosition();
+                .WithY(Units.Lerp(from.Y, to.Y, progress, shouldClamp));
         }
 
         ///<remarks>Only x and z are cirped, y is lerped.</remarks>
@@ -26,7 +24,7 @@ namespace BII.WasaBii.Geometry {
         ) {
             var position = Cirp(from.Position, to.Position, pivot, progress, shouldClamp);
             var rotation = from.Rotation.SlerpTo(to.Rotation, progress, shouldClamp);
-            return new GlobalPose(position.AsVector, rotation);
+            return new GlobalPose(position, rotation);
         }
 
         // Note DS: This used to be calculated properly, but the algorithm was incorrect
@@ -35,8 +33,9 @@ namespace BII.WasaBii.Geometry {
         public static Length CalculateCirpingMovementLength(
             GlobalPosition from, GlobalPosition to, GlobalPosition pivot, int sampleCount = 6
         ) => SampleRange.Sample(t => Cirp(from, to, pivot, t), sampleCount, includeFrom: true, includeTo: true)
-            .Select(loc => loc.AsVector)
-            .TotalPathLength();
+            .PairwiseSliding()
+            .SelectTuple((l, r) => l.DistanceTo(r))
+            .Sum();
 
         /// <summary>
         /// This function solves the angles of a triangle from its sides lengths.
@@ -62,7 +61,7 @@ namespace BII.WasaBii.Geometry {
         /// <param name="c"> length of the third side</param>
         /// <returns> returns the angles of the triangle (A is the opposing angle of side a, ect.)</returns>
         [Pure] public static (Angle A, Angle B, Angle C) SolveTriangleFromSideLengths(double a, double b, double c) {
-            Debug.Assert(
+            Contract.Assert(
                 a + b > c && a + c > b && b + c > a,
                 "Can only solve triangle if lengths can form a valid triangle" +
                 "\n Lengths are: \n A: {a}\n B: {b}\n C: {c}"

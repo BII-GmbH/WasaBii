@@ -12,22 +12,26 @@ namespace BII.WasaBii.Geometry {
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
     public partial struct GlobalRotation : IsGlobalVariant<GlobalRotation, LocalRotation> {
 
-        public static readonly GlobalRotation Identity = FromGlobal(System.Numerics.Quaternion.Identity);
+        public static readonly GlobalRotation Identity = new(System.Numerics.Quaternion.Identity);
 
-        public System.Numerics.Quaternion AsNumericsQuaternion { get; }
-        
-        public GlobalRotation Inverse => AsNumericsQuaternion.Inverse().AsGlobalRotation();
-
-        private GlobalRotation(System.Numerics.Quaternion local) => AsNumericsQuaternion = local;
-        
-        [Pure] public static GlobalRotation FromGlobal(System.Numerics.Quaternion global) => new(global);
-
-        [Pure] public static GlobalRotation FromAngleAxis(Angle angle, GlobalDirection axis) => angle.WithAxis(axis.AsNumericsVector).AsGlobalRotation();
+        #if UNITY_2022_1_OR_NEWER
+        [UnityEngine.SerializeField]
+        #endif
+        private System.Numerics.Quaternion _underlying;
+        public readonly System.Numerics.Quaternion AsNumericsQuaternion => _underlying;
         
         #if UNITY_2022_1_OR_NEWER
         public UnityEngine.Quaternion AsUnityQuaternion => AsNumericsQuaternion.ToUnityQuaternion();
+        #endif
+
+        public readonly GlobalRotation Inverse => AsNumericsQuaternion.Inverse().AsGlobalRotation();
+
+        public GlobalRotation(System.Numerics.Quaternion global) => _underlying = global;
         
-        [Pure] public static GlobalRotation FromGlobal(UnityEngine.Quaternion global) => new(global.ToSystemQuaternion());
+        [Pure] public static GlobalRotation FromAngleAxis(Angle angle, GlobalDirection axis) => angle.WithAxis(axis.AsNumericsVector).AsGlobalRotation();
+        
+        #if UNITY_2022_1_OR_NEWER
+        public GlobalRotation(UnityEngine.Quaternion global) : this(global.ToSystemQuaternion()) { }
         #endif
 
         /// <inheritdoc cref="TransformProvider.InverseTransformRotation"/>
@@ -35,7 +39,7 @@ namespace BII.WasaBii.Geometry {
         [Pure] public LocalRotation RelativeTo(TransformProvider parent) 
             => parent.InverseTransformRotation(this);
 
-        public LocalRotation RelativeToWorldZero => LocalRotation.FromLocal(AsNumericsQuaternion);
+        public LocalRotation RelativeToWorldZero => new(AsNumericsQuaternion);
 
         [Pure] public static GlobalOffset operator *(GlobalRotation rotation, GlobalOffset offset) =>
             System.Numerics.Vector3.Transform(offset.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalOffset();
@@ -43,6 +47,7 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static GlobalDirection operator *(GlobalRotation rotation, GlobalDirection direction) =>
             System.Numerics.Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalDirection();
         [Pure] public static GlobalDirection operator *(GlobalDirection direction, GlobalRotation rotation) => rotation * direction;
+        
         [Pure] public static GlobalRotation operator *(GlobalRotation left, GlobalRotation right) => 
             System.Numerics.Quaternion.Concatenate(left.AsNumericsQuaternion, right.AsNumericsQuaternion).AsGlobalRotation();
 
@@ -60,17 +65,17 @@ namespace BII.WasaBii.Geometry {
             public Builder(System.Numerics.Vector3 from) => this.from = from;
 
             [Pure]
-            public GlobalRotation To<T>(T to, T? axisIfOpposite = null) where T : struct, GlobalDirectionLike<T> => To(
+            public GlobalRotation To<T>(T to, Func<T, T> axisIfOpposite = null) where T : struct, GlobalDirectionLike<T> => To(
                 to switch {
                     GlobalDirection dir => dir.AsNumericsVector,
                     _ => to.AsNumericsVector.Normalized()
                 },
-                axisIfOpposite: axisIfOpposite?.AsNumericsVector
+                axisIfOpposite: axisIfOpposite == null ? null : _ => axisIfOpposite(to).AsNumericsVector
             );
 
             /// <param name="to">Must be normalized</param>
             [Pure]
-            public GlobalRotation To(System.Numerics.Vector3 to, System.Numerics.Vector3? axisIfOpposite = null) => 
+            public GlobalRotation To(System.Numerics.Vector3 to, Func<System.Numerics.Vector3, System.Numerics.Vector3> axisIfOpposite = null) => 
                 from.RotationTo(to, axisIfOpposite).AsGlobalRotation();
         }
         
@@ -81,17 +86,17 @@ namespace BII.WasaBii.Geometry {
 
     }
 
-    public static class GlobalRotationExtensions {
+    public static partial class GlobalRotationExtensions {
         [Pure] public static GlobalRotation AsGlobalRotation(this System.Numerics.Quaternion globalRotation) 
-            => BII.WasaBii.Geometry.GlobalRotation.FromGlobal(globalRotation);
+            => new(globalRotation);
         
         #if UNITY_2022_1_OR_NEWER
         [Pure] public static GlobalRotation AsGlobalRotation(this UnityEngine.Quaternion globalRotation) 
-            => BII.WasaBii.Geometry.GlobalRotation.FromGlobal(globalRotation);
+            => new(globalRotation);
         [Pure] public static GlobalRotation GlobalRotation(this UnityEngine.Component component) 
-            => BII.WasaBii.Geometry.GlobalRotation.FromGlobal(component.transform.rotation);
+            => new(component.transform.rotation);
         [Pure] public static GlobalRotation GlobalRotation(this UnityEngine.GameObject gameObject) 
-            => BII.WasaBii.Geometry.GlobalRotation.FromGlobal(gameObject.transform.rotation);
+            => new(gameObject.transform.rotation);
         #endif
 
     }

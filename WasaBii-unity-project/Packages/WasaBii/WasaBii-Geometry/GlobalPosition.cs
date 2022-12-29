@@ -14,14 +14,22 @@ namespace BII.WasaBii.Geometry {
         
         public static readonly GlobalPosition Zero = new(Length.Zero, Length.Zero, Length.Zero);
 
-        public readonly System.Numerics.Vector3 AsNumericsVector;
+        #if UNITY_2022_1_OR_NEWER
+        [UnityEngine.SerializeField]
+        #endif
+        private System.Numerics.Vector3 _underlying;
+        public System.Numerics.Vector3 AsNumericsVector => _underlying;
+        
+        #if UNITY_2022_1_OR_NEWER
+        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+        #endif
 
-        public GlobalPosition(System.Numerics.Vector3 asNumericsVector) => AsNumericsVector = asNumericsVector;
-        public GlobalPosition(float x, float y, float z) => AsNumericsVector = new(x, y, z);
-        public GlobalPosition(Length x, Length y, Length z) => AsNumericsVector = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
+        public GlobalPosition(System.Numerics.Vector3 asNumericsVector) => _underlying = asNumericsVector;
+        public GlobalPosition(float x, float y, float z) => _underlying = new(x, y, z);
+        public GlobalPosition(Length x, Length y, Length z) => _underlying = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
 
         #if UNITY_2022_1_OR_NEWER
-        public GlobalPosition(UnityEngine.Vector3 global) => AsNumericsVector = global.ToSystemVector();
+        public GlobalPosition(UnityEngine.Vector3 global) => _underlying = global.ToSystemVector();
         #endif
 
         /// <inheritdoc cref="TransformProvider.InverseTransformPoint"/>
@@ -37,10 +45,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static GlobalPosition operator -(GlobalPosition pos) => new(-pos.AsNumericsVector);
         [Pure] public override string ToString() => AsNumericsVector.ToString();
         
-        [Pure] public static GlobalPosition Lerp(
-            GlobalPosition start, GlobalPosition end, double perc, bool shouldClamp = true
-        ) => start.LerpTo(end, perc, shouldClamp);
-
         [Pure] public Length DistanceTo(GlobalPosition p2) => (p2 - this).Magnitude;
         
         /// Reflects this point off <see cref="on"/>. Has the same effect
@@ -62,7 +66,7 @@ namespace BII.WasaBii.Geometry {
 
     }
     
-    public static partial class PositionExtensions {
+    public static partial class GlobalPositionExtensions {
         
         [Pure] public static GlobalPosition AsGlobalPosition(this System.Numerics.Vector3 globalPosition)
             => new(globalPosition);

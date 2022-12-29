@@ -8,20 +8,23 @@ using static SyntaxFactory;
 
 public static class CodeGenerationUtils {
 
-    public const string UnityCompilerToken = "UNITY_2022_1_OR_NEWER";
-    
-    private static readonly UsingDirectiveSyntax[] defaultIncludes = new string[]{
+    private static readonly UsingDirectiveSyntax[] defaultIncludes = new[]{
         "BII.WasaBii.Core",
         "System",
+        "System.Collections.Generic",
+        "System.Linq",
         "JetBrains.Annotations"
     }.Select(str => UsingDirective(ParseName(str)).NormalizeWhitespace().AppendTrivia(LineFeed)).ToArray();
 
-    public static SyntaxNode WrapInParentsOf<T>(this T node, SyntaxNode other) where T : MemberDeclarationSyntax => other.Parent switch {
+    public static SyntaxNode WrapInParentsOf<T>(this T node, SyntaxNode other) where T : MemberDeclarationSyntax =>
+        SingletonList<MemberDeclarationSyntax>(node).WrapInParentsOf(other);
+
+    public static SyntaxNode WrapInParentsOf(this SyntaxList<MemberDeclarationSyntax> nodes, SyntaxNode other) => other.Parent switch {
         CompilationUnitSyntax cus => cus
-            .WithMembers(SingletonList<MemberDeclarationSyntax>(node))
+            .WithMembers(nodes)
             .WithUsings(cus.Usings.AddRange(defaultIncludes.Where(incl => !cus.Usings.Any(u => u.Name.ToString() == incl.Name.ToString())))),
-        NamespaceDeclarationSyntax nds => nds.WithMembers(SingletonList<MemberDeclarationSyntax>(node)).WrapInParentsOf(nds),
-        TypeDeclarationSyntax tds => tds.ClearTrivia().WithMembers(SingletonList<MemberDeclarationSyntax>(node)).WrapInParentsOf(tds),
+        NamespaceDeclarationSyntax nds => nds.WithMembers(nodes).WrapInParentsOf(nds),
+        TypeDeclarationSyntax tds => tds.ClearTrivia().WithMembers(nodes).WrapInParentsOf(tds),
         var p => throw new Exception($"Unsupported node type for wrapping: {p?.GetType()}")
     };
 

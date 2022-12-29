@@ -30,6 +30,10 @@ namespace BII.WasaBii.Geometry {
         private System.Numerics.Vector3 _underlying;
         public System.Numerics.Vector3 AsNumericsVector => _underlying;
         
+#if UNITY_2022_1_OR_NEWER
+        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+#endif
+
         public GlobalOffset AsOffsetWithLength1 => new(AsNumericsVector);
         
         public GlobalDirection(float x, float y, float z) {
@@ -67,17 +71,9 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static GlobalOffset operator *(GlobalDirection b, Length a) => a * b;
         [Pure] public static GlobalDirection operator -(GlobalDirection dir) => new(-dir.AsNumericsVector);
 
-        [Pure] public static GlobalDirection Lerp(
-            GlobalDirection start, GlobalDirection end, double perc, bool shouldClamp = true
-        ) => start.LerpTo(end, perc, shouldClamp);
-        
-        [Pure] public static GlobalDirection Slerp(
-            GlobalDirection start, GlobalDirection end, double perc, bool shouldClamp = true
-        ) => start.SlerpTo(end, perc, shouldClamp);
-
     }
 
-    public static partial class DirectionExtensions {
+    public static partial class GlobalDirectionExtensions {
        
        [Pure] public static GlobalDirection AsGlobalDirection(this System.Numerics.Vector3 globalPosition) 
            => new(globalPosition);

@@ -12,23 +12,26 @@ namespace BII.WasaBii.Geometry {
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
     public partial struct LocalRotation : IsLocalVariant<LocalRotation, GlobalRotation> {
 
-        public static readonly LocalRotation Identity = FromLocal(System.Numerics.Quaternion.Identity);
+        public static readonly LocalRotation Identity = new(System.Numerics.Quaternion.Identity);
 
-        public System.Numerics.Quaternion AsNumericsQuaternion { get; }
-        
-        public LocalRotation Inverse => AsNumericsQuaternion.Inverse().AsLocalRotation();
-
-        private LocalRotation(System.Numerics.Quaternion local) => AsNumericsQuaternion = local;
-        
-        
-        [Pure] public static LocalRotation FromLocal(System.Numerics.Quaternion global) => new(global);
-
-        [Pure] public static LocalRotation FromAngleAxis(Angle angle, LocalDirection axis) => angle.WithAxis(axis.AsNumericsVector).AsLocalRotation();
+        #if UNITY_2022_1_OR_NEWER
+        [UnityEngine.SerializeField]
+        #endif
+        private System.Numerics.Quaternion _underlying;
+        public readonly System.Numerics.Quaternion AsNumericsQuaternion => _underlying;
         
         #if UNITY_2022_1_OR_NEWER
         public UnityEngine.Quaternion AsUnityQuaternion => AsNumericsQuaternion.ToUnityQuaternion();
+        #endif
+
+        public readonly LocalRotation Inverse => AsNumericsQuaternion.Inverse().AsLocalRotation();
+
+        public LocalRotation(System.Numerics.Quaternion local) => _underlying = local;
         
-        [Pure] public static LocalRotation FromLocal(UnityEngine.Quaternion local) => new(local.ToSystemQuaternion());
+        [Pure] public static LocalRotation FromAngleAxis(Angle angle, LocalDirection axis) => angle.WithAxis(axis.AsNumericsVector).AsLocalRotation();
+        
+        #if UNITY_2022_1_OR_NEWER
+        public LocalRotation(UnityEngine.Quaternion local) : this(local.ToSystemQuaternion()) { }
         #endif
 
         /// <inheritdoc cref="TransformProvider.TransformRotation"/>
@@ -36,7 +39,7 @@ namespace BII.WasaBii.Geometry {
         [Pure] public GlobalRotation ToGlobalWith(TransformProvider parent) 
             => parent.TransformRotation(this);
 
-        public GlobalRotation ToGlobalWithWorldZero => GlobalRotation.FromGlobal(AsNumericsQuaternion);
+        public GlobalRotation ToGlobalWithWorldZero => new(AsNumericsQuaternion);
 
         // TODO DS: this
         [Pure] public LocalRotation TransformBy(LocalPose offset) => offset.Rotation * this;
@@ -52,20 +55,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static LocalRotation operator *(LocalRotation left, LocalRotation right) => 
             new(System.Numerics.Quaternion.Concatenate(left.AsNumericsQuaternion, right.AsNumericsQuaternion));
         
-        [Pure] public static LocalRotation Lerp(
-            LocalRotation start, LocalRotation end, double perc, bool shouldClamp = true
-        ) => start.LerpTo(end, perc, shouldClamp);
-        
-        public LocalRotation LerpTo(LocalRotation target, double progress, bool shouldClamp = true) => 
-            System.Numerics.Quaternion.Lerp(AsNumericsQuaternion, target.AsNumericsQuaternion, (float)(shouldClamp ? progress.Clamp01() : progress)).AsLocalRotation();
-
-        [Pure] public static LocalRotation Slerp(
-            LocalRotation start, LocalRotation end, double perc, bool shouldClamp = true
-        ) => start.SlerpTo(end, perc, shouldClamp);
-
-        public LocalRotation SlerpTo(LocalRotation target, double progress, bool shouldClamp = true) => 
-            System.Numerics.Quaternion.Slerp(AsNumericsQuaternion, target.AsNumericsQuaternion, (float)(shouldClamp ? progress.Clamp01() : progress)).AsLocalRotation();
-
         [Pure] public static Builder From<T>(T from) where T : struct, LocalDirectionLike<T> => 
             new(from switch {
                 LocalDirection dir => dir.AsNumericsVector,
@@ -80,17 +69,17 @@ namespace BII.WasaBii.Geometry {
             public Builder(System.Numerics.Vector3 from) => this.from = from;
 
             [Pure]
-            public LocalRotation To<T>(T to, T? axisIfOpposite = null) where T : struct, LocalDirectionLike<T> => To(
+            public LocalRotation To<T>(T to, Func<T, T> axisIfOpposite = null) where T : struct, LocalDirectionLike<T> => To(
                 to switch {
                     LocalDirection dir => dir.AsNumericsVector,
                     _ => to.AsNumericsVector.Normalized()
                 },
-                axisIfOpposite: axisIfOpposite?.AsNumericsVector
+                axisIfOpposite: axisIfOpposite == null ? null : _ => axisIfOpposite(to).AsNumericsVector
             );
 
             /// <param name="to">Must be normalized</param>
             [Pure]
-            public LocalRotation To(System.Numerics.Vector3 to, System.Numerics.Vector3? axisIfOpposite = null) => 
+            public LocalRotation To(System.Numerics.Vector3 to, Func<System.Numerics.Vector3, System.Numerics.Vector3> axisIfOpposite = null) => 
                 from.RotationTo(to, axisIfOpposite).AsLocalRotation();
         }
 
@@ -101,17 +90,17 @@ namespace BII.WasaBii.Geometry {
 
     }
 
-    public static class LocalRotationExtensions {
+    public static partial class LocalRotationExtensions {
         [Pure] public static LocalRotation AsLocalRotation(this System.Numerics.Quaternion localRotation) 
-            => BII.WasaBii.Geometry.LocalRotation.FromLocal(localRotation);
+            => new(localRotation);
         
         #if UNITY_2022_1_OR_NEWER
         [Pure] public static LocalRotation AsLocalRotation(this UnityEngine.Quaternion localRotation) 
-            => BII.WasaBii.Geometry.LocalRotation.FromLocal(localRotation);
+            => new(localRotation);
         [Pure] public static LocalRotation LocalRotation(this UnityEngine.Component component) 
-            => BII.WasaBii.Geometry.LocalRotation.FromLocal(component.transform.rotation);
+            => new(component.transform.rotation);
         [Pure] public static LocalRotation LocalRotation(this UnityEngine.GameObject gameObject) 
-            => BII.WasaBii.Geometry.LocalRotation.FromLocal(gameObject.transform.rotation);
+            => new(gameObject.transform.rotation);
         #endif
 
     }

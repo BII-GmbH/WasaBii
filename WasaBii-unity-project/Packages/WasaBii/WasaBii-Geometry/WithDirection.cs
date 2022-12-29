@@ -21,9 +21,6 @@ namespace BII.WasaBii.Geometry {
 
     public static class DirectionLikeExtensions {
         
-        [Pure] public static Angle AngleTo<TRelativity>(this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs) 
-            where TRelativity : WithRelativity => Vector3.Angle(lhs.AsVector, rhs.AsVector).Degrees();
-
         [Pure] public static Angle SignedAngleTo<TRelativity>(
             this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs, RelativeDirectionLike<TRelativity> axis
         ) where TRelativity : WithRelativity => 

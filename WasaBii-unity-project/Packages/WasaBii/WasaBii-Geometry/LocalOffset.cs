@@ -15,17 +15,25 @@ namespace BII.WasaBii.Geometry {
         LocalDirectionLike<LocalOffset>, 
         IsLocalVariant<LocalOffset, GlobalOffset> {
         
-        public System.Numerics.Vector3 AsNumericsVector { get; }
+        #if UNITY_2022_1_OR_NEWER
+        [UnityEngine.SerializeField]
+        #endif
+        private System.Numerics.Vector3 _underlying;
+        public System.Numerics.Vector3 AsNumericsVector => _underlying;
+        
+        #if UNITY_2022_1_OR_NEWER
+        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+        #endif
 
         public LocalDirection Normalized => new(AsNumericsVector);
         public LocalPosition AsPosition => new(AsNumericsVector);
 
-        public LocalOffset(System.Numerics.Vector3 asNumericsVector) => AsNumericsVector = asNumericsVector;
-        public LocalOffset(float x, float y, float z) => AsNumericsVector = new(x, y, z);
-        public LocalOffset(Length x, Length y, Length z) => AsNumericsVector = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
+        public LocalOffset(System.Numerics.Vector3 asNumericsVector) => _underlying = asNumericsVector;
+        public LocalOffset(float x, float y, float z) => _underlying = new(x, y, z);
+        public LocalOffset(Length x, Length y, Length z) => _underlying = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
 
         #if UNITY_2022_1_OR_NEWER
-        public LocalOffset(UnityEngine.Vector3 global) => AsNumericsVector = global.ToSystemVector();
+        public LocalOffset(UnityEngine.Vector3 global) => _underlying = global.ToSystemVector();
         #endif
 
         [Pure] public static Builder From(LocalPosition origin) => new Builder(origin);
@@ -71,17 +79,9 @@ namespace BII.WasaBii.Geometry {
             [Pure] public LocalOffset To(LocalPosition destination) => destination - origin;
         }
 
-        [Pure] public static LocalOffset Lerp(
-            LocalOffset start, LocalOffset end, double perc, bool shouldClamp = true
-        ) => start.LerpTo(end, perc, shouldClamp);
-        
-        [Pure] public static LocalOffset Slerp(
-            LocalOffset start, LocalOffset end, double perc, bool shouldClamp = true
-        ) => start.SlerpTo(end, perc, shouldClamp);
-        
     }
     
-    public static partial class OffsetExtensions {
+    public static partial class LocalOffsetExtensions {
         
         #if UNITY_2022_1_OR_NEWER
         [Pure] public static LocalOffset AsLocalOffset(this UnityEngine.Vector3 localOffset)

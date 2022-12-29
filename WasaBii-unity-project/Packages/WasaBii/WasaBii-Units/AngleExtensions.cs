@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
 using BII.WasaBii.Core;
 using Quaternion = System.Numerics.Quaternion;
 using Vector3 = System.Numerics.Vector3;
@@ -56,35 +57,42 @@ namespace BII.WasaBii.UnitSystem {
             return Units.Lerp(from, to, progress, shouldClamp);
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Cos(this Angle angle) => Math.Cos(angle.SiValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Sin(this Angle angle) => Math.Sin(angle.SiValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Tan(this Angle angle) => Math.Tan(angle.SiValue);
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Acos(double d) => Math.Acos(d).Radians();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Asin(double d) => Math.Asin(d).Radians();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Atan(double d) => Math.Atan(d).Radians();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Atan2(double opposite, double adjacent) => Math.Atan2(opposite, adjacent).Radians();
         
         /// <param name="opposite">German: Ankathete</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Asin(Length opposite, Length hypotenuse) => Asin(opposite / hypotenuse);
         
         /// <param name="adjacent">German: Gegenkathete</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Acos(Length adjacent, Length hypotenuse) => Acos(adjacent / hypotenuse);
         
         /// <param name="opposite">German: Ankathete</param>
         /// <param name="adjacent">German: Gegenkathete</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Atan(Length opposite, Length adjacent) => Atan(opposite / adjacent);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Atan2(Length opposite, Length adjacent) => Atan2(opposite.SiValue, adjacent.SiValue);
-        
-#if UNITY_5_3_OR_NEWER
         
         // Caution: the System.Numerics.Quaternion functions expect angles to
         // be given in radians while the Unity equivalent expects degrees.
         // Also, it doesn't normalize the axis for you while Unity does.
         [Pure] public static Quaternion WithAxis(this Angle angle, Vector3 axis) => 
             Quaternion.CreateFromAxisAngle(Vector3.Normalize(axis), (float) angle.AsRadians());
-
-#endif
         
         public static bool IsInsideInterval(this Angle angle, Angle min, Angle max) {
             min = min.Normalized360();

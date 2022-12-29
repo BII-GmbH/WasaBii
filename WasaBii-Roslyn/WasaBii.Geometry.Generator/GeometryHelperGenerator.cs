@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -69,24 +68,22 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     : isQuaternion ? WrappedType.Quaternion : WrappedType.Other;
                 
                 var allMembers = new List<MemberDeclarationSyntax>();
+                var extensionMethods = new List<MemberDeclarationSyntax>();
 
                 if(wrappedFieldDecls.Count == 1)
                     allMembers.AddRange(mkAccessorProperties(wrappedType, wrappedFieldDecls[0].identifier, hasMagnitude));
                 
-                allMembers.AddRange(mkMapAndScale(typeDecl, areFieldsIndependent, wrappedFieldDecls, hasMagnitude && hasOrientation));
-                if (areFieldsIndependent) {
-                    if(isVector) {
-                        allMembers.AddRange(mkWithFieldMethods(typeDecl, wrappedFieldDecls[0].identifier));
-                        allMembers.AddRange(mkMinMax(typeDecl, wrappedFieldDecls[0].identifier));
-                    }
-                    // TODO DS: Lerp as static utility
-                    // allMembers.Add(mkLerp(typeDecl, allFields));
+                allMembers.AddRange(mkMapAndScale(typeDecl, areFieldsIndependent, isVector, wrappedFieldDecls, hasMagnitude && hasOrientation));
+                if (isVector && areFieldsIndependent) {
+                    allMembers.AddRange(mkWithFieldMethods(typeDecl, wrappedFieldDecls[0].identifier));
+                    allMembers.AddRange(mkMinMax(typeDecl, wrappedFieldDecls[0].identifier));
                 }
 
-                if (isVector || isQuaternion) {
+                if (isVector) {
                     if (areFieldsIndependent) allMembers.AddRange(mkLerp(typeDecl, wrappedFieldDecls[0]));
                     if (hasOrientation) allMembers.AddRange(mkSlerp(typeDecl, wrappedFieldDecls[0]));
-                }
+                } else if (isQuaternion)
+                    allMembers.AddRange(mkSlerp(typeDecl, wrappedFieldDecls[0]));
                 
                 // if(fieldType is not FieldType.Other){
                 //     allMembers.Add(mkDotProduct(typeDecl, allFields.Select(f => f.identifier), fieldType));
@@ -99,23 +96,28 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 if (isVector && hasOrientation) {
                     allMembers.Add(mkAngleTo(typeDecl, hasMagnitude));
                 }
-                // }
-                // allMembers.Add(mkSlerp(typeDecl, allFields, isBasic));
-                // allMembers.Add(mkIsNearly(typeDecl, allFields, semanticModel, fieldType));
+                allMembers.Add(mkIsNearly(typeDecl, wrappedFieldDecls));
                 
                 // TODO DS: Equzality
-                // TODO DS: Average extension method
+                extensionMethods.Add(mkAverage(typeDecl, wrappedFieldDecls));
                 
                 // if fields are independent, make map and with
                 // if has magnitude, make scale?, Length?, Min, Max
-                // isNearly, Lerp, Slerp
                 var result = typeDecl
                     .WithBaseList(null)
                     .WithAttributeLists(List(Enumerable.Empty<AttributeListSyntax>()))
                     .ClearTrivia()
                     .WithMembers(List(allMembers));
+                var resultStaticClass = ClassDeclaration($"{typeDecl.Identifier.Text}Extensions")
+                    .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.PartialKeyword)))
+                    .WithMembers(List(extensionMethods));
+
+                var allClasses = extensionMethods.Count > 0
+                    ? new MemberDeclarationSyntax[] { result, resultStaticClass }
+                    : new MemberDeclarationSyntax[] { result };
                 
-                var sourceText = SourceText.From(result.WrapInParentsOf(typeDecl).NormalizeWhitespace().ToFullString(), Encoding.UTF8);
+                var sourceText = SourceText.From(List(allClasses)
+                    .WrapInParentsOf(typeDecl).NormalizeWhitespace().ToFullString(), Encoding.UTF8);
                 
                 context.AddSource(
                     $"{typeDecl.Identifier.Text}.g.cs",
@@ -152,10 +154,10 @@ public class GeometryHelperGenerator : ISourceGenerator {
         };
     }
 
-    private MethodDeclarationSyntax mkCopyMethod(TypeDeclarationSyntax typeDecl, SyntaxToken identifier, ParameterListSyntax parameters, ArgumentListSyntax arg) => 
+    private MethodDeclarationSyntax mkCopyMethod(TypeDeclarationSyntax typeDecl, SyntaxToken identifier, ParameterListSyntax parameters, ArgumentListSyntax arg, bool isStatic = false) => 
         MethodDeclaration(
             attributeLists: AttributeList(Pure),
-            modifiers: TokenList(Token(SyntaxKind.PublicKeyword)),
+            modifiers: isStatic ? TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword)) : TokenList(Token(SyntaxKind.PublicKeyword)),
             returnType: IdentifierName(typeDecl.Identifier),
             explicitInterfaceSpecifier:null,
             identifier,
@@ -169,21 +171,16 @@ public class GeometryHelperGenerator : ISourceGenerator {
     private ExpressionSyntax makeCopy(ArgumentListSyntax arg) => 
         ImplicitObjectCreationExpression().WithArgumentList(arg);
 
-    private sealed class CompareTypeSyntaxByNane : IEqualityComparer<TypeSyntax> {
-        public bool Equals(TypeSyntax x, TypeSyntax y) => x.ToFullString().Equals(y.ToFullString());
-
-        public int GetHashCode(TypeSyntax obj) => obj.ToFullString().GetHashCode();
-    }
-
     private IEnumerable<MemberDeclarationSyntax> mkMapAndScale(
-        TypeDeclarationSyntax typeDecl, bool areFieldsIndependent, 
+        TypeDeclarationSyntax typeDecl, bool areFieldsIndependent, bool isVector, 
         IReadOnlyList<(TypeSyntax type, SyntaxToken id)> fields, bool hasMagnitudeAndDirection
     ) {
         if (fields.Count > 1) {
             for (var i = 0; i < fields.Count; i++) {
-                yield return mkCopyMethod( // e.g. pose.MapPosition(GlobalPosition => GlobalPosition)
+                var fieldNameWithoutUnderscore = fields[i].id.Text.Trim('_');
+                yield return mkCopyMethod( // e.g. pose.WithPosition(GlobalPosition => GlobalPosition)
                     typeDecl,
-                    Identifier($"Map{fields[i].id}"),
+                    Identifier($"With{char.ToUpper(fieldNameWithoutUnderscore[0]) + fieldNameWithoutUnderscore[1..]}"),
                     ParameterList(Parameter(
                         List(Enumerable.Empty<AttributeListSyntax>()),
                         TokenList(),
@@ -195,7 +192,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
                         Argument(InvocationExpression(
                             IdentifierName("mapping"),
                             ArgumentList(Argument(IdentifierName(fields[i].id))))
-                        )).Concat(fields.Skip(i + 2).Select(f => Argument(IdentifierName(f.id)))))
+                        )).Concat(fields.Skip(i + 1).Select(f => Argument(IdentifierName(f.id)))))
                 );
             }
         } else {
@@ -215,7 +212,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     ArgumentList(Argument(IdentifierName(fieldId)))
                 )))
             );
-            if(areFieldsIndependent) {
+            if(isVector && areFieldsIndependent) {
                 yield return mkCopyMethod( // e.g. pos.Map(Length => Length)
                     typeDecl,
                     Identifier("Map"),
@@ -374,46 +371,37 @@ public class GeometryHelperGenerator : ISourceGenerator {
         yield return make("Max");
     }
 
-    /// Assumes all fields are either `Length` or have a `.IsNearly(other, double)`
-    // private MethodDeclarationSyntax mkIsNearly(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields, SemanticModel semanticModel, FieldType fieldType) =>
-    //     MethodDeclaration(PredefinedType(Token(SyntaxKind.BoolKeyword)), Identifier("IsNearly"))
-    //         .WithAttributeLists(AttributeList(Pure))
-    //         .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
-    //         .WithParameterList(ParameterList(
-    //             Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier)),
-    //             Parameter(Identifier("threshold"))
-    //                 .WithType(PredefinedType(Token(SyntaxKind.FloatKeyword)))
-    //                 .WithDefault(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1E-6f))))
-    //         ))
-    //         .WithExpressionBody(ArrowExpressionClause(fields
-    //             .Select(f => (ExpressionSyntax) InvocationExpression(
-    //                 MemberAccessExpression(
-    //                     SyntaxKind.SimpleMemberAccessExpression,
-    //                     IdentifierName(f.identifier),
-    //                     IdentifierName("IsNearly")),
-    //                 ArgumentList(
-    //                     Argument(MemberAccessExpression(
-    //                         SyntaxKind.SimpleMemberAccessExpression,
-    //                         IdentifierName("other"),
-    //                         IdentifierName(f.identifier)
-    //                     )),
-    //                     Argument(fieldType switch {
-    //                         FieldType.Float or FieldType.Other => IdentifierName("threshold"),
-    //                         FieldType.Double => CastExpression(PredefinedType(Token(SyntaxKind.DoubleKeyword)), IdentifierName("threshold")),
-    //                         FieldType.Length => InvocationExpression(
-    //                             MemberAccessExpression(
-    //                                 SyntaxKind.SimpleMemberAccessExpression,
-    //                                 IdentifierName("threshold"),
-    //                                 IdentifierName("Meters"))),
-    //                         _ => throw new InvalidEnumArgumentException(nameof(fieldType), (int)fieldType, typeof(FieldType))
-    //                     }
-    //                 ))))
-    //             .Aggregate((res, single) => BinaryExpression(
-    //                 SyntaxKind.LogicalAndExpression,
-    //                 res, single
-    //             ))
-    //         ))
-    //         .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+     // Assumes all fields are have a `.IsNearly(other, double)`
+     private MethodDeclarationSyntax mkIsNearly(TypeDeclarationSyntax typeDecl, IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields) =>
+         MethodDeclaration(PredefinedType(Token(SyntaxKind.BoolKeyword)), Identifier("IsNearly"))
+             .WithAttributeLists(AttributeList(Pure))
+             .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+             .WithParameterList(ParameterList(
+                 Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier)),
+                 Parameter(Identifier("threshold"))
+                     .WithType(PredefinedType(Token(SyntaxKind.DoubleKeyword)))
+                     .WithDefault(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1E-6))))
+             ))
+             .WithExpressionBody(ArrowExpressionClause(fields
+                 .Select(f => (ExpressionSyntax) InvocationExpression(
+                     MemberAccessExpression(
+                         SyntaxKind.SimpleMemberAccessExpression,
+                         IdentifierName(f.identifier),
+                         IdentifierName("IsNearly")),
+                     ArgumentList(
+                         Argument(MemberAccessExpression(
+                             SyntaxKind.SimpleMemberAccessExpression,
+                             IdentifierName("other"),
+                             IdentifierName(f.identifier)
+                         )),
+                         Argument(IdentifierName("threshold")
+                     ))))
+                 .Aggregate((res, single) => BinaryExpression(
+                     SyntaxKind.LogicalAndExpression,
+                     res, single
+                 ))
+             ))
+             .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
     
     private MemberDeclarationSyntax mkAngleTo(TypeDeclarationSyntax typeDecl, bool hasMagnitude) {
         var dotProductRes = InvocationExpression(
@@ -469,6 +457,25 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 Argument(IdentifierName("shouldClamp"))
             )
         ))));
+        yield return mkCopyMethod(typeDecl, Identifier("Lerp"), ParameterList(
+            Parameter(Identifier("from")).WithType(IdentifierName(typeDecl.Identifier)),
+            Parameter(Identifier("to")).WithType(IdentifierName(typeDecl.Identifier)),
+            Parameter(Identifier("t")).WithType(PredefinedType(Token(SyntaxKind.DoubleKeyword))),
+            Parameter(Identifier("shouldClamp")).WithType(PredefinedType(Token(SyntaxKind.BoolKeyword))).WithDefault(EqualsValueClause(LiteralExpression(SyntaxKind.TrueLiteralExpression)))
+        ), ArgumentList(Argument(InvocationExpression(
+            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
+                    IdentifierName("from"),
+                    IdentifierName(wrappedFieldDecl.identifier)
+                ),
+                IdentifierName("LerpTo")
+            ),
+            ArgumentList(
+                Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("to"), IdentifierName(wrappedFieldDecl.identifier))),
+                Argument(IdentifierName("t")),
+                Argument(IdentifierName("shouldClamp"))
+            )
+        ))), isStatic: true);
     }
 
     private IEnumerable<MemberDeclarationSyntax> mkSlerp(TypeDeclarationSyntax typeDecl, (TypeSyntax type, SyntaxToken identifier) wrappedFieldDecl) {
@@ -479,7 +486,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
         ), ArgumentList(Argument(InvocationExpression(
             MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
                 IdentifierName(wrappedFieldDecl.identifier),
-                IdentifierName("LerpTo")
+                IdentifierName("SlerpTo")
             ),
             ArgumentList(
                 Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("other"), IdentifierName(wrappedFieldDecl.identifier))),
@@ -487,7 +494,53 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 Argument(IdentifierName("shouldClamp"))
             )
         ))));
+        yield return mkCopyMethod(typeDecl, Identifier("Slerp"), ParameterList(
+            Parameter(Identifier("from")).WithType(IdentifierName(typeDecl.Identifier)),
+            Parameter(Identifier("to")).WithType(IdentifierName(typeDecl.Identifier)),
+            Parameter(Identifier("t")).WithType(PredefinedType(Token(SyntaxKind.DoubleKeyword))),
+            Parameter(Identifier("shouldClamp")).WithType(PredefinedType(Token(SyntaxKind.BoolKeyword))).WithDefault(EqualsValueClause(LiteralExpression(SyntaxKind.TrueLiteralExpression)))
+        ), ArgumentList(Argument(InvocationExpression(
+            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
+                    IdentifierName("from"),
+                    IdentifierName(wrappedFieldDecl.identifier)
+                ),
+                IdentifierName("SlerpTo")
+            ),
+            ArgumentList(
+                Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("to"), IdentifierName(wrappedFieldDecl.identifier))),
+                Argument(IdentifierName("t")),
+                Argument(IdentifierName("shouldClamp"))
+            )
+        ))), isStatic: true);
     }
+
+    private MemberDeclarationSyntax mkAverage(
+        TypeDeclarationSyntax typeDecl,
+        IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields
+    ) => mkCopyMethod(
+        typeDecl,
+        Identifier("Average"),
+        ParameterList(Parameter(Identifier("enumerable"))
+            .WithModifiers(TokenList(Token(SyntaxKind.ThisKeyword)))
+            .WithType(GenericName("IEnumerable").WithTypeArgumentList(TypeArgumentList(IdentifierName(typeDecl.Identifier))))),
+        ArgumentList(fields.Select(t => Argument(
+            InvocationExpression(MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                InvocationExpression(MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName("enumerable"),
+                    IdentifierName("Select")
+                )).WithArgumentList(ArgumentList(Argument(
+                    SimpleLambdaExpression(Parameter(Identifier("e")))
+                        .WithExpressionBody(MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("e"),
+                            IdentifierName(t.identifier)))))),
+                IdentifierName("Average")
+            ))))),
+        isStatic: true
+    );
 
     private sealed class SyntaxReceiver : ISyntaxReceiver {
 

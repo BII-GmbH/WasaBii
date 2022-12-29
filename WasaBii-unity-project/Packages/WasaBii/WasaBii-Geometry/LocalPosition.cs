@@ -9,12 +9,16 @@ namespace BII.WasaBii.Geometry {
     /// A 3D vector that represents a local position relative to an undefined parent.
     [MustBeImmutable]
     [Serializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
     public partial struct LocalPosition : IsLocalVariant<LocalPosition, GlobalPosition> {
 
         public static readonly LocalPosition Zero = new(Length.Zero, Length.Zero, Length.Zero);
         
         public System.Numerics.Vector3 AsNumericsVector { get; }
+
+        #if UNITY_2022_1_OR_NEWER
+        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+        #endif
 
         public LocalPosition(System.Numerics.Vector3 asNumericsVector) => AsNumericsVector = asNumericsVector;
         public LocalPosition(float x, float y, float z) => AsNumericsVector = new(x, y, z);
@@ -43,10 +47,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static LocalPosition operator -(LocalPosition pos) => new(-pos.AsNumericsVector);
         [Pure] public override string ToString() => AsNumericsVector.ToString();
 
-        [Pure] public static LocalPosition Lerp(
-            LocalPosition start, LocalPosition end, double perc, bool shouldClamp = true
-        ) => start.LerpTo(end, perc, shouldClamp);
-        
         [Pure] public Length DistanceTo(LocalPosition p1, LocalPosition p2) => (p2 - p1).Magnitude;
         
         /// <inheritdoc cref="GeometryUtils.PointReflect(Vector3, Vector3)"/>
@@ -65,7 +65,7 @@ namespace BII.WasaBii.Geometry {
         ) => pivot + (this - pivot) * rotation;
     }
     
-    public static partial class PositionExtensions {
+    public static partial class LocalPositionExtensions {
         
         [Pure] public static LocalPosition AsLocalPosition(this System.Numerics.Vector3 localPosition) 
             => new(localPosition);

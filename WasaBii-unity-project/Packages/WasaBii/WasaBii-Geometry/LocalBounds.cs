@@ -2,61 +2,70 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace BII.WasaBii.Geometry {
 
     /// A Unity-Independent data structure representing an AABB (axis-aligned bounding-box) in some local space.
     [MustBeImmutable]
     [Serializable]
-    public partial struct LocalBounds : IsLocalVariant<LocalBounds, GlobalBounds>, GeometryHelper<LocalBounds> {
+    [GeometryHelper(areFieldsIndependent:true, hasMagnitude:false, hasOrientation:false)]
+    public partial struct LocalBounds : IsLocalVariant<LocalBounds, GlobalBounds> {
         
-        public readonly LocalPosition Center;
+        #if UNITY_2022_1_OR_NEWER
+        [UnityEngine.SerializeField]
+        #endif
+        private LocalPosition _center;
+        public LocalPosition Center => _center;
         
-        public readonly LocalOffset Size;
-        public LocalOffset Extends => Size / 2.0f;
+        #if UNITY_2022_1_OR_NEWER
+        [UnityEngine.SerializeField]
+        #endif
+        private LocalOffset _size;
+        public LocalOffset Size => _size;
 
-        public LocalPosition BottomCenter => Center.WithY(Center.Y() - Size.Y() / 2.0);
-        public LocalPosition TopCenter => Center.WithY(Center.Y() + Size.Y() / 2.0);
+        public LocalOffset Extends => Size * 0.5;
+
+        public LocalPosition BottomCenter => Center.WithY(Center.Y - Size.Y * 0.5);
+        public LocalPosition TopCenter => Center.WithY(Center.Y + Size.Y * 0.5);
 
         public LocalPosition Min => Center - Extends;
         public LocalPosition Max => Center + Extends;
 
-        public Volume Volume => Size.X() * Size.Y() * Size.Z();
-        
-        [Pure] public static LocalBounds FromMinMax(LocalPosition min, LocalPosition max) => 
-            new LocalBounds(max.LerpTo(min, 0.5f), (max - min));
+        public Volume Volume => Size.X * Size.Y * Size.Z;
 
-        [Pure] public static LocalBounds FromCenterSize(LocalPosition center, LocalOffset size) => 
-            new LocalBounds(center, size);
+        public LocalBounds(LocalPosition min, LocalPosition max) : 
+            this(center: max.LerpTo(min, 0.5f), size: max - min) { }
 
-        private LocalBounds(LocalPosition center, LocalOffset size) {
-            Center = center;
-            Size = size.Map(vector => vector.Map(Mathf.Abs));
+        public LocalBounds(LocalPosition center, LocalOffset size) {
+            _center = center;
+            _size = size.Map(vector => vector.Map(Math.Abs));
         }
 
         /// Returns the smallest possible bounds in global space that completely wraps <see cref="this"/>.
-        /// Will most likely be larger than the original if rotations of any angles other than 90°-multiples
+        /// Will be larger than the original if rotations of any angles other than 90°-multiples
         /// are involved. 
         [Pure] public GlobalBounds ToGlobalWith(TransformProvider parent)
             => this.Vertices().Select(p => p.ToGlobalWith(parent)).Bounds();
-        
+
+        public GlobalBounds ToGlobalWithWorldZero => new(Center.ToGlobalWithWorldZero, Size.ToGlobalWithWorldZero);
+
         [Pure] public LocalBounds TransformBy(LocalPose offset) 
             => this.Vertices().Select(p => p.TransformBy(offset)).Bounds();
         
         [Pure] public bool Contains(LocalPosition point) 
-            => point.X().IsInsideInterval(Min.X(), Max.X(), inclusive: true)
-            && point.Y().IsInsideInterval(Min.Y(), Max.Y(), inclusive: true)
-            && point.Z().IsInsideInterval(Min.Z(), Max.Z(), inclusive: true);
+            => point.X.IsInsideInterval(Min.X, Max.X, inclusive: true)
+            && point.Y.IsInsideInterval(Min.Y, Max.Y, inclusive: true)
+            && point.Z.IsInsideInterval(Min.Z, Max.Z, inclusive: true);
 
-        [Pure] public LocalBounds LerpTo(LocalBounds target, double progress, bool shouldClamp) => FromCenterSize(
+        [Pure] public LocalBounds LerpTo(LocalBounds target, double progress, bool shouldClamp) => new(
             Center.LerpTo(target.Center, progress, shouldClamp),
             Size.LerpTo(target.Size, progress, shouldClamp)
         );
 
-        [Pure] public LocalBounds SlerpTo(LocalBounds target, double progress, bool shouldClamp) => FromCenterSize(
+        [Pure] public LocalBounds SlerpTo(LocalBounds target, double progress, bool shouldClamp) => new(
             Center.SlerpTo(target.Center, progress, shouldClamp),
             Size.SlerpTo(target.Size, progress, shouldClamp)
         );
@@ -64,58 +73,49 @@ namespace BII.WasaBii.Geometry {
     }
     
 
-    public static class LocalBoundsExtensions {
+    public static partial class LocalBoundsExtensions {
         
+        #if UNITY_2022_1_OR_NEWER
         [Pure] public static LocalBounds AsLocalBounds(this UnityEngine.Bounds b) => 
-            LocalBounds.FromCenterSize(b.center.AsLocalPosition(), b.size.AsLocalOffset());
+            new(b.center.AsLocalPosition(), b.size.AsLocalOffset());
         
-        [Pure] public static Bounds AsUnityBounds(this LocalBounds bounds) => new Bounds(
-            center: bounds.Center.AsVector,
-            size: bounds.Size.AsVector
+        [Pure] public static UnityEngine.Bounds AsUnityBounds(this LocalBounds bounds) => new(
+            center: bounds.Center.AsUnityVector,
+            size: bounds.Size.AsUnityVector
         );
+        #endif
 
         [Pure] public static LocalBounds Encapsulating(this LocalBounds a, LocalBounds b) =>
-            LocalBounds.FromMinMax(
+            new(
                 a.Min.Min(b.Min),
                 a.Max.Max(b.Max)
             );
 
         [Pure] public static LocalBounds Encapsulating(this LocalBounds bounds, LocalPosition point) => 
-            LocalBounds.FromMinMax(bounds.Min.Min(point), bounds.Max.Max(point));
+            new(bounds.Min.Min(point), bounds.Max.Max(point));
 
         [Pure] public static LocalBounds Bounds(this IEnumerable<LocalPosition> vertices) {
-            var min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue).AsLocalPosition();
-            var max = new Vector3(float.MinValue, float.MinValue, float.MinValue).AsLocalPosition();
+            var min = new LocalPosition(float.MaxValue, float.MaxValue, float.MaxValue);
+            var max = new LocalPosition(float.MinValue, float.MinValue, float.MinValue);
             foreach (var vertex in vertices) {
                 min = min.Min(vertex);
                 max = max.Max(vertex);
             }
-            return LocalBounds.FromMinMax(min, max);
+            return new(min, max);
         }
 
         [Pure] public static IEnumerable<LocalPosition> Vertices(this LocalBounds localBounds) {
             var min = localBounds.Min;
             var max = localBounds.Max;
             yield return min;
-            yield return min.WithX(max.X());
-            yield return min.WithY(max.Y());
-            yield return min.WithZ(max.Z());
-            yield return max.WithX(min.X());
-            yield return max.WithY(min.Y());
-            yield return max.WithZ(min.Z());
+            yield return min.WithX(max.X);
+            yield return min.WithY(max.Y);
+            yield return min.WithZ(max.Z);
+            yield return max.WithX(min.X);
+            yield return max.WithY(min.Y);
+            yield return max.WithZ(min.Z);
             yield return max;
         }
 
-        [Pure] public static LocalBounds WithCenter(this LocalBounds localBounds, LocalPosition center) =>
-            LocalBounds.FromCenterSize(center, localBounds.Size);
-
-        [Pure] public static LocalBounds WithCenter(this LocalBounds localBounds, Func<LocalPosition, LocalPosition> centerGetter) =>
-            localBounds.WithCenter(centerGetter(localBounds.Center));
-
-        [Pure] public static LocalBounds WithSize(this LocalBounds localBounds, LocalOffset size) =>
-            LocalBounds.FromCenterSize(localBounds.Center, size);
-
-        [Pure] public static LocalBounds WithSize(this LocalBounds localBounds, Func<LocalOffset, LocalOffset> sizeGetter) =>
-            localBounds.WithSize(sizeGetter(localBounds.Size));
     }
 }

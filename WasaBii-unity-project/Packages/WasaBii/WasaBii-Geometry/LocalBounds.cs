@@ -41,7 +41,7 @@ namespace BII.WasaBii.Geometry {
 
         public LocalBounds(LocalPosition center, LocalOffset size) {
             _center = center;
-            _size = size.Map(vector => vector.Map(Math.Abs));
+            _size = size.Map(MathF.Abs);
         }
 
         /// Returns the smallest possible bounds in global space that completely wraps <see cref="this"/>.
@@ -66,7 +66,7 @@ namespace BII.WasaBii.Geometry {
         );
 
         [Pure] public LocalBounds SlerpTo(LocalBounds target, double progress, bool shouldClamp) => new(
-            Center.SlerpTo(target.Center, progress, shouldClamp),
+            Center.AsOffset.SlerpTo(target.Center.AsOffset, progress, shouldClamp).AsPosition,
             Size.SlerpTo(target.Size, progress, shouldClamp)
         );
 

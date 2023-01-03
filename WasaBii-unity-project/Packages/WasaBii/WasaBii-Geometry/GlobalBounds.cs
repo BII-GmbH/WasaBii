@@ -42,7 +42,7 @@ namespace BII.WasaBii.Geometry {
 
         public GlobalBounds(GlobalPosition center, GlobalOffset size) {
             _center = center;
-            _size = size.Map(vector => vector.Map(Math.Abs));
+            _size = size.Map(MathF.Abs);
         }
 
         /// Returns the smallest possible bounds in local space relative to <see cref="parent"/> that completely

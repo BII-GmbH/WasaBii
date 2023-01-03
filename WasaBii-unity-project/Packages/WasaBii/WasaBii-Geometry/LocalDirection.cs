@@ -25,27 +25,30 @@ namespace BII.WasaBii.Geometry {
         public static readonly LocalDirection Zero = new(0, 0, 0);
 
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
-        #endif
+        // We cannot normalize values supplied by the user via the unity inspector without
+        // writing a custom property drawer and even then, UX would be awful when we change
+        // the x value while the user has not yet set the z value. Thus, we simply show this
+        // tooltip and trust the user to input a normalized vector.
+        [UnityEngine.SerializeField][UnityEngine.Tooltip("Must be normalized, otherwise calculations might break")]
+        private UnityEngine.Vector3 _underlying;
+        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
+        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
+        
+        public LocalDirection(UnityEngine.Vector3 toWrap) => _underlying = toWrap.normalized;
+        public LocalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized().ToUnityVector();
+        #else
         private System.Numerics.Vector3 _underlying;
         public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        
-        #if UNITY_2022_1_OR_NEWER
-        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+        public LocalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized();
         #endif
 
-        public LocalOffset AsOffsetWithLength1 => new(AsNumericsVector);
-
-        public LocalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized();
         public LocalDirection(float x, float y, float z) : this(new System.Numerics.Vector3(x, y, z)) { }
-
+        
         public LocalDirection(Length x, Length y, Length z) : this(
             (float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()
         ) { }
 
-        #if UNITY_2022_1_OR_NEWER
-        public LocalDirection(UnityEngine.Vector3 local) : this(local.ToSystemVector()) { }
-        #endif
+        public readonly LocalOffset AsOffsetWithLength1 => new(AsNumericsVector);
 
         /// <inheritdoc cref="TransformProvider.TransformDirection"/>
         /// This is the inverse of <see cref="GlobalDirection.RelativeTo"/>

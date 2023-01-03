@@ -21,17 +21,14 @@ namespace BII.WasaBii.Geometry {
 
     public static class DirectionLikeExtensions {
         
-        [Pure] public static Angle SignedAngleTo<TRelativity>(
-            this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs, RelativeDirectionLike<TRelativity> axis
-        ) where TRelativity : WithRelativity => 
-            Vector3.SignedAngle(lhs.AsVector, rhs.AsVector, axis.AsVector).Degrees();
-
-        [Pure] public static bool PointsInSameDirectionAs<TRelativity>(this RelativeDirectionLike<TRelativity> a, RelativeDirectionLike<TRelativity> b)
-            where TRelativity : WithRelativity => a.AsVector.PointsInSameDirectionAs(b.AsVector);
+        // [Pure] public static Angle SignedAngleTo<TRelativity>(
+        //     this RelativeDirectionLike<TRelativity> lhs, RelativeDirectionLike<TRelativity> rhs, RelativeDirectionLike<TRelativity> axis
+        // ) where TRelativity : WithRelativity => 
+        //     Vector3.SignedAngle(lhs.AsVector, rhs.AsVector, axis.AsVector).Degrees();
+        //
+        // [Pure] public static bool PointsInSameDirectionAs<TRelativity>(this RelativeDirectionLike<TRelativity> a, RelativeDirectionLike<TRelativity> b)
+        //     where TRelativity : WithRelativity => a.AsVector.PointsInSameDirectionAs(b.AsVector);
         
-        [Pure] public static T Sum<T>(this IEnumerable<T> elements) where T : struct, DirectionLike, HasMagnitude<T>
-            => elements.Aggregate(Add);
-
     }
 
 }

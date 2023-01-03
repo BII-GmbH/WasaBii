@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BII.WasaBii.Splines;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry;
 using BII.WasaBii.Splines.Bezier;
 using BII.WasaBii.Splines.CatmullRom;
 using BII.WasaBii.UnitSystem;
@@ -80,7 +81,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
 
             public GlobalOffset Mul(GlobalOffset diff, double f) => diff * f;
 
-            public double Dot(GlobalOffset a, GlobalOffset b) => a.Dot(b);
+            public double Dot(GlobalOffset a, GlobalOffset b) => a.Dot(b).AsSquareMeters();
             
             public GlobalOffset ZeroDiff => GlobalOffset.Zero;
 

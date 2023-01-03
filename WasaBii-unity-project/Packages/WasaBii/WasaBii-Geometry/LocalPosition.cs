@@ -9,24 +9,27 @@ namespace BII.WasaBii.Geometry {
     /// A 3D vector that represents a local position relative to an undefined parent.
     [MustBeImmutable]
     [Serializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
     public partial struct LocalPosition : IsLocalVariant<LocalPosition, GlobalPosition> {
 
-        public static readonly LocalPosition Zero = new(Length.Zero, Length.Zero, Length.Zero);
+        public static readonly LocalPosition Zero = new(System.Numerics.Vector3.Zero);
+
+        #if UNITY_2022_1_OR_NEWER
+        [UnityEngine.SerializeField]
+        private UnityEngine.Vector3 _underlying;
+        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
+        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
         
-        public System.Numerics.Vector3 AsNumericsVector { get; }
-
-        #if UNITY_2022_1_OR_NEWER
-        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+        public LocalPosition(UnityEngine.Vector3 toWrap) => _underlying = toWrap;
+        public LocalPosition(System.Numerics.Vector3 toWrap) => _underlying = toWrap.ToUnityVector();
+        #else
+        private System.Numerics.Vector3 _underlying;
+        public System.Numerics.Vector3 AsNumericsVector => _underlying;
+        public LocalPosition(System.Numerics.Vector3 toWrap) => _underlying = toWrap;
         #endif
 
-        public LocalPosition(System.Numerics.Vector3 asNumericsVector) => AsNumericsVector = asNumericsVector;
-        public LocalPosition(float x, float y, float z) => AsNumericsVector = new(x, y, z);
-        public LocalPosition(Length x, Length y, Length z) => AsNumericsVector = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
-
-        #if UNITY_2022_1_OR_NEWER
-        public LocalPosition(UnityEngine.Vector3 global) => AsNumericsVector = global.ToSystemVector();
-        #endif
+        public LocalPosition(float x, float y, float z) => _underlying = new(x, y, z);
+        public LocalPosition(Length x, Length y, Length z) => _underlying = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
 
         public LocalOffset AsOffset => new(AsNumericsVector);
 
@@ -47,7 +50,7 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static LocalPosition operator -(LocalPosition pos) => new(-pos.AsNumericsVector);
         [Pure] public override string ToString() => AsNumericsVector.ToString();
 
-        [Pure] public Length DistanceTo(LocalPosition p1, LocalPosition p2) => (p2 - p1).Magnitude;
+        [Pure] public Length DistanceTo(LocalPosition p2) => (p2 - this).Magnitude;
         
         /// <inheritdoc cref="GeometryUtils.PointReflect(Vector3, Vector3)"/>
         [Pure] public LocalPosition PointReflect(LocalPosition on)

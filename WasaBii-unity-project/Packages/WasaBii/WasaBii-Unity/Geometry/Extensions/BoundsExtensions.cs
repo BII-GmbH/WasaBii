@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity.Geometry {

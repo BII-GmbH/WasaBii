@@ -12,25 +12,24 @@ namespace BII.WasaBii.Geometry {
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
     public partial struct GlobalPosition : IsGlobalVariant<GlobalPosition, LocalPosition> {
         
-        public static readonly GlobalPosition Zero = new(Length.Zero, Length.Zero, Length.Zero);
+        public static readonly GlobalPosition Zero = new(System.Numerics.Vector3.Zero);
 
         #if UNITY_2022_1_OR_NEWER
         [UnityEngine.SerializeField]
-        #endif
+        private UnityEngine.Vector3 _underlying;
+        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
+        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
+        
+        public GlobalPosition(UnityEngine.Vector3 toWrap) => _underlying = toWrap;
+        public GlobalPosition(System.Numerics.Vector3 toWrap) => _underlying = toWrap.ToUnityVector();
+        #else
         private System.Numerics.Vector3 _underlying;
         public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        
-        #if UNITY_2022_1_OR_NEWER
-        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+        public GlobalPosition(System.Numerics.Vector3 toWrap) => _underlying = toWrap;
         #endif
 
-        public GlobalPosition(System.Numerics.Vector3 asNumericsVector) => _underlying = asNumericsVector;
         public GlobalPosition(float x, float y, float z) => _underlying = new(x, y, z);
         public GlobalPosition(Length x, Length y, Length z) => _underlying = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
-
-        #if UNITY_2022_1_OR_NEWER
-        public GlobalPosition(UnityEngine.Vector3 global) => _underlying = global.ToSystemVector();
-        #endif
 
         /// <inheritdoc cref="TransformProvider.InverseTransformPoint"/>
         /// This is the inverse of <see cref="LocalPosition.ToGlobalWith"/>

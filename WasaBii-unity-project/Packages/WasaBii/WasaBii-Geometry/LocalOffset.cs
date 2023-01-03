@@ -15,26 +15,28 @@ namespace BII.WasaBii.Geometry {
         LocalDirectionLike<LocalOffset>, 
         IsLocalVariant<LocalOffset, GlobalOffset> {
         
+        public static readonly LocalOffset Zero = new(System.Numerics.Vector3.Zero);
+
         #if UNITY_2022_1_OR_NEWER
         [UnityEngine.SerializeField]
-        #endif
+        private UnityEngine.Vector3 _underlying;
+        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
+        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
+        
+        public LocalOffset(UnityEngine.Vector3 toWrap) => _underlying = toWrap;
+        public LocalOffset(System.Numerics.Vector3 toWrap) => _underlying = toWrap.ToUnityVector();
+        #else
         private System.Numerics.Vector3 _underlying;
         public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        
-        #if UNITY_2022_1_OR_NEWER
-        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+        public LocalOffset(System.Numerics.Vector3 toWrap) => _underlying = toWrap;
         #endif
 
         public LocalDirection Normalized => new(AsNumericsVector);
-        public LocalPosition AsPosition => new(AsNumericsVector);
 
-        public LocalOffset(System.Numerics.Vector3 asNumericsVector) => _underlying = asNumericsVector;
         public LocalOffset(float x, float y, float z) => _underlying = new(x, y, z);
         public LocalOffset(Length x, Length y, Length z) => _underlying = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
 
-        #if UNITY_2022_1_OR_NEWER
-        public LocalOffset(UnityEngine.Vector3 global) => _underlying = global.ToSystemVector();
-        #endif
+        public LocalPosition AsPosition => new(AsNumericsVector);
 
         [Pure] public static Builder From(LocalPosition origin) => new Builder(origin);
 

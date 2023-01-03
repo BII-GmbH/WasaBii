@@ -42,7 +42,7 @@ namespace BII.WasaBii.Geometry
         private bool isWithinAngle(Vector2 point) {
             var angle = AngleUtils
                 .From(GlobalDirection.Forward)
-                .To(GlobalOffset.From(Circle.Center.xxy()).To(point.xxy()).Normalized, 
+                .To(GlobalOffset.From(Circle.Center.xxy().AsGlobalPosition()).To(point.xxy().AsGlobalPosition()).Normalized, 
                     axis: GlobalDirection.Up)
                 .Normalized360();
             return MinAngle < MaxAngle

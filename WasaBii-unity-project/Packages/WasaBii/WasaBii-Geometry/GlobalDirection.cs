@@ -25,31 +25,28 @@ namespace BII.WasaBii.Geometry {
         public static readonly GlobalDirection Zero = new(0, 0, 0);
 
 #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
-#endif
+        // We cannot normalize values supplied by the user via the unity inspector without
+        // writing a custom property drawer and even then, UX would be awful when we change
+        // the x value while the user has not yet set the z value. Thus, we simply show this
+        // tooltip and trust the user to input a normalized vector.
+        [UnityEngine.SerializeField][UnityEngine.Tooltip("Must be normalized, otherwise calculations might break")]
+        private UnityEngine.Vector3 _underlying;
+        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
+        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
+        
+        public GlobalDirection(UnityEngine.Vector3 toWrap) => _underlying = toWrap.normalized;
+        public GlobalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized().ToUnityVector();
+#else
         private System.Numerics.Vector3 _underlying;
         public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        
-#if UNITY_2022_1_OR_NEWER
-        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+        public GlobalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized();
 #endif
 
-        public GlobalOffset AsOffsetWithLength1 => new(AsNumericsVector);
+        public GlobalDirection(float x, float y, float z) : this(new System.Numerics.Vector3(x, y, z)) { }
         
-        public GlobalDirection(float x, float y, float z) {
-            var magnitude = MathF.Sqrt(x * x + y * y + z * z);
-            _underlying = new(x / magnitude, y / magnitude, z / magnitude);
-        }
-        
-        public GlobalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized();
-
         public GlobalDirection(Length x, Length y, Length z) : this(
             (float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()
         ) { }
-
-        #if UNITY_2022_1_OR_NEWER
-        public GlobalDirection(UnityEngine.Vector3 local) : this(local.ToSystemVector()) { }
-        #endif
 
         /// <inheritdoc cref="TransformProvider.InverseTransformDirection"/>
         /// This is the inverse of <see cref="LocalDirection.ToGlobalWith"/>
@@ -59,11 +56,11 @@ namespace BII.WasaBii.Geometry {
 
         /// Projects this direction onto the plane defined by its normal.
         [Pure] public GlobalDirection ProjectOnPlane(GlobalDirection planeNormal) => 
-            this.AsOffsetWithLength1.ProjectOnPlane(planeNormal).Normalized;
+            new GlobalOffset(AsNumericsVector).ProjectOnPlane(planeNormal).Normalized;
 
         /// Reflects this direction off the plane defined by the given normal
         [Pure]
-        public GlobalDirection Reflect(GlobalDirection planeNormal) => this.AsOffsetWithLength1.Reflect(planeNormal).Normalized;
+        public GlobalDirection Reflect(GlobalDirection planeNormal) => new GlobalOffset(AsNumericsVector).Reflect(planeNormal).Normalized;
         
         public float Dot(GlobalDirection other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector);
 

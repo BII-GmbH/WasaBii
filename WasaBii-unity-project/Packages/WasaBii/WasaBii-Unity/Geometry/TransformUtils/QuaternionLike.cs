@@ -7,10 +7,6 @@ namespace BII.WasaBii.Unity.Geometry {
     
     public static class QuaternionLikeExtensions {
         
-        [Pure]
-        public static T Map<T>(this T t, Func<Quaternion, Quaternion> f) where T : struct, QuaternionLike<T>
-            => t.CopyWithDifferentValue(f(t.AsQuaternion));
-
         [Pure] public static Quaternion Inverse(this Quaternion q) => Quaternion.Inverse(q);
         
         [Pure] public static Angle AngleOn(this Quaternion q, Vector3 axis) {
@@ -24,12 +20,12 @@ namespace BII.WasaBii.Unity.Geometry {
             return Vector3.SignedAngle(vec, q * vec, axis).Degrees();
         }
 
-        [Pure] public static Angle AngleTo<T>(this T self, T other) 
-        where T : struct, QuaternionLike<T> =>
-            Quaternion.Angle(self.AsQuaternion, other.AsQuaternion).Degrees();
-
-        [Pure] public static T Inverse<T>(this T t) where T : struct, QuaternionLike<T> => 
-            t.CopyWithDifferentValue(t.AsQuaternion.Inverse());
+        // [Pure] public static Angle AngleTo<T>(this T self, T other) 
+        // where T : struct, QuaternionLike<T> =>
+        //     Quaternion.Angle(self.AsQuaternion, other.AsQuaternion).Degrees();
+        //
+        // [Pure] public static T Inverse<T>(this T t) where T : struct, QuaternionLike<T> => 
+        //     t.CopyWithDifferentValue(t.AsQuaternion.Inverse());
 
     }
 

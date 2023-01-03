@@ -59,12 +59,12 @@ namespace BII.WasaBii.Extra {
             Units.Lerp(target, current, Math.Pow(smoothness, progress));
     }
 
-    public static class TransformHelperSmoothInterpolation {
-        /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
-        [Pure] public static T SmoothInterpolateTo<T>(this T current, T target, double smoothness, double progress) 
-            where T : struct, GeometryHelper<T> => 
-            target.LerpTo(current, Math.Pow(smoothness, progress));
-    }
+    // public static class TransformHelperSmoothInterpolation {
+    //     /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
+    //     [Pure] public static T SmoothInterpolateTo<T>(this T current, T target, double smoothness, double progress) 
+    //         where T : struct, GeometryHelper<T> => 
+    //         target.LerpTo(current, Math.Pow(smoothness, progress));
+    // }
 
     // TODO DS: Document.
     public abstract class Smoothed<T> : IDisposable 

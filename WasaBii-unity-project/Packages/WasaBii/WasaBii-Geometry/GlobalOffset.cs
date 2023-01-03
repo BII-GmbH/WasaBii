@@ -13,27 +13,29 @@ namespace BII.WasaBii.Geometry {
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
     public partial struct GlobalOffset : 
         GlobalDirectionLike<GlobalOffset>,
-        IsGlobalVariant<GlobalOffset, LocalOffset> {
+        IsGlobalVariant<GlobalOffset, LocalOffset>
+    {
+
+        public static readonly GlobalOffset Zero = new(System.Numerics.Vector3.Zero);
     
         #if UNITY_2022_1_OR_NEWER
         [UnityEngine.SerializeField]
-        #endif
+        private UnityEngine.Vector3 _underlying;
+        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
+        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
+        
+        public GlobalOffset(UnityEngine.Vector3 toWrap) => _underlying = toWrap;
+        public GlobalOffset(System.Numerics.Vector3 toWrap) => _underlying = toWrap.ToUnityVector();
+        #else
         private System.Numerics.Vector3 _underlying;
         public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        
-        #if UNITY_2022_1_OR_NEWER
-        public UnityEngine.Vector3 AsUnityVector => AsNumericsVector.ToUnityVector();
+        public GlobalOffset(System.Numerics.Vector3 toWrap) => _underlying = toWrap;
         #endif
 
         public GlobalDirection Normalized => new(AsNumericsVector);
 
-        public GlobalOffset(System.Numerics.Vector3 toWrap) => _underlying = toWrap;
         public GlobalOffset(float x, float y, float z) => _underlying = new(x, y, z);
         public GlobalOffset(Length x, Length y, Length z) => _underlying = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
-
-        #if UNITY_2022_1_OR_NEWER
-        public GlobalOffset(UnityEngine.Vector3 global) => _underlying = global.ToSystemVector();
-        #endif
 
         [Pure] public static Builder From(GlobalPosition origin) => new Builder(origin);
 

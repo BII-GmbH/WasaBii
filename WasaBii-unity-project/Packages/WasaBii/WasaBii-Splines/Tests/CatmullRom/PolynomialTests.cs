@@ -1,5 +1,6 @@
 ﻿using System;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
 using BII.WasaBii.Unity.Geometry;
@@ -11,12 +12,12 @@ namespace BII.WasaBii.Splines.Tests {
 
     public class PolynomialTests {
 
-        private static readonly GlobalPosition a = GlobalPosition.FromGlobal(2, 8, 8);
-        private static readonly GlobalOffset b = GlobalOffset.FromGlobal(4, 2, 0);
-        private static readonly GlobalOffset c = GlobalOffset.FromGlobal(1, 3, 3);
-        private static readonly GlobalOffset d = GlobalOffset.FromGlobal(7, 6, 9);
-        private static readonly GlobalOffset e = GlobalOffset.FromGlobal(-1.0f / 12.0f, 2 * Mathf.PI, (float)Math.E);
-        private static readonly GlobalOffset f = GlobalOffset.FromGlobal(1.618f, 2.414f, 3.303f);
+        private static readonly GlobalPosition a = new(2, 8, 8);
+        private static readonly GlobalOffset b = new(4, 2, 0);
+        private static readonly GlobalOffset c = new(1, 3, 3);
+        private static readonly GlobalOffset d = new(7, 6, 9);
+        private static readonly GlobalOffset e = new(-1.0f / 12.0f, 2 * Mathf.PI, (float)Math.E);
+        private static readonly GlobalOffset f = new(1.618f, 2.414f, 3.303f);
 
         private static readonly Polynomial<GlobalPosition, GlobalOffset> linearPolynomial = new(
             GlobalSpline.GeometricOperations.Instance,

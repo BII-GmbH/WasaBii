@@ -85,7 +85,7 @@ namespace BII.WasaBii.Geometry {
         );
 
         [Pure] public LocalPose SlerpTo(LocalPose target, double progress, bool shouldClamp) => new LocalPose(
-            Position.SlerpTo(target.Position, progress, shouldClamp),
+            Position.AsOffset.SlerpTo(target.Position.AsOffset, progress, shouldClamp).AsPosition,
             Rotation.SlerpTo(target.Rotation, progress, shouldClamp)
         );
 

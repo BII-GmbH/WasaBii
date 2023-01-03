@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
+using BII.WasaBii.Unity.Geometry;
 using UnityEngine;
 
 namespace BII.WasaBii.Geometry

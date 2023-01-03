@@ -16,24 +16,22 @@ namespace BII.WasaBii.Geometry {
 
         #if UNITY_2022_1_OR_NEWER
         [UnityEngine.SerializeField]
-        #endif
-        private System.Numerics.Quaternion _underlying;
-        public readonly System.Numerics.Quaternion AsNumericsQuaternion => _underlying;
+        private UnityEngine.Quaternion _underlying;
+        public readonly UnityEngine.Quaternion AsUnityQuaternion => _underlying;
+        public readonly System.Numerics.Quaternion AsNumericsQuaternion => _underlying.ToSystemQuaternion();
         
-        #if UNITY_2022_1_OR_NEWER
-        public UnityEngine.Quaternion AsUnityQuaternion => AsNumericsQuaternion.ToUnityQuaternion();
+        public LocalRotation(UnityEngine.Quaternion toWrap) => _underlying = toWrap;
+        public LocalRotation(System.Numerics.Quaternion toWrap) => _underlying = toWrap.ToUnityQuaternion();
+        #else
+        private System.Numerics.Quaternion _underlying;
+        public System.Numerics.Quaternion AsNumericsQuaternion => _underlying;
+        public LocalRotation(System.Numerics.Quaternion toWrap) => _underlying = toWrap;
         #endif
 
         public readonly LocalRotation Inverse => AsNumericsQuaternion.Inverse().AsLocalRotation();
-
-        public LocalRotation(System.Numerics.Quaternion local) => _underlying = local;
         
         [Pure] public static LocalRotation FromAngleAxis(Angle angle, LocalDirection axis) => angle.WithAxis(axis.AsNumericsVector).AsLocalRotation();
         
-        #if UNITY_2022_1_OR_NEWER
-        public LocalRotation(UnityEngine.Quaternion local) : this(local.ToSystemQuaternion()) { }
-        #endif
-
         /// <inheritdoc cref="TransformProvider.TransformRotation"/>
         /// This is the inverse of <see cref="GlobalRotation.RelativeTo"/>
         [Pure] public GlobalRotation ToGlobalWith(TransformProvider parent) 

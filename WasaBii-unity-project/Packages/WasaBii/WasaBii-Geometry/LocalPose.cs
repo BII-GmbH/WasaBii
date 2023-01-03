@@ -7,7 +7,9 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
-    /// <see cref="LocalPosition"/> and <see cref="LocalRotation"/> combined.
+    /// <summary>
+    /// A global transformation without scale, which simply is a <see cref="LocalPosition"/> and <see cref="LocalRotation"/> combined.
+    /// </summary>
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: false, hasOrientation: false)]
@@ -16,20 +18,18 @@ namespace BII.WasaBii.Geometry {
         public static readonly LocalPose Identity = new(LocalPosition.Zero, LocalRotation.Identity);
         
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
+        [field:UnityEngine.SerializeField]
         #endif
-        private LocalPosition _position;
+        public LocalPosition Position { get; private set; }
         
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
+        [field:UnityEngine.SerializeField]
         #endif
-        private LocalRotation _rotation;
-        
-        public readonly LocalPosition Position => _position;
-        public readonly LocalRotation Rotation => _rotation;
+        public LocalRotation Rotation { get; private set; }
+
         public readonly LocalDirection Forward => Rotation * LocalDirection.Forward;
 
-        public LocalPose(LocalPosition position, LocalRotation rotation) => (_position, _rotation) = (position, rotation);
+        public LocalPose(LocalPosition position, LocalRotation rotation) => (Position, Rotation) = (position, rotation);
 
         public LocalPose(LocalPosition position, LocalDirection forward) : this(
             position,
@@ -43,35 +43,42 @@ namespace BII.WasaBii.Geometry {
             }
         }
 
-        public static LocalPose operator +(LocalPose a, LocalPose b) => new(
-            a.Position + b.Position.AsOffset,
-            b.Rotation * a.Rotation
-        );
-        
-        public static LocalPose operator -(LocalPose a, LocalPose b) => new(
-            a.Position - b.Position.AsOffset,
-            b.Rotation.Inverse * a.Rotation
-        );
-        
+        /// <summary>
+        /// Transforms the <paramref name="local"/> pose into the local space <paramref name="parent"/>
+        /// is defined relative to. Only applicable if <see cref="local"/> is defined relative to the
+        /// given <paramref name="parent"/>!
+        /// </summary>
         public static LocalPose operator *(LocalPose parent, LocalPose local) => new(
             parent.Position + parent.Rotation * local.Position.AsOffset,
             parent.Rotation * local.Rotation
         );
 
+        /// <summary>
+        /// Combines the two poses by staking both the offset from local zero and the rotation independently.
+        /// Only applicable if <paramref name="a"/> and <paramref name="b"/> are defined relative to the
+        /// same parent!
+        /// </summary>
+        public static LocalPose operator +(LocalPose a, LocalPose b) => new(
+            a.Position + b.Position.AsOffset,
+            b.Rotation * a.Rotation
+        );
+
+        /// <summary>
         /// Transforms the local pose into global space, with <see cref="parent"/> as the parent.
         /// This is the inverse of <see cref="GlobalPose.RelativeTo"/>
+        /// </summary>
+        /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code> </example>
         [Pure] public GlobalPose ToGlobalWith(TransformProvider parent) => 
             new GlobalPose(Position.ToGlobalWith(parent), Rotation.ToGlobalWith(parent));
 
         public GlobalPose ToGlobalWithWorldZero => new(Position.ToGlobalWithWorldZero, Rotation.ToGlobalWithWorldZero);
 
+        /// <summary>
         /// This is another counterpart to <see cref="GlobalPose.RelativeTo"/> and
         /// <see cref="LocalPose.ToGlobalWith"/>. It returns the pose the parent must
         /// be in to transform this into <see cref="global"/>.
-        /// <example>
-        /// <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code>
-        /// <code>global.RelativeTo(parent).ParentPoseFor(global) == parent</code>
-        /// </example>
+        /// </summary>
+        /// <example> <code>global.RelativeTo(parent).ParentPoseFor(global) == parent</code> </example>
         [Pure] public GlobalPose ParentPoseFor(GlobalPose global) => Inverse.ToGlobalWith(global);
 
         [Pure] public LocalPose TransformBy(LocalPose offset) => new(

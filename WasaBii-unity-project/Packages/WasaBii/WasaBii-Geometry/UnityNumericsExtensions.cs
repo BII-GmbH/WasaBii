@@ -1,6 +1,8 @@
 ﻿#if UNITY_2022_1_OR_NEWER
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using BII.WasaBii.Core;
 using UnityEngine;
 
@@ -24,6 +26,19 @@ namespace BII.WasaBii.Geometry
             && lhs.y.IsNearly(rhs.y, (float)equalityThreshold) 
             && lhs.z.IsNearly(rhs.z, (float)equalityThreshold)
             && lhs.w.IsNearly(rhs.w, (float)equalityThreshold);
+
+        public static Vector3 Average(this IEnumerable<Vector3> vectors) =>
+            vectors.Average((l, r) => l + r, (accum, count) => accum / count);
+
+        public static Quaternion Average(this IEnumerable<Quaternion> quaternions) {
+            var (xVals, yVals, zVals, wVals) = quaternions.Select(q => (q.x, q.y, q.z, q.w)).Unzip();
+            return new Quaternion(
+                xVals.Sum(),
+                yVals.Sum(),
+                zVals.Sum(),
+                wVals.Sum()
+            ).normalized;
+        }
 
         public static Quaternion SlerpTo(
             this Quaternion from, Quaternion to, double progress, bool shouldClamp = true

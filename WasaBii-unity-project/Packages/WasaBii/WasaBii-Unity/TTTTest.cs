@@ -1,7 +1,7 @@
 ﻿using BII.WasaBii.Geometry;
 using UnityEngine;
 
-namespace BII.WasaBii.Unity
+namespace DELETE_ME_BEFORE_PR_I_AM_ONLY_TEST
 {
     public class TTTTest : MonoBehaviour
     {
@@ -11,6 +11,7 @@ namespace BII.WasaBii.Unity
         public GlobalPose ÜPPÜPPOse;
         public GlobalRotation Rot;
         public GlobalDirection Dir;
+        public GlobalBounds Bou;
 
     }
 }

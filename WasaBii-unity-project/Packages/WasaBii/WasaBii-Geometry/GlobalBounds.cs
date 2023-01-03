@@ -9,23 +9,23 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
-    /// A Unity-Independent data structure representing an AABB (axis-aligned bounding-box) in global space.
+    /// <summary>
+    /// An AABB (axis-aligned bounding-box) in global space.
+    /// </summary>
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent:true, hasMagnitude:false, hasOrientation:false)]
     public partial struct GlobalBounds : IsGlobalVariant<GlobalBounds, LocalBounds> {
         
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
+        [field:UnityEngine.SerializeField]
         #endif
-        private GlobalPosition _center;
-        public GlobalPosition Center => _center;
+        public GlobalPosition Center { get; private set; }
         
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
+        [field:UnityEngine.SerializeField]
         #endif
-        private GlobalOffset _size;
-        public GlobalOffset Size => _size;
+        public GlobalOffset Size { get; private set; }
 
         public GlobalOffset Extends => Size * 0.5;
 
@@ -41,13 +41,17 @@ namespace BII.WasaBii.Geometry {
             this(center: max.LerpTo(min, 0.5f), size: max - min) { }
 
         public GlobalBounds(GlobalPosition center, GlobalOffset size) {
-            _center = center;
-            _size = size.Map(MathF.Abs);
+            Center = center;
+            Size = size.Map(MathF.Abs);
         }
 
-        /// Returns the smallest possible bounds in local space relative to <see cref="parent"/> that completely
-        /// wraps this set of bounds. Will most likely be larger than the original if rotations of any angles
-        /// other than 90°-multiples are involved. 
+        /// <summary>
+        /// Returns the smallest possible bounds in the local space relative to <see cref="parent"/> that completely
+        /// wraps <see cref="this"/>. Will be larger than the original if rotations of any angles other than
+        /// 90°-multiples are involved. 
+        /// This is the semi-inverse of <see cref="LocalBounds.ToGlobalWith"/>.
+        /// </summary>
+        /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) ~= global</code> </example>
         [Pure] public LocalBounds RelativeTo(TransformProvider parent)
             => this.Vertices().Select(p => p.RelativeTo(parent)).Bounds();
 

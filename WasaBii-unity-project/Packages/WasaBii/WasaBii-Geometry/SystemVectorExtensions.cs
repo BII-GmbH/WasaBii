@@ -74,7 +74,7 @@ namespace BII.WasaBii.Core {
         /// <param name="axisIfOpposite">In case the two vectors point in exactly opposite directions, the rotation should
         /// be 180°, but the axis is undefined and must be chosen perpendicular to the vectors. **Must be normalized!**</param>
         // https://en.wikipedia.org/wiki/Slerp
-        public static Vector3 SlerpTo(this Vector3 from, Vector3 to, double progress, bool shouldClamp = true, Func<Vector3, Vector3> axisIfOpposite = null) {
+        public static Vector3 SlerpTo(this Vector3 from, Vector3 to, double progress, bool shouldClamp = true, Func<Vector3, Vector3>? axisIfOpposite = null) {
             var fromLen = from.Length();
             var toLen = to.Length();
             var dot = Vector3.Dot(from, to) / (fromLen * toLen);
@@ -105,7 +105,7 @@ namespace BII.WasaBii.Core {
         /// <param name="to">The vector to which <paramref name="from"/> should be rotated. **Must be normalized!**</param>
         /// <param name="axisIfOpposite">In case the two vectors point in exactly opposite directions, the rotation should
         /// be 180°, but the axis is undefined and must be chosen perpendicular to the vectors. **Must be normalized!**</param>
-        public static Quaternion RotationTo(this Vector3 from, Vector3 to, Func<Vector3, Vector3> axisIfOpposite = null) {
+        public static Quaternion RotationTo(this Vector3 from, Vector3 to, Func<Vector3, Vector3>? axisIfOpposite = null) {
             // https://stackoverflow.com/a/1171995
             var normal = Vector3.Cross(from, to);
             var dot = Vector3.Dot(from, to);

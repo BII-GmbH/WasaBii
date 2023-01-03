@@ -29,17 +29,15 @@ namespace BII.WasaBii.Geometry {
         // writing a custom property drawer and even then, UX would be awful when we change
         // the x value while the user has not yet set the z value. Thus, we simply show this
         // tooltip and trust the user to input a normalized vector.
-        [UnityEngine.SerializeField][UnityEngine.Tooltip("Must be normalized, otherwise calculations might break")]
-        private UnityEngine.Vector3 _underlying;
-        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
-        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
+        [field:UnityEngine.SerializeField][field:UnityEngine.Tooltip("Must be normalized, otherwise calculations might break")]
+        public UnityEngine.Vector3 AsUnityVector { get; private set; }
+        public readonly System.Numerics.Vector3 AsNumericsVector => AsUnityVector.ToSystemVector();
         
-        public LocalDirection(UnityEngine.Vector3 toWrap) => _underlying = toWrap.normalized;
-        public LocalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized().ToUnityVector();
+        public LocalDirection(UnityEngine.Vector3 toWrap) => AsUnityVector = toWrap.normalized;
+        public LocalDirection(System.Numerics.Vector3 toWrap) => AsUnityVector = toWrap.Normalized().ToUnityVector();
         #else
-        private System.Numerics.Vector3 _underlying;
-        public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        public LocalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized();
+        public System.Numerics.Vector3 AsNumericsVector { get; private set; }
+        public GlobalDirection(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
         #endif
 
         public LocalDirection(float x, float y, float z) : this(new System.Numerics.Vector3(x, y, z)) { }

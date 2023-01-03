@@ -5,7 +5,9 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
     
-    /// <see cref="GlobalPosition"/> and <see cref="GlobalRotation"/> combined.
+    /// <summary>
+    /// A local transformation without scale, which simply is a <see cref="GlobalPosition"/> and <see cref="GlobalRotation"/> combined.
+    /// </summary>
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent:true, hasMagnitude:false, hasOrientation:false)]
@@ -14,28 +16,29 @@ namespace BII.WasaBii.Geometry {
         public static readonly GlobalPose Identity = new(GlobalPosition.Zero, GlobalRotation.Identity);
 
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
+        [field:UnityEngine.SerializeField]
         #endif
-        private GlobalPosition _position;
+        public GlobalPosition Position { get; private set; }
         
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
+        [field:UnityEngine.SerializeField]
         #endif
-        private GlobalRotation _rotation;
+        public GlobalRotation Rotation { get; private set; }
         
-        public readonly GlobalPosition Position => _position;
-        public readonly GlobalRotation Rotation => _rotation;
         public readonly GlobalDirection Forward => Rotation * GlobalDirection.Forward;
 
-        public GlobalPose(GlobalPosition position, GlobalRotation rotation) => (_position, _rotation) = (position, rotation);
+        public GlobalPose(GlobalPosition position, GlobalRotation rotation) => (Position, Rotation) = (position, rotation);
 
         public GlobalPose(GlobalPosition position, GlobalDirection forward) : this(
             position,
             GlobalRotation.From(GlobalDirection.Forward).To(forward)
         ) { }
 
+        /// <summary>
         /// Transforms the global pose into local space, relative to the <see cref="parent"/>.
         /// This is the inverse of <see cref="LocalPose.ToGlobalWith"/>
+        /// </summary>
+        /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code> </example>
         [Pure] public LocalPose RelativeTo(TransformProvider parent) => new(Position.RelativeTo(parent), Rotation.RelativeTo(parent));
 
         public LocalPose RelativeToWorldZero => new(Position.RelativeToWorldZero, Rotation.RelativeToWorldZero);

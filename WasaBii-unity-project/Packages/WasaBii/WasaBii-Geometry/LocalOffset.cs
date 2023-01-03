@@ -6,8 +6,10 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
+    /// <summary>
     /// A 3D vector that represents a the difference between two positions in the same local space.
     /// Can also be viewed as a <see cref="LocalDirection"/> with a length.
+    /// </summary>
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
@@ -18,30 +20,35 @@ namespace BII.WasaBii.Geometry {
         public static readonly LocalOffset Zero = new(System.Numerics.Vector3.Zero);
 
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
-        private UnityEngine.Vector3 _underlying;
-        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
-        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
+        [field:UnityEngine.SerializeField]
+        public UnityEngine.Vector3 AsUnityVector { get; private set; }
+        public readonly System.Numerics.Vector3 AsNumericsVector => AsUnityVector.ToSystemVector();
         
-        public LocalOffset(UnityEngine.Vector3 toWrap) => _underlying = toWrap;
-        public LocalOffset(System.Numerics.Vector3 toWrap) => _underlying = toWrap.ToUnityVector();
+        public LocalOffset(UnityEngine.Vector3 toWrap) => AsUnityVector = toWrap;
+        public LocalOffset(System.Numerics.Vector3 toWrap) => AsUnityVector = toWrap.ToUnityVector();
+        public LocalOffset(float x, float y, float z) => AsUnityVector = new(x, y, z);
         #else
-        private System.Numerics.Vector3 _underlying;
-        public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        public LocalOffset(System.Numerics.Vector3 toWrap) => _underlying = toWrap;
+        public System.Numerics.Vector3 AsNumericsVector { get; private set; }
+        public LocalOffset(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap;
+        public LocalOffset(float x, float y, float z) => AsNumericsVector = new(x, y, z);
         #endif
 
         public LocalDirection Normalized => new(AsNumericsVector);
 
-        public LocalOffset(float x, float y, float z) => _underlying = new(x, y, z);
-        public LocalOffset(Length x, Length y, Length z) => _underlying = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
+        public LocalOffset(Length x, Length y, Length z) : this((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()) { }
 
+        /// <summary>
+        /// The same as <see cref="LocalPosition.Zero"/> + this.
+        /// </summary>
         public LocalPosition AsPosition => new(AsNumericsVector);
 
         [Pure] public static Builder From(LocalPosition origin) => new Builder(origin);
 
+        /// <summary>
         /// <inheritdoc cref="TransformProvider.TransformOffset"/>
         /// This is the inverse of <see cref="GlobalOffset.RelativeTo"/>
+        /// </summary>
+        /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code> </example>
         [Pure]
         public GlobalOffset ToGlobalWith(TransformProvider parent) => parent.TransformOffset(this);
 

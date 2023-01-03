@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
@@ -7,7 +8,7 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry
 {
-    public static class QuaternionExtensions
+    public static class SystemQuaternionExtensions
     {
         
         [Pure] public static Quaternion Inverse(this Quaternion q) => Quaternion.Inverse(q);
@@ -24,7 +25,7 @@ namespace BII.WasaBii.Geometry
 
         [Pure]
         public static Quaternion Average(this IEnumerable<Quaternion> quaternions) =>
-            Quaternion.Normalize(quaternions.Average(Quaternion.Add, (accum, count) => accum * (1f / count)));
+            Quaternion.Normalize(quaternions.Aggregate(Quaternion.Add));
 
         [Pure] public static Angle AngleOn(this Quaternion q, Vector3 axis) {
             // An arbitrary vector that is orthogonal to `axis`.

@@ -8,23 +8,23 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
-    /// A Unity-Independent data structure representing an AABB (axis-aligned bounding-box) in some local space.
+    /// <summary>
+    /// An AABB (axis-aligned bounding-box) in some local space.
+    /// </summary>
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent:true, hasMagnitude:false, hasOrientation:false)]
     public partial struct LocalBounds : IsLocalVariant<LocalBounds, GlobalBounds> {
         
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
+        [field:UnityEngine.SerializeField]
         #endif
-        private LocalPosition _center;
-        public LocalPosition Center => _center;
+        public LocalPosition Center { get; private set; }
         
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
+        [field:UnityEngine.SerializeField]
         #endif
-        private LocalOffset _size;
-        public LocalOffset Size => _size;
+        public LocalOffset Size { get; private set; }
 
         public LocalOffset Extends => Size * 0.5;
 
@@ -40,13 +40,17 @@ namespace BII.WasaBii.Geometry {
             this(center: max.LerpTo(min, 0.5f), size: max - min) { }
 
         public LocalBounds(LocalPosition center, LocalOffset size) {
-            _center = center;
-            _size = size.Map(MathF.Abs);
+            Center = center;
+            Size = size.Map(MathF.Abs);
         }
 
+        /// <summary>
         /// Returns the smallest possible bounds in global space that completely wraps <see cref="this"/>.
         /// Will be larger than the original if rotations of any angles other than 90°-multiples
-        /// are involved. 
+        /// are involved.
+        /// This is the semi-inverse of <see cref="GlobalBounds.RelativeTo"/>.
+        /// </summary>
+        /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) ~= global</code> </example>
         [Pure] public GlobalBounds ToGlobalWith(TransformProvider parent)
             => this.Vertices().Select(p => p.ToGlobalWith(parent)).Bounds();
 

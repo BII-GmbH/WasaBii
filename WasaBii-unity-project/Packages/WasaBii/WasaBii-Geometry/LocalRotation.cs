@@ -15,17 +15,15 @@ namespace BII.WasaBii.Geometry {
         public static readonly LocalRotation Identity = new(System.Numerics.Quaternion.Identity);
 
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
-        private UnityEngine.Quaternion _underlying;
-        public readonly UnityEngine.Quaternion AsUnityQuaternion => _underlying;
-        public readonly System.Numerics.Quaternion AsNumericsQuaternion => _underlying.ToSystemQuaternion();
+        [field:UnityEngine.SerializeField]
+        public UnityEngine.Quaternion AsUnityQuaternion { get; private set; }
+        public readonly System.Numerics.Quaternion AsNumericsQuaternion => AsUnityQuaternion.ToSystemQuaternion();
         
-        public LocalRotation(UnityEngine.Quaternion toWrap) => _underlying = toWrap;
-        public LocalRotation(System.Numerics.Quaternion toWrap) => _underlying = toWrap.ToUnityQuaternion();
+        public LocalRotation(UnityEngine.Quaternion toWrap) => AsUnityQuaternion = toWrap;
+        public LocalRotation(System.Numerics.Quaternion toWrap) => AsUnityQuaternion = toWrap.ToUnityQuaternion();
         #else
-        private System.Numerics.Quaternion _underlying;
-        public System.Numerics.Quaternion AsNumericsQuaternion => _underlying;
-        public LocalRotation(System.Numerics.Quaternion toWrap) => _underlying = toWrap;
+        public System.Numerics.Quaternion AsNumericsQuaternion { get; private set; }
+        public LocalRotation(System.Numerics.Quaternion toWrap) => AsNumericsQuaternion = toWrap;
         #endif
 
         public readonly LocalRotation Inverse => AsNumericsQuaternion.Inverse().AsLocalRotation();
@@ -67,7 +65,7 @@ namespace BII.WasaBii.Geometry {
             public Builder(System.Numerics.Vector3 from) => this.from = from;
 
             [Pure]
-            public LocalRotation To<T>(T to, Func<T, T> axisIfOpposite = null) where T : struct, LocalDirectionLike<T> => To(
+            public LocalRotation To<T>(T to, Func<T, T>? axisIfOpposite = null) where T : struct, LocalDirectionLike<T> => To(
                 to switch {
                     LocalDirection dir => dir.AsNumericsVector,
                     _ => to.AsNumericsVector.Normalized()
@@ -77,7 +75,7 @@ namespace BII.WasaBii.Geometry {
 
             /// <param name="to">Must be normalized</param>
             [Pure]
-            public LocalRotation To(System.Numerics.Vector3 to, Func<System.Numerics.Vector3, System.Numerics.Vector3> axisIfOpposite = null) => 
+            public LocalRotation To(System.Numerics.Vector3 to, Func<System.Numerics.Vector3, System.Numerics.Vector3>? axisIfOpposite = null) => 
                 from.RotationTo(to, axisIfOpposite).AsLocalRotation();
         }
 

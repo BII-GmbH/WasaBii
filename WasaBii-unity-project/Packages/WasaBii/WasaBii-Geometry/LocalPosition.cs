@@ -6,7 +6,10 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
+    /// <summary>
     /// A 3D vector that represents a local position relative to an undefined parent.
+    /// Can also be viewed as a <see cref="LocalOffset"/> from the local space origin.
+    /// </summary>
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
@@ -15,31 +18,34 @@ namespace BII.WasaBii.Geometry {
         public static readonly LocalPosition Zero = new(System.Numerics.Vector3.Zero);
 
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
-        private UnityEngine.Vector3 _underlying;
-        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
-        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
+        [field:UnityEngine.SerializeField]
+        public UnityEngine.Vector3 AsUnityVector { get; private set; }
+        public readonly System.Numerics.Vector3 AsNumericsVector => AsUnityVector.ToSystemVector();
         
-        public LocalPosition(UnityEngine.Vector3 toWrap) => _underlying = toWrap;
-        public LocalPosition(System.Numerics.Vector3 toWrap) => _underlying = toWrap.ToUnityVector();
+        public LocalPosition(UnityEngine.Vector3 toWrap) => AsUnityVector = toWrap;
+        public LocalPosition(System.Numerics.Vector3 toWrap) => AsUnityVector = toWrap.ToUnityVector();
+        public LocalPosition(float x, float y, float z) => AsUnityVector = new(x, y, z);
         #else
-        private System.Numerics.Vector3 _underlying;
-        public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        public LocalPosition(System.Numerics.Vector3 toWrap) => _underlying = toWrap;
+        public System.Numerics.Vector3 AsNumericsVector { get; private set; }
+        public LocalPosition(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap;
+        public LocalPosition(float x, float y, float z) => AsNumericsVector = new(x, y, z);
         #endif
 
-        public LocalPosition(float x, float y, float z) => _underlying = new(x, y, z);
-        public LocalPosition(Length x, Length y, Length z) => _underlying = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
+        public LocalPosition(Length x, Length y, Length z) : this((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()) {}
 
         public LocalOffset AsOffset => new(AsNumericsVector);
 
+        /// <summary>
         /// <inheritdoc cref="TransformProvider.TransformPoint"/>
         /// This is the inverse of <see cref="GlobalPosition.RelativeTo"/>
+        /// </summary>
+        /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code> </example>
         [Pure] public GlobalPosition ToGlobalWith(TransformProvider parent) 
             => parent.TransformPoint(this);
 
         public GlobalPosition ToGlobalWithWorldZero => new(AsNumericsVector);
 
+        // TODO DS: This
         [Pure]
         public LocalPosition TransformBy(LocalPose offset) =>
             offset.Position + offset.Rotation * this.AsOffset;

@@ -6,8 +6,10 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
+    /// <summary>
     /// A 3D vector that represents a world-space direction.
     /// Can also be viewed as a normalized <see cref="GlobalOffset"/>.
+    /// </summary>
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
@@ -29,17 +31,15 @@ namespace BII.WasaBii.Geometry {
         // writing a custom property drawer and even then, UX would be awful when we change
         // the x value while the user has not yet set the z value. Thus, we simply show this
         // tooltip and trust the user to input a normalized vector.
-        [UnityEngine.SerializeField][UnityEngine.Tooltip("Must be normalized, otherwise calculations might break")]
-        private UnityEngine.Vector3 _underlying;
-        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
-        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
+        [field:UnityEngine.SerializeField][field:UnityEngine.Tooltip("Must be normalized, otherwise calculations might break")]
+        public UnityEngine.Vector3 AsUnityVector { get; private set; }
+        public readonly System.Numerics.Vector3 AsNumericsVector => AsUnityVector.ToSystemVector();
         
-        public GlobalDirection(UnityEngine.Vector3 toWrap) => _underlying = toWrap.normalized;
-        public GlobalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized().ToUnityVector();
+        public GlobalDirection(UnityEngine.Vector3 toWrap) => AsUnityVector = toWrap.normalized;
+        public GlobalDirection(System.Numerics.Vector3 toWrap) => AsUnityVector = toWrap.Normalized().ToUnityVector();
 #else
-        private System.Numerics.Vector3 _underlying;
-        public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        public GlobalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized();
+        public System.Numerics.Vector3 AsNumericsVector { get; private set; }
+        public GlobalDirection(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
 #endif
 
         public GlobalDirection(float x, float y, float z) : this(new System.Numerics.Vector3(x, y, z)) { }
@@ -48,8 +48,11 @@ namespace BII.WasaBii.Geometry {
             (float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()
         ) { }
 
+        /// <summary>
         /// <inheritdoc cref="TransformProvider.InverseTransformDirection"/>
         /// This is the inverse of <see cref="LocalDirection.ToGlobalWith"/>
+        /// </summary>
+        /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code> </example>
         [Pure] public LocalDirection RelativeTo(TransformProvider parent) => parent.InverseTransformDirection(this);
         
         public LocalDirection RelativeToWorldZero => new(AsNumericsVector);

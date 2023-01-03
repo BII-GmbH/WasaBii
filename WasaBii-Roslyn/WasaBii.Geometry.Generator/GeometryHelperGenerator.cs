@@ -84,14 +84,6 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 } else if (isQuaternion)
                     allMembers.AddRange(mkSlerp(typeDecl, wrappedFieldDecls[0]));
                 
-                // if(fieldType is not FieldType.Other){
-                //     allMembers.Add(mkDotProduct(typeDecl, allFields.Select(f => f.identifier), fieldType));
-                //
-                //     if (hasMagnitude) {
-                //         allMembers.Add(mkSqrMagnitude(allFields.Select(f => f.identifier)));
-                //         allMembers.Add(mkMagnitude());
-                //     }
-                
                 if (isVector && hasOrientation) {
                     allMembers.Add(mkAngleTo(typeDecl, hasMagnitude));
                 }
@@ -169,7 +161,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
     
     private ExpressionSyntax makeCopy(ArgumentListSyntax arg) => 
         ImplicitObjectCreationExpression().WithArgumentList(arg);
-
+    
     private IEnumerable<MemberDeclarationSyntax> mkMapAndScale(TypeDeclarationSyntax typeDecl,
         bool areFieldsIndependent, bool isVector,
         IReadOnlyList<(TypeSyntax type, SyntaxToken id)> fields, bool hasMagnitudeAndDirection, bool isUnity) {

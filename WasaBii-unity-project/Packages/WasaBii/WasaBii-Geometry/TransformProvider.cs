@@ -2,7 +2,6 @@
 #define IsUnity
 #endif
 
-using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using BII.WasaBii.Core;
@@ -16,6 +15,7 @@ namespace BII.WasaBii.Geometry {
     using Vector4 = UnityEngine.Vector4;
     using Quaternion = UnityEngine.Quaternion;
 #else
+    using System;
     using Matrix = System.Numerics.Matrix4x4;
     using Vector3 = System.Numerics.Vector3;
     using Vector4 = System.Numerics.Vector4;
@@ -31,6 +31,8 @@ namespace BII.WasaBii.Geometry {
     [StructLayout(LayoutKind.Explicit)]
     public readonly struct TransformProvider {
 
+        [FieldOffset(0)] private readonly Type type;
+
         public enum Type : byte {
             Invalid,
             Matrix, 
@@ -40,8 +42,6 @@ namespace BII.WasaBii.Geometry {
             Pose
         }
 
-        [FieldOffset(0)] private readonly Type type;
-        
         [FieldOffset(1)] private readonly Matrix localToGlobalMatrix;
 #if IsUnity
         [FieldOffset(1)] private readonly UnityEngine.Transform transform;
@@ -59,9 +59,9 @@ namespace BII.WasaBii.Geometry {
 
         private TransformProvider(Matrix localToGlobalMatrix) {
 #if IsUnity
-            transform = default;
+            transform = default!;
 #endif
-            pose = default;
+            pose = default!;
             this.localToGlobalMatrix = localToGlobalMatrix;
             type = Type.Matrix;
         }
@@ -70,8 +70,8 @@ namespace BII.WasaBii.Geometry {
             : this(Matrix.TRS(position, rotation, scale)) {}
 
         private TransformProvider(UnityEngine.Transform transform) {
-            localToGlobalMatrix = default;
-            pose = default;
+            localToGlobalMatrix = default!;
+            pose = default!;
             this.transform = transform;
             type = Type.Transform;
         }
@@ -81,9 +81,9 @@ namespace BII.WasaBii.Geometry {
 #endif
 
         private TransformProvider(GlobalPose pose) {
-            localToGlobalMatrix = default;
+            localToGlobalMatrix = default!;
 #if IsUnity
-            transform = default;
+            transform = default!;
 #endif
             this.pose = pose;
             type = Type.Pose;

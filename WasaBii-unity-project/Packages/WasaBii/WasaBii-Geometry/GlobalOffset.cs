@@ -6,8 +6,10 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
+    /// <summary>
     /// A 3D vector that represents a the difference between two world-space positions.
     /// Can also be viewed as a <see cref="GlobalDirection"/> with a length.
+    /// </summary>
     [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
@@ -19,28 +21,30 @@ namespace BII.WasaBii.Geometry {
         public static readonly GlobalOffset Zero = new(System.Numerics.Vector3.Zero);
     
         #if UNITY_2022_1_OR_NEWER
-        [UnityEngine.SerializeField]
-        private UnityEngine.Vector3 _underlying;
-        public readonly UnityEngine.Vector3 AsUnityVector => _underlying;
-        public readonly System.Numerics.Vector3 AsNumericsVector => _underlying.ToSystemVector();
+        [field:UnityEngine.SerializeField]
+        public UnityEngine.Vector3 AsUnityVector { get; private set; }
+        public readonly System.Numerics.Vector3 AsNumericsVector => AsUnityVector.ToSystemVector();
         
-        public GlobalOffset(UnityEngine.Vector3 toWrap) => _underlying = toWrap;
-        public GlobalOffset(System.Numerics.Vector3 toWrap) => _underlying = toWrap.ToUnityVector();
+        public GlobalOffset(UnityEngine.Vector3 toWrap) => AsUnityVector = toWrap;
+        public GlobalOffset(System.Numerics.Vector3 toWrap) => AsUnityVector = toWrap.ToUnityVector();
+        public GlobalOffset(float x, float y, float z) => AsUnityVector = new(x, y, z);
         #else
-        private System.Numerics.Vector3 _underlying;
-        public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        public GlobalOffset(System.Numerics.Vector3 toWrap) => _underlying = toWrap;
+        public System.Numerics.Vector3 AsNumericsVector { get; private set; }
+        public GlobalOffset(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap;
+        public GlobalOffset(float x, float y, float z) => AsNumericsVector = new(x, y, z);
         #endif
 
         public GlobalDirection Normalized => new(AsNumericsVector);
 
-        public GlobalOffset(float x, float y, float z) => _underlying = new(x, y, z);
-        public GlobalOffset(Length x, Length y, Length z) => _underlying = new((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters());
+        public GlobalOffset(Length x, Length y, Length z) : this((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()) { }
 
         [Pure] public static Builder From(GlobalPosition origin) => new Builder(origin);
 
+        /// <summary>
         /// <inheritdoc cref="TransformProvider.InverseTransformOffset"/>
         /// This is the inverse of <see cref="LocalOffset.ToGlobalWith"/>
+        /// </summary>
+        /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code> </example>
         [Pure] public LocalOffset RelativeTo(TransformProvider parent)
             => parent.InverseTransformOffset(this);
 

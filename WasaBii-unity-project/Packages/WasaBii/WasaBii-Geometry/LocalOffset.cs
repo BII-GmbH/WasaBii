@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
@@ -48,13 +50,19 @@ namespace BII.WasaBii.Geometry {
         /// <inheritdoc cref="TransformProvider.TransformOffset"/>
         /// This is the inverse of <see cref="GlobalOffset.RelativeTo"/>
         /// </summary>
-        /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code> </example>
+        /// <example> <code>local.ToGlobalWith(parent).RelativeTo(parent) == local</code> </example>
         [Pure]
         public GlobalOffset ToGlobalWith(TransformProvider parent) => parent.TransformOffset(this);
 
         public GlobalOffset ToGlobalWithWorldZero => new (AsNumericsVector);
 
-        [Pure] public LocalOffset TransformBy(LocalPose offset) => offset.Rotation * this;
+        /// <summary>
+        /// Transforms the offset into the local space <paramref name="localParent"/> is defined relative to.
+        /// Only applicable if the offset is defined relative to the given <paramref name="localParent"/>!
+        /// This is the inverse of itself with the inverse parent.
+        /// </summary>
+        /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) = local</code> </example>
+        [Pure] public LocalOffset TransformBy(LocalPose localParent) => localParent.Rotation * this;
         
         /// Projects this offset onto the other one.
         [Pure] public LocalOffset Project(LocalOffset other) => this.Dot(other) / other.SqrMagnitude * other;
@@ -72,6 +80,8 @@ namespace BII.WasaBii.Geometry {
         public Length Dot(LocalDirection normal) => System.Numerics.Vector3.Dot(AsNumericsVector, normal.AsNumericsVector).Meters();
         
         public Area Dot(LocalOffset other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector).SquareMeters();
+        
+        public LocalOffset Cross(LocalOffset other) => System.Numerics.Vector3.Cross(AsNumericsVector, other.AsNumericsVector).AsLocalOffset();
 
         public Area SqrMagnitude => AsNumericsVector.LengthSquared().SquareMeters();
         public Length Magnitude => AsNumericsVector.Length().Meters();
@@ -99,6 +109,10 @@ namespace BII.WasaBii.Geometry {
 
         [Pure] public static LocalOffset AsLocalOffset(this System.Numerics.Vector3 localOffset)
             => new(localOffset);
+
+        [Pure]
+        public static LocalOffset Sum(this IEnumerable<LocalOffset> offsets) => 
+            offsets.Select(o => o.AsNumericsVector).Aggregate(System.Numerics.Vector3.Add).AsLocalOffset();
 
     }
 

@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry;
 using BII.WasaBii.UnitSystem;
 using BII.WasaBii.Unity;
 using BII.WasaBii.Unity.Geometry;
@@ -59,12 +60,17 @@ namespace BII.WasaBii.Extra {
             Units.Lerp(target, current, Math.Pow(smoothness, progress));
     }
 
-    // public static class TransformHelperSmoothInterpolation {
-    //     /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
-    //     [Pure] public static T SmoothInterpolateTo<T>(this T current, T target, double smoothness, double progress) 
-    //         where T : struct, GeometryHelper<T> => 
-    //         target.LerpTo(current, Math.Pow(smoothness, progress));
-    // }
+    public static class TransformHelperSmoothInterpolation {
+        /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
+        [Pure] public static T SmoothLerpTo<T>(this T current, T target, double smoothness, double progress) 
+            where T : struct, WithLerp<T> => 
+            target.LerpTo(current, Math.Pow(smoothness, progress));
+        
+        /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
+        [Pure] public static T SmoothSlerpTo<T>(this T current, T target, double smoothness, double progress) 
+            where T : struct, WithSlerp<T> => 
+            target.SlerpTo(current, Math.Pow(smoothness, progress));
+    }
 
     // TODO DS: Document.
     public abstract class Smoothed<T> : IDisposable 
@@ -103,8 +109,7 @@ namespace BII.WasaBii.Extra {
         private IEnumerator updateValue() {
             lastUpdateTime = Time.time;
             while(true) {
-                // TODO DS: replace with _updateDelay?.Let(new WaitForSeconds) once `Let` is integrated
-                yield return _updateDelay.HasValue ? new WaitForSeconds(_updateDelay.Value) : null;
+                yield return _updateDelay?.Let(d => new WaitForSeconds(d));
                 CurrentValue = interpolate(CurrentValue, TargetGetter(), Smoothness, Time.time - lastUpdateTime);
                 lastUpdateTime = Time.time;
             }

@@ -37,16 +37,19 @@ namespace BII.WasaBii.Geometry {
 
         public GlobalRotation ToGlobalWithWorldZero => new(AsNumericsQuaternion);
 
-        // TODO DS: this
-        [Pure] public LocalRotation TransformBy(LocalPose offset) => offset.Rotation * this;
+        /// <summary>
+        /// Transforms the rotation into the local space <paramref name="localParent"/> is defined relative to.
+        /// Only applicable if the rotation is defined relative to the given <paramref name="localParent"/>!
+        /// This is the inverse of itself with the inverse parent.
+        /// </summary>
+        /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) = local</code> </example>
+        [Pure] public LocalRotation TransformBy(LocalPose localParent) => localParent.Rotation * this;
         
         [Pure] public static LocalOffset operator *(LocalRotation rotation, LocalOffset offset) => 
             System.Numerics.Vector3.Transform(offset.AsNumericsVector, rotation.AsNumericsQuaternion).AsLocalOffset();
-        [Pure] public static LocalOffset operator*(LocalOffset offset, LocalRotation rotation) => rotation * offset;
         
         [Pure] public static LocalDirection operator *(LocalRotation rotation, LocalDirection direction) => 
             System.Numerics.Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsLocalDirection();
-        [Pure] public static LocalDirection operator *(LocalDirection direction, LocalRotation rotation) => rotation * direction;
         
         [Pure] public static LocalRotation operator *(LocalRotation left, LocalRotation right) => 
             new(System.Numerics.Quaternion.Concatenate(left.AsNumericsQuaternion, right.AsNumericsQuaternion));

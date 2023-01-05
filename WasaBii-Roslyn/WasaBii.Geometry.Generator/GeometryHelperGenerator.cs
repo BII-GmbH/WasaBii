@@ -31,6 +31,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
     }
 
     public void Execute(GeneratorExecutionContext context) {
+        bool shouldGenerateTransformOperators = true;
         // Ensure proper printing of decimal constants as valid C# code
         var origCulture = Thread.CurrentThread.CurrentCulture;
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
@@ -78,6 +79,33 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     allMembers.AddRange(mkMinMax(typeDecl, wrappedFieldDecls[0].identifier));
                 }
 
+                if (shouldGenerateTransformOperators) {
+                    IEnumerable<MethodDeclarationSyntax> AllTransformMethods(string name) => typeDecl.Members
+                        .OfType<MethodDeclarationSyntax>().Where(m =>
+                            m.Identifier.Text == name
+                            && m.Modifiers.All(t => t.Kind() != SyntaxKind.StaticKeyword)
+                            && m.ParameterList.Parameters.Count == 1
+                        );
+                    var allTransformOperators = AllTransformMethods("ToGlobalWith").Select(method => 
+                            mkToGlobalOperator(typeDecl, method)
+                                .WithLeadingTrivia(ParseLeadingTrivia("/// <inheritdoc cref=\"ToGlobalWith\"/>\n")))
+                        .Concat(AllTransformMethods("RelativeTo").Select(method => 
+                            mkRelativeToOperator(typeDecl, method)
+                                .WithLeadingTrivia(ParseLeadingTrivia("/// <inheritdoc cref=\"RelativeTo\"/>\n"))))
+                        .Concat(AllTransformMethods("TransformBy").SelectMany(method => 
+                            mkTransformByOperators(typeDecl, method).Select(m => 
+                                m.WithLeadingTrivia(ParseLeadingTrivia("/// <inheritdoc cref=\"TransformBy\"/>\n")))))
+                        .ToList();
+                    
+                    if(allTransformOperators.Count > 0) {
+                        allTransformOperators[0] = allTransformOperators[0].WithLeadingTrivia(existing => existing.Prepend(
+                            Trivia(IfDirectiveTrivia(IdentifierName("TransformOperators"), true, true, true))));
+                        allTransformOperators[^1] = allTransformOperators[^1].WithTrailingTrivia(existing => existing.Append(
+                            Trivia(EndIfDirectiveTrivia(true))));
+                        allMembers.AddRange(allTransformOperators);
+                    }
+                }
+
                 if (isVector) {
                     if (areFieldsIndependent) allMembers.AddRange(mkLerp(typeDecl, wrappedFieldDecls[0]));
                     if (hasOrientation) allMembers.AddRange(mkSlerp(typeDecl, wrappedFieldDecls[0]));
@@ -89,7 +117,6 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 }
                 allMembers.Add(mkIsNearly(typeDecl, wrappedFieldDecls));
                 
-                // TODO DS: Equzality
                 extensionMethods.Add(mkAverage(typeDecl, wrappedFieldDecls));
                 
                 // if fields are independent, make map and with
@@ -134,7 +161,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 ).WithExpressionBody(ArrowExpressionClause(
                     hasMagnitude ? InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, fieldMember, IdentifierName("Meters"))) : fieldMember
                 ))
-                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword)))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
         }
 
@@ -531,6 +558,60 @@ public class GeometryHelperGenerator : ISourceGenerator {
             ))))),
         isStatic: true
     );
+
+    private MemberDeclarationSyntax mkToGlobalOperator(TypeDeclarationSyntax typeDecl, MethodDeclarationSyntax method) =>
+        OperatorDeclaration(method.ReturnType, Token(SyntaxKind.AsteriskToken))
+            .WithParameterList(ParameterList(
+                method.ParameterList.Parameters.Single(), 
+                Parameter(Identifier("self")).WithType(IdentifierName(typeDecl.Identifier))))
+            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword)))
+            .WithExpressionBody(ArrowExpressionClause(InvocationExpression(
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("self"), IdentifierName("ToGlobalWith")),
+                ArgumentList(Argument(IdentifierName(method.ParameterList.Parameters.Single().Identifier)))
+            )))
+            .WithAttributeLists(AttributeList(Pure))
+            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+
+    private MemberDeclarationSyntax mkRelativeToOperator(TypeDeclarationSyntax typeDecl, MethodDeclarationSyntax method) =>
+        OperatorDeclaration(method.ReturnType, Token(SyntaxKind.SlashToken))
+            .WithParameterList(ParameterList(
+                Parameter(Identifier("self")).WithType(IdentifierName(typeDecl.Identifier)),
+                method.ParameterList.Parameters.Single()))
+            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword)))
+            .WithExpressionBody(ArrowExpressionClause(InvocationExpression(
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("self"), IdentifierName("RelativeTo")),
+                ArgumentList(Argument(IdentifierName(method.ParameterList.Parameters.Single().Identifier)))
+            )))
+            .WithAttributeLists(AttributeList(Pure))
+            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+
+    private IEnumerable<MemberDeclarationSyntax> mkTransformByOperators(TypeDeclarationSyntax typeDecl, MethodDeclarationSyntax method) {
+        yield return OperatorDeclaration(method.ReturnType, Token(SyntaxKind.AsteriskToken))
+            .WithParameterList(ParameterList(
+                method.ParameterList.Parameters.Single(), 
+                Parameter(Identifier("self")).WithType(IdentifierName(typeDecl.Identifier))))
+            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword)))
+            .WithExpressionBody(ArrowExpressionClause(InvocationExpression(
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("self"), IdentifierName("TransformBy")),
+                ArgumentList(Argument(IdentifierName(method.ParameterList.Parameters.Single().Identifier)))
+            )))
+            .WithAttributeLists(AttributeList(Pure))
+            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+        
+        yield return OperatorDeclaration(method.ReturnType, Token(SyntaxKind.SlashToken))
+            .WithParameterList(ParameterList(
+                Parameter(Identifier("self")).WithType(IdentifierName(typeDecl.Identifier)), 
+                method.ParameterList.Parameters.Single()))
+            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword)))
+            .WithExpressionBody(ArrowExpressionClause(InvocationExpression(
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("self"), IdentifierName("TransformBy")),
+                ArgumentList(Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName(method.ParameterList.Parameters.Single().Identifier),
+                    IdentifierName("Inverse"))))
+            )))
+            .WithAttributeLists(AttributeList(Pure))
+            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+    }
 
     private sealed class SyntaxReceiver : ISyntaxReceiver {
 

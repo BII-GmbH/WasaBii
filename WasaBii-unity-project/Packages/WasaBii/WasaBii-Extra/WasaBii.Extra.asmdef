@@ -4,7 +4,8 @@
     "references": [
         "WasaBii.Core",
         "WasaBii.Units",
-        "WasaBii.Unity"
+        "WasaBii.Unity",
+        "WasaBii-Geometry"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
@@ -66,6 +68,8 @@ namespace BII.WasaBii.Geometry {
         public Length Dot(GlobalDirection normal) => System.Numerics.Vector3.Dot(AsNumericsVector, normal.AsNumericsVector).Meters();
 
         public Area Dot(GlobalOffset other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector).SquareMeters();
+        
+        public GlobalOffset Cross(GlobalOffset other) => System.Numerics.Vector3.Cross(AsNumericsVector, other.AsNumericsVector).AsGlobalOffset();
 
         public Area SqrMagnitude => AsNumericsVector.LengthSquared().SquareMeters();
         public Length Magnitude => AsNumericsVector.Length().Meters();
@@ -92,6 +96,10 @@ namespace BII.WasaBii.Geometry {
         
         [Pure] public static GlobalOffset AsGlobalOffset(this System.Numerics.Vector3 globalOffset)
             => new(globalOffset);
+
+        [Pure]
+        public static GlobalOffset Sum(this IEnumerable<GlobalOffset> offsets) => 
+            offsets.Select(o => o.AsNumericsVector).Aggregate(System.Numerics.Vector3.Add).AsGlobalOffset();
 
     }
     

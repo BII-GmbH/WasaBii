@@ -36,32 +36,32 @@ namespace BII.WasaBii.Geometry {
             LocalRotation.From(LocalDirection.Forward).To(forward)
         ) { }
 
+        /// <summary>
+        /// The inverse with respect to <see cref="TransformBy"/>.
+        /// </summary>
+        /// <remarks>
+        /// Proof:
+        /// <code>
+        /// (pose * pose.Inverse).Position
+        /// == pose.Position + pose.Rotation * pose.Inverse.Position
+        /// == pose.Position + pose.Rotation * pose.Rotation.Inverse * -pose.Position
+        /// == pose.Position - pose.Position
+        /// == Zero
+        ///
+        /// (pose * pose.Inverse).Rotation
+        /// == pose.Rotation * pose.Inverse.Rotation
+        /// == pose.Rotation * pose.Rotation.Inverse
+        /// == Identity
+        ///
+        /// => pose * pose.Inverse == Identity
+        /// </code>
+        /// </remarks>
         public LocalPose Inverse {
             get {
                 var invRot = Rotation.Inverse;
-                return new LocalPose((-Position.AsOffset * invRot).AsPosition, invRot);
+                return new LocalPose((invRot * -Position.AsOffset).AsPosition, invRot);
             }
         }
-
-        /// <summary>
-        /// Transforms the <paramref name="local"/> pose into the local space <paramref name="parent"/>
-        /// is defined relative to. Only applicable if <see cref="local"/> is defined relative to the
-        /// given <paramref name="parent"/>!
-        /// </summary>
-        public static LocalPose operator *(LocalPose parent, LocalPose local) => new(
-            parent.Position + parent.Rotation * local.Position.AsOffset,
-            parent.Rotation * local.Rotation
-        );
-
-        /// <summary>
-        /// Combines the two poses by staking both the offset from local zero and the rotation independently.
-        /// Only applicable if <paramref name="a"/> and <paramref name="b"/> are defined relative to the
-        /// same parent!
-        /// </summary>
-        public static LocalPose operator +(LocalPose a, LocalPose b) => new(
-            a.Position + b.Position.AsOffset,
-            b.Rotation * a.Rotation
-        );
 
         /// <summary>
         /// Transforms the local pose into global space, with <see cref="parent"/> as the parent.
@@ -81,11 +81,26 @@ namespace BII.WasaBii.Geometry {
         /// <example> <code>global.RelativeTo(parent).ParentPoseFor(global) == parent</code> </example>
         [Pure] public GlobalPose ParentPoseFor(GlobalPose global) => Inverse.ToGlobalWith(global);
 
-        [Pure] public LocalPose TransformBy(LocalPose offset) => new(
-            Position.TransformBy(offset),
-            Rotation.TransformBy(offset)
+        /// <summary>
+        /// Transforms this local pose into the local space <paramref name="localParent"/>
+        /// is defined relative to. Only applicable if this local pose is defined relative to the
+        /// given <paramref name="localParent"/>!
+        /// </summary>
+        /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) = local</code> </example>
+        public LocalPose TransformBy(LocalPose localParent) => new(
+            localParent.Position + localParent.Rotation * this.Position.AsOffset,
+            localParent.Rotation * this.Rotation
         );
-        
+
+        /// <summary>
+        /// Combines the two poses by staking both the offset from local zero and the rotation independently.
+        /// Only applicable if both poses are defined relative to the same parent!
+        /// </summary>
+        public LocalPose CombineWith(LocalPose other) => new(
+            this.Position + other.Position.AsOffset,
+            other.Rotation * this.Rotation
+        );
+
         [Pure] public LocalPose LerpTo(LocalPose target, double progress, bool shouldClamp) => new LocalPose(
             Position.LerpTo(target.Position, progress, shouldClamp),
             Rotation.SlerpTo(target.Rotation, progress, shouldClamp)

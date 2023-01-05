@@ -66,6 +66,8 @@ namespace BII.WasaBii.Geometry {
         public GlobalDirection Reflect(GlobalDirection planeNormal) => new GlobalOffset(AsNumericsVector).Reflect(planeNormal).Normalized;
         
         public float Dot(GlobalDirection other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector);
+        
+        public GlobalOffset Cross(GlobalDirection other) => System.Numerics.Vector3.Cross(AsNumericsVector, other.AsNumericsVector).AsGlobalOffset();
 
         [Pure] public static GlobalOffset operator *(Length a, GlobalDirection b) => new((float)a.AsMeters() * b.AsNumericsVector);
         [Pure] public static GlobalOffset operator *(GlobalDirection b, Length a) => a * b;

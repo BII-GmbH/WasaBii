@@ -45,10 +45,15 @@ namespace BII.WasaBii.Geometry {
 
         public GlobalPosition ToGlobalWithWorldZero => new(AsNumericsVector);
 
-        // TODO DS: This
+        /// <summary>
+        /// Transforms the position into the local space <paramref name="localParent"/> is defined relative to.
+        /// Only applicable if the position is defined relative to the given <paramref name="localParent"/>!
+        /// This is the inverse of itself with the inverse parent.
+        /// </summary>
+        /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) = local</code> </example>
         [Pure]
-        public LocalPosition TransformBy(LocalPose offset) =>
-            offset.Position + offset.Rotation * this.AsOffset;
+        public LocalPosition TransformBy(LocalPose localParent) =>
+            localParent.Position + localParent.Rotation * this.AsOffset;
 
         [Pure] public static LocalPosition operator +(LocalPosition left, LocalOffset right) => new(left.AsNumericsVector + right.AsNumericsVector);
         [Pure] public static LocalPosition operator -(LocalPosition left, LocalOffset right) => new(left.AsNumericsVector - right.AsNumericsVector);
@@ -71,7 +76,7 @@ namespace BII.WasaBii.Geometry {
         /// Assumes that all three values are given in the same local space.
         [Pure] public LocalPosition Rotate(
             LocalPosition pivot, LocalRotation rotation    
-        ) => pivot + (this - pivot) * rotation;
+        ) => pivot + rotation * (this - pivot);
     }
     
     public static partial class LocalPositionExtensions {

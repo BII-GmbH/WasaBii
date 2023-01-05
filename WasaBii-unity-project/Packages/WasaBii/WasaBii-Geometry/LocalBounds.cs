@@ -56,8 +56,16 @@ namespace BII.WasaBii.Geometry {
 
         public GlobalBounds ToGlobalWithWorldZero => new(Center.ToGlobalWithWorldZero, Size.ToGlobalWithWorldZero);
 
-        [Pure] public LocalBounds TransformBy(LocalPose offset) 
-            => this.Vertices().Select(p => p.TransformBy(offset)).Bounds();
+        /// <summary>
+        /// Transforms the bounds into the local space <paramref name="localParent"/> is defined relative to.
+        /// Only applicable if the bounds are defined relative to the given <paramref name="localParent"/>!
+        /// Result will be larger than the original if rotations of any angles other than 90°-multiples
+        /// are involved.
+        /// This is the semi-inverse of itself with the inverse parent.
+        /// </summary>
+        /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) ~= local</code> </example>
+        [Pure] public LocalBounds TransformBy(LocalPose localParent) 
+            => this.Vertices().Select(p => p.TransformBy(localParent)).Bounds();
         
         [Pure] public bool Contains(LocalPosition point) 
             => point.X.IsInsideInterval(Min.X, Max.X, inclusive: true)

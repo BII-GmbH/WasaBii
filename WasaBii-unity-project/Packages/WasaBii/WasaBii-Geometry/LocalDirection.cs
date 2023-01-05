@@ -48,13 +48,22 @@ namespace BII.WasaBii.Geometry {
 
         public readonly LocalOffset AsOffsetWithLength1 => new(AsNumericsVector);
 
+        /// <summary>
         /// <inheritdoc cref="TransformProvider.TransformDirection"/>
         /// This is the inverse of <see cref="GlobalDirection.RelativeTo"/>
+        /// </summary>
+        /// <example> <code>local.ToGlobalWith(parent).RelativeTo(parent) == local</code> </example>
         [Pure] public GlobalDirection ToGlobalWith(TransformProvider parent) => parent.TransformDirection(this);
         
         public GlobalDirection ToGlobalWithWorldZero => new(AsNumericsVector);
 
-        [Pure] public LocalDirection TransformBy(LocalPose offset) => offset.Rotation * this;
+        /// <summary>
+        /// Transforms the direction into the local space <paramref name="localParent"/> is defined relative to.
+        /// Only applicable if the direction is defined relative to the given <paramref name="localParent"/>!
+        /// This is the inverse of itself with the inverse parent.
+        /// </summary>
+        /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) = local</code> </example>
+        [Pure] public LocalDirection TransformBy(LocalPose localParent) => localParent.Rotation * this;
         
         /// Projects this direction onto the plane defined by its normal.
         [Pure] public LocalDirection ProjectOnPlane(LocalDirection planeNormal) => 
@@ -65,6 +74,8 @@ namespace BII.WasaBii.Geometry {
         public LocalDirection Reflect(LocalDirection planeNormal) => this.AsOffsetWithLength1.Reflect(planeNormal).Normalized;
 
         public float Dot(LocalDirection other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector);
+        
+        public LocalOffset Cross(LocalDirection other) => System.Numerics.Vector3.Cross(AsNumericsVector, other.AsNumericsVector).AsLocalOffset();
 
         [Pure] public static LocalOffset operator *(Length a, LocalDirection b) => new((float)a.AsMeters() * b.AsNumericsVector);
         [Pure] public static LocalOffset operator *(LocalDirection b, Length a) => a * b;

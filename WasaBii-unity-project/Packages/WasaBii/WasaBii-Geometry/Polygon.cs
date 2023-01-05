@@ -23,17 +23,17 @@ namespace BII.WasaBii.Geometry {
         public override bool Equals(object obj) => ReferenceEquals(this, obj) || obj is Polygon other && Equals(other);
         public override int GetHashCode() => Vertices != null ? Vertices.GetHashCode() : 0;
 
-        // public Area Area {
-        //     get {
-        //         // https://math.stackexchange.com/questions/3207981/caculate-area-of-polygon-in-3d
-        //         var v1 = Vertices[0];
-        //         return 0.5f.Meters() * Vertices.Skip(1)
-        //             .PairwiseSliding()
-        //             .SelectTuple((vj, vk) => (vj - v1).Cross(vk - v1))
-        //             .Sum()
-        //             .Length;
-        //     }
-        // }
+        public Area Area {
+            get {
+                // https://math.stackexchange.com/questions/3207981/caculate-area-of-polygon-in-3d
+                var v1 = Vertices[0];
+                return 0.5f.Meters() * Vertices.Skip(1)
+                    .PairwiseSliding()
+                    .SelectTuple((vj, vk) => (vj - v1).Cross(vk - v1))
+                    .Sum()
+                    .Magnitude;
+            }
+        }
         
         public Length Circumference => Vertices.IfNotEmpty(
             p => p.Append(Vertices[0])

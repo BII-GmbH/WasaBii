@@ -119,8 +119,6 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 
                 extensionMethods.Add(mkAverage(typeDecl, wrappedFieldDecls));
                 
-                // if fields are independent, make map and with
-                // if has magnitude, make scale?, Length?, Min, Max
                 var result = typeDecl
                     .WithBaseList(null)
                     .WithAttributeLists(List(Enumerable.Empty<AttributeListSyntax>()))

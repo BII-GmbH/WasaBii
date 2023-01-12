@@ -130,18 +130,28 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 var sourceText = SourceText.From(List(allClasses)
                     .WrapInParentsOf(typeDecl).NormalizeWhitespace().ToFullString(), Encoding.UTF8);
 
-                var filename = typeDecl.SyntaxTree.FilePath == ""
-                    ? $"{typeDecl.Identifier.Text}.g"
+                var filePath = typeDecl.SyntaxTree.FilePath == ""
+                    ? ""
                     : Path.ChangeExtension(
                         Path.GetInvalidFileNameChars().Aggregate(
-                            Path.GetRelativePath(Directory.GetCurrentDirectory(), typeDecl.SyntaxTree.FilePath)
-                                .Replace("\\", "_")
-                                .Replace("/", "_"),
-                            (path, invalid) => path.Replace(invalid, '_')
+                            Path.GetRelativePath(Directory.GetCurrentDirectory(), typeDecl.SyntaxTree.FilePath),
+                            (path, invalid) => path.Replace(invalid, '.')
                         ),
-                        "g"
+                        ""
                     );
-                context.AddSource(filename, sourceText);
+                var curParent = (SyntaxNode) typeDecl;
+                var fullTypeName = "";
+                while (curParent is not CompilationUnitSyntax or null) {
+                    fullTypeName = curParent switch {
+                        NamespaceDeclarationSyntax nds => $"{nds.Name}.{fullTypeName}",
+                        TypeDeclarationSyntax tds => $"{tds.Identifier}.{fullTypeName}",
+                        _ => fullTypeName
+                    };
+                    curParent = curParent!.Parent;
+                }
+
+                var fileName = $"{filePath}{fullTypeName}g";
+                context.AddSource(fileName, sourceText);
             }
             catch (Exception e) {
                 context.ReportDiagnostic(Diagnostic.Create(UnexpectedGenerationIssue, Location.None, e.Message));

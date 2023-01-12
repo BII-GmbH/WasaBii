@@ -14,19 +14,6 @@ namespace BII.WasaBii.Geometry.Generator.Tests;
 
 // https://gist.github.com/chsienki/2955ed9336d7eb22bcb246840bfeb05c
 
-public class HardCodedText : AdditionalText {
-    public string Text { get; }
-    public override string Path { get; }
-  
-    public HardCodedText(string text, string path) {
-        this.Text = text;
-        this.Path = path;
-    }
-
-    public override SourceText? GetText(CancellationToken cancellationToken = new()) => 
-        SourceText.From(Text);
-}
-
 public class GeneratorTests
 {
     [Test]

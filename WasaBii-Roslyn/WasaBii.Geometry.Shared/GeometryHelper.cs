@@ -8,8 +8,11 @@
 /// <c>WithX</c> / <c>WithY</c> / <c>WithZ</c> (because Unity doesn't support record structs atm, so stuff like
 /// <c>vector with {x = newX}</c> doesn't work :(
 /// </summary>
-/// <remarks>The struct needs to be partial! Requires our Units package and
-/// certain extension methods from the Geometry package.</remarks>
+/// <remarks>The struct needs to be partial! Requires our Units package and certain extension methods from the
+/// Geometry package. To enable the special vector and quaternion wrapping features, the used vector and quaternion
+/// types must be named "Vector3" / "Quaternion" and expose their X, Y and Z components as uppercase fields or
+/// getter properties (e.g. System.Numerics.Vector3). UnityEngine types are also allowed as a special case, even
+/// though their fields are lowercase.</remarks>
 [AttributeUsage(AttributeTargets.Struct)]
 public sealed class GeometryHelper : Attribute {
 

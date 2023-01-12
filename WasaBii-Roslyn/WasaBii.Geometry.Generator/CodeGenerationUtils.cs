@@ -90,15 +90,4 @@ public static class CodeGenerationUtils {
         }
     }
 
-    public static bool TryFind<T>(this IEnumerable<T> enumerable, Func<T, bool> where, out T t) {
-        foreach (var e in enumerable)
-            if (where(e)) {
-                t = e;
-                return true;
-            }
-
-        t = default!;
-        return false;
-    }
-
 }

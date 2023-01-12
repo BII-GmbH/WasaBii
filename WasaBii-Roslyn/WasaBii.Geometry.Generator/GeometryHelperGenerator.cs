@@ -31,11 +31,6 @@ public class GeometryHelperGenerator : ISourceGenerator {
     }
 
     public void Execute(GeneratorExecutionContext context) {
-        bool shouldGenerateTransformOperators = true;
-        // Ensure proper printing of decimal constants as valid C# code
-        var origCulture = Thread.CurrentThread.CurrentCulture;
-        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-        
         foreach (var (typeDecl, attribute) in ((SyntaxReceiver)context.SyntaxReceiver!).GeometryHelpers) {
             try {
                 var wrappedFieldDecls = typeDecl.Members.OfType<FieldDeclarationSyntax>()
@@ -79,32 +74,32 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     allMembers.AddRange(mkMinMax(typeDecl, wrappedFieldDecls[0].identifier));
                 }
 
-                if (shouldGenerateTransformOperators) {
-                    IEnumerable<MethodDeclarationSyntax> AllTransformMethods(string name) => typeDecl.Members
-                        .OfType<MethodDeclarationSyntax>().Where(m =>
-                            m.Identifier.Text == name
-                            && m.Modifiers.All(t => t.Kind() != SyntaxKind.StaticKeyword)
-                            && m.ParameterList.Parameters.Count == 1
-                        );
-                    var allTransformOperators = AllTransformMethods("ToGlobalWith").Select(method => 
-                            mkToGlobalOperator(typeDecl, method)
-                                .WithLeadingTrivia(ParseLeadingTrivia("/// <inheritdoc cref=\"ToGlobalWith\"/>\n")))
-                        .Concat(AllTransformMethods("RelativeTo").Select(method => 
-                            mkRelativeToOperator(typeDecl, method)
-                                .WithLeadingTrivia(ParseLeadingTrivia("/// <inheritdoc cref=\"RelativeTo\"/>\n"))))
-                        .Concat(AllTransformMethods("TransformBy").SelectMany(method => 
-                            mkTransformByOperators(typeDecl, method).Select(m => 
-                                m.WithLeadingTrivia(ParseLeadingTrivia("/// <inheritdoc cref=\"TransformBy\"/>\n")))))
-                        .ToList();
-                    
-                    if(allTransformOperators.Count > 0) {
-                        allTransformOperators[0] = allTransformOperators[0].WithLeadingTrivia(existing => existing.Prepend(
-                            Trivia(IfDirectiveTrivia(IdentifierName("TransformOperators"), true, true, true))));
-                        allTransformOperators[^1] = allTransformOperators[^1].WithTrailingTrivia(existing => existing.Append(
-                            Trivia(EndIfDirectiveTrivia(true))));
-                        allMembers.AddRange(allTransformOperators);
-                    }
+                #region Transform operators
+                IEnumerable<MethodDeclarationSyntax> AllTransformMethods(string name) => typeDecl.Members
+                    .OfType<MethodDeclarationSyntax>().Where(m =>
+                        m.Identifier.Text == name
+                        && m.Modifiers.All(t => t.Kind() != SyntaxKind.StaticKeyword)
+                        && m.ParameterList.Parameters.Count == 1
+                    );
+                var allTransformOperators = AllTransformMethods("ToGlobalWith").Select(method => 
+                        mkToGlobalOperator(typeDecl, method)
+                            .WithLeadingTrivia(ParseLeadingTrivia("/// <inheritdoc cref=\"ToGlobalWith\"/>\n")))
+                    .Concat(AllTransformMethods("RelativeTo").Select(method => 
+                        mkRelativeToOperator(typeDecl, method)
+                            .WithLeadingTrivia(ParseLeadingTrivia("/// <inheritdoc cref=\"RelativeTo\"/>\n"))))
+                    .Concat(AllTransformMethods("TransformBy").SelectMany(method => 
+                        mkTransformByOperators(typeDecl, method).Select(m => 
+                            m.WithLeadingTrivia(ParseLeadingTrivia("/// <inheritdoc cref=\"TransformBy\"/>\n")))))
+                    .ToList();
+                
+                if(allTransformOperators.Count > 0) {
+                    allTransformOperators[0] = allTransformOperators[0].PrependTrivia(
+                        Trivia(IfDirectiveTrivia(IdentifierName("TransformOperators"), true, true, true)));
+                    allTransformOperators[^1] = allTransformOperators[^1].AppendTrivia(
+                        Trivia(EndIfDirectiveTrivia(true)));
+                    allMembers.AddRange(allTransformOperators);
                 }
+                #endregion
 
                 if (isVector) {
                     if (areFieldsIndependent) allMembers.AddRange(mkLerp(typeDecl, wrappedFieldDecls[0]));
@@ -134,17 +129,24 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 
                 var sourceText = SourceText.From(List(allClasses)
                     .WrapInParentsOf(typeDecl).NormalizeWhitespace().ToFullString(), Encoding.UTF8);
-                
-                context.AddSource(
-                    $"{typeDecl.Identifier.Text}.g.cs",
-                    sourceText
-                );
+
+                var filename = typeDecl.SyntaxTree.FilePath == ""
+                    ? $"{typeDecl.Identifier.Text}.g"
+                    : Path.ChangeExtension(
+                        Path.GetInvalidFileNameChars().Aggregate(
+                            Path.GetRelativePath(Directory.GetCurrentDirectory(), typeDecl.SyntaxTree.FilePath)
+                                .Replace("\\", "_")
+                                .Replace("/", "_"),
+                            (path, invalid) => path.Replace(invalid, '_')
+                        ),
+                        "g"
+                    );
+                context.AddSource(filename, sourceText);
             }
             catch (Exception e) {
                 context.ReportDiagnostic(Diagnostic.Create(UnexpectedGenerationIssue, Location.None, e.Message));
             }
         }
-        Thread.CurrentThread.CurrentCulture = origCulture;
     }
 
     private IEnumerable<MemberDeclarationSyntax> mkAccessorProperties(WrappedType wrappedType, SyntaxToken wrappedIdentifier, bool hasMagnitude, bool isUnity) {

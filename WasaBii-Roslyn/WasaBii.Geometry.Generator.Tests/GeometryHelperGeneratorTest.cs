@@ -41,22 +41,19 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
-    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
+    [GeometryHelper(false, false, true)]
     public partial struct GlobalDirection {
 
-        private System.Numerics.Vector3 _underlying;
-        public System.Numerics.Vector3 AsNumericsVector => _underlying;
-        
-        public GlobalDirection(float x, float y, float z) {
-            var magnitude = MathF.Sqrt(x * x + y * y + z * z);
-            _underlying = new(x / magnitude, y / magnitude, z / magnitude);
-        }
-        
-        public GlobalDirection(System.Numerics.Vector3 toWrap) => _underlying = toWrap.Normalized();
+        public System.Numerics.Vector3 AsNumericsVector { get; private set; }
+        public GlobalDirection(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
 
-        public GlobalDirection(Length x, Length y, Length z) : this(
-            (float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()
-        ) { }
+    }
+
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
+    public partial struct LocalPosition {
+
+        public UnityEngine.Vector3 AsNumericsVector { get; private set; }
+        public GlobalDirection(UnityEngine.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
 
     }
 

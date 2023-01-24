@@ -1,5 +1,3 @@
-using System;
-
 namespace BII.WasaBii.Core; 
 
 /// <summary>
@@ -14,11 +12,12 @@ namespace BII.WasaBii.Core;
 /// - The types of all fields are either <see cref="MustBeImmutableAttribute"/> or recursively immutable as well.
 ///
 /// This holds true for:
-/// - Primitive types like <see cref="int"/>, <see cref="char"/> etc
-/// - <see cref="string"/> as a special case
-/// - All collections in <see cref="System.Collections.Immutable"/>
-/// - <see cref="SingleLinkedList{T}"/>
-/// - `readonly struct`s with only true immutable fields
+/// <list type="unordered"></list>
+/// - primitive types like <see cref="int"/>, <see cref="char"/> etc
+/// - all unmanaged `struct`s when stored in a `readonly` field
+/// - <see cref="string"/> and <see cref="Type"/> as a special cases
+/// - all collections in the `System.Collections.Immutable` namespace
+/// - `struct`s with only true immutable fields
 /// - `class`es with only readonly true immutable fields in their class hierarchy
 /// - interfaces and abstract classes with an explicit <see cref="MustBeImmutableAttribute"/> attribute
 /// </remarks>

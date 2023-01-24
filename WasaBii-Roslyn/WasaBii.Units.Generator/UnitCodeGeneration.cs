@@ -9,9 +9,8 @@ public static class UnitCodeGeneration {
         return $@"#region {name}
 
 // Non-readonly because units are designed to be serializable by Unity and Unity doesn't like readonly fields.
-// We ignore this for immutability validation since the struct is only ever truly mutable when the field it lives
-// in isn't `readonly`. This case will still be caught by the validation.
-[Serializable] [__IgnoreMustBeImmutable]
+// This can still be used in immutable types as long as the field is marked as `readonly`.
+[Serializable]
 public partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     
     #if UNITY_2022_1_OR_NEWER

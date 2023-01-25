@@ -1,8 +1,8 @@
 ﻿{
   "namespace": "BII.WasaBii.UnitSystem",
-  
+
   "baseUnits": [
-    
+
     {
       "typeName": "Angle",
       "siUnit": {
@@ -13,7 +13,7 @@
         {
           "name": "Degrees",
           "short": "°",
-          "factor": 57.2957795131
+          "factor": 0.0174532925199432
         }
       ],
       "generateExtensions": true
@@ -54,7 +54,7 @@
       ],
       "generateExtensions": true
     },
-    
+
     {
       "typeName": "Length",
       "siUnit": {
@@ -106,9 +106,9 @@
       ],
       "generateExtensions": true
     }
-    
+
   ],
-  
+
   "mulUnits": [
 
     {
@@ -123,7 +123,7 @@
         {
           "name": "SquareKilometers",
           "short": "km²",
-          "factor": 0.000001
+          "factor": 1000000
         }
       ],
       "generateExtensions": true
@@ -155,18 +155,12 @@
         "name": "Newton",
         "short": "N"
       },
-      "additionalUnits": [
-        {
-          "name": "Liters",
-          "short": "l",
-          "factor": 0.001
-        }
-      ],
+      "additionalUnits": [],
       "generateExtensions": true
     }
-    
+
   ],
-  
+
   "divUnits": [
 
     {
@@ -181,17 +175,17 @@
         {
           "name": "DegreesPerSecond",
           "short": "°/s",
-          "factor": 57.2957795131
-        }, 
+          "factor": 0.0174532925199432
+        },
         {
           "name": "DegreesPerMinute",
           "short": "°/min",
-          "factor": 0.95492965855
+          "factor": 0.000290888208666
         }
       ],
       "generateExtensions": true
     },
-    
+
     {
       "typeName": "Velocity",
       "primary": "Length",

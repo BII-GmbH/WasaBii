@@ -1,25 +1,30 @@
-﻿{
-  "name": "WasaBii.Splines.Editor.Tests",
-  "rootNamespace": "BII.WasaBii",
-  "references": [
-    "WasaBii.Core",
-    "WasaBii.Splines",
-    "WasaBii.Units",
-    "WasaBii.Unity"
-  ],
-  "includePlatforms": [
-    "Editor"
-  ],
-  "optionalUnityReferences": [
-    "TestAssemblies"
-  ],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": true,
-  "precompiledReferences": [
-    "WasaBii-Units-Shared.dll"
-  ],
-  "autoReferenced": false,
-  "versionDefines": [],
-  "noEngineReferences": false
+{
+    "name": "WasaBii.Splines.Editor.Tests",
+    "rootNamespace": "BII.WasaBii",
+    "references": [
+        "WasaBii.Core",
+        "WasaBii.Splines",
+        "WasaBii.Units",
+        "WasaBii.Unity",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "WasaBii-Units-Shared.dll",
+        "nunit.framework.dll",
+        "WasaBii.Analyzers.Shared.dll",
+        "WasaBii.Units.Shared.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

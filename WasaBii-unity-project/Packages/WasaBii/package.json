@@ -9,10 +9,9 @@
   "changelogUrl": "https://github.com/BII-GmbH/WasaBii/blob/main/changelog.md",
   "licensesUrl": "https://github.com/BII-GmbH/WasaBii/blob/main/LICENSE",
   "dependencies": {
-    "com.unity.nuget.newtonsoft-json": "3.0.2",
     "com.unity.test-framework": "1.1.33"
- },
- "keywords": [
+  },
+  "keywords": [
     "utils",
     "utilities",
     "misc",

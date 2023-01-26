@@ -9,7 +9,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// positions being moved by a certain offset which depends on the spline's tangent at these points.
         public static CatmullRomSpline<TPos, TDiff> CopyWithOffset<TPos, TDiff>(
             CatmullRomSpline<TPos, TDiff> original, Func<TDiff, TDiff> tangentToOffset
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             TPos computePosition(
                 Spline<TPos, TDiff> deriveFrom, TPos originalPosition, NormalizedSplineLocation tangentLocation
             ) => original.Ops.Sub(originalPosition, tangentToOffset(deriveFrom[tangentLocation].Tangent));
@@ -35,7 +35,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// independent of the spline's tangent at these points.
         public static CatmullRomSpline<TPos, TDiff> CopyWithStaticOffset<TPos, TDiff>(
             CatmullRomSpline<TPos, TDiff> original, TDiff offset
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             TPos computePosition(TPos node) => original.Ops.Add(node, offset);
             return new CatmullRomSpline<TPos, TDiff>(
                 computePosition(original.BeginMarginHandle()),
@@ -51,7 +51,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// between the non-margin handles.
         public static CatmullRomSpline<TPos, TDiff> CopyWithDifferentHandleDistance<TPos, TDiff>(
             CatmullRomSpline<TPos, TDiff> original, Length desiredHandleDistance
-        ) where TPos : struct where TDiff : struct =>
+        ) where TPos : unmanaged where TDiff : unmanaged =>
             new(
                 original.Ops.Lerp(original.Handles[0], original.BeginMarginHandle(), desiredHandleDistance / original.Ops.Distance(original.Handles[0], original.BeginMarginHandle())),
                 original.SampleSplineEvery(desiredHandleDistance).Select(sample => sample.Position),

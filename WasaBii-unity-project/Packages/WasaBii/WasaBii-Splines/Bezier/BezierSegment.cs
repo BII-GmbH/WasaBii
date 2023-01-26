@@ -22,7 +22,7 @@ namespace BII.WasaBii.Splines.Bezier {
         public static BezierSegment<TPos, TDiff> Quadratic<TPos, TDiff>(
             TPos start, TDiff startVelocity, TPos end,
             GeometricOperations<TPos, TDiff> ops
-        ) where TPos : struct where TDiff : struct 
+        ) where TPos : unmanaged where TDiff : unmanaged 
             => new(
                 start, 
                 ops.Add(start, ops.Div(startVelocity, 2)), 
@@ -37,7 +37,7 @@ namespace BII.WasaBii.Splines.Bezier {
         public static BezierSegment<TPos, TDiff> Cubic<TPos, TDiff>(
             TPos start, TDiff startVelocity, TPos end, TDiff endVelocity,
             GeometricOperations<TPos, TDiff> ops
-        ) where TPos : struct where TDiff : struct 
+        ) where TPos : unmanaged where TDiff : unmanaged 
             => new(
                 start, 
                 ops.Add(start, ops.Div(startVelocity, 3)),
@@ -53,7 +53,7 @@ namespace BII.WasaBii.Splines.Bezier {
         public static BezierSegment<TPos, TDiff> Quartic<TPos, TDiff>(
             TPos start, TDiff startVelocity, TDiff startAcceleration, TPos end, TDiff endVelocity,
             GeometricOperations<TPos, TDiff> ops
-        ) where TPos : struct where TDiff : struct 
+        ) where TPos : unmanaged where TDiff : unmanaged 
             => new(
                 start, 
                 ops.Add(start, ops.Div(startVelocity, 4)),
@@ -70,7 +70,7 @@ namespace BII.WasaBii.Splines.Bezier {
         public static BezierSegment<TPos, TDiff> Quintic<TPos, TDiff>(
             TPos start, TDiff startVelocity, TDiff startAcceleration, TPos end, TDiff endVelocity, TDiff endAcceleration,
             GeometricOperations<TPos, TDiff> ops
-        ) where TPos : struct where TDiff : struct => new(
+        ) where TPos : unmanaged where TDiff : unmanaged => new(
             start, 
             ops.Add(start, ops.Div(startVelocity, 5)),
             ops.Add(start, ops.Div(ops.Add(startAcceleration, ops.Mul(startVelocity, 8)), 20)),
@@ -88,7 +88,7 @@ namespace BII.WasaBii.Splines.Bezier {
     /// with just 2 handles. The curve will usually go in the direction of the handles without ever touching them.
     /// </summary>
     [Serializable]
-    public readonly struct BezierSegment<TPos, TDiff> where TPos : struct where TDiff : struct {
+    public readonly struct BezierSegment<TPos, TDiff> where TPos : unmanaged where TDiff : unmanaged {
 
         public readonly TPos Start;
         public readonly ImmutableArray<TPos> Handles;
@@ -172,7 +172,7 @@ namespace BII.WasaBii.Splines.Bezier {
         
         [Pure]
         public BezierSegment<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(Func<TPos, TPosNew> positionMapping)
-        where TPosNew : struct where TDiffNew : struct => new(
+        where TPosNew : unmanaged where TDiffNew : unmanaged => new(
             positionMapping(Start),
             Handles.Select(positionMapping).ToImmutableArray(),
             positionMapping(End)

@@ -16,7 +16,7 @@ namespace BII.WasaBii.Splines.Bezier {
         public static BezierSpline<TPos, TDiff> FromQuadraticHandles<TPos, TDiff>(
             IEnumerable<TPos> handles,
             GeometricOperations<TPos, TDiff> ops
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             using var enumerator = handles.GetEnumerator();
             var segments = new List<BezierSegment<TPos, TDiff>>();
             if (!enumerator.MoveNext()) throw new ArgumentException("No handles passed. A bezier spline from quadratic segments needs at least 3 handles");
@@ -41,7 +41,7 @@ namespace BII.WasaBii.Splines.Bezier {
         public static BezierSpline<TPos, TDiff> FromCubicHandles<TPos, TDiff>(
             IEnumerable<TPos> handles,
             GeometricOperations<TPos, TDiff> ops
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             using var enumerator = handles.GetEnumerator();
             var segments = new List<BezierSegment<TPos, TDiff>>();
             if (!enumerator.MoveNext()) throw new ArgumentException("No handles passed. A bezier spline from cubic segments needs at least 4 handles");
@@ -80,7 +80,7 @@ namespace BII.WasaBii.Splines.Bezier {
             GeometricOperations<TPos, TDiff> ops, 
             bool shouldLoop = false,
             bool shouldAccelerationBeContinuous = false
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             if (shouldAccelerationBeContinuous)
                 return FromHandlesWithVelocitiesAndAccelerations(
                     handles.Select(h => (h.position, h.velocity, ops.ZeroDiff)),
@@ -101,7 +101,7 @@ namespace BII.WasaBii.Splines.Bezier {
             IEnumerable<(TPos position, TDiff velocity, TDiff acceleration)> handles,
             GeometricOperations<TPos, TDiff> ops, 
             bool shouldLoop = false
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             var (first, tail) = handles;
             var allHandles = shouldLoop ? first.PrependTo(tail).Append(first) : first.PrependTo(tail);
             var segments = allHandles.PairwiseSliding().SelectTuple((left, right) => 

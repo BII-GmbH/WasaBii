@@ -88,9 +88,9 @@ namespace BII.Utilities.Independent {
         [Pure] public new Option<T> MetadataFor<T>() where T : TSupertype;
         
         #pragma warning disable CS0108 // hides inherited member; intentional in this case
-        
+
         /// <inheritdoc cref="HierarchicalMetadata{TSupertype}"/>
-        [Serializable][MustBeImmutable]
+        [Serializable]
         public class Immutable : HierarchicalMetadata<TSupertype, TSupertype>.Immutable, HierarchicalMetadata<TSupertype> {
             protected override TSupertype getKeyFromEntry(TSupertype entry) => entry;
             [Pure] public new Option<T> MetadataFor<T>() where T : TSupertype => data.TryGetValue(typeof(T)).Map(v => (T) v);
@@ -122,6 +122,7 @@ namespace BII.Utilities.Independent {
     /// defines how to get a key from each value contained in the collection.
     /// </summary>
     /// <remarks>For more details, refer to the docs in the source file.</remarks>
+    // ReSharper disable once TypeParameterCanBeVariant // Intentional: We do not want a hierarchy of supertypes
     public interface HierarchicalMetadata<TSupertype, TValue> 
     where TSupertype : class where TValue : IEquatable<TValue> {
 
@@ -177,7 +178,13 @@ namespace BII.Utilities.Independent {
         /// Just collect all the values and pass them to the constructor.
         ///
         /// All you need to do is implement the single `getKeyFromEntry` method. There is nothing else to consider.
-        [Serializable][MustBeImmutable]
+        /// 
+        /// <devremarks>
+        /// Not marked as <see cref="MustBeImmutableAttribute"/>, because we do not enforce the values to be immutable.
+        /// However, will check as immutable when used in another type marked as <see cref="MustBeImmutableAttribute"/>
+        ///  as long as the contained values also type check appropriately.
+        /// </devremarks>
+        [Serializable]
         public abstract class Immutable : WithQueries {
             private readonly ImmutableDictionary<Type, TValue> _data;
             protected override IReadOnlyDictionary<Type, TValue> data => _data;

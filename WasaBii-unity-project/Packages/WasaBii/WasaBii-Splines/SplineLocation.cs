@@ -18,7 +18,7 @@ namespace BII.WasaBii.Splines {
 
         [Pure]
         public Length GetDistanceToClosestSideOf<TPos, TDiff>(Spline<TPos, TDiff> spline, Length? cachedLength = null) 
-            where TPos : struct where TDiff : struct {
+            where TPos : unmanaged where TDiff : unmanaged {
             var length = cachedLength ?? spline.Length();
             var distanceFromEnd = length - Value;
             return Units.Min(Value, distanceFromEnd);
@@ -26,7 +26,7 @@ namespace BII.WasaBii.Splines {
 
         [Pure]
         public bool IsCloserToBeginOf<TPos, TDiff>(Spline<TPos, TDiff> spline, Length? cachedLength = null) 
-            where TPos : struct where TDiff : struct {
+            where TPos : unmanaged where TDiff : unmanaged {
             var length = cachedLength ?? spline.Length();
             return (Value < length / 2f);
         }

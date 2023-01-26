@@ -18,7 +18,7 @@ namespace BII.WasaBii.Splines {
         /// can vary, especially for splines where the segments vary in length and for some higher-order-segments.
         [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplinePerSegment<TPos, TDiff>(
             this Spline<TPos, TDiff> spline, int samplesPerSegment
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
 
             var fromLoc = NormalizedSplineLocation.Zero;
             var toLoc = NormalizedSplineLocation.From(spline.SegmentCount);
@@ -39,7 +39,7 @@ namespace BII.WasaBii.Splines {
             Length desiredSampleLength,
             int minSamples = 2,
             bool equidistant = false
-        ) where TPos : struct where TDiff : struct 
+        ) where TPos : unmanaged where TDiff : unmanaged 
             => spline.SampleSplineBetween(
                 SplineLocation.Zero, 
                 spline.Length(),
@@ -57,7 +57,7 @@ namespace BII.WasaBii.Splines {
             this Spline<TPos, TDiff> spline,
             int samples,
             bool equidistant = false
-        ) where TPos : struct where TDiff : struct 
+        ) where TPos : unmanaged where TDiff : unmanaged 
             => spline.SampleSplineBetween(
                 SplineLocation.Zero, 
                 spline.Length(),
@@ -78,7 +78,7 @@ namespace BII.WasaBii.Splines {
             Length desiredSampleLength,
             int minSamples = 2,
             bool equidistant = true
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             
             if (desiredSampleLength <= Length.Zero)
                 throw new ArgumentException($"The sampleLength cannot be 0 or smaller than 0 (was {desiredSampleLength})");
@@ -99,7 +99,7 @@ namespace BII.WasaBii.Splines {
             SplineLocation toAbsolute,
             int samples,
             bool equidistant = false
-        ) where TPos : struct where TDiff : struct {
+        ) where TPos : unmanaged where TDiff : unmanaged {
             
             var reverse = false;
             if (toAbsolute < fromAbsolute) {

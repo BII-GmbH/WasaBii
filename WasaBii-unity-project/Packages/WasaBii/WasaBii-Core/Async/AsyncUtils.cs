@@ -24,7 +24,6 @@ namespace BII.WasaBii.Core {
             }
         }
 
-
         /// <param name="toExecute">
         /// Getter for the task that is executed.
         /// Tasks are started on construction, so this ensures that we 

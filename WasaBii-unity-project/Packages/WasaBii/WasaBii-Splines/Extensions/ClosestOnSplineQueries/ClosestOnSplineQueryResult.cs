@@ -5,8 +5,8 @@ using BII.WasaBii.UnitSystem;
 namespace BII.WasaBii.Splines {
 
     public readonly struct ClosestOnSplineQueryResult<TPos, TDiff> 
-        where TPos : struct 
-        where TDiff : struct {
+        where TPos : unmanaged 
+        where TDiff : unmanaged {
         internal ClosestOnSplineQueryResult(
             TPos queriedPosition, Spline<TPos, TDiff> spline, TPos position, NormalizedSplineLocation normalizedLocation
         ) {

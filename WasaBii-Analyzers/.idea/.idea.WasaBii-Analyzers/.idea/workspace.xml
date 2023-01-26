@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a4e48d09-277e-406c-9a8d-858c9acbbe70" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.WasaBii-Analyzers/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/netstandard2.1.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/netstandard2.1/WasaBii.Analyzers.Shared.deps.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/netstandard2.1/WasaBii.Analyzers.Shared.deps.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/netstandard2.1/WasaBii.Analyzers.Shared.dll" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/netstandard2.1/WasaBii.Analyzers.Shared.dll.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/netstandard2.1/WasaBii.Analyzers.deps.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/netstandard2.1/WasaBii.Analyzers.deps.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/netstandard2.1/WasaBii.Analyzers.dll" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/netstandard2.1/WasaBii.Analyzers.dll.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii.Units.Generator.deps.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii.Units.Generator.deps.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii.Units.Shared.deps.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii.Units.Shared.deps.json.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.editorconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.WasaBii-Analyzers/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.WasaBii-Analyzers/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.WasaBii-Analyzers/.idea/indexLayout.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.WasaBii-Analyzers/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/NuGet.Config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/WasaBii-Analyzers.DotSettings" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/WasaBii-Analyzers.sln" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Analyzers-Shared/WasaBii-Analyzers-Shared.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Analyzers.Shared/WasaBii.Analyzers.Shared.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Analyzers-Tests/RoslynAnalyzerTemplateTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Analyzers.Tests/RoslynAnalyzerTemplateTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Analyzers-Tests/TestData/TypeNameContainingLowercase.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Analyzers.Tests/TestData/TypeNameContainingLowercase.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Analyzers-Tests/WasaBii-Analyzers-Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Analyzers.Tests/WasaBii.Analyzers.Tests.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Analyzers/RoslynAnalyzerTemplate.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Analyzers/RoslynAnalyzerTemplate.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Analyzers/RoslynAnalyzerTemplateCodeFixProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Analyzers/RoslynAnalyzerTemplateCodeFixProvider.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Analyzers/WasaBii-Analyzers.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Analyzers/WasaBii.Analyzers.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Roslyn.sln" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Roslyn.sln" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Units-Generator-Tests/UnitGeneratorTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Units.Generator.Tests/UnitGeneratorTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Units-Generator-Tests/WasaBii-Units-Generator-Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Units.Generator.Tests/WasaBii.Units.Generator.Tests.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Units-Generator/JsonModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Units.Generator/JsonModel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Units-Generator/UnitCodeGeneration.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Units.Generator/UnitCodeGeneration.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Units-Generator/UnitConversions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Units.Generator/UnitConversions.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Units-Generator/UnitGenerator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Units.Generator/UnitGenerator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Units-Generator/WasaBii-Units-Generator.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Units.Generator/WasaBii.Units.Generator.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Units-Shared/IUnitValue.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Units.Shared/IUnitValue.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Units-Shared/Unit.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Units.Shared/Unit.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii-Units-Shared/WasaBii-Units-Shared.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Units.Shared/WasaBii.Units.Shared.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/ConventionValidation/Tests/WasaBii.Core.ConventionValidation.Editor.Tests.asmdef" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/ConventionValidation/Tests/WasaBii.Core.ConventionValidation.Editor.Tests.asmdef" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/MarkerAttributes.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-Roslyn/WasaBii.Analyzers.Shared/MarkerAttributes.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/MarkerAttributes.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/WasaBii.Core.asmdef" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Core/WasaBii.Core.asmdef" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Splines/Tests/WasaBii.Splines.Editor.Tests.asmdef" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Splines/Tests/WasaBii.Splines.Editor.Tests.asmdef" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/WasaBii.Units.asmdef" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/WasaBii.Units.asmdef" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii-Units-Generator.dll" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii.Units.Generator.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii-Units-Generator.dll.meta" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii.Units.Generator.dll.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii-Units-Shared.dll" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii.Units.Shared.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii-Units-Shared.dll.meta" beforeDir="false" afterPath="$PROJECT_DIR$/../WasaBii-unity-project/Packages/WasaBii/WasaBii-Units/netstandard2.1/WasaBii.Units.Shared.dll.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/Debug/net5.0/.NETCoreApp,Version=v5.0.AssemblyAttributes.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/Debug/net5.0/WasaBii-Core.AssemblyInfo.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/Debug/net5.0/WasaBii-Core.AssemblyInfoInputs.cache" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/Debug/net5.0/WasaBii-Core.GeneratedMSBuildEditorConfig.editorconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/Debug/net5.0/WasaBii-Core.assets.cache" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/Debug/net5.0/WasaBii-Core.csproj.AssemblyReference.cache" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/Debug/net5.0/WasaBii-Core.csprojAssemblyReference.cache" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/WasaBii-Core.csproj.nuget.dgspec.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/WasaBii-Core.csproj.nuget.g.props" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/WasaBii-Core.csproj.nuget.g.targets" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/project.assets.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/project.nuget.cache" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/project.packagespec.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WasaBii-unity-project/WasaBii-Core/obj/rider.project.restore.info" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/667c3f2c5561256a81aebb3f2df5de86255cfa37bbb8d983031cbd13f998ca7/WellKnownFixAllProviders.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/b075956b565a447e8deb64805c769eb0ed8161b963f8172d988e1a2ecab60c8/FixAllProvider.cs" root0="SKIP_HIGHLIGHTING" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2IYPfYoYImWTPgr85hZoIQYsrUs" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a4e48d09-277e-406c-9a8d-858c9acbbe70" name="Changes" comment="" />
+      <created>1670355647898</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1670355647898</updated>
+      <workItem from="1670355649915" duration="821000" />
+      <workItem from="1670857148789" duration="27000" />
+      <workItem from="1670857190697" duration="1857000" />
+      <workItem from="1670860834419" duration="651000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
+  <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+</project>

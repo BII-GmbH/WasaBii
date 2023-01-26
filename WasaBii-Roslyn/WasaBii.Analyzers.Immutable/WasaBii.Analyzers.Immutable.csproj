@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>default</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <RootNamespace>BII.WasaBii.Analyzers</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.9.0" /><!-- Keep v3.5 for use less than Unity 2021.2 -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('$(TargetPath)')">
+    <Analyzer Include="$(TargetPath)" />
+    <Analyzer Include="$(TargetPath)\..\WasaBii.Analyzers.Shared.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WasaBii.Analyzers.Shared\WasaBii.Analyzers.Shared.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Core\Analyzers\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Core\Analyzers\</OutputPath>
+  </PropertyGroup>
+
+</Project>

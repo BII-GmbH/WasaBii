@@ -37,7 +37,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
         NotImmutableReason.NotImmutableUnboundGenericParameter =>
             "Generic parameter must either be `unmanaged` or constrained to a type with the [MustBeImmutable] attribute.",
         NotImmutableReason.UnexpectedNonNamedType => 
-            "Unexpected type: not sure what to do here.",
+            "Internal analyzer error: Cannot validate unnamed type. Please open a bug issue with an example.",
         var other => other.ToString() // fallback for when there's no message yet
     };
 

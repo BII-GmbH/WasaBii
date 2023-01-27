@@ -20,16 +20,14 @@ namespace BII.WasaBii.UnitSystem {
         
         // For each unit type, the last selected unit (eg m vs km) is cached and displayed the next time an
         // editor of this unit type ist drawn
-        private static readonly Dictionary<Type, int> _unitIndices = new();
+        // ReSharper disable once StaticMemberInGenericType // intentional, related to the generics
+        private static int _unitIndex = -1;
 
         protected abstract IUnitDescription<TUnit> description { get; }
 
         private int unitIndex { 
-            get => _unitIndices.GetOrAdd(
-                typeof(TUnit),
-                () => description.AllUnits.ToList().IndexOf(description.SiUnit)
-            );
-            set => _unitIndices[typeof(TUnit)] = value; 
+            get => _unitIndex == -1 ? _unitIndex = description.AllUnits.ToList().IndexOf(description.SiUnit) : _unitIndex;
+            set => _unitIndex = value;
         }
 
         private const string serializedPropertyName = "_siValue";

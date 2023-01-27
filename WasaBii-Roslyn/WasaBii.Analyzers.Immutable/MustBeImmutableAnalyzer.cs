@@ -16,15 +16,6 @@ namespace BII.WasaBii.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
     
-    // Types with exactly these full names will be assumed to be immutable for the sake of validation here.
-    private static readonly ImmutableArray<string> AllowedTypeIdentifiers = ImmutableArray.Create(
-        // Technically, a lazy can be stateful depending on the factory closure.
-        // However, that would be stupid. We cannot validate this, so we just trust you people here.
-        "System.Lazy",
-        // Types are effectively immutable.
-        "System.Type"
-    );
-    
     public enum NotImmutableReason {
         NonReadonlyField,
         IsUntypedReference,
@@ -46,7 +37,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
         NotImmutableReason.NotImmutableUnboundGenericParameter =>
             "Generic parameter must either be `unmanaged` or constrained to a type with the [MustBeImmutable] attribute.",
         NotImmutableReason.UnexpectedNonNamedType => 
-            "Unexpected type: not sure what to do here.",
+            "Internal analyzer error: Cannot validate unnamed type. Please open a bug issue with an example.",
         var other => other.ToString() // fallback for when there's no message yet
     };
 
@@ -90,7 +81,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
     //  => We validate the fields' actual substituted types, even when declared as a generic type.
 
     public override void Initialize(AnalysisContext context) {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
         var allViolations = new Dictionary<ITypeSymbol, IReadOnlyCollection<ImmutabilityViolation>>(SymbolEqualityComparer.Default); 
         var topLevelToValidate = new Dictionary<ITypeSymbol, HashSet<ITypeSymbol>>(SymbolEqualityComparer.Default); // values are sources with attribute
@@ -105,10 +96,8 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                 return; // attributes not referenced in compilation unit, so nothing to check
 
             var iEnumerableSymbol = comp.GetTypeByMetadataName(typeof(IEnumerable).FullName);
-
-            var allowedTypes = AllowedTypeIdentifiers
-                .Select(t => comp.GetTypeByMetadataName(t)!)
-                .ToImmutableHashSet(SymbolEqualityComparer.Default);
+            var typeSymbol = comp.GetTypeByMetadataName(typeof(Type).FullName)!;
+            var lazySymbol = comp.GetTypeByMetadataName(typeof(Lazy<>).FullName)!;
             
             var seen = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
 
@@ -152,7 +141,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
             });
             
 #region Validation Logic
-            
+
             // Idea: Mutually recurse between these two to properly add the context step by step and accumulate issues upwards
 
             IEnumerable<ImmutabilityViolation> ValidateWithContextAndRemember(
@@ -182,6 +171,9 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                     yield return ImmutabilityViolation.From(NotImmutableReason.IsUntypedReference, type.Locations);
                     yield break;
                 }
+
+                // We assume that Type references in C# are not used in a mutable fashion
+                if (Equal(type, typeSymbol)) yield break;
 
                 // Numbers and readonly unmanaged structs fulfill this constraint.
                 // Non-unmanaged readonly structs however may contain references
@@ -217,9 +209,17 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                     yield return ImmutabilityViolation.From(NotImmutableReason.UnexpectedNonNamedType, type.Locations);
                     yield break;
                 }
-
-                // Also allow if it is one of the specifically allowed convenience types
-                if (allowedTypes.Contains(namedType)) yield break;
+                
+                // In Lazy<T>, we only validate the type that will eventually be held.
+                // It is effectively immutable after the lazy initialization.
+                if (Equal(namedType.OriginalDefinition, lazySymbol)) {
+                    var generic = namedType.TypeArguments.Single();
+                    foreach (var violation in ValidateWithContextAndRemember(
+                        generic, 
+                        new($"Lazy<{generic.Name}>"))
+                    ) yield return violation;
+                    yield break;
+                }
 
                 // We allow all immutable collections even though they might internally be mutable
                 if (
@@ -252,8 +252,8 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                 var contextStack = ImmutableStack<ContextPathPart>.Empty;
                 do {
                     foreach (var field in currentType.IsTupleType 
-                                 ? currentType.TupleElements // In case of named tuples, ignore ItemN etc
-                                 : currentType.GetMembers().OfType<IFieldSymbol>()
+                         ? currentType.TupleElements // In case of named tuples, ignore ItemN etc
+                         : currentType.GetMembers().OfType<IFieldSymbol>()
                     ) {
                         if (field.IsConst) continue;
 
@@ -267,7 +267,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                         //  then at some point that struct or a containing struct need to be in a readonly field.
                         // This essentially causes all members beneath to be readonly, recursively.
                         // = We allow non-readonly fields only in structs that are in a readonly field
-                        if (!field.IsReadOnly && (type.TypeKind != TypeKind.Struct || !isReferencedAsField))
+                        if (!field.IsReadOnly && (type.TypeKind != TypeKind.Struct || !isReferencedAsField)) 
                             yield return new ImmutabilityViolation(
                                 contextStack.Push(new($"{field.Name}: {field.Type.Name}")), 
                                 NotImmutableReason.NonReadonlyField,
@@ -275,9 +275,9 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                             );
 
                         foreach (var violation in ValidateWithContextAndRemember(
-                             field.Type, 
-                             new($"{field.Name}: {field.Type.Name}")
-                         )) yield return violation with { Locations = locs.Value };
+                            field.Type, 
+                            new($"{field.Name}: {field.Type.Name}")
+                        )) yield return violation with { Locations = locs.Value };
                     }
                     
                     currentType = currentType.BaseType;

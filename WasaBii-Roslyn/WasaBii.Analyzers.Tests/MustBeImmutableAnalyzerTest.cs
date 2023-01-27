@@ -67,6 +67,16 @@ public class RoslynAnalyzerTemplateTest {
     [Test]
     public Task ClassWithType_NoDiagnostics() =>
         AssertDiagnostics(0, "[MustBeImmutable] public class ClassWithType { public readonly System.Type TypeRef; }");
+    
+    [Test]
+    public Task LazyField_OfImmutableType_NoDiagnostics() =>
+        AssertDiagnostics(0, "[MustBeImmutable] public class WithLazy { public readonly System.Lazy<string> LazyString; }");
+    
+    [Test]
+    public Task LazyField_OfMutableType_OneDiagnostic() =>
+        AssertDiagnostics(1, @"
+            public class MutableClass { public int Foo; }
+            [MustBeImmutable] public class WithLazy { public readonly System.Lazy<MutableClass> LazyString; }");
 
     [Test]
     public Task IgnoreMustBeImmutable_IgnoresMutability() =>

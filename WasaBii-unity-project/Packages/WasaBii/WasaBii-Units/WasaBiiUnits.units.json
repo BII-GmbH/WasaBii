@@ -1,8 +1,8 @@
 ﻿{
   "namespace": "BII.WasaBii.UnitSystem",
-
+  
   "baseUnits": [
-
+    
     {
       "typeName": "Angle",
       "siUnit": {
@@ -54,7 +54,7 @@
       ],
       "generateExtensions": true
     },
-
+    
     {
       "typeName": "Length",
       "siUnit": {
@@ -106,9 +106,9 @@
       ],
       "generateExtensions": true
     }
-
+    
   ],
-
+  
   "mulUnits": [
 
     {
@@ -158,9 +158,9 @@
       "additionalUnits": [],
       "generateExtensions": true
     }
-
+    
   ],
-
+  
   "divUnits": [
 
     {
@@ -185,7 +185,7 @@
       ],
       "generateExtensions": true
     },
-
+    
     {
       "typeName": "Velocity",
       "primary": "Length",

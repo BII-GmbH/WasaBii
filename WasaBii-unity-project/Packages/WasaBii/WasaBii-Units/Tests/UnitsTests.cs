@@ -1,8 +1,7 @@
 ﻿using System;
-using BII.WasaBii.UnitSystem;
 using NUnit.Framework;
 
-namespace WasaBii_Units.Tests
+namespace BII.WasaBii.UnitSystem.Tests
 {
     public class UnitsTests
     {

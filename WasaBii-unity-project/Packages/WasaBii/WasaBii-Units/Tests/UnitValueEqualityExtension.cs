@@ -1,7 +1,6 @@
-﻿using BII.WasaBii.UnitSystem;
-using NUnit.Framework.Constraints;
+﻿using NUnit.Framework.Constraints;
 
-namespace WasaBii_Units.Tests
+namespace BII.WasaBii.UnitSystem.Tests
 {
     public static class UnitValueEqualityExtension
     {

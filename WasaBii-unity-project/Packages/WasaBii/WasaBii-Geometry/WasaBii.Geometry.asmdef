@@ -1,5 +1,5 @@
 {
-    "name": "WasaBii-Geometry",
+    "name": "WasaBii.Geometry",
     "rootNamespace": "BII.WasaBii.Geometry",
     "references": [
         "WasaBii.Core",

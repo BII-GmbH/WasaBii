@@ -43,14 +43,27 @@ namespace BII.WasaBii.Geometry {
         public LocalRotation RelativeToWorldZero => new(AsNumericsQuaternion);
 
         [Pure] public static GlobalOffset operator *(GlobalRotation rotation, GlobalOffset offset) =>
-            System.Numerics.Vector3.Transform(offset.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalOffset();
+        #if UNITY_2022_1_OR_NEWER
+            new(rotation.AsUnityQuaternion * offset.AsUnityVector);
+        #else
+            new(System.Numerics.Vector3.Transform(offset.AsNumericsVector, rotation.AsNumericsQuaternion));
+        #endif
         [Pure] public static GlobalOffset operator *(GlobalOffset offset, GlobalRotation rotation) => rotation * offset;
+        
         [Pure] public static GlobalDirection operator *(GlobalRotation rotation, GlobalDirection direction) =>
-            System.Numerics.Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalDirection();
+        #if UNITY_2022_1_OR_NEWER
+            new(rotation.AsUnityQuaternion * direction.AsUnityVector);
+        #else
+            new(System.Numerics.Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion));
+        #endif
         [Pure] public static GlobalDirection operator *(GlobalDirection direction, GlobalRotation rotation) => rotation * direction;
         
         [Pure] public static GlobalRotation operator *(GlobalRotation left, GlobalRotation right) => 
-            System.Numerics.Quaternion.Concatenate(left.AsNumericsQuaternion, right.AsNumericsQuaternion).AsGlobalRotation();
+        #if UNITY_2022_1_OR_NEWER
+            new(left.AsUnityQuaternion * right.AsUnityQuaternion);
+        #else
+            new(System.Numerics.Quaternion.Concatenate(left.AsNumericsQuaternion, right.AsNumericsQuaternion));
+        #endif
 
         [Pure] public static Builder From<T>(T from) where T : struct, GlobalDirectionLike<T> => 
             new(from switch {

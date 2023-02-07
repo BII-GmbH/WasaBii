@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using JetBrains.Annotations;
@@ -12,7 +10,7 @@ namespace BII.WasaBii.Geometry {
     /// </summary>
     [MustBeImmutable]
     [Serializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: false, hasOrientation: false)]
+    [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: false)]
     public partial struct LocalPose : IsLocalVariant<LocalPose, GlobalPose> {
         
         public static readonly LocalPose Identity = new(LocalPosition.Zero, LocalRotation.Identity);

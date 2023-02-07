@@ -52,7 +52,7 @@ namespace BII.WasaBii.Geometry {
         /// </summary>
         /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) ~= global</code> </example>
         [Pure] public GlobalBounds ToGlobalWith(TransformProvider parent)
-            => this.Vertices().Select(p => p.ToGlobalWith(parent)).Bounds();
+            => this.Vertices().Select(p => p.ToGlobalWith(parent)).Bounds().ValueOrDefault!;
 
         public GlobalBounds ToGlobalWithWorldZero => new(Center.ToGlobalWithWorldZero, Size.ToGlobalWithWorldZero);
 
@@ -65,22 +65,12 @@ namespace BII.WasaBii.Geometry {
         /// </summary>
         /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) ~= local</code> </example>
         [Pure] public LocalBounds TransformBy(LocalPose localParent) 
-            => this.Vertices().Select(p => p.TransformBy(localParent)).Bounds();
+            => this.Vertices().Select(p => p.TransformBy(localParent)).Bounds().ValueOrDefault!;
         
         [Pure] public bool Contains(LocalPosition point) 
             => point.X.IsInsideInterval(Min.X, Max.X, inclusive: true)
             && point.Y.IsInsideInterval(Min.Y, Max.Y, inclusive: true)
             && point.Z.IsInsideInterval(Min.Z, Max.Z, inclusive: true);
-
-        [Pure] public LocalBounds LerpTo(LocalBounds target, double progress, bool shouldClamp) => new(
-            Center.LerpTo(target.Center, progress, shouldClamp),
-            Size.LerpTo(target.Size, progress, shouldClamp)
-        );
-
-        [Pure] public LocalBounds SlerpTo(LocalBounds target, double progress, bool shouldClamp) => new(
-            Center.AsOffset.SlerpTo(target.Center.AsOffset, progress, shouldClamp).AsPosition,
-            Size.SlerpTo(target.Size, progress, shouldClamp)
-        );
 
     }
     
@@ -106,14 +96,16 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static LocalBounds Encapsulating(this LocalBounds bounds, LocalPosition point) => 
             new(bounds.Min.Min(point), bounds.Max.Max(point));
 
-        [Pure] public static LocalBounds Bounds(this IEnumerable<LocalPosition> vertices) {
-            var min = new LocalPosition(float.MaxValue, float.MaxValue, float.MaxValue);
-            var max = new LocalPosition(float.MinValue, float.MinValue, float.MinValue);
-            foreach (var vertex in vertices) {
-                min = min.Min(vertex);
-                max = max.Max(vertex);
-            }
-            return new(min, max);
+        [Pure] public static Option<LocalBounds> Bounds(this IEnumerable<LocalPosition> vertices) {
+            return vertices.Aggregate(
+                Option<(LocalPosition Min, LocalPosition Max)>.None, 
+                (current, vertex) => current.Match(
+                    val => (
+                        val.Min.Min(vertex), 
+                        val.Max.Max(vertex)
+                    ), 
+                    () => (vertex, vertex)
+                )).Map(val => new LocalBounds(val.Min, val.Max));
         }
 
         [Pure] public static IEnumerable<LocalPosition> Vertices(this LocalBounds localBounds) {

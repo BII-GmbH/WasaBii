@@ -2,9 +2,7 @@
     "name": "WasaBii-Geometry-Tests",
     "rootNamespace": "BII.WasaBii",
     "references": [
-        "WasaBii-Core",
-        "WasaBii-Geometry",
-        "WasaBii-Units",
+        "WasaBii.Geometry",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "WasaBii.Units"

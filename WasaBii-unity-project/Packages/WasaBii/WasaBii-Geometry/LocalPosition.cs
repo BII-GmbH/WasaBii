@@ -62,16 +62,16 @@ namespace BII.WasaBii.Geometry {
 
         [Pure] public Length DistanceTo(LocalPosition p2) => (p2 - this).Magnitude;
         
-        /// <inheritdoc cref="GeometryUtils.PointReflect(Vector3, Vector3)"/>
+        /// <inheritdoc cref="GeometryUtils.PointReflect(System.Numerics.Vector3, System.Numerics.Vector3)"/>
         [Pure] public LocalPosition PointReflect(LocalPosition on)
             => on + (on - this);
 
-        /// <inheritdoc cref="GeometryUtils.Reflect(Vector3, Vector3, Vector3)"/>
+        /// <inheritdoc cref="GeometryUtils.Reflect(System.Numerics.Vector3, System.Numerics.Vector3, System.Numerics.Vector3)"/>
         [Pure] public LocalPosition Reflect(
             LocalPosition pointOnPlane, LocalDirection planeNormal
         ) => pointOnPlane - (this - pointOnPlane).Reflect(planeNormal);
         
-        /// Rotates <see cref="self"/> around <see cref="pivot"/> by <see cref="rotation"/>.
+        /// Rotates <see cref="this"/> around <see cref="pivot"/> by <see cref="rotation"/>.
         /// Assumes that all three values are given in the same local space.
         [Pure] public LocalPosition Rotate(
             LocalPosition pivot, LocalRotation rotation    

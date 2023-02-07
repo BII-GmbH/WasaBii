@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
@@ -53,7 +52,7 @@ namespace BII.WasaBii.Geometry {
         /// </summary>
         /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) ~= global</code> </example>
         [Pure] public LocalBounds RelativeTo(TransformProvider parent)
-            => this.Vertices().Select(p => p.RelativeTo(parent)).Bounds();
+            => this.Vertices().Select(p => p.RelativeTo(parent)).Bounds().ValueOrDefault!;
 
         public LocalBounds RelativeToWorldZero => new(
             Center.RelativeToWorldZero,
@@ -64,16 +63,6 @@ namespace BII.WasaBii.Geometry {
             => point.X.IsInsideInterval(Min.X, Max.X, inclusive: true)
             && point.Y.IsInsideInterval(Min.Y, Max.Y, inclusive: true)
             && point.Z.IsInsideInterval(Min.Z, Max.Z, inclusive: true);
-
-        [Pure] public GlobalBounds LerpTo(GlobalBounds target, double progress, bool shouldClamp) => new(
-            Center.LerpTo(target.Center, progress, shouldClamp),
-            Size.LerpTo(target.Size, progress, shouldClamp)
-        );
-
-        [Pure] public GlobalBounds SlerpTo(GlobalBounds target, double progress, bool shouldClamp) => new(
-            Center.LerpTo(target.Center, progress, shouldClamp),
-            Size.SlerpTo(target.Size, progress, shouldClamp)
-        );
     }
     
 
@@ -98,14 +87,16 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static GlobalBounds Encapsulating(this GlobalBounds bounds, GlobalPosition point) => 
             new(bounds.Min.Min(point), bounds.Max.Max(point));
 
-        [Pure] public static GlobalBounds Bounds(this IEnumerable<GlobalPosition> vertices) {
-            var min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue).AsGlobalPosition();
-            var max = new Vector3(float.MinValue, float.MinValue, float.MinValue).AsGlobalPosition();
-            foreach (var vertex in vertices) {
-                min = min.Min(vertex);
-                max = max.Max(vertex);
-            }
-            return new(min, max);
+        [Pure] public static Option<GlobalBounds> Bounds(this IEnumerable<GlobalPosition> vertices) {
+            return vertices.Aggregate(
+                Option<(GlobalPosition Min, GlobalPosition Max)>.None, 
+                (current, vertex) => current.Match(
+                    val => (
+                        val.Min.Min(vertex), 
+                        val.Max.Max(vertex)
+                    ), 
+                    () => (vertex, vertex)
+                )).Map(val => new GlobalBounds(val.Min, val.Max));
         }
 
         [Pure] public static GlobalPosition[] Vertices(this GlobalBounds globalBounds) {

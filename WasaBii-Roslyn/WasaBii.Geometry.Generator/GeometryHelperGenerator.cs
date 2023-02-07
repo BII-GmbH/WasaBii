@@ -100,11 +100,8 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 }
                 #endregion
 
-                if (isVector) {
-                    if (areFieldsIndependent) allMembers.AddRange(mkLerp(typeDecl, wrappedFieldDecls[0]));
-                    if (hasOrientation) allMembers.AddRange(mkSlerp(typeDecl, wrappedFieldDecls[0]));
-                } else if (isQuaternion)
-                    allMembers.AddRange(mkSlerp(typeDecl, wrappedFieldDecls[0]));
+                if (areFieldsIndependent) allMembers.AddRange(mkLerp(typeDecl, wrappedFieldDecls));
+                if (hasOrientation) allMembers.AddRange(mkSlerp(typeDecl, wrappedFieldDecls[0]));
                 
                 if (isVector && hasOrientation) {
                     allMembers.AddRange(mkAngleTo(typeDecl, hasMagnitude, wrappedFieldDecls[0]));
@@ -495,41 +492,41 @@ public class GeometryHelperGenerator : ISourceGenerator {
         }
     }
 
-    private IEnumerable<MemberDeclarationSyntax> mkLerp(TypeDeclarationSyntax typeDecl, (TypeSyntax type, SyntaxToken identifier) wrappedFieldDecl) {
+    private IEnumerable<MemberDeclarationSyntax> mkLerp(TypeDeclarationSyntax typeDecl, IEnumerable<(TypeSyntax type, SyntaxToken identifier)> wrappedFieldsDecl) {
         yield return mkCopyMethod(typeDecl, Identifier("LerpTo"), ParameterList(
             Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier)),
             Parameter(Identifier("t")).WithType(PredefinedType(Token(SyntaxKind.DoubleKeyword))),
             Parameter(Identifier("shouldClamp")).WithType(PredefinedType(Token(SyntaxKind.BoolKeyword))).WithDefault(EqualsValueClause(LiteralExpression(SyntaxKind.TrueLiteralExpression)))
-        ), ArgumentList(Argument(InvocationExpression(
+        ), ArgumentList(wrappedFieldsDecl.Select(field => Argument(InvocationExpression(
             MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
-                IdentifierName(wrappedFieldDecl.identifier),
+                IdentifierName(field.identifier),
                 IdentifierName("LerpTo")
             ),
             ArgumentList(
-                Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("other"), IdentifierName(wrappedFieldDecl.identifier))),
+                Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("other"), IdentifierName(field.identifier))),
                 Argument(IdentifierName("t")),
                 Argument(IdentifierName("shouldClamp"))
             )
-        ))));
+        )))));
         yield return mkCopyMethod(typeDecl, Identifier("Lerp"), ParameterList(
             Parameter(Identifier("from")).WithType(IdentifierName(typeDecl.Identifier)),
             Parameter(Identifier("to")).WithType(IdentifierName(typeDecl.Identifier)),
             Parameter(Identifier("t")).WithType(PredefinedType(Token(SyntaxKind.DoubleKeyword))),
             Parameter(Identifier("shouldClamp")).WithType(PredefinedType(Token(SyntaxKind.BoolKeyword))).WithDefault(EqualsValueClause(LiteralExpression(SyntaxKind.TrueLiteralExpression)))
-        ), ArgumentList(Argument(InvocationExpression(
+        ), ArgumentList(wrappedFieldsDecl.Select(field => Argument(InvocationExpression(
             MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
                 MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
                     IdentifierName("from"),
-                    IdentifierName(wrappedFieldDecl.identifier)
+                    IdentifierName(field.identifier)
                 ),
                 IdentifierName("LerpTo")
             ),
             ArgumentList(
-                Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("to"), IdentifierName(wrappedFieldDecl.identifier))),
+                Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("to"), IdentifierName(field.identifier))),
                 Argument(IdentifierName("t")),
                 Argument(IdentifierName("shouldClamp"))
             )
-        ))), isStatic: true);
+        )))), isStatic: true);
     }
 
     private IEnumerable<MemberDeclarationSyntax> mkSlerp(TypeDeclarationSyntax typeDecl, (TypeSyntax type, SyntaxToken identifier) wrappedFieldDecl) {

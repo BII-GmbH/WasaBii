@@ -49,19 +49,11 @@ namespace BII.WasaBii.Geometry {
         
         [Pure] public Length DistanceTo(GlobalPosition p2) => (p2 - this).Magnitude;
         
-        /// <summary>
-        /// Reflects this point off <see cref="on"/>. Has the same effect
-        /// as rotating <see cref="this"/> around <see cref="on"/> by 180° around an axis
-        /// perpendicular to the difference between the two.
-        /// </summary>
+        /// <inheritdoc cref="GeometryUtils.PointReflect(System.Numerics.Vector3, System.Numerics.Vector3)"/>
         [Pure] public GlobalPosition PointReflect(GlobalPosition on)
             => on + (on - this);
 
-        /// <summary>
-        /// Reflects this vector on the plane defined by the <see cref="planeNormal"/> and a <see cref="pointOnPlane"/>.
-        /// </summary>
-        /// <param name="pointOnPlane">A point on the plane.</param>
-        /// <param name="planeNormal">The normal of the plane.</param>
+        /// <inheritdoc cref="GeometryUtils.Reflect(System.Numerics.Vector3, System.Numerics.Vector3, System.Numerics.Vector3)"/>
         [Pure] public GlobalPosition Reflect(
             GlobalPosition pointOnPlane, GlobalDirection planeNormal
         ) => pointOnPlane - (this - pointOnPlane).Reflect(planeNormal);

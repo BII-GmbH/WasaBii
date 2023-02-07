@@ -12,7 +12,7 @@ namespace BII.WasaBii.Geometry.Tests
 
         private static readonly Vector3 a = new(2, 8, 8);
         private static readonly Vector3 b = new(1, 33, 7);
-
+        
         [Test]
         public void FromToRotation() {
             var from = a.AsGlobalOffset();

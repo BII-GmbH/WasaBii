@@ -25,10 +25,10 @@ namespace BII.WasaBii.Geometry {
         public static readonly LocalDirection Zero = new(0, 0, 0);
 
         #if UNITY_2022_1_OR_NEWER
-        // We cannot normalize values supplied by the user via the unity inspector without
-        // writing a custom property drawer and even then, UX would be awful when we change
-        // the x value while the user has not yet set the z value. Thus, we simply show this
-        // tooltip and trust the user to input a normalized vector.
+        // We cannot normalize values supplied by the user via the unity inspector because
+        // UX would be awful when we change the x value while the user has not yet set the
+        // z value. Thus, we simply show this tooltip and trust the user to input a normalized
+        // vector. In addition, the property drawer has a `Normalize` button.
         [field:UnityEngine.SerializeField][field:UnityEngine.Tooltip("Must be normalized, otherwise calculations might break")]
         public UnityEngine.Vector3 AsUnityVector { get; private set; }
         public readonly System.Numerics.Vector3 AsNumericsVector => AsUnityVector.ToSystemVector();

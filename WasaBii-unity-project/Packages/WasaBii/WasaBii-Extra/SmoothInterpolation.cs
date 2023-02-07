@@ -90,13 +90,13 @@ namespace BII.WasaBii.Extra {
             set => TargetGetter = () => value;
         }
 
-        public readonly T Smoothness;
+        public readonly float Smoothness;
         
         private readonly float? _updateDelay;
         private float lastUpdateTime;
         private Coroutine? _coroutine;
 
-        protected Smoothed(T startValue, Func<T> targetGetter, T smoothness, float? updateDelay = null) {
+        protected Smoothed(T startValue, Func<T> targetGetter, float smoothness, float? updateDelay = null) {
             CurrentValue = startValue;
             TargetGetter = targetGetter;
             Smoothness = smoothness;
@@ -117,7 +117,7 @@ namespace BII.WasaBii.Extra {
             // Designed to be aborted in `Stop`
         }
 
-        protected abstract T interpolate(T current, T target, T smoothness, float progress);
+        protected abstract T interpolate(T current, T target, float smoothness, float progress);
 
         public void Dispose() => Stop();
     }
@@ -131,11 +131,35 @@ namespace BII.WasaBii.Extra {
     }
 
     public sealed class SmoothedDouble : Smoothed<double> {
-        public SmoothedDouble(double startValue, Func<double> targetGetter, double smoothness, float? updateDelay = null) 
+        public SmoothedDouble(double startValue, Func<double> targetGetter, float smoothness, float? updateDelay = null) 
             : base(startValue, targetGetter, smoothness, updateDelay) { }
 
-        protected override double interpolate(double current, double target, double smoothness, float progress)
+        protected override double interpolate(double current, double target, float smoothness, float progress)
             => current.SmoothInterpolateTo(target, smoothness, progress);
+    }
+
+    public sealed class SmoothedUnitValue<T> : Smoothed<T> where T : struct, IUnitValue<T> {
+        public SmoothedUnitValue(T startValue, Func<T> targetGetter, float smoothness, float? updateDelay = null) 
+            : base(startValue, targetGetter, smoothness, updateDelay) { }
+
+        protected override T interpolate(T current, T target, float smoothness, float progress)
+            => current.SmoothInterpolateTo(target, smoothness, progress);
+    }
+
+    public sealed class SmoothedLerp<T> : Smoothed<T> where T : struct, WithLerp<T> {
+        public SmoothedLerp(T startValue, Func<T> targetGetter, float smoothness, float? updateDelay = null) 
+            : base(startValue, targetGetter, smoothness, updateDelay) { }
+
+        protected override T interpolate(T current, T target, float smoothness, float progress)
+            => current.SmoothLerpTo(target, smoothness, progress);
+    }
+
+    public sealed class SmoothedSlerp<T> : Smoothed<T> where T : struct, WithSlerp<T> {
+        public SmoothedSlerp(T startValue, Func<T> targetGetter, float smoothness, float? updateDelay = null) 
+            : base(startValue, targetGetter, smoothness, updateDelay) { }
+
+        protected override T interpolate(T current, T target, float smoothness, float progress)
+            => current.SmoothSlerpTo(target, smoothness, progress);
     }
 
 }

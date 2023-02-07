@@ -5,7 +5,7 @@
         "WasaBii.Core",
         "WasaBii.Splines",
         "WasaBii.Units",
-        "WasaBii-Geometry"
+        "WasaBii.Geometry"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

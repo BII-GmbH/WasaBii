@@ -42,8 +42,14 @@ namespace BII.WasaBii.Geometry {
             () => Length.Zero
         );
 
-        public LocalBounds LocalBounds => Vertices.Bounds();
-        public GlobalBounds GlobalBoundsFor(GlobalPose parent) => Vertices.Select(v => v.ToGlobalWith(parent)).Bounds();
+        public LocalBounds LocalBounds => Vertices.Bounds().GetOrThrow(() => new Exception("An empty polygon has no bounds"));
+        /// <remarks>
+        /// More precise than <c>LocalBounds.ToGlobalWith(parent)</c> because the the vertices are transformed before
+        /// calculating the bounding box. This also makes it more costly if you have a huge amount of vertices.
+        /// </remarks>
+        public GlobalBounds GlobalBoundsFor(GlobalPose parent) => 
+            Vertices.Select(v => v.ToGlobalWith(parent)).Bounds()
+                .GetOrThrow(() => new Exception("An empty polygon has no bounds"));
 
     }
     

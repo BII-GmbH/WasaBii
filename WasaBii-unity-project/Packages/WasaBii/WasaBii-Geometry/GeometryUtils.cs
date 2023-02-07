@@ -7,7 +7,7 @@ namespace BII.WasaBii.Geometry {
     
     public static class GeometryUtils {
 
-        ///<remarks>Only x and z are cirped, y is lerped.</remarks>
+        /// Rotates x and z around the Y-Axis while lerping y.
         public static GlobalPosition Cirp(
             GlobalPosition from, GlobalPosition to, GlobalPosition pivot, double progress, bool shouldClamp = true
         ) {
@@ -18,7 +18,7 @@ namespace BII.WasaBii.Geometry {
                 .WithY(Units.Lerp(from.Y, to.Y, progress, shouldClamp));
         }
 
-        ///<remarks>Only x and z are cirped, y is lerped.</remarks>
+        /// Rotates x and z around the Y-Axis while lerping y.
         public static GlobalPose Cirp(
             GlobalPose from, GlobalPose to, GlobalPosition pivot, double progress, bool shouldClamp = true
         ) {

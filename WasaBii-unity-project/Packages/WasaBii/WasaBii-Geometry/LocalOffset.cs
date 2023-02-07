@@ -83,6 +83,12 @@ namespace BII.WasaBii.Geometry {
         
         public LocalOffset Cross(LocalOffset other) => System.Numerics.Vector3.Cross(AsNumericsVector, other.AsNumericsVector).AsLocalOffset();
 
+        public Angle SignedAngleTo(LocalOffset other, LocalDirection axis, Handedness handedness = Handedness.Default) =>
+            AsNumericsVector.SignedAngleTo(other.AsNumericsVector, axis.AsNumericsVector, handedness);
+
+        public Angle SignedAngleOnPlaneTo(LocalOffset other, LocalDirection axis, Handedness handedness = Handedness.Default) =>
+            AsNumericsVector.SignedAngleOnPlaneTo(other.AsNumericsVector, axis.AsNumericsVector, handedness);
+
         public Area SqrMagnitude => AsNumericsVector.LengthSquared().SquareMeters();
         public Length Magnitude => AsNumericsVector.Length().Meters();
 

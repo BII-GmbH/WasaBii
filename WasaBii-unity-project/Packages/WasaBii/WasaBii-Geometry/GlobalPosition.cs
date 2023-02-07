@@ -46,7 +46,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static GlobalPosition operator -(GlobalPosition left, GlobalOffset right) => new(left.AsNumericsVector - right.AsNumericsVector);
         [Pure] public static GlobalOffset operator -(GlobalPosition left, GlobalPosition right) => new(left.AsNumericsVector - right.AsNumericsVector);
         [Pure] public static GlobalPosition operator -(GlobalPosition pos) => new(-pos.AsNumericsVector);
-        [Pure] public override string ToString() => AsNumericsVector.ToString();
         
         [Pure] public Length DistanceTo(GlobalPosition p2) => (p2 - this).Magnitude;
         

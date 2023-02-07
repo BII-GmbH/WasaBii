@@ -46,8 +46,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public void Deconstruct(out GlobalPosition position, out GlobalRotation rotation) =>
             (position, rotation) = (Position, Rotation);
 
-        [Pure] public override string ToString() => $"{{{Position} | {Rotation}}}";
-
         [Pure] public GlobalPose LerpTo(GlobalPose target, double progress, bool shouldClamp = true) => new(
             Position.LerpTo(target.Position, progress, shouldClamp),
             Rotation.SlerpTo(target.Rotation, progress, shouldClamp)

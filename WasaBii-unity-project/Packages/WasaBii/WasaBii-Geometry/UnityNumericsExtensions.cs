@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using BII.WasaBii.Core;
+using BII.WasaBii.UnitSystem;
 using UnityEngine;
 
 namespace BII.WasaBii.Geometry
@@ -46,6 +48,23 @@ namespace BII.WasaBii.Geometry
 
         public static Vector3 Min(this Vector3 a, Vector3 b) => Vector3.Min(a, b);
         public static Vector3 Max(this Vector3 a, Vector3 b) => Vector3.Max(a, b);
+
+        /// <inheritdoc cref="Vector3.Angle"/>
+        public static Angle AngleTo(this Vector3 from, Vector3 to) => Vector3.Angle(from, to).Degrees();
+        
+        /// <inheritdoc cref="SystemVectorExtensions.SignedAngleTo"/>
+        public static Angle SignedAngleTo(this Vector3 from, Vector3 to, Vector3 axis, Handedness handedness) {
+            var ret = Vector3.SignedAngle(from, to, axis).Degrees();
+            return handedness switch {
+                Handedness.Left => ret,
+                Handedness.Right => -ret,
+                _ => throw new InvalidEnumArgumentException(nameof(handedness), (int)handedness, typeof(Handedness))
+            };
+        }
+
+        /// <inheritdoc cref="SystemVectorExtensions.SignedAngleOnPlaneTo"/>
+        public static Angle SignedAngleOnPlaneTo(this Vector3 from, Vector3 to, Vector3 axis, Handedness handedness) =>
+            from.ToSystemVector().SignedAngleOnPlaneTo(to.ToSystemVector(), axis.ToSystemVector(), handedness);
 
     }
 }

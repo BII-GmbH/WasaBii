@@ -72,7 +72,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static GlobalOffset operator *(Length a, GlobalDirection b) => new((float)a.AsMeters() * b.AsNumericsVector);
         [Pure] public static GlobalOffset operator *(GlobalDirection b, Length a) => a * b;
         [Pure] public static GlobalDirection operator -(GlobalDirection dir) => new(-dir.AsNumericsVector);
-
     }
 
     public static partial class GlobalDirectionExtensions {

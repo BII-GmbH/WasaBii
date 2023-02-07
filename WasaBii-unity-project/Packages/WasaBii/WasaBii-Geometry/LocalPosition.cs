@@ -59,7 +59,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static LocalPosition operator -(LocalPosition left, LocalOffset right) => new(left.AsNumericsVector - right.AsNumericsVector);
         [Pure] public static LocalOffset operator -(LocalPosition left, LocalPosition right) => new(left.AsNumericsVector - right.AsNumericsVector);
         [Pure] public static LocalPosition operator -(LocalPosition pos) => new(-pos.AsNumericsVector);
-        [Pure] public override string ToString() => AsNumericsVector.ToString();
 
         [Pure] public Length DistanceTo(LocalPosition p2) => (p2 - this).Magnitude;
         

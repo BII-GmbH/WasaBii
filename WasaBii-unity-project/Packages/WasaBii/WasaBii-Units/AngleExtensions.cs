@@ -88,11 +88,18 @@ namespace BII.WasaBii.UnitSystem {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Atan2(Length opposite, Length adjacent) => Atan2(opposite.SiValue, adjacent.SiValue);
         
-        // Caution: the System.Numerics.Quaternion functions expect angles to
-        // be given in radians while the Unity equivalent expects degrees.
-        // Also, it doesn't normalize the axis for you while Unity does.
+        /// <summary>
+        /// Calculates the quaternion representing the rotation of an
+        /// <paramref name="angle"></paramref> around an <paramref name="axis"></paramref>
+        /// </summary>
+        /// <param name="angle">The full angle of rotation</param>
+        /// <param name="axis">The axis around which to rotate. Must be normalized!</param>
+        /// <remarks>
+        /// The System.Numerics.Quaternion functions expect angles to
+        /// be given in radians while the Unity equivalent expects degrees.
+        /// Also, it doesn't normalize the axis for you while Unity does.</remarks>
         [Pure] public static Quaternion WithAxis(this Angle angle, Vector3 axis) => 
-            Quaternion.CreateFromAxisAngle(Vector3.Normalize(axis), (float) angle.AsRadians());
+            Quaternion.CreateFromAxisAngle(axis, (float) angle.AsRadians());
         
         public static bool IsInsideInterval(this Angle angle, Angle min, Angle max) {
             min = min.Normalized360();

@@ -27,7 +27,7 @@ namespace BII.WasaBii.Geometry
         public static Quaternion Average(this IEnumerable<Quaternion> quaternions) =>
             Quaternion.Normalize(quaternions.Aggregate(Quaternion.Add));
 
-        [Pure] public static Angle AngleOn(this Quaternion q, Vector3 axis) {
+        [Pure] public static Angle AngleOn(this Quaternion q, Vector3 axis, Handedness handedness = Handedness.Default) {
             // An arbitrary vector that is orthogonal to `axis`.
             // Taken from https://math.stackexchange.com/a/3077100
             // Proof: 
@@ -35,8 +35,7 @@ namespace BII.WasaBii.Geometry
             //     = x*y-y*x + x*z-z*x + y*z-y*z
             //     = 0
             var vec = new Vector3(axis.Y + axis.Z, axis.Z - axis.X, -axis.X - axis.Y);
-            // return Vector3.SignedAngle(vec, q * vec, axis).Degrees();
-            throw new NotImplementedException();
+            return vec.SignedAngleTo(Vector3.Transform(vec, q), axis, handedness);
         }
     }
 }

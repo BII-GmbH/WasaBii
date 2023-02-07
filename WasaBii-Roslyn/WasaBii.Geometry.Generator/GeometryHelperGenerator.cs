@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -108,9 +107,11 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     allMembers.AddRange(mkSlerp(typeDecl, wrappedFieldDecls[0]));
                 
                 if (isVector && hasOrientation) {
-                    allMembers.Add(mkAngleTo(typeDecl, hasMagnitude));
+                    allMembers.AddRange(mkAngleTo(typeDecl, hasMagnitude, wrappedFieldDecls[0]));
                 }
                 allMembers.Add(mkIsNearly(typeDecl, wrappedFieldDecls));
+                
+                allMembers.Add(mkToString(wrappedFieldDecls));
                 
                 extensionMethods.Add(mkAverage(typeDecl, wrappedFieldDecls));
                 
@@ -130,15 +131,6 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 var sourceText = SourceText.From(List(allClasses)
                     .WrapInParentsOf(typeDecl).NormalizeWhitespace().ToFullString(), Encoding.UTF8);
 
-                var filePath = typeDecl.SyntaxTree.FilePath == ""
-                    ? ""
-                    : Path.ChangeExtension(
-                        Path.GetInvalidFileNameChars().Aggregate(
-                            Path.GetRelativePath(Directory.GetCurrentDirectory(), typeDecl.SyntaxTree.FilePath),
-                            (path, invalid) => path.Replace(invalid, '.')
-                        ),
-                        ""
-                    );
                 var curParent = (SyntaxNode) typeDecl;
                 var fullTypeName = "";
                 while (curParent is not CompilationUnitSyntax or null) {
@@ -150,11 +142,11 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     curParent = curParent!.Parent;
                 }
 
-                var fileName = $"{filePath}{fullTypeName}g";
+                var fileName = $"{fullTypeName}g";
                 context.AddSource(fileName, sourceText);
             }
             catch (Exception e) {
-                context.ReportDiagnostic(Diagnostic.Create(UnexpectedGenerationIssue, Location.None, e.Message));
+                context.ReportDiagnostic(Diagnostic.Create(UnexpectedGenerationIssue, Location.None, e));
             }
         }
     }
@@ -430,42 +422,77 @@ public class GeometryHelperGenerator : ISourceGenerator {
              ))
              .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
     
-    private MemberDeclarationSyntax mkAngleTo(TypeDeclarationSyntax typeDecl, bool hasMagnitude) {
-        var dotProductRes = InvocationExpression(
-            MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                ThisExpression(),
-                IdentifierName("Dot"))
-        ).WithArgumentList(ArgumentList(Argument(IdentifierName("other"))));
-        
-        return MethodDeclaration(IdentifierName("Angle"), Identifier("AngleTo"))
+    private IEnumerable<MemberDeclarationSyntax> mkAngleTo(TypeDeclarationSyntax typeDecl, bool hasMagnitude, (TypeSyntax type, SyntaxToken identifier) vectorField) {
+        yield return MethodDeclaration(IdentifierName("Angle"), Identifier("AngleTo"))
             .WithAttributeLists(AttributeList(Pure))
             .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(ParameterList(
                 Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier))))
             .WithExpressionBody(ArrowExpressionClause(InvocationExpression(
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName(vectorField.identifier),
+                    IdentifierName("AngleTo")))
+                .WithArgumentList(ArgumentList(Argument(
                     MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName("Angles"),
-                        IdentifierName("Acos")))
-                .WithArgumentList(ArgumentList(Argument(
-                    hasMagnitude
-                    ? BinaryExpression(
-                        SyntaxKind.DivideExpression,
-                        dotProductRes,
-                        ParenthesizedExpression(
-                            BinaryExpression(
-                                SyntaxKind.MultiplyExpression,
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    ThisExpression(),
-                                    IdentifierName("Magnitude")),
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    IdentifierName("other"),
-                                    IdentifierName("Magnitude")))))
-                    : dotProductRes)))))
+                        IdentifierName("other"),
+                        IdentifierName(vectorField.identifier)))))))
             .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+        if(!hasMagnitude) {
+            yield return MethodDeclaration(IdentifierName("Angle"), Identifier("SignedAngleTo"))
+                .WithAttributeLists(AttributeList(Pure))
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+                .WithParameterList(ParameterList(
+                    Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier)),
+                    Parameter(Identifier("axis")).WithType(IdentifierName(typeDecl.Identifier)),
+                    Parameter(Identifier("handedness")).WithType(IdentifierName("Handedness")).WithDefault(EqualsValueClause(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("Handedness"), IdentifierName("Default"))))
+                ))
+                .WithExpressionBody(ArrowExpressionClause(InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(vectorField.identifier),
+                        IdentifierName("SignedAngleTo")))
+                    .WithArgumentList(ArgumentList(
+                        Argument(MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("other"),
+                            IdentifierName(vectorField.identifier))),
+                        Argument(MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("axis"),
+                            IdentifierName(vectorField.identifier))
+                        ),
+                        Argument(IdentifierName("handedness"))
+                    ))))
+                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            yield return MethodDeclaration(IdentifierName("Angle"), Identifier("SignedAngleOnPlaneTo"))
+                .WithAttributeLists(AttributeList(Pure))
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+                .WithParameterList(ParameterList(
+                    Parameter(Identifier("other")).WithType(IdentifierName(typeDecl.Identifier)),
+                    Parameter(Identifier("axis")).WithType(IdentifierName(typeDecl.Identifier)),
+                    Parameter(Identifier("handedness")).WithType(IdentifierName("Handedness")).WithDefault(EqualsValueClause(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("Handedness"), IdentifierName("Default"))))
+                ))
+                .WithExpressionBody(ArrowExpressionClause(InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(vectorField.identifier),
+                        IdentifierName("SignedAngleOnPlaneTo")))
+                    .WithArgumentList(ArgumentList(
+                        Argument(MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("other"),
+                            IdentifierName(vectorField.identifier))),
+                        Argument(MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("axis"),
+                            IdentifierName(vectorField.identifier))
+                        ),
+                        Argument(IdentifierName("handedness"))
+                    ))))
+                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+        }
     }
 
     private IEnumerable<MemberDeclarationSyntax> mkLerp(TypeDeclarationSyntax typeDecl, (TypeSyntax type, SyntaxToken identifier) wrappedFieldDecl) {
@@ -620,6 +647,31 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     IdentifierName("Inverse"))))
             )))
             .WithAttributeLists(AttributeList(Pure))
+            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+    }
+    
+    private MethodDeclarationSyntax mkToString(IReadOnlyList<(TypeSyntax type, SyntaxToken identifier)> fields) {
+        var toStringCalls = fields.Select(f => InvocationExpression(MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            IdentifierName(f.identifier), IdentifierName("ToString"))));
+        return MethodDeclaration(PredefinedType(Token(SyntaxKind.StringKeyword)), Identifier("ToString"))
+            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
+            .WithExpressionBody(ArrowExpressionClause(fields.Count == 1
+                ? toStringCalls.First()
+                : BinaryExpression(SyntaxKind.AddExpression,
+                    fields.Zip(toStringCalls, (f, c) => BinaryExpression(SyntaxKind.AddExpression, 
+                        LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(f.identifier.Text + ": ")),
+                        c
+                    )).Aggregate(
+                        seed: (ExpressionSyntax) LiteralExpression(SyntaxKind.StringLiteralExpression, Literal("{")),
+                        (l, r) => BinaryExpression(SyntaxKind.AddExpression,
+                            BinaryExpression(SyntaxKind.AddExpression,
+                                l,
+                                LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(", "))),
+                            r
+                        )
+                    ),
+                    LiteralExpression(SyntaxKind.StringLiteralExpression, Literal("}")))))
             .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
     }
 

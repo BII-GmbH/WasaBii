@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
+using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 
-namespace BII.WasaBii.Core {
+namespace BII.WasaBii.Geometry {
 
     public static class SystemVectorExtensions {
 
@@ -34,7 +36,7 @@ namespace BII.WasaBii.Core {
 
         public static Vector3 Normalized(this Vector3 v) => Vector3.Normalize(v);
 
-        public static Angle AngleTo(this Vector3 a, Vector3 b) => Angles.Acos(Vector3.Dot(a, b) / (a.Length() * b.Length()));
+        public static Angle AngleTo(this Vector3 a, Vector3 b) => Angles.Acos(Vector3.Dot(a, b) / ((double) a.Length() * b.Length()));
 
         public static Vector3 Min(this Vector3 a, Vector3 b) => new(
             MathF.Min(a.X, b.X),
@@ -77,7 +79,11 @@ namespace BII.WasaBii.Core {
         public static Vector3 SlerpTo(this Vector3 from, Vector3 to, double progress, bool shouldClamp = true, Func<Vector3, Vector3>? axisIfOpposite = null) {
             var fromLen = from.Length();
             var toLen = to.Length();
-            var dot = Vector3.Dot(from, to) / (fromLen * toLen);
+
+            var fromNormalized = from / fromLen;
+            var toNormalized = to / toLen;
+            
+            var dot = Vector3.Dot(fromNormalized, toNormalized);
             var theta = Angles.Acos(dot);
             if (shouldClamp) progress = Math.Clamp(progress, 0, 1);
             return dot switch {
@@ -85,17 +91,74 @@ namespace BII.WasaBii.Core {
                 >= 0.999f => from.LerpTo(to, progress, shouldClamp: false), // Already clamped if desired
                 // vectors are opposite, rotate 180° around any axis
                 <= -0.999f => (float)MathD.Lerp(fromLen, toLen, progress) * Vector3.Transform(
-                    from / fromLen, 
+                    fromNormalized, 
                     Quaternion.CreateFromAxisAngle(
                         axisIfOpposite?.Invoke(from) ?? calcPerpendicularAxis(from), 
                         (float) (progress * Math.PI)
                     )
                 ),
                 _ => (
-                    (float)((1 - progress) * theta).Sin() * from
-                     + (float)(progress * theta).Sin() * to
-                ) / (float) theta.Sin()
+                    (float)((1 - progress) * theta).Sin() * fromNormalized
+                     + (float)(progress * theta).Sin() * toNormalized
+                ) * (float) (
+                    (progress * toLen + fromLen * (1 - progress)) // Lerp length
+                    / theta.Sin())
             };
+        }
+
+        /// <summary>
+        /// Calculates the angle between the two vectors when projected onto the plane defined by its
+        /// <paramref name="normal"/>. Will be negative if the angular difference's orientation opposes
+        /// the coordinate system's orientation. See <paramref name="handedness"/> for more information.
+        /// </summary>
+        /// <param name="from">The vector from which the angle diff is measured.
+        /// Might not lie on the plane. Must not be perpendicular to the plane!</param>
+        /// <param name="to">The vector to which the angle diff is measured.
+        /// Might not lie on the plane. Must not be perpendicular to the plane!</param>
+        /// <param name="normal">The plane's normal vector. Must be normalized!</param>
+        /// <param name="handedness">Whether to use a left- or right-handed coordinate system. Flipping this will
+        /// negate the result.</param>
+        /// <remarks> Do not confuse this method with <see cref="SignedAngleTo"/>,
+        /// which does not project the vectors onto the plane!</remarks>
+        public static Angle SignedAngleOnPlaneTo(this Vector3 from, Vector3 to, Vector3 normal, Handedness handedness = Handedness.Default) {
+            from -= Vector3.Dot(from, normal) * normal;
+            to -= Vector3.Dot(to, normal) * normal;
+            return Angles.Atan2(
+                Vector3.Dot(
+                    handedness switch {
+                        Handedness.Left => Vector3.Cross(from, to),
+                        Handedness.Right => Vector3.Cross(to, from),
+                        _ => throw new InvalidEnumArgumentException(nameof(handedness), (int)handedness, typeof(Handedness))
+                    }, 
+                    normal
+                ),
+                Vector3.Dot(from, to)
+            );
+        }
+        
+        /// <summary>
+        /// Calculates the angle between the two vectors. Will be negative if the angular difference's orientation
+        /// opposes the coordinate system's orientation when projected onto the plane defined by its
+        /// <paramref name="normal"/>. See <paramref name="handedness"/> for more information.
+        /// </summary>
+        /// <param name="from">The vector from which the angle diff is measured.</param>
+        /// <param name="to">The vector to which the angle diff is measured.</param>
+        /// <param name="normal">The plane's normal vector. Must be normalized!</param>
+        /// <param name="handedness">Whether to use a left- or right-handed coordinate system. Flipping this will
+        /// negate the result.</param>
+        /// <remarks> This is equivalent to Unity's <see cref="UnityEngine.Vector3.SignedAngle"/>. Do not confuse this
+        /// with <see cref="SignedAngleOnPlaneTo"/>, which projects the vectors onto the plane!</remarks>
+        public static Angle SignedAngleTo(this Vector3 from, Vector3 to, Vector3 normal, Handedness handedness = Handedness.Default) {
+            var unsignedAngle = from.AngleTo(to);
+            var axis = handedness switch {
+                Handedness.Left => Vector3.Cross(from, to),
+                Handedness.Right => Vector3.Cross(to, from),
+                _ => throw new InvalidEnumArgumentException(nameof(handedness), (int)handedness, typeof(Handedness))
+            };
+            var sign = axis.IsNearly(Vector3.Zero) // Vectors are parallel or opposite, sign is arbitrary
+                ? 1
+                : MathF.Sign(Vector3.Dot(axis, normal));
+            return unsignedAngle * sign;
         }
 
         /// <summary>
@@ -109,13 +172,10 @@ namespace BII.WasaBii.Core {
             // https://stackoverflow.com/a/1171995
             var normal = Vector3.Cross(from, to);
             var dot = Vector3.Dot(from, to);
-            return dot switch {
-                // vectors are parallel, no rotation
-                >= 0.999f => Quaternion.Identity,
+            return dot <= -0.999f
                 // vectors are opposite, rotate 180° around any axis
-                <= -0.999f =>  Quaternion.CreateFromAxisAngle(axisIfOpposite?.Invoke(from) ?? calcPerpendicularAxis(from), MathF.PI),
-                _ => Quaternion.Normalize(new Quaternion(normal, dot))
-            };
+                ? Quaternion.CreateFromAxisAngle(axisIfOpposite?.Invoke(from) ?? calcPerpendicularAxis(from), MathF.PI)
+                : Quaternion.Normalize(new Quaternion(normal, 1 + dot));
         }
 
         /// The default way of calculating an axis perpendicular to <paramref name="vec"/> if no override is given.

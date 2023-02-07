@@ -111,8 +111,6 @@ namespace BII.WasaBii.Geometry {
             Rotation.SlerpTo(target.Rotation, progress, shouldClamp)
         );
 
-        [Pure] public override string ToString() => "{" + Position + " | " + Rotation + "}";
-        
         /// <inheritdoc cref="GeometryUtils.PointReflect(System.Numerics.Vector3,System.Numerics.Vector3)"/>
         [Pure] public LocalPose PointReflect(LocalPosition on) => new(
             position: Position.PointReflect(on),

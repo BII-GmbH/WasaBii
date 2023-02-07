@@ -82,10 +82,8 @@ namespace BII.WasaBii.Geometry {
                 from.RotationTo(to, axisIfOpposite).AsLocalRotation();
         }
 
-        [Pure] public Angle AngleOn(LocalDirection axis) 
-            => this.AsNumericsQuaternion.AngleOn(axis.AsNumericsVector);
-
-        [Pure] public override string ToString() => AsNumericsQuaternion.ToString();
+        [Pure] public Angle AngleOn(LocalDirection axis, Handedness handedness = Handedness.Default) 
+            => this.AsNumericsQuaternion.AngleOn(axis.AsNumericsVector, handedness);
 
     }
 

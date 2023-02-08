@@ -54,11 +54,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public LocalBounds RelativeTo(TransformProvider parent)
             => this.Vertices().Select(p => p.RelativeTo(parent)).Bounds().ValueOrDefault!;
 
-        public LocalBounds RelativeToWorldZero => new(
-            Center.RelativeToWorldZero,
-            Size.RelativeToWorldZero
-        );
-
         [Pure] public bool Contains(GlobalPosition point) 
             => point.X.IsInsideInterval(Min.X, Max.X, inclusive: true)
             && point.Y.IsInsideInterval(Min.Y, Max.Y, inclusive: true)

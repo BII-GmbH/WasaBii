@@ -43,8 +43,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public GlobalPosition ToGlobalWith(TransformProvider parent) 
             => parent.TransformPoint(this);
 
-        public GlobalPosition ToGlobalWithWorldZero => new(AsNumericsVector);
-
         /// <summary>
         /// Transforms the position into the local space <paramref name="localParent"/> is defined relative to.
         /// Only applicable if the position is defined relative to the given <paramref name="localParent"/>!

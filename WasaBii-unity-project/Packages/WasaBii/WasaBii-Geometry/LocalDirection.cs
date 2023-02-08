@@ -46,8 +46,6 @@ namespace BII.WasaBii.Geometry {
             (float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()
         ) { }
 
-        public readonly LocalOffset AsOffsetWithLength1 => new(AsNumericsVector);
-
         /// <summary>
         /// <inheritdoc cref="TransformProvider.TransformDirection"/>
         /// This is the inverse of <see cref="GlobalDirection.RelativeTo"/>
@@ -55,8 +53,6 @@ namespace BII.WasaBii.Geometry {
         /// <example> <code>local.ToGlobalWith(parent).RelativeTo(parent) == local</code> </example>
         [Pure] public GlobalDirection ToGlobalWith(TransformProvider parent) => parent.TransformDirection(this);
         
-        public GlobalDirection ToGlobalWithWorldZero => new(AsNumericsVector);
-
         /// <summary>
         /// Transforms the direction into the local space <paramref name="localParent"/> is defined relative to.
         /// Only applicable if the direction is defined relative to the given <paramref name="localParent"/>!
@@ -67,11 +63,12 @@ namespace BII.WasaBii.Geometry {
         
         /// Projects this direction onto the plane defined by its normal.
         [Pure] public LocalDirection ProjectOnPlane(LocalDirection planeNormal) => 
-            this.AsOffsetWithLength1.ProjectOnPlane(planeNormal).Normalized;
+            new LocalOffset(AsNumericsVector).ProjectOnPlane(planeNormal).Normalized;
 
         /// Reflects this direction off the plane defined by the given normal
         [Pure]
-        public LocalDirection Reflect(LocalDirection planeNormal) => this.AsOffsetWithLength1.Reflect(planeNormal).Normalized;
+        public LocalDirection Reflect(LocalDirection planeNormal) => 
+            new LocalOffset(AsNumericsVector).Reflect(planeNormal).Normalized;
 
         public float Dot(LocalDirection other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector);
         

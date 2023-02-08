@@ -54,8 +54,6 @@ namespace BII.WasaBii.Geometry {
         [Pure]
         public GlobalOffset ToGlobalWith(TransformProvider parent) => parent.TransformOffset(this);
 
-        public GlobalOffset ToGlobalWithWorldZero => new (AsNumericsVector);
-
         /// <summary>
         /// Transforms the offset into the local space <paramref name="localParent"/> is defined relative to.
         /// Only applicable if the offset is defined relative to the given <paramref name="localParent"/>!

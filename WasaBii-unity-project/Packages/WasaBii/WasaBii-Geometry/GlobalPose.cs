@@ -41,8 +41,6 @@ namespace BII.WasaBii.Geometry {
         /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code> </example>
         [Pure] public LocalPose RelativeTo(TransformProvider parent) => new(Position.RelativeTo(parent), Rotation.RelativeTo(parent));
 
-        public LocalPose RelativeToWorldZero => new(Position.RelativeToWorldZero, Rotation.RelativeToWorldZero);
-
         [Pure] public void Deconstruct(out GlobalPosition position, out GlobalRotation rotation) =>
             (position, rotation) = (Position, Rotation);
 

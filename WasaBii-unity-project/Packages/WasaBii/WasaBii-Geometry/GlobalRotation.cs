@@ -40,8 +40,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public LocalRotation RelativeTo(TransformProvider parent) 
             => parent.InverseTransformRotation(this);
 
-        public LocalRotation RelativeToWorldZero => new(AsNumericsQuaternion);
-
         [Pure] public static GlobalOffset operator *(GlobalRotation rotation, GlobalOffset offset) =>
         #if UNITY_2022_1_OR_NEWER
             new(rotation.AsUnityQuaternion * offset.AsUnityVector);

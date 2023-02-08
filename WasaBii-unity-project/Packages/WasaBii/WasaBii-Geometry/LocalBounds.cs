@@ -54,8 +54,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public GlobalBounds ToGlobalWith(TransformProvider parent)
             => this.Vertices().Select(p => p.ToGlobalWith(parent)).Bounds().ValueOrDefault!;
 
-        public GlobalBounds ToGlobalWithWorldZero => new(Center.ToGlobalWithWorldZero, Size.ToGlobalWithWorldZero);
-
         /// <summary>
         /// Transforms the bounds into the local space <paramref name="localParent"/> is defined relative to.
         /// Only applicable if the bounds are defined relative to the given <paramref name="localParent"/>!

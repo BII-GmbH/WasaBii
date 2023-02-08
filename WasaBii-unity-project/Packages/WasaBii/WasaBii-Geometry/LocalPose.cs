@@ -69,8 +69,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public GlobalPose ToGlobalWith(TransformProvider parent) => 
             new GlobalPose(Position.ToGlobalWith(parent), Rotation.ToGlobalWith(parent));
 
-        public GlobalPose ToGlobalWithWorldZero => new(Position.ToGlobalWithWorldZero, Rotation.ToGlobalWithWorldZero);
-
         /// <summary>
         /// This is another counterpart to <see cref="GlobalPose.RelativeTo"/> and
         /// <see cref="LocalPose.ToGlobalWith"/>. It returns the pose the parent must

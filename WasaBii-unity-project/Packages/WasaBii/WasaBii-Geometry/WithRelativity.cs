@@ -31,11 +31,6 @@ namespace BII.WasaBii.Geometry {
         /// Transforms this value into the local space relative to the <see cref="parent"/>
         /// </summary>
         [Pure] TLocal RelativeTo(TransformProvider parent);
-        /// <summary>
-        /// Transforms this value into the local space relative to the world origin. This is the same
-        /// as writing <code>RelativeTo(GlobalPose.Identity)</code>, but more efficient.
-        /// </summary>
-        TLocal RelativeToWorldZero { get; }
     }
 
     /// States that the implementing type works in local space and that the global variant is `TGlobal`.
@@ -48,14 +43,7 @@ namespace BII.WasaBii.Geometry {
         /// previously defined in local space relative to the <see cref="parent"/>
         /// </summary>
         [Pure] TGlobal ToGlobalWith(TransformProvider parent);
-        
-        /// <summary>
-        /// Transforms this value into world space, assuming that it was
-        /// previously defined relative to the world origin. This is the same as
-        /// writing <code>ToGlobalWith(GlobalPose.Identity)</code>, but more efficient.
-        /// </summary>
-        TGlobal ToGlobalWithWorldZero { get; }
-        
+
         /// <summary>
         /// Transforms this value into another local space, assuming that the <see cref="offset"/>
         /// is defined relative to the same parent as <see cref="this"/>. The result is relative to

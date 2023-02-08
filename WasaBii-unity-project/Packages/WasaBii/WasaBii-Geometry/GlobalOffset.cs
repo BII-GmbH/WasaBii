@@ -50,8 +50,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public LocalOffset RelativeTo(TransformProvider parent)
             => parent.InverseTransformOffset(this);
 
-        public LocalOffset RelativeToWorldZero => new(AsNumericsVector);
-
         /// Projects this offset onto the other one.
         [Pure] public GlobalOffset Project(GlobalOffset other) => this.Dot(other) / other.SqrMagnitude * other;
 

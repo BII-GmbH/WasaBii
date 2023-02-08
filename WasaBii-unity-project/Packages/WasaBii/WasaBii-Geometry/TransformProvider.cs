@@ -103,7 +103,7 @@ namespace BII.WasaBii.Geometry {
                 localToGlobalMatrix
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsGlobalPosition(),
 #endif
-            Type.Pose => pose.Position + local.AsOffset.ToGlobalWithWorldZero * pose.Rotation,
+            Type.Pose => pose.Position + local.AsNumericsVector.AsGlobalOffset() * pose.Rotation,
             _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
         };
             
@@ -121,7 +121,7 @@ namespace BII.WasaBii.Geometry {
                 GlobalToLocalMatrix
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsLocalPosition(),
             #endif
-            Type.Pose => ((global - pose.Position) * pose.Rotation.Inverse).RelativeToWorldZero.AsPosition,
+            Type.Pose => ((global - pose.Position) * pose.Rotation.Inverse).AsNumericsVector.AsLocalPosition(),
             _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
         };
 
@@ -139,7 +139,7 @@ namespace BII.WasaBii.Geometry {
                 localToGlobalMatrix
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsGlobalOffset(),
             #endif
-            Type.Pose => local.ToGlobalWithWorldZero * pose.Rotation,
+            Type.Pose => local.AsNumericsVector.AsGlobalOffset() * pose.Rotation,
             _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
         };
         
@@ -157,7 +157,7 @@ namespace BII.WasaBii.Geometry {
                 GlobalToLocalMatrix
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsLocalOffset(),
             #endif
-            Type.Pose => (global * pose.Rotation.Inverse).RelativeToWorldZero,
+            Type.Pose => (global * pose.Rotation.Inverse).AsNumericsVector.AsLocalOffset(),
             _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
         };
 
@@ -175,7 +175,7 @@ namespace BII.WasaBii.Geometry {
                 localToGlobalMatrix
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsGlobalDirection(),
             #endif
-            Type.Pose => local.ToGlobalWithWorldZero * pose.Rotation,
+            Type.Pose => local.AsNumericsVector.AsGlobalDirection() * pose.Rotation,
             _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
         };
         
@@ -193,7 +193,7 @@ namespace BII.WasaBii.Geometry {
                 GlobalToLocalMatrix
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsLocalDirection(),
             #endif
-            Type.Pose => (global * pose.Rotation.Inverse).RelativeToWorldZero,
+            Type.Pose => (global * pose.Rotation.Inverse).AsNumericsVector.AsLocalDirection(),
             _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
         };
 
@@ -207,7 +207,7 @@ namespace BII.WasaBii.Geometry {
             #else
             Type.Matrix => Quaternion.Concatenate(Quaternion.CreateFromRotationMatrix(localToGlobalMatrix), local.AsNumericsQuaternion).AsGlobalRotation(),
             #endif
-            Type.Pose => pose.Rotation * local.ToGlobalWithWorldZero,
+            Type.Pose => pose.Rotation * local.AsNumericsQuaternion.AsGlobalRotation(),
             _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
         };
 
@@ -221,7 +221,7 @@ namespace BII.WasaBii.Geometry {
             #else
             Type.Matrix => Quaternion.Concatenate(Quaternion.CreateFromRotationMatrix(GlobalToLocalMatrix), global.AsNumericsQuaternion).AsLocalRotation(),
             #endif
-            Type.Pose => (pose.Rotation.Inverse * global).RelativeToWorldZero,
+            Type.Pose => (pose.Rotation.Inverse * global).AsNumericsQuaternion.AsLocalRotation(),
             _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
         };
 

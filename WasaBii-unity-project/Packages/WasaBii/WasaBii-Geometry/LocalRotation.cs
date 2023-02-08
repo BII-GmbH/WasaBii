@@ -35,8 +35,6 @@ namespace BII.WasaBii.Geometry {
         [Pure] public GlobalRotation ToGlobalWith(TransformProvider parent) 
             => parent.TransformRotation(this);
 
-        public GlobalRotation ToGlobalWithWorldZero => new(AsNumericsQuaternion);
-
         /// <summary>
         /// Transforms the rotation into the local space <paramref name="localParent"/> is defined relative to.
         /// Only applicable if the rotation is defined relative to the given <paramref name="localParent"/>!

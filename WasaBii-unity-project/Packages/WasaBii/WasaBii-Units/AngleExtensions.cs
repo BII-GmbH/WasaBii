@@ -73,16 +73,12 @@ namespace BII.WasaBii.UnitSystem {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Atan2(double opposite, double adjacent) => Math.Atan2(opposite, adjacent).Radians();
         
-        /// <param name="opposite">German: Ankathete</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Asin(Length opposite, Length hypotenuse) => Asin(opposite / hypotenuse);
         
-        /// <param name="adjacent">German: Gegenkathete</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Acos(Length adjacent, Length hypotenuse) => Acos(adjacent / hypotenuse);
         
-        /// <param name="opposite">German: Ankathete</param>
-        /// <param name="adjacent">German: Gegenkathete</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Angle Atan(Length opposite, Length adjacent) => Atan(opposite / adjacent);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

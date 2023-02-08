@@ -20,7 +20,7 @@ namespace BII.WasaBii.Geometry
             && self.W.IsNearly(other.W, (float)threshold);
 
         [Pure]
-        public static Quaternion SlerpTo(this Quaternion self, Quaternion other, double progress, bool shouldClamp) =>
+        public static Quaternion SlerpTo(this Quaternion self, Quaternion other, double progress, bool shouldClamp = true) =>
             Quaternion.Slerp(self, other, (float)(shouldClamp ? Math.Clamp(progress, 0, 1) : progress));
 
         [Pure]

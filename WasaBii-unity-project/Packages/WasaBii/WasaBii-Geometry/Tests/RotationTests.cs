@@ -7,6 +7,9 @@ using NUnit.Framework;
 namespace BII.WasaBii.Geometry.Tests 
 {
     
+    // @Cameron these are for validating my math implementations only. The only reason I didn't delete them
+    // yet was because I want to keep the equality check foo for when I implement actual tests later.
+    // TODO DS: Make actual tests
     public class RotationTests
     {
 

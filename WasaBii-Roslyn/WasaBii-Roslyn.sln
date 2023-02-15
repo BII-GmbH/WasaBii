@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Geometry.Generator.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WasaBii.Geometry.Shared", "WasaBii.Geometry.Shared\WasaBii.Geometry.Shared.csproj", "{13E1A75C-C3FF-4275-9834-DA1D39C85454}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "TestProject\TestProject.csproj", "{8B440A2E-C94F-4FAB-8967-56C7B57FC973}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +68,10 @@ Global
 		{13E1A75C-C3FF-4275-9834-DA1D39C85454}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13E1A75C-C3FF-4275-9834-DA1D39C85454}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13E1A75C-C3FF-4275-9834-DA1D39C85454}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B440A2E-C94F-4FAB-8967-56C7B57FC973}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B440A2E-C94F-4FAB-8967-56C7B57FC973}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B440A2E-C94F-4FAB-8967-56C7B57FC973}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B440A2E-C94F-4FAB-8967-56C7B57FC973}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 			{A0E4209B-88A6-4959-9FA9-E0DED5973B00} = {B158751C-4E14-4075-81B3-8E1F1A89158C}

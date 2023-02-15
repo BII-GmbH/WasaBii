@@ -30,10 +30,4 @@
     <ProjectReference Include="..\WasaBii.Units.Shared\WasaBii.Units.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>C:\Program Files\Unity\2022.1.1f1\Editor\Data\Managed\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

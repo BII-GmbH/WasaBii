@@ -154,16 +154,7 @@
           "Microsoft.CodeAnalysis.Common": "3.9.0",
           "Microsoft.CodeAnalysis.Workspaces.Common": "3.9.0"
         },
-        "runtime": {
-          "lib/netstandard2.0/Microsoft.CodeAnalysis.CSharp.Workspaces.dll": {
-            "assemblyVersion": "3.9.0.0",
-            "fileVersion": "3.900.21.12420"
-          }
-        },
         "resources": {
-          "lib/netstandard2.0/cs/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll": {
-            "locale": "cs"
-          },
           "lib/netstandard2.0/de/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll": {
             "locale": "de"
           },
@@ -210,16 +201,7 @@
           "System.Composition": "1.0.31",
           "System.IO.Pipelines": "5.0.0"
         },
-        "runtime": {
-          "lib/netstandard2.0/Microsoft.CodeAnalysis.Workspaces.dll": {
-            "assemblyVersion": "3.9.0.0",
-            "fileVersion": "3.900.21.12420"
-          }
-        },
         "resources": {
-          "lib/netstandard2.0/cs/Microsoft.CodeAnalysis.Workspaces.resources.dll": {
-            "locale": "cs"
-          },
           "lib/netstandard2.0/de/Microsoft.CodeAnalysis.Workspaces.resources.dll": {
             "locale": "de"
           },

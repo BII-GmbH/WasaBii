@@ -1,4 +1,4 @@
-using JetBrains.Annotations;
+using System.Diagnostics.Contracts;
 
 namespace BII.WasaBii.Geometry {
 

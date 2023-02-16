@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
-using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
     /// <summary>
     /// An AABB (axis-aligned bounding-box) in global space.
     /// </summary>
-    [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent:true, hasMagnitude:false, hasOrientation:false)]
     public partial struct GlobalBounds : IsGlobalVariant<GlobalBounds, LocalBounds> {
@@ -108,6 +107,10 @@ namespace BII.WasaBii.Geometry {
                 max
             };
         }
-        
+      
+        [Pure]
+        public static Length DistanceTo(this GlobalBounds bounds, GlobalPosition pos) =>
+            ((pos - bounds.Center).Map(MathF.Abs) - bounds.Extends).Map(p => MathF.Max(0, p)).Magnitude;
+
     }
 }

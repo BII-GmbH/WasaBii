@@ -1,8 +1,8 @@
 using System;
+using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
-using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
@@ -10,7 +10,6 @@ namespace BII.WasaBii.Geometry {
     /// A 3D vector that represents a local position relative to an undefined parent.
     /// Can also be viewed as a <see cref="LocalOffset"/> from the local space origin.
     /// </summary>
-    [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
     public partial struct LocalPosition : IsLocalVariant<LocalPosition, GlobalPosition> {

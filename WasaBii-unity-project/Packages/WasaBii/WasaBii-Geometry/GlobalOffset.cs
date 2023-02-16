@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
-using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
@@ -12,7 +12,6 @@ namespace BII.WasaBii.Geometry {
     /// A 3D vector that represents a the difference between two world-space positions.
     /// Can also be viewed as a <see cref="GlobalDirection"/> with a length.
     /// </summary>
-    [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
     public partial struct GlobalOffset : 

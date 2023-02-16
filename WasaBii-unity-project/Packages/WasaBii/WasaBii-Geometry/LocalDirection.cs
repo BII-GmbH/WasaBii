@@ -1,14 +1,13 @@
 using System;
+using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
-using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
     /// A 3D vector that represents a local direction.
     /// Can also be viewed as a normalized <see cref="LocalOffset"/>.
-    [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
     public partial struct LocalDirection :
@@ -37,7 +36,7 @@ namespace BII.WasaBii.Geometry {
         public LocalDirection(System.Numerics.Vector3 toWrap) => AsUnityVector = toWrap.Normalized().ToUnityVector();
         #else
         public System.Numerics.Vector3 AsNumericsVector { get; private set; }
-        public GlobalDirection(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
+        public LocalDirection(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
         #endif
 
         public LocalDirection(float x, float y, float z) : this(new System.Numerics.Vector3(x, y, z)) { }

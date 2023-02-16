@@ -189,9 +189,10 @@ namespace BII.WasaBii.Geometry {
             // with the input, i.e. the one that is "more perpendicular" to avoid numerical
             // instability that could occur when accidentally choosing one that is (almost)
             // parallel to the input.
-            var unitRef = new[] { Vector3.UnitX, Vector3.UnitZ }
-                .MinBy(unit => Vector3.Dot(unit, vec).Abs())
-                .GetOrThrow();
+            var unitRef = MoreLinqExtensions.MinBy(
+                new[] { Vector3.UnitX, Vector3.UnitZ },
+                unit => Vector3.Dot(unit, vec).Abs()
+            ).GetOrThrow();
             return Vector3.Cross(unitRef, vec).Normalized();
         }
     }

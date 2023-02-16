@@ -1,14 +1,13 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
-using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
     /// <summary>
     /// A global transformation without scale, which simply is a <see cref="LocalPosition"/> and <see cref="LocalRotation"/> combined.
     /// </summary>
-    [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: false)]
     public partial struct LocalPose : IsLocalVariant<LocalPose, GlobalPose> {

@@ -659,8 +659,10 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     fields.Zip(toStringCalls, (f, c) => BinaryExpression(SyntaxKind.AddExpression, 
                         LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(f.identifier.Text + ": ")),
                         c
+                    )).MapFirst(f => BinaryExpression(SyntaxKind.AddExpression, 
+                        LiteralExpression(SyntaxKind.StringLiteralExpression, Literal("{")), 
+                        f
                     )).Aggregate(
-                        seed: (ExpressionSyntax) LiteralExpression(SyntaxKind.StringLiteralExpression, Literal("{")),
                         (l, r) => BinaryExpression(SyntaxKind.AddExpression,
                             BinaryExpression(SyntaxKind.AddExpression,
                                 l,

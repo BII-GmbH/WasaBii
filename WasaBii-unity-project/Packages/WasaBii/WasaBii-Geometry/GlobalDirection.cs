@@ -1,8 +1,8 @@
 using System;
+using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
-using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
@@ -10,7 +10,6 @@ namespace BII.WasaBii.Geometry {
     /// A 3D vector that represents a world-space direction.
     /// Can also be viewed as a normalized <see cref="GlobalOffset"/>.
     /// </summary>
-    [MustBeImmutable]
     [Serializable]
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
     public partial struct GlobalDirection : 

@@ -9,13 +9,13 @@
     /// right-handed one, so the <see cref="Default"/> reflects that.</remarks>
     public enum Handedness
     {
-        Left,
-        Right,
         Default =
         #if UNITY_2022_1_OR_NEWER
-            Left
+            Left,
         #else
-            Right
+            Right,
         #endif
+        Left = 1,
+        Right = 2
     }
 }

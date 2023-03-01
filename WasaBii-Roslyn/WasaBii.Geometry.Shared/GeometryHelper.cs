@@ -29,15 +29,20 @@ public sealed class GeometryHelper : Attribute {
     /// <summary>
     /// Whether the object represents something that has spatial dimensions. For example, a direction has no
     /// length / magnitude, but a position can be viewed as being a certain distance away from (0,0,0).
+    /// When generating the <c>X</c>, <c>Y</c> and <c>Z</c> getter properties for vector wrappers, it will be
+    /// a <c>Length</c> for something with magnitude, but a scalar (double) for something without.
     /// </summary>
-    /// <example><c>position.X</c> is a <c>Length</c>, but <c>direction.X</c> is a scalar (double).</example>
     public readonly bool HasMagnitude;
 
     /// <summary>
     /// Whether the object represents something that is directional. For example, a direction has an orientation,
     /// a position does not.
+    /// Will generate methods to calculate the angle between two values if the type is a vector wrapper. Will also
+    /// generate signed angle methods if <see cref="HasMagnitude"/> is false.
+    /// Will generate scaling operators if <see cref="HasMagnitude"/> is true.
+    /// Will generate spherical interpolation (Slerp) methods.
     /// </summary>
-    /// <example><c>dir1.AngleTo(dir2)</c>, <c>dir1.SlerpTo(dir2, t)</c></example>
+    /// <example><c>dir1.AngleTo(dir2)</c>, <c>2 * offset</c>, <c>dir1.SlerpTo(dir2, t)</c></example>
     public readonly bool HasOrientation;
 
     public GeometryHelper(bool areFieldsIndependent, bool hasMagnitude, bool hasOrientation) {

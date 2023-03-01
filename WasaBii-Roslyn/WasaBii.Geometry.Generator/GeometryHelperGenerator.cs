@@ -682,7 +682,6 @@ public class GeometryHelperGenerator : ISourceGenerator {
 
         public void OnVisitSyntaxNode(SyntaxNode syntaxNode) {
             if (syntaxNode is TypeDeclarationSyntax tds &&
-                tds.ChildTokens().Any(t => t.IsKind(SyntaxKind.PartialKeyword)) &&
                 tds.AttributeLists.SelectMany(a => a.Attributes)
                     .FirstOrDefault(a => a.Name.ToString() == nameof(GeometryHelper)) is {} attribute) 
                 GeometryHelpers.Add(new GeometryHelperData(tds, attribute));

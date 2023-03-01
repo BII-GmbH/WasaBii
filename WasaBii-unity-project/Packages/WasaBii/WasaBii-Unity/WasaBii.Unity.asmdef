@@ -11,10 +11,7 @@
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [
-        "WasaBii-Geometry-Shared.dll",
-        "WasaBii-Units-Shared.dll"
-    ],
+    "precompiledReferences": [ ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

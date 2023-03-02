@@ -43,7 +43,7 @@ namespace BII.WasaBii.Core {
                         ? 1 
                         : Math.Pow(10, PositionOfFirstSignificantDigit(value) + 1);
                     return (float) (Math.Round(value / scale, digits) * scale);
-                default: throw new UnsupportedEnumValueException(mode, $"Rounding mode {mode} not supported");
+                default: throw new UnsupportedEnumValueException(mode);
             }
         }
         
@@ -55,7 +55,7 @@ namespace BII.WasaBii.Core {
                         ? 1 
                         : Math.Pow(10, PositionOfFirstSignificantDigit(value) + 1);
                     return Math.Round(value / scale, digits) * scale;
-                default: throw new UnsupportedEnumValueException(mode, $"Rounding mode {mode} not supported");
+                default: throw new UnsupportedEnumValueException(mode);
             }
         }
 

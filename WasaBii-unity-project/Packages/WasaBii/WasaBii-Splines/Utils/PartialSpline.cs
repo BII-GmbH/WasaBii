@@ -1,7 +1,5 @@
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
@@ -64,7 +62,7 @@ namespace BII.WasaBii.Splines {
         public SplineSample<TPos, TDiff> SampleFrom(SampleDirection direction, Length distance) => direction switch {
             SampleDirection.FromStart => SampleFromStart(distance),
             SampleDirection.FromEnd => SampleFromEnd(distance),
-            _ => throw new InvalidEnumArgumentException(nameof(direction), (int) direction, typeof(SampleDirection))
+            _ => throw new UnsupportedEnumValueException(direction)
         };
     }
 }

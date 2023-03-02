@@ -2,7 +2,6 @@
 #define IsUnity
 #endif
 
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 using BII.WasaBii.Core;
 
@@ -104,7 +103,7 @@ namespace BII.WasaBii.Geometry {
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsGlobalPosition(),
 #endif
             Type.Pose => pose.Position + local.AsNumericsVector.AsGlobalOffset() * pose.Rotation,
-            _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
+            _ => throw new UnsupportedEnumValueException(type)
         };
             
         /// <summary>
@@ -122,7 +121,7 @@ namespace BII.WasaBii.Geometry {
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsLocalPosition(),
             #endif
             Type.Pose => ((global - pose.Position) * pose.Rotation.Inverse).AsNumericsVector.AsLocalPosition(),
-            _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
+            _ => throw new UnsupportedEnumValueException(type)
         };
 
         /// <summary>
@@ -140,7 +139,7 @@ namespace BII.WasaBii.Geometry {
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsGlobalOffset(),
             #endif
             Type.Pose => local.AsNumericsVector.AsGlobalOffset() * pose.Rotation,
-            _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
+            _ => throw new UnsupportedEnumValueException(type)
         };
         
         /// <summary>
@@ -158,7 +157,7 @@ namespace BII.WasaBii.Geometry {
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsLocalOffset(),
             #endif
             Type.Pose => (global * pose.Rotation.Inverse).AsNumericsVector.AsLocalOffset(),
-            _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
+            _ => throw new UnsupportedEnumValueException(type)
         };
 
         /// <summary>
@@ -176,7 +175,7 @@ namespace BII.WasaBii.Geometry {
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsGlobalDirection(),
             #endif
             Type.Pose => local.AsNumericsVector.AsGlobalDirection() * pose.Rotation,
-            _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
+            _ => throw new UnsupportedEnumValueException(type)
         };
         
         /// <summary>
@@ -194,7 +193,7 @@ namespace BII.WasaBii.Geometry {
             ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsLocalDirection(),
             #endif
             Type.Pose => (global * pose.Rotation.Inverse).AsNumericsVector.AsLocalDirection(),
-            _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
+            _ => throw new UnsupportedEnumValueException(type)
         };
 
         /// <summary>
@@ -208,7 +207,7 @@ namespace BII.WasaBii.Geometry {
             Type.Matrix => Quaternion.Concatenate(Quaternion.CreateFromRotationMatrix(localToGlobalMatrix), local.AsNumericsQuaternion).AsGlobalRotation(),
             #endif
             Type.Pose => pose.Rotation * local.AsNumericsQuaternion.AsGlobalRotation(),
-            _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
+            _ => throw new UnsupportedEnumValueException(type)
         };
 
         /// <summary>
@@ -222,7 +221,7 @@ namespace BII.WasaBii.Geometry {
             Type.Matrix => Quaternion.Concatenate(Quaternion.CreateFromRotationMatrix(GlobalToLocalMatrix), global.AsNumericsQuaternion).AsLocalRotation(),
             #endif
             Type.Pose => (pose.Rotation.Inverse * global).AsNumericsQuaternion.AsLocalRotation(),
-            _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(Type))
+            _ => throw new UnsupportedEnumValueException(type)
         };
 
         public static TransformProvider From(Vector3? pos = null, Quaternion? rotation = null, Vector3? scale = null) =>

@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-using System.ComponentModel;
+using BII.WasaBii.Core;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {
@@ -21,7 +21,7 @@ namespace BII.WasaBii.Unity {
                 DelayType.Default => null,
                 DelayType.Fixed => new WaitForFixedUpdate(),
                 DelayType.EndOfFrame => new WaitForEndOfFrame(),
-                _ => throw new InvalidEnumArgumentException()
+                _ => throw new UnsupportedEnumValueException(delayType)
             };
     }
 

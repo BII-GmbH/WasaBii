@@ -44,6 +44,14 @@ namespace BII.WasaBii.Geometry {
 
     }
 
+    [GeometryHelper(true, true, hasOrientation: true)]
+    public partial struct LocalOffset {
+
+        public UnityEngine.Vector3 AsNumericsVector { get; private set; }
+        public LocalOffset(UnityEngine.Vector3 toWrap) => AsNumericsVector = toWrap.Normalized();
+
+    }
+
 }");
         var newComp = RunGenerators(comp, out var generatorDiags, Array.Empty<AdditionalText>(), new GeometryHelperGenerator());
 

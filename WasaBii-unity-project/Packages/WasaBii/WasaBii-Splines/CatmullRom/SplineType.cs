@@ -1,5 +1,5 @@
 ﻿using System;
-using System.ComponentModel;
+using BII.WasaBii.Core;
 
 namespace BII.WasaBii.Splines.CatmullRom {
     
@@ -25,8 +25,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
                 SplineType.Uniform => 0,
                 SplineType.Centripetal => 0.5f,
                 SplineType.Chordal => 1,
-                _ => throw new InvalidEnumArgumentException(
-                    $"{nameof(SplineTypeUtils)}.{nameof(ToAlpha)} does not support the value {type}")
+                _ => throw new UnsupportedEnumValueException(type)
             };
     }
 }

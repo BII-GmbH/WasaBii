@@ -45,17 +45,19 @@ namespace BII.WasaBii.Unity.Editor
         [CustomPropertyDrawer(typeof(GlobalDirection))]
         public sealed class Direction : PropertyDrawer
         {
+            private const string buttonLabel = "⚠️Normalize⚠️";
             public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
                 EditorGUI.BeginProperty(position, label, property);
                 property.Next(true);
                 var isNormalized = property.vector3Value.magnitude.IsNearly(1);
                 EditorGUI.PropertyField(position, property, label);
-                EditorStyles.label.CalcMinMaxWidth(new GUIContent("Normalize"), out var buttonWidth, out _);
+                EditorStyles.label.CalcMinMaxWidth(new GUIContent(buttonLabel), out var buttonWidth, out _);
+                GUI.contentColor = Color.yellow;
                 if (!isNormalized && GUI.Button(new Rect(position) {
                     width = buttonWidth + 10,
                     height = EditorGUIUtility.singleLineHeight,
                     center = position.center.WithY(y => y + EditorGUI.GetPropertyHeight(property, label))
-                }, "Normalize")) {
+                }, buttonLabel)) {
                     Undo.RecordObject(property.serializedObject.targetObject, "Normalize");
                     property.vector3Value = property.vector3Value.normalized;
                 }
@@ -65,7 +67,7 @@ namespace BII.WasaBii.Unity.Editor
             public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
                 property.Next(true);
                 var ret = EditorGUI.GetPropertyHeight(property, label);
-                if (!property.vector3Value.magnitude.IsNearly(1)) ret += EditorGUIUtility.singleLineHeight;
+                if (!property.vector3Value.magnitude.IsNearly(1)) ret += EditorGUIUtility.singleLineHeight * 1.5f;
                 property.Reset();
                 return ret;
             }

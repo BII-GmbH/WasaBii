@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
 using BII.WasaBii.Core;
@@ -128,7 +127,7 @@ namespace BII.WasaBii.Geometry {
                     handedness switch {
                         Handedness.Left => Vector3.Cross(from, to),
                         Handedness.Right => Vector3.Cross(to, from),
-                        _ => throw new InvalidEnumArgumentException(nameof(handedness), (int)handedness, typeof(Handedness))
+                        _ => throw new UnsupportedEnumValueException(handedness)
                     }, 
                     normal
                 ),
@@ -153,7 +152,7 @@ namespace BII.WasaBii.Geometry {
             var axis = handedness switch {
                 Handedness.Left => Vector3.Cross(from, to),
                 Handedness.Right => Vector3.Cross(to, from),
-                _ => throw new InvalidEnumArgumentException(nameof(handedness), (int)handedness, typeof(Handedness))
+                _ => throw new UnsupportedEnumValueException(handedness)
             };
             var sign = axis.IsNearly(Vector3.Zero) // Vectors are parallel or opposite, sign is arbitrary
                 ? 1

@@ -6,7 +6,6 @@ using BII.WasaBii.Core;
 using BII.WasaBii.Geometry;
 using BII.WasaBii.UnitSystem;
 using BII.WasaBii.Unity;
-using BII.WasaBii.Unity.Geometry;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -58,18 +57,6 @@ namespace BII.WasaBii.Extra {
         [Pure] public static T SmoothInterpolateTo<T>(this T current, T target, double smoothness, double progress) 
             where T : struct, IUnitValue<T> => 
             Units.Lerp(target, current, Math.Pow(smoothness, progress));
-    }
-
-    public static class TransformHelperSmoothInterpolation {
-        /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
-        [Pure] public static T SmoothLerpTo<T>(this T current, T target, double smoothness, double progress) 
-            where T : struct, WithLerp<T> => 
-            target.LerpTo(current, Math.Pow(smoothness, progress));
-        
-        /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
-        [Pure] public static T SmoothSlerpTo<T>(this T current, T target, double smoothness, double progress) 
-            where T : struct, WithSlerp<T> => 
-            target.SlerpTo(current, Math.Pow(smoothness, progress));
     }
 
     // TODO DS: Document.

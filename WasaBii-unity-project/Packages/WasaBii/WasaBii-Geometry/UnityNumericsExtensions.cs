@@ -1,7 +1,6 @@
 ﻿#if UNITY_2022_1_OR_NEWER
 
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
@@ -63,7 +62,7 @@ namespace BII.WasaBii.Geometry
             return handedness switch {
                 Handedness.Left => ret,
                 Handedness.Right => -ret,
-                _ => throw new InvalidEnumArgumentException(nameof(handedness), (int)handedness, typeof(Handedness))
+                _ => throw new UnsupportedEnumValueException(handedness)
             };
         }
 

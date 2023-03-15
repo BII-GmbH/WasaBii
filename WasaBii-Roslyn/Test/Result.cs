@@ -1,10 +1,6 @@
-#nullable enable
-using System;
-using System.Collections.Generic;
+﻿#nullable enable
 using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace BII.WasaBii.Core {
     
@@ -26,7 +22,9 @@ namespace BII.WasaBii.Core {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Result<TValue, TError> If<TValue, TError>(
             bool predicate, Func<TValue> then, Func<TError> onError
-        ) => predicate ? Success(then()) : Failure(onError());
+        ) => predicate 
+            ? Result<TValue, TError>.Success(then()) 
+            : Result<TValue, TError>.Failure(onError());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Result<TValue, TError> If<TValue, TError>(
@@ -153,34 +151,6 @@ namespace BII.WasaBii.Core {
                 ? throw exception(ResultOrDefault!)
                 : ErrorOrDefault!;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TRes Match<TRes>(Func<TValue, TRes> onSuccess, Func<TError, TRes> onFailure) =>
-            Status switch {
-                ValueStatus.Default => throw new InvalidOperationException("Cannot match on a default result."),
-                ValueStatus.Value => onSuccess(ResultOrDefault!),
-                ValueStatus.Error => onFailure(ErrorOrDefault!),
-                _ => throw new UnsupportedEnumValueException(Status)
-            };
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void DoMatch(Action<TValue> onSuccess, Action<TError> onFailure) {
-            switch (Status) {
-                case ValueStatus.Default: throw new InvalidOperationException("Cannot match on a default result.");
-                case ValueStatus.Value: onSuccess(ResultOrDefault!); break;
-                case ValueStatus.Error: onFailure(ErrorOrDefault!); break;
-                default: 
-                    throw new UnsupportedEnumValueException(Status);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TRes MatchDynamic<TRes>(Func<object, TRes> onSuccess, Func<TError, TRes> onFailure) =>
-            Match(value => onSuccess(value!), onFailure);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void MatchDynamic(Action<object> onSuccess, Action<TError> onFailure) =>
-            DoMatch(value => onSuccess(value!), onFailure);
-
         public static implicit operator Result<TValue, TError>(Success<TValue> success) => new(success.Result);
         public static implicit operator Result<TValue, TError>(Failure<TError> failure) => new(failure.Error);
         
@@ -210,94 +180,11 @@ namespace BII.WasaBii.Core {
 
         [Pure] public override int GetHashCode() => HashCode.Combine(ResultOrDefault, ErrorOrDefault, Status);
         
-        [Pure] public override string ToString() => Status switch {
-            ValueStatus.Default => "Default Null-Result",
-            ValueStatus.Value => $"Success({ResultOrDefault!})",
-            ValueStatus.Error => $"Error({ErrorOrDefault!})",
-            _ => throw new UnsupportedEnumValueException(Status)
-        };
-        
 #region Additional Methods
 
         // These are members and not extensions in order to avoid potential problems
         //  with extension method resolution and reduce the number of required generics in some cases.
         // There is really no need for these to be extension methods.
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WhenSuccessful(Action<TValue> onSuccess) => DoMatch(onSuccess, _ => { });
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WhenFailure(Action<TError> onFailure) => DoMatch(_ => { }, onFailure);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [Pure] public Result<TRes, TError> Map<TRes>(Func<TValue, TRes> mapping) => 
-            Match(
-                res => mapping(res).Success<TRes, TError>(),
-                err => err.Failure()
-            );
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [Pure] public Task<Result<TRes, TError>> MapAsync<TRes>(Func<TValue, Task<TRes>> mapping) => 
-            Match(
-                async res => (await mapping(res)).Success<TRes, TError>(),
-                err => err.Failure<TRes, TError>().AsCompletedTask()
-            );
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [Pure] public Result<TRes, TError> FlatMap<TRes>(Func<TValue, Result<TRes, TError>> mapping) => 
-            Match(mapping, Result.Failure<TRes, TError>);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
-        [Pure] public async Task<Result<TRes, TError>> FlatMapAsync<TRes>(
-            Func<TValue, Task<Result<TRes, TError>>> mapping
-        ) => await Match(
-                async res => await mapping(res),
-                err => err.Failure<TRes, TError>().AsCompletedTask()
-            );
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [Pure] public Result<TValue, TErrorRes> MapError<TErrorRes>(Func<TError, TErrorRes> mapping) => 
-            Match(
-                Result.Success<TValue, TErrorRes>,
-                err => Result.Failure<TValue, TErrorRes>(mapping(err))
-            );
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [Pure] public Result<TValue, TErrorRes> FlatMapError<TErrorRes>(Func<TError, Result<TValue, TErrorRes>> mapping) => 
-            Match(Result.Success<TValue, TErrorRes>, mapping);
-
-        public TValue OrElse(TValue alt) => Match(val => val, _ => alt);
-        
-        public TValue OrElse(Func<TError, TValue> mapping) => Match(val => val, mapping);
-        
-        public Task<TValue> OrElse(Func<TError, Task<TValue>> mapping) => 
-            WasSuccessful ? ResultOrDefault!.AsCompletedTask() : mapping(ErrorOrDefault!);
-        
-        [Pure] public Option<TValue> ResultOrNone() => Match(Option.Some, _ => Option.None);
-        
-        [Pure] public Option<TError> ErrorOrNone() => Match(_ => Option.None, Option.Some);
-
-        [Pure] public Option<TValue> TryGetResult() => Match(Option.Some, _ => Option<TValue>.None);
-        
-        [Pure] public Option<TError> TryGetError() => Match(_ => Option<TError>.None, Option.Some);
-        
-        [Pure] public bool TryGetValue(out TValue val) {
-            bool b;
-            (val, b) = Match(
-                res => (res, true),
-                _ => (default!, false)
-            );
-            return b;
-        }
-        
-        [Pure] public bool TryGetError(out TError err) {
-            bool b;
-            (err, b) = Match(
-                _ => (default!, false),
-                err => (err, true)
-            );
-            return b;
-        }
 
 #endregion
     }
@@ -307,20 +194,6 @@ namespace BII.WasaBii.Core {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ThrowIfFailure<TValue, TError>(this Result<TValue, TError> result) => result.ResultOrThrow();
         
-        [Pure] public static Option<Result<TValue, TError>> Flip<TValue, TError>(this Result<Option<TValue>, TError> result) =>
-            result.Match(
-                onSuccess: option => option.Map(Result.Success<TValue, TError>),
-                onFailure: err => Option.Some(err.Failure<TValue, TError>())
-            );
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [Pure] public static Result<IEnumerable<TValue>, TError> Flip<TValue, TError>(
-            this IEnumerable<Result<TValue, TError>> enumerable
-        ) => enumerable.Aggregate(
-            Enumerable.Empty<TValue>().Success<IEnumerable<TValue>, TError>(),
-            (result, current) => result.FlatMap(r => current.Map(r.Append))
-        );
-
         [Pure] public static Result<TValue, TError> ToResult<TValue, TError>(this Option<TValue> opt, Func<TError> whenNoValue) =>
             opt.Match(onHasValue: Result.Success<TValue, TError>, onNone: () => Result.Failure<TValue, TError>(whenNoValue()));
         

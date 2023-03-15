@@ -13,8 +13,9 @@ namespace BII.WasaBii.UnitSystem {
         
         /// The angle between 0° and 360°
         public static Angle Normalized360(this Angle angle) {
-            var m = FullCircle.SiValue;
-            return ((angle.SiValue % m + m) % m).Radians();
+            angle %= FullCircle;
+            if (angle < Angle.Zero) angle += FullCircle;
+            return angle;
         }
         
         /// The angle between -180° and 180°
@@ -107,10 +108,7 @@ namespace BII.WasaBii.UnitSystem {
                 ? (me >= min && me <= max)
                 : (me >= min || me <= max);
         }
-        
-        public static Angle MinimalDifference(Angle from, Angle to) {
-            (from, to) = NormalizedWithMinimalDifference(from, to);
-            return to - from;
-        }
+
+        public static Angle MinimalDifference(Angle from, Angle to) => (to - from).Normalized180();
     }
 }

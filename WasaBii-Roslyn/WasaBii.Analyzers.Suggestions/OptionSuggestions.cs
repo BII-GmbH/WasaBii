@@ -76,11 +76,13 @@ public class OptionSuggestions : DiagnosticAnalyzer {
         {
             if (invocation.ArgumentList.Arguments.Count == 1 && memberAccess.Expression is SimpleNameSyntax{Identifier.Text:"Option"})
             {
+                // Option.Some(val)
                 method = invocation.ArgumentList.Arguments[0].Expression;
                 return true;
             }
             else if (invocation.ArgumentList.Arguments.Count == 0)
             {
+                // val.Some()
                 method = memberAccess.Expression;
                 return true;
             }

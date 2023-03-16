@@ -15,12 +15,12 @@ internal static class SyntaxTreeUtils {
         _ => false
     };
 
-    public static bool IsPatternWithDeclaration(PatternSyntax pattern) => pattern switch {
+    private static bool IsPatternWithDeclaration(PatternSyntax pattern) => pattern switch {
         UnaryPatternSyntax unaryPattern => IsPatternWithDeclaration(unaryPattern.Pattern),
         DeclarationPatternSyntax declarationPattern => declarationPattern.Designation is not DiscardDesignationSyntax,
         VarPatternSyntax varPattern => varPattern.Designation is not DiscardDesignationSyntax,
         RecursivePatternSyntax recursivePattern => 
-            recursivePattern.Designation is {} and not DiscardDesignationSyntax ||
+            recursivePattern.Designation is not null or DiscardDesignationSyntax ||
             (recursivePattern.PositionalPatternClause is {} positionalPattern && 
                 positionalPattern.Subpatterns.Any(subPattern => IsPatternWithDeclaration(subPattern.Pattern))) ||
             recursivePattern.PropertyPatternClause is {} propertyPattern && 

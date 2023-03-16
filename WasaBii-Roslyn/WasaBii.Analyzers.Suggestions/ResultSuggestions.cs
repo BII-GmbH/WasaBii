@@ -80,11 +80,13 @@ public class ResultSuggestions : DiagnosticAnalyzer {
         {
             if (invocation.ArgumentList.Arguments.Count == 1 && memberAccess.Expression is SimpleNameSyntax{Identifier.Text:"Result"})
             {
+                // Result.Success(val)
                 method = invocation.ArgumentList.Arguments[0].Expression;
                 return true;
             }
             else if (invocation.ArgumentList.Arguments.Count == 0)
             {
+                // val.Success()
                 method = memberAccess.Expression;
                 return true;
             }
@@ -100,11 +102,13 @@ public class ResultSuggestions : DiagnosticAnalyzer {
         {
             if (invocation.ArgumentList.Arguments.Count == 1 && memberAccess.Expression is SimpleNameSyntax{Identifier.Text:"Result"})
             {
+                // Result.Failure(err)
                 method = invocation.ArgumentList.Arguments[0].Expression;
                 return true;
             }
             else if (invocation.ArgumentList.Arguments.Count == 0)
             {
+                // err.Failure()
                 method = memberAccess.Expression;
                 return true;
             }

@@ -1,6 +1,5 @@
 #nullable enable
 
-using BII.WasaBii.Unity.Exceptions;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {

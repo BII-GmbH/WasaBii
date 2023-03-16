@@ -21,7 +21,7 @@ public class EnumExceptionSuggestion : DiagnosticAnalyzer {
         title: $"Use UnsupportedEnumValueException instead of {nameof(ArgumentOutOfRangeException)}",
         messageFormat: $"Consider replacing the {nameof(ArgumentOutOfRangeException)} with an UnsupportedEnumValueException",
         category: "WasaBii Usage",
-        defaultSeverity: DiagnosticSeverity.Warning,
+        defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true
     );
 

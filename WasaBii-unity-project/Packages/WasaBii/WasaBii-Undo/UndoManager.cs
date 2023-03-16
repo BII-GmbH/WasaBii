@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BII.WasaBii.Core;
-using BII.WasaBii.Undos;
 
 namespace BII.WasaBii.Undo {
     

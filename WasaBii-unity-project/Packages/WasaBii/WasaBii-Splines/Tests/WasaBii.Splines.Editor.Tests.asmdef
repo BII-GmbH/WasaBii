@@ -1,6 +1,6 @@
 {
     "name": "WasaBii.Splines.Editor.Tests",
-    "rootNamespace": "BII.WasaBii",
+    "rootNamespace": "BII.WasaBii.Splines.Tests",
     "references": [
         "WasaBii.Core",
         "WasaBii.Splines",

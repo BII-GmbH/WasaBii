@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
-using BII.WasaBii.Unity.Exceptions;
 using JetBrains.Annotations;
 using UnityEngine;
 

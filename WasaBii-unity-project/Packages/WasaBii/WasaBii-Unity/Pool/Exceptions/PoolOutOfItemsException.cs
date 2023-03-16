@@ -1,6 +1,6 @@
 using System;
 
-namespace BII.WasaBii.Unity.Exceptions {
+namespace BII.WasaBii.Unity {
     /// <summary>
     /// Thrown only when a <see cref="GenericPool"/>
     /// has its GrowRate set to 0 and is out of items.

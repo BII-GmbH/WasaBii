@@ -22,7 +22,7 @@ public class OptionSuggestions : DiagnosticAnalyzer {
         title: "Use Option.If instead of ternary operator",
         messageFormat: "Consider replacing '{0}' with 'Option.If({1}, {2})'",
         category: "WasaBii Usage",
-        defaultSeverity: DiagnosticSeverity.Warning,
+        defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true
     );
 

@@ -6,7 +6,7 @@ using UnityEngine;
 
 #if UNITY_EDITOR
 
-namespace BII.WasaBii.Unity.Editor
+namespace BII.WasaBii.Unity
 {
     /// <summary>
     /// Designed to draw a type that wraps a single value (e.g. a <see cref="GlobalPosition"/> which wraps a

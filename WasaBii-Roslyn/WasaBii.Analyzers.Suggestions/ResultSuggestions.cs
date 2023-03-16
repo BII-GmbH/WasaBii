@@ -22,7 +22,7 @@ public class ResultSuggestions : DiagnosticAnalyzer {
         title: "Use Result.If instead of ternary operator",
         messageFormat: "Consider replacing '{0}' with 'Result.If({1}, {2}, {3})'",
         category: "WasaBii Usage",
-        defaultSeverity: DiagnosticSeverity.Warning,
+        defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true
     );
 
@@ -30,7 +30,7 @@ public class ResultSuggestions : DiagnosticAnalyzer {
 
     public override void Initialize(AnalysisContext context) {
         context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.ReportDiagnostics | GeneratedCodeAnalysisFlags.Analyze);
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.RegisterSyntaxNodeAction(analysisContext => {
             var conditional = (ConditionalExpressionSyntax)analysisContext.Node;
 

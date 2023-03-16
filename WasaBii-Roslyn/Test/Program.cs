@@ -18,21 +18,6 @@ f.Bar = new Bar {
     Barr = 0
 };
 
-var sw = (BestEnum)(int)i switch {
-    BestEnum.Foo => 1,
-    BestEnum.Bar => 2,
-    BestEnum.Baz => 3,
-    _ => throw new ArgumentOutOfRangeException()
-};
-
-object obj = new Foo();
-sw = obj switch {
-    BestEnum.Foo => 1,
-    Foo => 2,
-    Option<Result<Option<int>, BestEnum>> => 3,
-    _ => throw new ArgumentOutOfRangeException()
-};
-
 Console.WriteLine($"Hello, World! {angle} | {f.Bar.Barr} | {foo}");
 
 record MyObj(Foo Foo);

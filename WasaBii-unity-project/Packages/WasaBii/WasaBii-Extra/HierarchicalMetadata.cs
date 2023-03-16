@@ -8,7 +8,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using BII.WasaBii.Core;
 
-namespace BII.Utilities.Independent {
+namespace BII.WasaBii.Extra {
     
     // __ Hierarchical Metadata __
     // 

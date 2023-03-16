@@ -54,7 +54,8 @@ public class EnumExceptionSuggestion : DiagnosticAnalyzer {
     [Shared]
     public sealed class FixProvider : CodeFixProvider {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(EnumExceptionDiagnosticId);
-        
+        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context) {
             if (context.Document is {} document && 
                 await document.GetSyntaxRootAsync().ConfigureAwait(continueOnCapturedContext: false) is {} root) {

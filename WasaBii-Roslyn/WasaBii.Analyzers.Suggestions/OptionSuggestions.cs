@@ -101,7 +101,7 @@ public class OptionSuggestions : DiagnosticAnalyzer {
             if (context.Document is {} document && 
                 await document.GetSyntaxRootAsync().ConfigureAwait(continueOnCapturedContext: false) is {} root) {
                 foreach (var diagnostic in context.Diagnostics) {
-                    if (extractDataFrom(diagnostic) is var (_, condition, someMethod))
+                    if (ExtractDataFrom(diagnostic) is var (_, condition, someMethod))
                         context.RegisterCodeFix(
                             CodeAction.Create(
                                 title: "Replace with `Option.If`",
@@ -127,7 +127,7 @@ public class OptionSuggestions : DiagnosticAnalyzer {
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private static (Diagnostic Diagnostic, string Condition, string SomeMethod)? extractDataFrom(Diagnostic diagnostic) =>
+        private static (Diagnostic Diagnostic, string Condition, string SomeMethod)? ExtractDataFrom(Diagnostic diagnostic) =>
             diagnostic.Properties.TryGetValue("SomeExpression", out var someMethod) && someMethod != null
             && diagnostic.Properties.TryGetValue("Condition", out var condition) && condition != null
                 ? (diagnostic, condition, someMethod)
@@ -136,7 +136,7 @@ public class OptionSuggestions : DiagnosticAnalyzer {
         private sealed class FixAll : FixAllProvider {
             public override async Task<CodeAction?> GetFixAsync(FixAllContext context) {
                 var allFixes = (await context.GetAllDiagnosticsAsync(context.Project))
-                    .Select(extractDataFrom)
+                    .Select(ExtractDataFrom)
                     .Where(tuple => tuple != null)
                     .Select(tuple => tuple!.Value)
                     .ToList();

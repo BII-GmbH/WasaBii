@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Newtonsoft.Json;
 
 namespace BII.WasaBii.UnitSystem;
 
@@ -34,10 +34,12 @@ public class UnitGenerator : ISourceGenerator {
                 .Select(f => {
                     // Sometimes, the paths passed to this are not consistent with `Path.PathSeparator`...
                     var fileNameFull = Path.GetFileName(f.Path);
-                    return (
-                        FileName: fileNameFull.Substring(0, fileNameFull.Count() - ".units.json".Count()),
-                        Defs: JsonConvert.DeserializeObject<UnitDefinitions>(f.GetText()!.ToString())!
-                    );
+                    var defs = JsonSerializer.Deserialize<UnitDefinitions>(
+                        f.GetText()!.ToString(), 
+                        new JsonSerializerOptions {PropertyNameCaseInsensitive = true}
+                    )!;
+                    var filename = fileNameFull[..(fileNameFull.Count() - ".units.json".Count())];
+                    return (FileName: filename, Defs: defs);
                 }).ToList();
             
             foreach (var (fileName, unitDef) in unitDefs) {

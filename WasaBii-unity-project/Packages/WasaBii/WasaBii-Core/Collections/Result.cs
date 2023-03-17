@@ -146,7 +146,7 @@ namespace BII.WasaBii.Core {
                 ValueStatus.Default => throw new InvalidOperationException("Cannot match on a default result."),
                 ValueStatus.Value => onSuccess(ResultOrDefault!),
                 ValueStatus.Error => onFailure(ErrorOrDefault!),
-                _ => throw new UnsupportedEnumValueException(Status, $"{nameof(Result<TValue,TError>)}.{nameof(DoMatch)}")
+                _ => throw new UnsupportedEnumValueException(Status)
             };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -156,7 +156,7 @@ namespace BII.WasaBii.Core {
                 case ValueStatus.Value: onSuccess(ResultOrDefault!); break;
                 case ValueStatus.Error: onFailure(ErrorOrDefault!); break;
                 default: 
-                    throw new UnsupportedEnumValueException(Status, $"{nameof(Result<TValue, TError>)}.{nameof(DoMatch)}");
+                    throw new UnsupportedEnumValueException(Status);
             }
         }
 
@@ -201,7 +201,7 @@ namespace BII.WasaBii.Core {
             ValueStatus.Default => "Default Null-Result",
             ValueStatus.Value => $"Success({ResultOrDefault!})",
             ValueStatus.Error => $"Error({ErrorOrDefault!})",
-            _ => throw new UnsupportedEnumValueException(Status, $"{nameof(Result<TValue,TError>)}.{nameof(ToString)}")
+            _ => throw new UnsupportedEnumValueException(Status)
         };
         
 #region Additional Methods

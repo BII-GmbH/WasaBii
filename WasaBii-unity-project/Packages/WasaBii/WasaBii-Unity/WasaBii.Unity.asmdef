@@ -4,13 +4,14 @@
     "references": [
         "WasaBii.Core",
         "WasaBii.Splines",
-        "WasaBii.Units"
+        "WasaBii.Units",
+        "WasaBii.Geometry"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [ ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

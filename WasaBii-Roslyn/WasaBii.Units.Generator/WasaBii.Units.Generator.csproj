@@ -23,17 +23,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.9.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\WasaBii.Units.Shared\WasaBii.Units.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>C:\Program Files\Unity\2022.1.1f1\Editor\Data\Managed\Newtonsoft.Json.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

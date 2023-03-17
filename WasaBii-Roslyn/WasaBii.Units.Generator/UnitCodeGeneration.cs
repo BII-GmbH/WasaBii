@@ -226,8 +226,20 @@ public static class {name}ConstructionExtensions {{
         new {c}{{SiValue = a.SiValue / b.SiValue}};
 ";
 
-        foreach (var c in conversions) 
+        string GenerateSqrt(string sqrtType) => $@"
+    public {sqrtType} Sqrt => new {sqrtType}{{SiValue = Math.Sqrt(SiValue)}};
+";
+
+        foreach (var c in conversions) {
             res.Append(c.IsMul ? GenerateMul(c.B, c.C) : GenerateDiv(c.B, c.C));
+            if (c.IsMul && c.A == c.B)
+                res.Append(GenerateSqrt(c.A));
+        }
+
+        // We can safely assume that a unit that is derived from the same base twice must be a Mul, since
+        // such a Div would be a scalar.
+        if (unit is DerivedUnitDef { Primary: var sqrt } derived && derived.Secondary == sqrt)
+            res.Append(GenerateSqrt(sqrt));
 
         return res.ToString();
     }

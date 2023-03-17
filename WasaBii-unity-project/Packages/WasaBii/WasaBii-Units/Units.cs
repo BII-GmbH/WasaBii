@@ -90,6 +90,13 @@ namespace BII.WasaBii.UnitSystem {
         ) where TSelf : struct, IUnitValue<TSelf> =>
             FromSiValue<TSelf>(from.SiValue.Lerp(to.SiValue, progress, shouldClamp));
         
+        public static TSelf LerpTo<TSelf>(
+            this TSelf from,
+            TSelf to,
+            double progress,
+            bool shouldClamp = true
+        ) where TSelf : struct, IUnitValue<TSelf> => Lerp(from, to, progress, shouldClamp);
+        
         public static double InverseLerp<TSelf>(
             TSelf from,
             TSelf to,
@@ -176,7 +183,7 @@ namespace BII.WasaBii.UnitSystem {
                     if(!doubleValue.IsNearly(0, zeroThreshold))
                         fractalDigits = Math.Max(0, digits - doubleValue.PositionOfFirstSignificantDigit() - 1);
                     break;
-                default: throw new UnsupportedEnumValueException(roundingMode, "UnitValue formatting");
+                default: throw new UnsupportedEnumValueException(roundingMode);
             }
             // e.g. 0.000 for 3 fractal digits
             var formatSpecifier = string.Concat(Enumerable.Repeat("0", fractalDigits).Prepend("0."));

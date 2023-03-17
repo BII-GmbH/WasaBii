@@ -1,0 +1,26 @@
+{
+    "name": "WasaBii-Geometry-Tests",
+    "rootNamespace": "BII.WasaBii",
+    "references": [
+        "WasaBii.Geometry",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "WasaBii.Units"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "WasaBii.Units.Shared.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

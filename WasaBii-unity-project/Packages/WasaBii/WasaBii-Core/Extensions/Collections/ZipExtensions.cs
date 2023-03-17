@@ -55,6 +55,36 @@ namespace BII.WasaBii.Core {
             return (t1List, t2List);
         }
         
+        public static (List<T1>, List<T2>, List<T3>) Unzip<T1, T2, T3>(this IEnumerable<(T1, T2, T3)> enumerable) {
+            var t1List = new List<T1>();
+            var t2List = new List<T2>();
+            var t3List = new List<T3>();
+            
+            foreach (var (t1, t2, t3) in enumerable) {
+                t1List.Add(t1);
+                t2List.Add(t2);
+                t3List.Add(t3);
+            }
+
+            return (t1List, t2List, t3List);
+        }
+        
+        public static (List<T1>, List<T2>, List<T3>, List<T4>) Unzip<T1, T2, T3, T4>(this IEnumerable<(T1, T2, T3, T4)> enumerable) {
+            var t1List = new List<T1>();
+            var t2List = new List<T2>();
+            var t3List = new List<T3>();
+            var t4List = new List<T4>();
+            
+            foreach (var (t1, t2, t3, t4) in enumerable) {
+                t1List.Add(t1);
+                t2List.Add(t2);
+                t3List.Add(t3);
+                t4List.Add(t4);
+            }
+
+            return (t1List, t2List, t3List, t4List);
+        }
+        
         public static IEnumerable<(T item, int index)> ZipWithIndices<T>(this IEnumerable<T> source) {
             var index = 0;
             foreach (var item in source) {

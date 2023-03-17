@@ -1,0 +1,17 @@
+{
+    "name": "WasaBii.Geometry",
+    "rootNamespace": "BII.WasaBii.Geometry",
+    "references": [
+        "WasaBii.Core",
+        "WasaBii.Units"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
+using BII.WasaBii.Geometry;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity.Geometry {
@@ -13,7 +14,7 @@ namespace BII.WasaBii.Unity.Geometry {
         }
 
         public static void Apply(this Transform t, GlobalPosition pos, GlobalRotation rot) 
-            => t.Apply(pos.AsVector, rot.AsQuaternion);
+            => t.Apply(pos.AsUnityVector, rot.AsUnityQuaternion);
 
         public static void ApplyLocal(this Transform t, Vector3 pos, Quaternion rot) {
             t.localPosition = pos;
@@ -21,7 +22,7 @@ namespace BII.WasaBii.Unity.Geometry {
         }
 
         public static void ApplyLocal(this Transform t, LocalPosition pos, LocalRotation rot)
-            => t.ApplyLocal(pos.AsVector, rot.AsQuaternion);
+            => t.ApplyLocal(pos.AsUnityVector, rot.AsUnityQuaternion);
 
         public static void Apply(this Transform t, GlobalPose worldLocation)
             => t.Apply(worldLocation.Position, worldLocation.Rotation);
@@ -65,11 +66,7 @@ namespace BII.WasaBii.Unity.Geometry {
             t.localRotation = Quaternion.identity;
             t.localScale = Vector3.one;
         }
-
-
-        public static GlobalPose Location(this Transform t) => new GlobalPose(t.position, t.rotation);
-        public static LocalPose LocalLocation(this Transform t) => new LocalPose(t.localPosition, t.localRotation);
-
+        
         public static void SetLossyScale(this Transform t, Vector3 lossyScale) {
             t.localScale = lossyScale.CombineWith(t.lossyScale.Map(f => 1 / f), (a, b) => a * b);
         }

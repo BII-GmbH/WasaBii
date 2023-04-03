@@ -1,14 +1,13 @@
-﻿#pragma warning disable RS1026 // we don't want weird validation race conditions when one type-to-be-validated references another.
-
-using System;
+﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using BII.WasaBii.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace BII.WasaBii.Analyzers;
@@ -81,12 +80,14 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
     //  => We validate the fields' actual substituted types, even when declared as a generic type.
 
     public override void Initialize(AnalysisContext context) {
+        context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.ReportDiagnostics);
-
-        var allViolations = new Dictionary<ITypeSymbol, IReadOnlyCollection<ImmutabilityViolation>>(SymbolEqualityComparer.Default); 
-        var topLevelToValidate = new Dictionary<ITypeSymbol, HashSet<ITypeSymbol>>(SymbolEqualityComparer.Default); // values are sources with attribute
-
         context.RegisterCompilationStartAction(compilationContext => {
+            var allViolations = new ConcurrentDictionary<ITypeSymbol, ImmutableArray<ImmutabilityViolation>>(SymbolEqualityComparer.Default);
+            
+            // if this contains an object, then lock on it to get the entry in allViolations once acquired
+            var validationSync = new ConcurrentDictionary<ITypeSymbol, object>(SymbolEqualityComparer.Default);
+            
             var comp = compilationContext.Compilation;
             
             var mustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(MustBeImmutableAttribute).FullName);
@@ -99,46 +100,28 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
             var typeSymbol = comp.GetTypeByMetadataName(typeof(Type).FullName)!;
             var lazySymbol = comp.GetTypeByMetadataName(typeof(Lazy<>).FullName)!;
             
-            var seen = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
-
-            // Step 1: collect all violations
-            compilationContext.RegisterSyntaxNodeAction(
-                ctx => {
-                    var model = ctx.SemanticModel;
-                    if (ctx.Node is TypeDeclarationSyntax tds) {
-                        var typeInfo = model.GetDeclaredSymbol(tds)!;
-                        var attributeSources = WithAttribute(typeInfo, mustBeImmutableSymbol).ToList();
-                        if (attributeSources.Any()) {
-                            (topLevelToValidate.TryGetValue(typeInfo, out var sources)
-                                ? sources
-                                : topLevelToValidate[typeInfo] = new()).UnionWith(attributeSources);
-                            if (!seen.Contains(typeInfo))
-                                ValidateWithContextAndRemember(typeInfo, lastContext: null, isReferencedAsField: false);
-                        }
+            compilationContext.RegisterSymbolAction(ctx => {
+                var type = (INamedTypeSymbol) ctx.Symbol;
+                var attributeSources = WithAttribute(type, mustBeImmutableSymbol).ToList();
+                if (!attributeSources.Any()) return;
+                
+                if (validationSync.ContainsKey(type) || allViolations.ContainsKey(type)) 
+                    return; // either done or in progress
+                
+                var violations = ValidateWithContextAndRemember(type, lastContext: null, isReferencedAsField: false);
+                foreach (var violation in violations) {
+                    foreach (var location in violation.Locations) {
+                        var violationStr = $"{string.Join(" / ", violation.Context)} -- {ExplanationFor(violation.Reason)}";
+                        ctx.ReportDiagnostic(Diagnostic.Create(
+                            Descriptor,
+                            location,
+                            type.ToDisplayString(),
+                            violationStr,
+                            string.Join(", ", attributeSources.Select(t => t.ToDisplayString()))
+                        ));
                     }
-                }, 
-                SyntaxKind.ClassDeclaration, 
-                SyntaxKind.StructDeclaration, 
-                SyntaxKind.InterfaceDeclaration, 
-                SyntaxKind.RecordDeclaration
-            );
-            
-            // Step 2: report all collected violations
-            compilationContext.RegisterCompilationEndAction(ctx => {
-                string Format(ITypeSymbol symbol) => symbol.ToDisplayString();
-                foreach (var (type, attributeSources) in topLevelToValidate)
-                foreach (var violation in allViolations[type]) 
-                foreach (var location in violation.Locations) {
-                    var violationStr = $"{string.Join(" / ", violation.Context)} -- {ExplanationFor(violation.Reason)}";
-                    ctx.ReportDiagnostic(Diagnostic.Create(
-                        Descriptor, 
-                        location, 
-                        Format(type), 
-                        violationStr,
-                        string.Join(", ", attributeSources.Select(Format))
-                    ));
                 }
-            });
+            }, SymbolKind.NamedType);
             
 #region Validation Logic
 
@@ -147,18 +130,28 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
             IEnumerable<ImmutabilityViolation> ValidateWithContextAndRemember(
                 ITypeSymbol type, ContextPathPart? lastContext, bool isReferencedAsField = true
             ) {
-                if (allViolations.TryGetValue(type, out var existingViolations))
-                    return existingViolations;
-                
-                if (!seen.Add(type)) // circular reference, otherwise would have a violation entry
-                    return Enumerable.Empty<ImmutabilityViolation>();
-                
-                var violations = ValidateType(type, isReferencedAsField);
-                var wrapped = lastContext == null
-                    ? violations.ToList()
-                    : violations.Select(v => v.AddContext(lastContext)).ToList();
-                allViolations.Add(type, wrapped);
-                return wrapped;
+                var alreadyAdded = true;
+                var lockObject = validationSync.GetOrAdd(
+                    type, 
+                    valueFactory: _ => { alreadyAdded = false; return new object(); }
+                );
+                lock (lockObject) {
+                    if (allViolations.TryGetValue(type, out var existingViolations))
+                        return lastContext == null
+                            ? existingViolations
+                            : existingViolations.Select(v => v.AddContext(lastContext)).ToImmutableArray();
+                    
+                    if (alreadyAdded) 
+                        // Added on same thread, so we have a circular type reference => return empty for now
+                        return Enumerable.Empty<ImmutabilityViolation>();
+                    
+                    var violations = ValidateType(type, isReferencedAsField).ToImmutableArray();
+                    allViolations.TryAdd(type, violations); // locked for type, so this can't be false
+
+                    return lastContext == null
+                        ? violations
+                        : violations.Select(v => v.AddContext(lastContext));
+                }
             }
             
             IEnumerable<ImmutabilityViolation> ValidateType(ITypeSymbol type, bool isReferencedAsField) {
@@ -289,9 +282,9 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
             
         });
     }
-    
+
 #region Pure Utils
-    
+
     private static bool Equal(ISymbol? a, ISymbol? b) => SymbolEqualityComparer.Default.Equals(a, b);
     
     private static bool HasAttributeDirect(ISymbol t, ISymbol attribute) =>

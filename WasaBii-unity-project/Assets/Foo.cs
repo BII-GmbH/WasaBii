@@ -4,8 +4,7 @@ using BII.WasaBii.Core;
 using UnityEngine;
 
 [MustBeImmutable]
-public class Foo
-{
-    public int Cheese;
-    public Vector2 Vec;
+public class Foo {
+    public int Number;
+    public Vector3 Vector;
 }

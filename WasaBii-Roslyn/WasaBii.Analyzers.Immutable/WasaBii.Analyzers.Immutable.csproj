@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>default</LangVersion>
     <Nullable>enable</Nullable>
-    <IsRoslynComponent>true</IsRoslynComponent>
     <RootNamespace>BII.WasaBii.Analyzers</RootNamespace>
   </PropertyGroup>
 
@@ -14,11 +14,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="Exists('$(TargetPath)')">
-    <Analyzer Include="$(TargetPath)" />
-    <Analyzer Include="$(TargetPath)\..\WasaBii.Analyzers.Shared.dll" />
   </ItemGroup>
 
   <ItemGroup>

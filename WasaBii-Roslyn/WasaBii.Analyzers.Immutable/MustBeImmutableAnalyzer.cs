@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 using BII.WasaBii.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -66,7 +62,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor Descriptor = new(
         id: DiagnosticId,
         title: "Type is not immutable",
-        messageFormat: "`{0}` not immutable: {1} -- [MustBeImmutable] inherited from: {2}",
+        messageFormat: "`{0}` not immutable: {1} - [MustBeImmutable] inherited from: {2}",
         category: "WasaBii",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
@@ -111,7 +107,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                 var violations = ValidateWithContextAndRemember(type, lastContext: null, isReferencedAsField: false);
                 foreach (var violation in violations) {
                     foreach (var location in violation.Locations) {
-                        var violationStr = $"{string.Join(" / ", violation.Context)} -- {ExplanationFor(violation.Reason)}";
+                        var violationStr = $"{string.Join(" / ", violation.Context)} ({ExplanationFor(violation.Reason)})";
                         ctx.ReportDiagnostic(Diagnostic.Create(
                             Descriptor,
                             location,

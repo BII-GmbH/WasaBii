@@ -87,9 +87,8 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
             
             var comp = compilationContext.Compilation;
             
-            // TODO: change to `typeof(TheType).FullName` once unity gets their stuff together
-            var mustBeImmutableSymbol = comp.GetTypeByMetadataName("BII.WasaBii.Core.MustBeImmutableAttribute");
-            var ignoreMustBeImmutableSymbol = comp.GetTypeByMetadataName("BII.WasaBii.Core.__IgnoreMustBeImmutableAttribute");
+            var mustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(MustBeImmutableAttribute).FullName);
+            var ignoreMustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(__IgnoreMustBeImmutableAttribute).FullName);
 
             if (mustBeImmutableSymbol == null || ignoreMustBeImmutableSymbol == null) 
                 return; // attributes not referenced in compilation unit, so nothing to check

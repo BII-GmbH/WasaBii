@@ -78,6 +78,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
     public override void Initialize(AnalysisContext context) {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.ReportDiagnostics);
+        
         context.RegisterCompilationStartAction(compilationContext => {
             var allViolations = new ConcurrentDictionary<ITypeSymbol, ImmutableArray<ImmutabilityViolation>>(SymbolEqualityComparer.Default);
             
@@ -86,8 +87,9 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
             
             var comp = compilationContext.Compilation;
             
-            var mustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(MustBeImmutableAttribute).FullName);
-            var ignoreMustBeImmutableSymbol = comp.GetTypeByMetadataName(typeof(__IgnoreMustBeImmutableAttribute).FullName);
+            // TODO: change to `typeof(TheType).FullName` once unity gets their stuff together
+            var mustBeImmutableSymbol = comp.GetTypeByMetadataName("BII.WasaBii.Core.MustBeImmutableAttribute");
+            var ignoreMustBeImmutableSymbol = comp.GetTypeByMetadataName("BII.WasaBii.Core.__IgnoreMustBeImmutableAttribute");
 
             if (mustBeImmutableSymbol == null || ignoreMustBeImmutableSymbol == null) 
                 return; // attributes not referenced in compilation unit, so nothing to check

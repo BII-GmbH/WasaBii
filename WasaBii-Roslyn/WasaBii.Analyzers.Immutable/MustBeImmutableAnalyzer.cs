@@ -22,15 +22,15 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
 
     private static string ExplanationFor(NotImmutableReason reason) => reason switch {
         NotImmutableReason.NonReadonlyField => 
-            "Fields in reference types must be marked as `readonly`.",
+            "Fields in reference types must be marked as readonly.",
         NotImmutableReason.IsUntypedReference => 
-            "Untyped references like `object` and `dynamic` cannot be validated.",
+            "Untyped references like object and dynamic cannot be validated.",
         NotImmutableReason.NonImmutableAbstractFieldType =>
             "All abstract types used as fields need a [MustBeImmutable] attribute.",
         NotImmutableReason.ImmutableCollectionWithoutGenerics => 
             "Untyped immutable collections cannot be validated.",
         NotImmutableReason.NotImmutableUnboundGenericParameter =>
-            "Generic parameter must either be `unmanaged` or constrained to a type with the [MustBeImmutable] attribute.",
+            "Generic parameter must either be unmanaged or constrained to a type with the [MustBeImmutable] attribute.",
         NotImmutableReason.UnexpectedNonNamedType => 
             "Internal analyzer error: Cannot validate unnamed type. Please open a bug issue with an example.",
         var other => other.ToString() // fallback for when there's no message yet
@@ -62,7 +62,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor Descriptor = new(
         id: DiagnosticId,
         title: "Type is not immutable",
-        messageFormat: "`{0}` not immutable: {1} - [MustBeImmutable] inherited from: {2}",
+        messageFormat: "{2} — {1} — [MustBeImmutable] inherited from: {3}",
         category: "WasaBii",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
@@ -108,12 +108,14 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                 var violations = ValidateWithContextAndRemember(type, lastContext: null, isReferencedAsField: false);
                 foreach (var violation in violations) {
                     foreach (var location in violation.Locations) {
-                        var violationStr = $"{string.Join(" / ", violation.Context)} ({ExplanationFor(violation.Reason)})";
+                        var violationPath = string.Join(" / ", violation.Context);
+                        var violationStr = ExplanationFor(violation.Reason);
                         ctx.ReportDiagnostic(Diagnostic.Create(
                             Descriptor,
                             location,
                             type.ToDisplayString(),
                             violationStr,
+                            violationPath,
                             string.Join(", ", attributeSources.Select(t => t.ToDisplayString()))
                         ));
                     }
@@ -259,14 +261,14 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                         // = We allow non-readonly fields only in structs that are in a readonly field
                         if (!field.IsReadOnly && (type.TypeKind != TypeKind.Struct || !isReferencedAsField)) 
                             yield return new ImmutabilityViolation(
-                                contextStack.Push(new($"{field.Name}: {field.Type.Name}")), 
+                                contextStack.Push(new($"{field.Type.Name} {field.Name}")), 
                                 NotImmutableReason.NonReadonlyField,
                                 locs.Value
                             );
 
                         foreach (var violation in ValidateWithContextAndRemember(
                             field.Type, 
-                            new($"{field.Name}: {field.Type.Name}")
+                            new($"{field.Type.Name} {field.Name}")
                         )) yield return violation with { Locations = locs.Value };
                     }
                     
@@ -288,13 +290,12 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
         t.GetAttributes().Any(a => Equal(a.AttributeClass, attribute));
             
     private static IEnumerable<ITypeSymbol> WithAttribute(ITypeSymbol typeSymbol, ISymbol attribute) {
-        IEnumerable<ITypeSymbol> AllBaseTypesOf(ITypeSymbol t) {
+        IEnumerable<ITypeSymbol> AllBaseTypesOfIncluding(ITypeSymbol t) {
             var curr = t;
             do { yield return curr; } while ((curr = curr.BaseType) != null);
         }
-        if (HasAttributeDirect(typeSymbol, attribute)) yield return typeSymbol;
+        foreach (var b in AllBaseTypesOfIncluding(typeSymbol).Where(b => HasAttributeDirect(b, attribute))) yield return b;
         foreach (var i in typeSymbol.AllInterfaces.Where(i => HasAttributeDirect(i, attribute))) yield return i;
-        foreach (var b in AllBaseTypesOf(typeSymbol).Where(b => HasAttributeDirect(b, attribute))) yield return b;
     }
     
 #endregion

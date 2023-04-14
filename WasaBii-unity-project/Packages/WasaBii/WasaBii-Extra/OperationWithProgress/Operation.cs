@@ -1,13 +1,72 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using BII.WasaBii.Core;
 
 namespace BII.WasaBii.Extra
 {
-    public record OperationContext(Action<int> OnStepCompleted, Action<string> OnStepStarted);
-    public record OperationContext<T>(T Value, Action<int> OnStepCompleted, Action<string> OnStepStarted);
+    // TODOS:
+    // - actually use cancellation token everywhere
+    // - custom error foo and Validate(Step)
+    // - step on separate thread
+    // - map is a sync step for some reason
+    // - interfaces for some of the duplicate step and chain methods etc
+
+
+    public record OperationContext(
+        Action<string> OnStepStarted,
+        Action<int> OnStepCompleted,
+        Action<int> OnNewStepCount,
+        CancellationToken CancellationToken
+    ) {
+        public OperationContext<T> WithStartValue<T>(T startValue) => new(
+            startValue,
+            OnStepStarted,
+            OnStepCompleted,
+            OnNewStepCount,
+            CancellationToken
+        );
+
+        public OperationContext WithStepOffset(int stepsToAdd) =>
+            this with {OnStepCompleted = steps => OnStepCompleted(steps + stepsToAdd)};
+        
+        public OperationContext WithStepCountOffset(int stepsToAdd) =>
+            this with {OnNewStepCount = steps => OnNewStepCount(steps + stepsToAdd)};
+    };
+
+    public record OperationContext<T>(
+        T StartValue,
+        Action<string> OnStepStarted,
+        Action<int> OnStepCompleted,
+        Action<int> OnNewStepCount,
+        CancellationToken CancellationToken
+    ) {
+        public OperationContext WithoutStartValue() => new(
+            OnStepStarted,
+            OnStepCompleted,
+            OnNewStepCount,
+            CancellationToken
+        );
+        
+        public OperationContext<TRes> WithStartValue<TRes>(TRes startValue) => new(
+            startValue,
+            OnStepStarted,
+            OnStepCompleted,
+            OnNewStepCount,
+            CancellationToken
+        );
+        
+        public OperationContext<T> WithAddedStepCount(int stepsToAdd) =>
+            this with {OnStepCompleted = steps => OnStepCompleted(steps + stepsToAdd)};
+        
+        public OperationContext<T> WithStepOffset(int stepsToAdd) =>
+            this with {OnStepCompleted = steps => OnStepCompleted(steps + stepsToAdd)};
+        
+        public OperationContext<T> WithStepCountOffset(int stepsToAdd) =>
+            this with {OnNewStepCount = steps => OnNewStepCount(steps + stepsToAdd)};
+    };
     
-    public record Operation(int EstimatedSteps, Func<OperationContext, Task> Run)
+    public record Operation(int EstimatedStepCount, Func<OperationContext, Task> Run)
     {
         public static Operation Empty => new Operation(0, ctx => Task.CompletedTask);
 
@@ -21,7 +80,7 @@ namespace BII.WasaBii.Extra
         }
 
         public Operation<T> WithResult<T>(Func<T> resultGetter) => new(
-            EstimatedSteps,
+            EstimatedStepCount,
             async ctx => {
                 await Run(ctx);
                 return resultGetter();
@@ -29,52 +88,52 @@ namespace BII.WasaBii.Extra
         );
 
         public Operation Step(string label, Func<Task> step) => new(
-            EstimatedSteps + 1,
+            EstimatedStepCount + 1,
             async ctx => {
                 await Run(ctx);
                 ctx.OnStepStarted(label);
                 await step();
-                ctx.OnStepCompleted(EstimatedSteps + 1);
+                ctx.OnStepCompleted(EstimatedStepCount + 1);
             }
         );
         
         public Operation<T> Step<T>(string label, Func<Task<T>> step) => new(
-            EstimatedSteps + 1,
+            EstimatedStepCount + 1,
             async ctx => {
                 await Run(ctx);
                 ctx.OnStepStarted(label);
                 var res = await step();
-                ctx.OnStepCompleted(EstimatedSteps + 1);
+                ctx.OnStepCompleted(EstimatedStepCount + 1);
                 return res;
             }
         );
 
         public Operation Chain(Operation op) => new(
-            EstimatedSteps + op.EstimatedSteps,
+            EstimatedStepCount + op.EstimatedStepCount,
             async ctx => {
                 await Run(ctx);
-                await op.Run(ctx with {OnStepCompleted = step => ctx.OnStepCompleted(EstimatedSteps + step)});
+                await op.Run(ctx.WithStepOffset(EstimatedStepCount));
             }
         );
         
         public Operation<T> Chain<T>(Operation<T> op) => new(
-            EstimatedSteps + op.EstimatedSteps,
+            EstimatedStepCount + op.EstimatedStepCount,
             async ctx => {
                 await Run(ctx);
-                return await op.Run(ctx with {OnStepCompleted = step => ctx.OnStepCompleted(EstimatedSteps + step)});
+                return await op.Run(ctx.WithStepOffset(EstimatedStepCount));
             }
         );
         
         public Operation<TStart, TRes> Chain<TStart, TRes>(Operation<TStart, TRes> op) => new(
-            EstimatedSteps + op.EstimatedSteps,
+            EstimatedStepCount + op.EstimatedStepCount,
             async ctx => {
-                await Run(new(ctx.OnStepCompleted, ctx.OnStepStarted));
-                return await op.Run(ctx with {OnStepCompleted = step => ctx.OnStepCompleted(EstimatedSteps + step)});
+                await Run(ctx.WithoutStartValue());
+                return await op.Run(ctx.WithStepOffset(EstimatedStepCount));
             }
         );
     }
 
-    public record Operation<T>(int EstimatedSteps, Func<OperationContext, Task<T>> Run)
+    public record Operation<T>(int EstimatedStepCount, Func<OperationContext, Task<T>> Run)
     {
         public static Operation<T> From(T result) =>
             new(0, ctx => result.AsCompletedTask());
@@ -87,92 +146,100 @@ namespace BII.WasaBii.Extra
             }
         }
 
-        public Operation WithoutResult() => new(EstimatedSteps, Run);
+        public Operation WithoutResult() => new(EstimatedStepCount, Run);
 
         public Operation<TRes> Map<TRes>(Func<T, TRes> mapper) => 
-            new(EstimatedSteps, ctx => Run(ctx).Map(mapper));
+            new(EstimatedStepCount, ctx => Run(ctx).Map(mapper));
         
         public Operation<T> Step(string label, Func<Task> step) => new(
-            EstimatedSteps + 1,
+            EstimatedStepCount + 1,
             async ctx => {
                 var res = await Run(ctx);
                 ctx.OnStepStarted(label);
                 await step();
-                ctx.OnStepCompleted(EstimatedSteps + 1);
+                ctx.OnStepCompleted(EstimatedStepCount + 1);
                 return res;
             }
         );
         
         public Operation<TRes> Step<TRes>(string label, Func<Task<TRes>> step) => new(
-            EstimatedSteps + 1,
+            EstimatedStepCount + 1,
             async ctx => {
                 _ = await Run(ctx);
                 ctx.OnStepStarted(label);
                 var res = await step();
-                ctx.OnStepCompleted(EstimatedSteps + 1);
+                ctx.OnStepCompleted(EstimatedStepCount + 1);
                 return res;
             }
         );
 
         public Operation<TRes> Step<TRes>(string label, Func<T, Task<TRes>> step) =>
-            new(EstimatedSteps + 1, async ctx => {
+            new(EstimatedStepCount + 1, async ctx => {
                 var curr = await Run(ctx);
                 ctx.OnStepStarted(label);
                 var res = await step(curr);
-                ctx.OnStepCompleted(EstimatedSteps + 1);
+                ctx.OnStepCompleted(EstimatedStepCount + 1);
                 return res;
             });
 
         public Operation<T> Chain(Operation other) => new(
-            EstimatedSteps + other.EstimatedSteps,
+            EstimatedStepCount + other.EstimatedStepCount,
             async ctx => {
                 var res = await Run(ctx);
-                await other.Run(ctx with {OnStepCompleted = step => ctx.OnStepCompleted(step + EstimatedSteps)});
+                await other.Run(ctx.WithStepOffset(EstimatedStepCount));
                 return res;
             }
         );
         
         public Operation<TRes> Chain<TRes>(Operation<TRes> other) =>
             new(
-                EstimatedSteps + other.EstimatedSteps,
+                EstimatedStepCount + other.EstimatedStepCount,
                 async ctx => {
                     var _ = await Run(ctx);
-                    return await other.Run(
-                        ctx with {OnStepCompleted = step => ctx.OnStepCompleted(step + EstimatedSteps)}
-                    );
+                    return await other.Run(ctx.WithStepOffset(EstimatedStepCount));
                 }
             );
 
         public Operation<TRes> Chain<TRes>(Operation<T, TRes> other) =>
             new(
-                EstimatedSteps + other.EstimatedSteps,
+                EstimatedStepCount + other.EstimatedStepCount,
                 async ctx => {
                     var res = await Run(ctx);
-                    return await other.Run(
-                        new OperationContext<T>(
-                            res,
-                            step => ctx.OnStepCompleted(step + EstimatedSteps),
-                            ctx.OnStepStarted
-                        )
-                    );
+                    return await other.Run(ctx.WithStartValue(res).WithStepOffset(EstimatedStepCount));
                 }
             );
-
-        // TODO: how to flatMap?
         
-        // TODO: how to update step count estimate? context?
-        // public Operation<TRes> FlatMap<TRes>(int stepCountPrediction, Func<T, Operation<TRes>> mapper) => 
-        //     new(Steps + stepCountPrediction, async ctx => {
-        //         var result = await Code(ctx);
-        //         var newOp = mapper(result);
-        //         return newOp.
-        //     })
+        public Operation<TRes> FlatMap<TRes>(
+            int stepCountPrediction, 
+            Func<T, Operation<TRes>> mapper
+        ) => new(
+            EstimatedStepCount + stepCountPrediction,
+            async ctx => {
+                var result = await Run(ctx);
+                var newOp = mapper(result);
+                ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
+                return await newOp.Run(ctx.WithStepOffset(EstimatedStepCount).WithStepCountOffset(EstimatedStepCount));
+            }
+        );
+        
+        public Operation<TStart, TRes> FlatMap<TStart, TRes>(
+            int stepCountPrediction, 
+            Func<T, Operation<TStart, TRes>> mapper
+        ) => new(
+            EstimatedStepCount + stepCountPrediction,
+            async ctx => {
+                var result = await Run(ctx.WithoutStartValue());
+                var newOp = mapper(result);
+                ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
+                return await newOp.Run(ctx.WithStepOffset(EstimatedStepCount).WithStepCountOffset(EstimatedStepCount));
+            }
+        );
     }
 
-    public record Operation<TStart, TResult>(int EstimatedSteps, Func<OperationContext<TStart>, Task<TResult>> Run)
+    public record Operation<TStart, TResult>(int EstimatedStepCount, Func<OperationContext<TStart>, Task<TResult>> Run)
     {
         public static Operation<TStart, TResult> From(Func<TStart, TResult> initialMapping) =>
-            new(0, ctx => initialMapping(ctx.Value).AsCompletedTask());
+            new(0, ctx => initialMapping(ctx.StartValue).AsCompletedTask());
 
         public async Task<Result<TResult, Exception>> RunSafe(OperationContext<TStart> context) {
             try {
@@ -182,76 +249,96 @@ namespace BII.WasaBii.Extra
             }
         }
 
-        public Operation<TResult> WithStartValue(TStart startValue) => new(
-            EstimatedSteps,
-            ctx => Run(new(startValue, ctx.OnStepCompleted, ctx.OnStepStarted))
-        );
+        public Operation<TResult> WithStartValue(TStart startValue) => 
+            new(EstimatedStepCount, ctx => Run(ctx.WithStartValue(startValue)));
 
         public Operation<TStart, TRes> Map<TRes>(Func<TResult, TRes> mapper) => 
-            new(EstimatedSteps, ctx => Run(ctx).Map(mapper));
+            new(EstimatedStepCount, ctx => Run(ctx).Map(mapper));
         
         public Operation<TStart, TResult> Step(string label, Func<Task> step) => new(
-            EstimatedSteps + 1,
+            EstimatedStepCount + 1,
             async ctx => {
                 var res = await Run(ctx);
                 ctx.OnStepStarted(label);
                 await step();
-                ctx.OnStepCompleted(EstimatedSteps + 1);
+                ctx.OnStepCompleted(EstimatedStepCount + 1);
                 return res;
             }
         );
         
         public Operation<TStart, TRes> Step<TRes>(string label, Func<Task<TRes>> step) => new(
-            EstimatedSteps + 1,
+            EstimatedStepCount + 1,
             async ctx => {
                 _ = await Run(ctx);
                 ctx.OnStepStarted(label);
                 var res = await step();
-                ctx.OnStepCompleted(EstimatedSteps + 1);
+                ctx.OnStepCompleted(EstimatedStepCount + 1);
                 return res;
             }
         );
 
         public Operation<TStart, TRes> Step<TRes>(string label, Func<TResult, Task<TRes>> step) =>
-            new(EstimatedSteps + 1, async ctx => {
+            new(EstimatedStepCount + 1, async ctx => {
                 var curr = await Run(ctx);
                 ctx.OnStepStarted(label);
                 var res = await step(curr);
-                ctx.OnStepCompleted(EstimatedSteps + 1);
+                ctx.OnStepCompleted(EstimatedStepCount + 1);
                 return res;
             });
 
         public Operation<TStart, TResult> Chain(Operation other) => new(
-            EstimatedSteps + other.EstimatedSteps,
+            EstimatedStepCount + other.EstimatedStepCount,
             async ctx => {
                 var res = await Run(ctx);
-                await other.Run(new(step => ctx.OnStepCompleted(step + EstimatedSteps), ctx.OnStepStarted));
+                await other.Run(ctx.WithoutStartValue().WithStepOffset(EstimatedStepCount));
                 return res;
             }
         );
         
         public Operation<TStart, TRes> Chain<TRes>(Operation<TRes> other) =>
             new(
-                EstimatedSteps + other.EstimatedSteps,
+                EstimatedStepCount + other.EstimatedStepCount,
                 async ctx => {
                     var _ = await Run(ctx);
-                    return await other.Run(new(step => ctx.OnStepCompleted(step + EstimatedSteps), ctx.OnStepStarted));
+                    return await other.Run(ctx.WithoutStartValue().WithStepOffset(EstimatedStepCount));
                 }
             );
 
         public Operation<TStart, TRes> Chain<TRes>(Operation<TResult, TRes> other) =>
             new(
-                EstimatedSteps + other.EstimatedSteps,
+                EstimatedStepCount + other.EstimatedStepCount,
                 async ctx => {
                     var res = await Run(ctx);
-                    return await other.Run(
-                        new OperationContext<TResult>(
-                            res,
-                            step => ctx.OnStepCompleted(step + EstimatedSteps),
-                            ctx.OnStepStarted
-                        )
-                    );
+                    return await other.Run(ctx.WithStartValue(res).WithStepOffset(EstimatedStepCount));
                 }
             );
+        
+        public Operation<TStart, TRes> FlatMap<TRes>(
+            int stepCountPrediction, 
+            Func<TResult, Operation<TRes>> mapper
+        ) => new(
+            EstimatedStepCount + stepCountPrediction,
+            async ctx => {
+                var result = await Run(ctx);
+                var newOp = mapper(result);
+                ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
+                return await newOp.Run(
+                    ctx.WithoutStartValue().WithStepOffset(EstimatedStepCount).WithStepCountOffset(EstimatedStepCount)
+                );
+            }
+        );
+        
+        public Operation<TStart, TRes> FlatMap<TRes>(
+            int stepCountPrediction, 
+            Func<TResult, Operation<TStart, TRes>> mapper
+        ) => new(
+            EstimatedStepCount + stepCountPrediction,
+            async ctx => {
+                var result = await Run(ctx);
+                var newOp = mapper(result);
+                ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
+                return await newOp.Run(ctx.WithStepOffset(EstimatedStepCount).WithStepCountOffset(EstimatedStepCount));
+            }
+        );
     }
 }

@@ -14,7 +14,7 @@ namespace BII.WasaBii.Splines {
             Spline = spline;
             ClosestOnSpline = position;
             NormalizedLocation = normalizedLocation;
-            cachedLocation = new Lazy<SplineLocation>(() => spline.DeNormalize(normalizedLocation));
+            cachedLocation = new Lazy<SplineLocation>(() => spline.DeNormalize(normalizedLocation).ResultOrThrow(error => error.AsException));
         }
 
         /// The normalized location on the spline whose position is closest to the queried position.

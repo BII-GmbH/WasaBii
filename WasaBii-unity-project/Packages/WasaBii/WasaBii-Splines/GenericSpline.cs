@@ -16,8 +16,10 @@ namespace BII.WasaBii.Splines {
         int SegmentCount { get; }
 
         SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] { get; }
-        SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
+        SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location).ResultOrThrow(error => error.AsException)];
         SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] { get; }
+
+        Length DistanceFromBegin(SplineSegmentIndex index);
         
         GeometricOperations<TPos, TDiff> Ops { get; }
 

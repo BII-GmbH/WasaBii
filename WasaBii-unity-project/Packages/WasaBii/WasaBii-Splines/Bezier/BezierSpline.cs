@@ -32,7 +32,8 @@ namespace BII.WasaBii.Splines.Bezier {
     public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : unmanaged where TDiff : unmanaged {
 
         internal sealed record Cache(
-            ImmutableArray<Lazy<SplineSegment<TPos, TDiff>>> SplineSegments
+            ImmutableArray<Lazy<SplineSegment<TPos, TDiff>>> SplineSegments,
+            ImmutableArray<Lazy<Length>> SegmentOffsetsFromBegin
         );
 
         public readonly ImmutableArray<BezierSegment<TPos, TDiff>> Segments;
@@ -44,7 +45,7 @@ namespace BII.WasaBii.Splines.Bezier {
 
         public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] 
             => cache.Value.SplineSegments[index].Value;
-        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
+        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location).ResultOrThrow(error => error.AsException)];
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => 
             SplineSample<TPos, TDiff>.From(this, location).GetOrThrow(() => 
                 new ArgumentOutOfRangeException(
@@ -52,6 +53,8 @@ namespace BII.WasaBii.Splines.Bezier {
                     location,
                     $"Must be between 0 and {SegmentCount}"
                 ));
+
+        public Length DistanceFromBegin(SplineSegmentIndex index) => cache.Value.SegmentOffsetsFromBegin[index].Value;
 
         public GeometricOperations<TPos, TDiff> Ops { get; }
         
@@ -90,9 +93,18 @@ namespace BII.WasaBii.Splines.Bezier {
         [Pure] public Spline<TPos, TDiff> CopyWithDifferentHandleDistance(Length desiredHandleDistance) =>
             BezierSplineCopyUtils.CopyWithDifferentHandleDistance(this, desiredHandleDistance);
 
-        private Cache initCache() => new(
-            Segments.Select(s => new Lazy<SplineSegment<TPos, TDiff>>(() => s.ToSplineSegment(Ops))).ToImmutableArray()
-        );
+        private Cache initCache() {
+            var segments = Segments.Select(s => new Lazy<SplineSegment<TPos, TDiff>>(() => s.ToSplineSegment(Ops)))
+                .ToImmutableArray();
+            var segmentOffsets = new Lazy<Length>[segments.Length];
+            segmentOffsets[0] = new(Length.Zero);
+            for (var i = 1; i < segments.Length; i++) {
+                var lastSegment = segments[i - 1];
+                var lastOffset = segmentOffsets[i - 1];
+                segmentOffsets[i] = new(() => lastOffset.Value + lastSegment.Value.Length);
+            }
+            return new(segments, segmentOffsets.ToImmutableArray());
+        }
 
     }
 

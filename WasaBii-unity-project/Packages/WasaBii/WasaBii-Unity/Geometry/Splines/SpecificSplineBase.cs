@@ -42,6 +42,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
 
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => Wrapped[location];
 
+        public Length DistanceFromBegin(SplineSegmentIndex index) => Wrapped.DistanceFromBegin(index);
         public GeometricOperations<TPos, TDiff> Ops => Wrapped.Ops;
 
         [Pure] public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(

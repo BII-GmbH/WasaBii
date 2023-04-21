@@ -24,11 +24,24 @@ namespace BII.WasaBii.Splines.Maths {
         /// because calculating a spline's length is always an approximation of its actual length.
         public static readonly SplineLocation DefaultSplineLocationOvershootTolerance = 0.1.Meters();
 
+        public readonly struct SplineLocationOutOfRangeError
+        {
+            public readonly SplineLocation Location;
+            public readonly Length SplineLength;
+            public SplineLocationOutOfRangeError(SplineLocation location, Length splineLength) {
+                Location = location;
+                SplineLength = splineLength;
+            }
+
+            public Exception AsException =>
+                new($"Location must be between {Length.Zero} and {SplineLength}, was {Location}");
+        }
+
         /// Converts a location on the spline from <see cref="SplineLocation"/>
         /// to <see cref="NormalizedSplineLocation"/>.
         /// Such a conversion is desirable when performance is relevant,
         /// since operations on <see cref="NormalizedSplineLocation"/> are faster.
-        public static NormalizedSplineLocation Normalize<TPos, TDiff>(
+        public static Result<NormalizedSplineLocation, SplineLocationOutOfRangeError> Normalize<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
             SplineLocation location,
             SplineLocation? splineLocationOvershootTolerance = null
@@ -36,33 +49,57 @@ namespace BII.WasaBii.Splines.Maths {
             where TPos : unmanaged 
             where TDiff : unmanaged {
 
-            var currentSegmentIdx = SplineSegmentIndex.Zero;
-            var remainingDistanceToLocation = location.Value;
+            // Performs a binary search for the correct segment.
+            // Is a loop as opposed to a recursive local method for performance because Rider said so.
+            SplineSegmentIndex segmentIndex;
+            {
+                // the bounds are inclusive
+                var leftBound = SplineSegmentIndex.Zero;
+                var rightBound = new SplineSegmentIndex(spline.SegmentCount - 1);
+                while (true) {
+                    if (leftBound == rightBound) {
+                        segmentIndex = leftBound;
+                        break;
+                    }
+                    var centerIndex = new SplineSegmentIndex((leftBound + rightBound) / 2);
+                    var centerDistance = spline.DistanceFromBegin(centerIndex);
+                    if (centerDistance > location) {
+                        rightBound = centerIndex - 1;
+                        continue;
+                    }
 
-            // Iterate from each node and subtract its length from the location. 
-            // Once the location is no longer greater than the node's length, 
-            // the remaining location relative to the length is the normalized value t
-            while (currentSegmentIdx < spline.SegmentCount) {
-                var segment = spline[currentSegmentIdx];
-                var segmentLength = segment.Length;
-                if (remainingDistanceToLocation > segmentLength) {
-                    remainingDistanceToLocation -= segmentLength;
-                    currentSegmentIdx += 1;
-                } else {
-                    var progressToNextHandle = remainingDistanceToLocation switch {
-                        var d when d.IsNearly(Length.Zero, threshold: 1E-3.Meters()) => 0d,
-                        var d when d.IsNearly(segmentLength, threshold: 1E-3.Meters()) => 1d,
-                        var d => segment.Polynomial.LengthToProgress(d, cachedPolynomialLength: segmentLength)
-                    };
-                    
-                    return NormalizedSplineLocation.From(currentSegmentIdx) + progressToNextHandle;
+                    if (location - centerDistance <= spline[centerIndex].Length) {
+                        segmentIndex = centerIndex;
+                        break;
+                    }
+                    leftBound = centerIndex + 1;
                 }
             }
-            return remainingDistanceToLocation < (splineLocationOvershootTolerance ?? DefaultSplineLocationOvershootTolerance)
-                ? NormalizedSplineLocation.From(currentSegmentIdx)
-                // The spline location is outside the spline's length,
-                // so an out-of-range normalized spline location is returned 
-                : NormalizedSplineLocation.From(currentSegmentIdx + 1);
+            var segment = spline[segmentIndex];
+            var segmentLength = segment.Length;
+            var remainingDistanceToLocation = location.Value - spline.DistanceFromBegin(segmentIndex);
+
+            var res = NormalizedSplineLocation.From(segmentIndex);
+            return remainingDistanceToLocation switch {
+                var d when d > Length.Zero && d < segmentLength => 
+                    res + segment.Polynomial.LengthToProgress(d, cachedPolynomialLength: segmentLength),
+                var d when d.IsNearly(Length.Zero, threshold: splineLocationOvershootTolerance ?? 1E-3.Meters()) => res,
+                var d when d.IsNearly(segmentLength, threshold: splineLocationOvershootTolerance ?? 1E-3.Meters()) => res + 1,
+                _ => new SplineLocationOutOfRangeError(location, spline.Length())
+            };
+        }
+
+        public readonly struct NormalizedSplineLocationOutOfRangeError
+        {
+            public readonly NormalizedSplineLocation Location;
+            public readonly NormalizedSplineLocation Max;
+            public NormalizedSplineLocationOutOfRangeError(NormalizedSplineLocation location, NormalizedSplineLocation max) {
+                Location = location;
+                Max = max;
+            }
+            
+            public Exception AsException =>
+                new($"Normalized location must be between {0} and {Max.Value}, was {Location.Value}");
         }
 
         /// Converts a location on the spline from <see cref="NormalizedSplineLocation"/>
@@ -70,26 +107,35 @@ namespace BII.WasaBii.Splines.Maths {
         /// Such a conversion is desirable when the location value needs to be interpreted,
         /// since <see cref="SplineLocation"/> is equal to the distance
         /// from the beginning of the spline to the location, in meters.
-        public static SplineLocation DeNormalize<TPos, TDiff>(
+        public static Result<SplineLocation, NormalizedSplineLocationOutOfRangeError> DeNormalize<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
-            NormalizedSplineLocation t
+            NormalizedSplineLocation t,
+            NormalizedSplineLocation? overshootTolerance = null
         )  
             where TPos : unmanaged 
             where TDiff : unmanaged {
 
-            var location = SplineLocation.Zero;
-            var lastSegmentIndex = MathD.FloorToInt(t.Value);
-            for (var i = 0; i < lastSegmentIndex; i++) {
-                location += spline[SplineSegmentIndex.At(i)].Length;
+            if (t < 0) {
+                if (overshootTolerance is { } tolerance && -t <= tolerance)
+                    t = NormalizedSplineLocation.Zero;
+                else return new NormalizedSplineLocationOutOfRangeError(t, new(spline.SegmentCount));
             }
 
-            var progressInLastSegment = t - lastSegmentIndex;
+            if (t > spline.SegmentCount) {
+                if (overshootTolerance is { } tolerance && t - spline.SegmentCount <= tolerance)
+                    t = new (spline.SegmentCount);
+                else return new NormalizedSplineLocationOutOfRangeError(t, new(spline.SegmentCount));
+            }
+
+            var segmentIndex = new SplineSegmentIndex(Math.Min((int)t.Value, spline.SegmentCount - 1));
+            var location = spline.DistanceFromBegin(segmentIndex);
+            var progressInLastSegment = t.Value - segmentIndex;
             if (progressInLastSegment > double.Epsilon) {
-                var lastSegment = spline[SplineSegmentIndex.At(lastSegmentIndex)];
+                var lastSegment = spline[SplineSegmentIndex.At(segmentIndex)];
                 location += lastSegment.Polynomial.ProgressToLength(progressInLastSegment);
             }
 
-            return location;
+            return new SplineLocation(location);
         }
 
         /// For a given node on a spline and locations relative to it,

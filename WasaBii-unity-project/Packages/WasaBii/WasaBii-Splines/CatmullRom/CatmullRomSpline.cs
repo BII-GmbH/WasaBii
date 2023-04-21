@@ -45,7 +45,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
             } else handles = ImmutableArray<TPos>.Empty;
             
             Type = splineType ?? SplineType.Centripetal;
-            cachedSegmentLengths = new Lazy<ImmutableArray<Lazy<Length>>>(() => prepareSegmentLengthCache(this));
+            cachedSegmentLengths = new Lazy<ImmutableArray<SegmentCache>>(() => prepareSegmentLengthCache(this));
             this.Ops = ops;
         }
 
@@ -69,11 +69,11 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
         public TPos this[SplineHandleIndex index] => handles[index];
 
-        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
+        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location).ResultOrThrow(error => error.AsException)];
 
         public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => 
             CatmullRomPolynomial.FromSplineAt(this, index)
-                .Map(val => new SplineSegment<TPos, TDiff>(val, cachedSegmentLengths.Value[index]))
+                .Map(val => new SplineSegment<TPos, TDiff>(val, cachedSegmentLengths.Value[index].Length))
                 .GetOrThrow(() => new ArgumentOutOfRangeException(nameof(index), index, $"Must be between 0 and {SegmentCount}"));
         
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => 
@@ -83,6 +83,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
                     location,
                     $"Must be between 0 and {SegmentCount}"
                 ));
+
+        public Length DistanceFromBegin(SplineSegmentIndex index) => cachedSegmentLengths.Value[index].DistanceFromBegin.Value;
 
         [Pure] public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
             Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
@@ -101,22 +103,37 @@ namespace BII.WasaBii.Splines.CatmullRom {
             CatmullRomSplineCopyUtils.CopyWithDifferentHandleDistance(this, desiredHandleDistance);
         
 #region Segment Length Caching
+
+        private readonly struct SegmentCache
+        {
+            public readonly Lazy<Length> Length;
+            public readonly Lazy<Length> DistanceFromBegin;
+            public SegmentCache(Lazy<Length> length, Lazy<Length> distanceFromBegin) {
+                Length = length;
+                DistanceFromBegin = distanceFromBegin;
+            }
+        }
+        
         // The cached lengths for each segment,
         // accessed by the segment index.
         [NonSerialized] 
-        private readonly Lazy<ImmutableArray<Lazy<Length>>> cachedSegmentLengths;
+        private readonly Lazy<ImmutableArray<SegmentCache>> cachedSegmentLengths;
 
-        private static ImmutableArray<Lazy<Length>> prepareSegmentLengthCache(CatmullRomSpline<TPos, TDiff> spline) {
-            var ret = new Lazy<Length>[spline.SegmentCount];
+        private static ImmutableArray<SegmentCache> prepareSegmentLengthCache(CatmullRomSpline<TPos, TDiff> spline) {
+            var ret = new SegmentCache[spline.SegmentCount];
             for (var i = 0; i < spline.SegmentCount; i++) {
                 var idx = SplineSegmentIndex.At(i);
-                ret[idx] = new Lazy<Length>(() => CatmullRomPolynomial.FromSplineAt(spline, idx)
+                var length = new Lazy<Length>(() => CatmullRomPolynomial.FromSplineAt(spline, idx)
                     .GetOrThrow(() =>
                         new Exception(
                             "Could not create a polynomial for this spline. " +
                             "This should not happen and indicates a bug in this method."
                         )
                     ).ArcLength);
+                var distanceFromBegin = i == 0 
+                    ? new Lazy<Length>(Length.Zero) 
+                    : new Lazy<Length>(() => ret[idx - 1].DistanceFromBegin.Value + ret[idx - 1].Length.Value);
+                ret[i] = new(length, distanceFromBegin);
             }
             return ImmutableArray.Create(ret);
         }
@@ -171,8 +188,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
         public static IEnumerable<TPos> HandlesBetween<TPos, TDiff>(
             this CatmullRomSpline<TPos, TDiff> spline, SplineLocation start, SplineLocation end
         ) where TPos : unmanaged where TDiff : unmanaged {
-            var fromNormalized = spline.Normalize(start);
-            var toNormalized = spline.Normalize(end);
+            var fromNormalized = spline.Normalize(start).ResultOrThrow(error => error.AsException);
+            var toNormalized = spline.Normalize(end).ResultOrThrow(error => error.AsException);
 
             yield return spline[fromNormalized].Position;
 

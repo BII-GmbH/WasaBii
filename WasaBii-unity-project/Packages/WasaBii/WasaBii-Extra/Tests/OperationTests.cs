@@ -22,7 +22,7 @@ namespace BII.WasaBii.Extra.Tests
         {
             public RunContext(
                 List<string> stepsStarted,
-                List<string> stepsCompleted,
+                List<int> stepsCompleted,
                 List<int> stepCountDiffs,
                 List<double> reportedProgress
             ) : base(
@@ -40,7 +40,7 @@ namespace BII.WasaBii.Extra.Tests
             }
 
             public readonly List<string> StepsStarted;
-            public readonly List<string> StepsCompleted;
+            public readonly List<int> StepsCompleted;
             public readonly List<int> StepCountDiffs;
             public readonly List<double> ReportedProgress;
         }
@@ -48,7 +48,7 @@ namespace BII.WasaBii.Extra.Tests
         private void assertStepsStarted(params string[] expected) =>
             Assert.That(_runContext.StepsStarted, Is.EqualTo(expected));
         
-        private void assertStepsCompleted(params string[] expected) =>
+        private void assertStepsCompleted(params int[] expected) =>
             Assert.That(_runContext.StepsCompleted, Is.EqualTo(expected));
         
         private void assertStepCountChanged(params int[] expected) =>
@@ -79,7 +79,7 @@ namespace BII.WasaBii.Extra.Tests
                 ctx => {
                     Assert.That(ctx.PreviousResult, Is.EqualTo(1));
                     assertStepsStarted("1", "2");
-                    assertStepsCompleted("1");
+                    assertStepsCompleted(1);
                     assertStepCountChanged();
                     assertReportedProgress(0.5);
                     ctx.ReportProgressInStep(0.4);
@@ -92,7 +92,7 @@ namespace BII.WasaBii.Extra.Tests
                 ctx => {
                     Assert.That(ctx.PreviousResult, Is.EqualTo(2));
                     assertStepsStarted("1", "2", "3");
-                    assertStepsCompleted("1", "2");
+                    assertStepsCompleted(1, 2);
                     assertStepCountChanged();
                     assertReportedProgress(0.5, 0.4);
                     ctx.ReportProgressInStep(0.3);
@@ -106,13 +106,65 @@ namespace BII.WasaBii.Extra.Tests
             var res = await third.Run(_runContext);
             Assert.That(res, Is.EqualTo(3));
             assertStepsStarted("1", "2", "3");
-            assertStepsCompleted("1", "2", "3");
+            assertStepsCompleted(1, 2, 3);
             assertStepCountChanged();
             assertReportedProgress(0.5, 0.4, 0.3, 0.2);
         }
         
         [Test]
-        [CanBeNull]
+        public async Task WhenChaining_ThenEventsProperlyCalled() {
+            var initial = Operation.WithInput<int>();
+            var first = initial.Step(
+                "1",
+                ctx => {
+                    Assert.That(ctx.PreviousResult, Is.EqualTo(0));
+                    assertStepsStarted("1");
+                    assertStepsCompleted();
+                    assertStepCountChanged();
+                    assertReportedProgress();
+                    ctx.ReportProgressInStep(0.5);
+                    assertReportedProgress(0.5);
+                    return Task.FromResult(ctx.PreviousResult + 1);
+                }
+            );
+            var second = first.Chain(Operation.WithInput<int>().Step(
+                "2",
+                ctx => {
+                    Assert.That(ctx.PreviousResult, Is.EqualTo(1));
+                    assertStepsStarted("1", "2");
+                    assertStepsCompleted(1);
+                    assertStepCountChanged();
+                    assertReportedProgress(0.5);
+                    ctx.ReportProgressInStep(0.4);
+                    assertReportedProgress(0.5, 0.4);
+                    return Task.FromResult(ctx.PreviousResult + 1);
+                }
+            ));
+            var third = second.Chain(Operation.WithInput<int>().Step(
+                "3",
+                ctx => {
+                    Assert.That(ctx.PreviousResult, Is.EqualTo(2));
+                    assertStepsStarted("1", "2", "3");
+                    assertStepsCompleted(1, 2);
+                    assertStepCountChanged();
+                    assertReportedProgress(0.5, 0.4);
+                    ctx.ReportProgressInStep(0.3);
+                    assertReportedProgress(0.5, 0.4, 0.3);
+                    ctx.ReportProgressInStep(0.2);
+                    assertReportedProgress(0.5, 0.4, 0.3, 0.2);
+                    return Task.FromResult(ctx.PreviousResult + 1);
+                }
+            ));
+            Assert.That(third.EstimatedStepCount, Is.EqualTo(3));
+            var res = await third.Run(_runContext);
+            Assert.That(res, Is.EqualTo(3));
+            assertStepsStarted("1", "2", "3");
+            assertStepsCompleted(1, 2, 3);
+            assertStepCountChanged();
+            assertReportedProgress(0.5, 0.4, 0.3, 0.2);
+        }
+        
+        [Test]
         public async Task WhenFlatMapping_ThenEventsProperlyCalled() {
             var initial = Operation.WithInput<int>();
             var first = initial.Step(
@@ -133,7 +185,7 @@ namespace BII.WasaBii.Extra.Tests
                 ctx => {
                     Assert.That(ctx.PreviousResult, Is.EqualTo(1));
                     assertStepsStarted("1", "2");
-                    assertStepsCompleted("1");
+                    assertStepsCompleted(1);
                     assertStepCountChanged(-1); // 1 less step than expected
                     assertReportedProgress(0.5);
                     ctx.ReportProgressInStep(0.4);
@@ -146,7 +198,7 @@ namespace BII.WasaBii.Extra.Tests
                 ctx => {
                     Assert.That(ctx.PreviousResult, Is.EqualTo(2));
                     assertStepsStarted("1", "2", "3");
-                    assertStepsCompleted("1", "2");
+                    assertStepsCompleted(1, 2);
                     assertStepCountChanged(-1); // not called bc step count matches expectation
                     assertReportedProgress(0.5, 0.4);
                     ctx.ReportProgressInStep(0.3);
@@ -160,7 +212,7 @@ namespace BII.WasaBii.Extra.Tests
             var res = await third.Run(_runContext);
             Assert.That(res, Is.EqualTo(3));
             assertStepsStarted("1", "2", "3");
-            assertStepsCompleted("1", "2", "3");
+            assertStepsCompleted(1, 2, 3);
             assertStepCountChanged(-1);
             assertReportedProgress(0.5, 0.4, 0.3, 0.2);
         }

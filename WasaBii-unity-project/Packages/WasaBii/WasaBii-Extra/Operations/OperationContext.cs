@@ -24,11 +24,12 @@ namespace BII.WasaBii.Extra
     }
 
     public record OperationContext(
-        Action<string> OnStepStarted,
-        Action<string> OnStepCompleted, // Note: It's a lot of overhead to track the accurate step number
-        Action<int> OnStepCountDiff,
+        Action<string> OnStepStarted, // Label of the started step
+        Action<int> OnStepCompleted,  // Index of step completed, starts at 1
+        Action<int> OnStepCountDiff,  // Add value to total step count to get the updated value
         Action<double> ReportProgressInStep, 
-        CancellationToken? CancellationToken
+        CancellationToken? CancellationToken,
+        int StepOffset = 0
     ) : OperationStepContext {
         internal OperationContext<T> withStartValue<T>(T startValue) => new(
             startValue,
@@ -42,10 +43,11 @@ namespace BII.WasaBii.Extra
 
     public record OperationContext<T>(
         T StartValue,
-        Action<string> OnStepStarted,
-        Action<string> OnStepCompleted, // Note: It's a lot of overhead to track the accurate step number
-        Action<int> OnStepCountDiff,
+        Action<string> OnStepStarted, // Label of the started step
+        Action<int> OnStepCompleted,  // Index of step completed, starts at 1
+        Action<int> OnStepCountDiff,  // Add value to total step count to get the updated value
         Action<double> ReportProgressInStep,
-        CancellationToken? CancellationToken
+        CancellationToken? CancellationToken,
+        int StepOffset = 0
     ) : OperationContext(OnStepStarted, OnStepCompleted, OnStepCountDiff, ReportProgressInStep, CancellationToken);
 }

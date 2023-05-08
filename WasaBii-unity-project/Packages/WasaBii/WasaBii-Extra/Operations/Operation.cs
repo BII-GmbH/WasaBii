@@ -6,7 +6,7 @@ namespace BII.WasaBii.Extra
 {
     // TODO: consider variants with Error, incorporating Result in the monad transformer stack
     // TODO: ensure that exceptions are debuggable, especially when thrown on another thread
-    // TODO: consider removing "downgrading" or lossy methods
+    // TODO: consider removing Step()s in error stack trace
 
     public sealed class Operation
     {
@@ -38,18 +38,6 @@ namespace BII.WasaBii.Extra
             async ctx => {
                 var steps = await run(ctx);
                 return (resultGetter(), steps);
-            }
-        );
-
-        public Operation Step(string label, Func<Task> step) => new(
-            EstimatedStepCount + 1,
-            async ctx => {
-                var steps = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                ctx.OnStepStarted(label);
-                await step();
-                ctx.OnStepCompleted(steps + 1);
-                return steps + 1;
             }
         );
         
@@ -132,19 +120,6 @@ namespace BII.WasaBii.Extra
 
         public Operation<TRes> Map<TRes>(Func<T, TRes> mapper) => 
             new(EstimatedStepCount, ctx => run(ctx).Map(t => (mapper(t.Result), t.DoneSteps)));
-        
-        public Operation<T> Step(string label, Func<Task> step) => new(
-            EstimatedStepCount + 1,
-            async ctx => {
-                var (res, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                ctx.OnStepStarted(label);
-                await step();
-                var finalSteps = ctx.StepOffset + steps + 1;
-                ctx.OnStepCompleted(finalSteps);
-                return (res, finalSteps);
-            }
-        );
 
         public Operation<TRes> Step<TRes>(string label, Func<OperationStepContext<T>, Task<TRes>> step) => new(
             EstimatedStepCount + 1,
@@ -254,19 +229,6 @@ namespace BII.WasaBii.Extra
 
         public Operation<TStart, TRes> Map<TRes>(Func<TResult, TRes> mapper) => 
             new(EstimatedStepCount, ctx => run(ctx).Map(t => (mapper(t.Result), t.DoneSteps)));
-        
-        public Operation<TStart, TResult> Step(string label, Func<Task> step) => new(
-            EstimatedStepCount + 1,
-            async ctx => {
-                var (res, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                ctx.OnStepStarted(label);
-                await step();
-                var finalSteps = ctx.StepOffset + steps + 1;
-                ctx.OnStepCompleted(finalSteps);
-                return (res, finalSteps);
-            }
-        );
         
         public Operation<TStart, TResult> Step(
             string label, 

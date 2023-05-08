@@ -16,14 +16,7 @@ namespace BII.WasaBii.Unity {
             return taskCompletionSource.Task;
         }
 
-        public static Task ForFrames(uint n) {
-#if DEBUG
-            if (!Application.isPlaying) {
-                throw new Exception("cannot delay for frames while the application is not in playmode");
-            }
-#endif
-            return ForCoroutine(Coroutines.DelayForFrames(n));
-        }
+        public static Task ForFrames(uint n) => ForCoroutine(Coroutines.DelayForFrames(n));
 
         public static Task For(Duration duration) => ForCoroutine(Coroutines.WaitForSeconds((float) duration.AsSeconds()));
     }

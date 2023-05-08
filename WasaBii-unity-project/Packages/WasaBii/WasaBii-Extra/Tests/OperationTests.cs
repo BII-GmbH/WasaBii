@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
+using BII.WasaBii.Unity;
 
 namespace BII.WasaBii.Extra.Tests
 {
@@ -45,6 +46,56 @@ namespace BII.WasaBii.Extra.Tests
             public readonly List<double> ReportedProgress;
         }
 
+#region Error Handling
+        
+        private class TestException : Exception { }
+        
+        [Test]
+        public async Task Run_Linear_WhenException_ThenReported() {
+            var op = Operation.Empty().Step("throw", ctx => throw new TestException());
+            
+            var thrown = false;
+            try {
+                await op.Run(_runContext);
+            } catch (TestException) {
+                thrown = true;
+            }
+            Assert.That(thrown, Is.True);
+        }
+        
+        [Test]
+        public async Task Run_Suspended_WhenException_ThenReported() {
+            var op = Operation.Empty().Step("throw", async ctx => {
+                await AsyncWait.ForFrames(1);
+                throw new TestException();
+            });
+            
+            var thrown = false;
+            try {
+                await op.Run(_runContext);
+            } catch (TestException) {
+                thrown = true;
+            }
+            Assert.That(thrown, Is.True);
+        }
+        
+        [Test]
+        public async Task Run_OnOtherThread_WhenException_ThenReported() {
+            var op = Operation.Empty().Step("throw", ctx => Task.Run(() => throw new TestException()));
+            
+            var thrown = false;
+            try {
+                await op.Run(_runContext);
+            } catch (TestException) {
+                thrown = true;
+            }
+            Assert.That(thrown, Is.True);
+        }
+        
+#endregion
+
+#region Events
+
         private void assertStepsStarted(params string[] expected) =>
             Assert.That(_runContext.StepsStarted, Is.EqualTo(expected));
         
@@ -58,7 +109,6 @@ namespace BII.WasaBii.Extra.Tests
             Assert.That(_runContext.ReportedProgress, Is.EqualTo(expected));
 
         [Test]
-        [CanBeNull]
         public async Task WhenStepping_ThenEventsProperlyCalled() {
             var initial = Operation.WithInput<int>();
             var first = initial.Step(
@@ -217,7 +267,9 @@ namespace BII.WasaBii.Extra.Tests
             assertReportedProgress(0.5, 0.4, 0.3, 0.2);
         }
         
-        #region ChatGPT generated (basic functionality)
+#endregion
+        
+#region ChatGPT generated (basic functionality)
 
         [Test]
         public async Task From_Returns_Operation_With_Expected_Result() {
@@ -339,6 +391,6 @@ namespace BII.WasaBii.Extra.Tests
             Assert.AreEqual(expected, result);
         }
         
-        #endregion
+#endregion
     }
 }

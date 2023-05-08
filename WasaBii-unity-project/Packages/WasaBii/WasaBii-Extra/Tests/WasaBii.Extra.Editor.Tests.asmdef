@@ -2,7 +2,8 @@
     "name": "WasaBii.Extra.Editor.Tests",
     "rootNamespace": "BII.WasaBii.Extra.Tests",
     "references": [
-        "WasaBii.Extra"
+        "WasaBii.Extra",
+        "WasaBii.Unity"
     ],
     "includePlatforms": [
         "Editor"

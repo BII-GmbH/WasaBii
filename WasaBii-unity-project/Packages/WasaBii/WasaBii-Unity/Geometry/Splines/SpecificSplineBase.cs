@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines;
@@ -42,7 +43,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
 
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => Wrapped[location];
 
-        public Length DistanceFromBegin(SplineSegmentIndex index) => Wrapped.DistanceFromBegin(index);
+        public ImmutableArray<Length> SegmentOffsetsFromBegin => Wrapped.SegmentOffsetsFromBegin;
         public GeometricOperations<TPos, TDiff> Ops => Wrapped.Ops;
 
         [Pure] public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(

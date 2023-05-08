@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 
@@ -15,15 +16,7 @@ namespace BII.WasaBii.Splines.Maths {
     /// In general, using t is more performant, especially on splines with many nodes
     /// But location is generally used more
     internal static class SplineNormalizationUtility {
-        /// Normalizing a spline location to calculate the normalized spline location for a given spline
-        /// is normally not possible when the location is above the spline's length.
-        /// This is the tolerance the location can be above the length and to be considered
-        /// to exactly match the length of the spline.
-        ///
-        /// Such a threshold is necessary since the normalization algorithm is inherently inaccurate
-        /// because calculating a spline's length is always an approximation of its actual length.
-        public static readonly SplineLocation DefaultSplineLocationOvershootTolerance = 0.1.Meters();
-
+        
         public readonly struct SplineLocationOutOfRangeError
         {
             public readonly SplineLocation Location;
@@ -37,6 +30,28 @@ namespace BII.WasaBii.Splines.Maths {
                 new($"Location must be between {Length.Zero} and {SplineLength}, was {Location}");
         }
 
+        public readonly struct NormalizedSplineLocationOutOfRangeError
+        {
+            public readonly NormalizedSplineLocation Location;
+            public readonly NormalizedSplineLocation Max;
+            public NormalizedSplineLocationOutOfRangeError(NormalizedSplineLocation location, NormalizedSplineLocation max) {
+                Location = location;
+                Max = max;
+            }
+            
+            public Exception AsException =>
+                new($"Normalized location must be between {0} and {Max.Value}, was {Location.Value}");
+        }
+
+        /// Normalizing a spline location to calculate the normalized spline location for a given spline
+        /// is normally not possible when the location is above the spline's length.
+        /// This is the tolerance the location can be above the length and to be considered
+        /// to exactly match the length of the spline.
+        ///
+        /// Such a threshold is necessary since the normalization algorithm is inherently inaccurate
+        /// because calculating a spline's length is always an approximation of its actual length.
+        public static readonly SplineLocation DefaultSplineLocationOvershootTolerance = 0.1.Meters();
+
         /// Converts a location on the spline from <see cref="SplineLocation"/>
         /// to <see cref="NormalizedSplineLocation"/>.
         /// Such a conversion is desirable when performance is relevant,
@@ -49,35 +64,18 @@ namespace BII.WasaBii.Splines.Maths {
             where TPos : unmanaged 
             where TDiff : unmanaged {
 
-            // Performs a binary search for the correct segment.
-            // Is a loop as opposed to a recursive local method for performance because Rider said so.
-            SplineSegmentIndex segmentIndex;
-            {
-                // the bounds are inclusive
-                var leftBound = SplineSegmentIndex.Zero;
-                var rightBound = new SplineSegmentIndex(spline.SegmentCount - 1);
-                while (true) {
-                    if (leftBound == rightBound) {
-                        segmentIndex = leftBound;
-                        break;
-                    }
-                    var centerIndex = new SplineSegmentIndex((leftBound + rightBound) / 2);
-                    var centerDistance = spline.DistanceFromBegin(centerIndex);
-                    if (centerDistance > location) {
-                        rightBound = centerIndex - 1;
-                        continue;
-                    }
-
-                    if (location - centerDistance <= spline[centerIndex].Length) {
-                        segmentIndex = centerIndex;
-                        break;
-                    }
-                    leftBound = centerIndex + 1;
-                }
-            }
+            var searchResult = spline.SegmentOffsetsFromBegin.BinarySearch(location);
+            var segmentIndex = SplineSegmentIndex.At(
+                searchResult > 0
+                    // location is exactly at intersection of two segments -> result is index of segment that starts here
+                    ? Math.Min(searchResult, spline.SegmentCount - 1)
+                    // location is in a segment -> result is bitwise complement of next segment index
+                    // or outside the spline -> complement of 0 or segment count
+                    : Math.Max(0, ~searchResult - 1));
+            
             var segment = spline[segmentIndex];
             var segmentLength = segment.Length;
-            var remainingDistanceToLocation = location.Value - spline.DistanceFromBegin(segmentIndex);
+            var remainingDistanceToLocation = location.Value - spline.SegmentOffsetsFromBegin[segmentIndex];
 
             var res = NormalizedSplineLocation.From(segmentIndex);
             return remainingDistanceToLocation switch {
@@ -87,19 +85,6 @@ namespace BII.WasaBii.Splines.Maths {
                 var d when d.IsNearly(segmentLength, threshold: splineLocationOvershootTolerance ?? 1E-3.Meters()) => res + 1,
                 _ => new SplineLocationOutOfRangeError(location, spline.Length())
             };
-        }
-
-        public readonly struct NormalizedSplineLocationOutOfRangeError
-        {
-            public readonly NormalizedSplineLocation Location;
-            public readonly NormalizedSplineLocation Max;
-            public NormalizedSplineLocationOutOfRangeError(NormalizedSplineLocation location, NormalizedSplineLocation max) {
-                Location = location;
-                Max = max;
-            }
-            
-            public Exception AsException =>
-                new($"Normalized location must be between {0} and {Max.Value}, was {Location.Value}");
         }
 
         /// Converts a location on the spline from <see cref="NormalizedSplineLocation"/>
@@ -128,7 +113,7 @@ namespace BII.WasaBii.Splines.Maths {
             }
 
             var segmentIndex = new SplineSegmentIndex(Math.Min((int)t.Value, spline.SegmentCount - 1));
-            var location = spline.DistanceFromBegin(segmentIndex);
+            var location = spline.SegmentOffsetsFromBegin[segmentIndex];
             var progressInLastSegment = t.Value - segmentIndex;
             if (progressInLastSegment > double.Epsilon) {
                 var lastSegment = spline[SplineSegmentIndex.At(segmentIndex)];

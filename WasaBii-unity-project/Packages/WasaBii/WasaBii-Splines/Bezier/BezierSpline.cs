@@ -32,19 +32,17 @@ namespace BII.WasaBii.Splines.Bezier {
     public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : unmanaged where TDiff : unmanaged {
 
         internal sealed record Cache(
-            ImmutableArray<Lazy<SplineSegment<TPos, TDiff>>> SplineSegments,
-            ImmutableArray<Lazy<Length>> SegmentOffsetsFromBegin
+            ImmutableArray<SplineSegment<TPos, TDiff>> SplineSegments,
+            ImmutableArray<Length> SegmentOffsetsFromBegin
         );
 
         public readonly ImmutableArray<BezierSegment<TPos, TDiff>> Segments;
         [NonSerialized] private readonly Lazy<Cache> cache;
         public int SegmentCount => Segments.Length;
 
-        IEnumerable<SplineSegment<TPos, TDiff>> Spline<TPos, TDiff>.Segments =>
-            cache.Value.SplineSegments.Select(lazy => lazy.Value);
+        IEnumerable<SplineSegment<TPos, TDiff>> Spline<TPos, TDiff>.Segments => cache.Value.SplineSegments;
 
-        public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] 
-            => cache.Value.SplineSegments[index].Value;
+        public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => cache.Value.SplineSegments[index];
         public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location).ResultOrThrow(error => error.AsException)];
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => 
             SplineSample<TPos, TDiff>.From(this, location).GetOrThrow(() => 
@@ -54,7 +52,7 @@ namespace BII.WasaBii.Splines.Bezier {
                     $"Must be between 0 and {SegmentCount}"
                 ));
 
-        public Length DistanceFromBegin(SplineSegmentIndex index) => cache.Value.SegmentOffsetsFromBegin[index].Value;
+        public ImmutableArray<Length> SegmentOffsetsFromBegin => cache.Value.SegmentOffsetsFromBegin;
 
         public GeometricOperations<TPos, TDiff> Ops { get; }
         
@@ -94,16 +92,13 @@ namespace BII.WasaBii.Splines.Bezier {
             BezierSplineCopyUtils.CopyWithDifferentHandleDistance(this, desiredHandleDistance);
 
         private Cache initCache() {
-            var segments = Segments.Select(s => new Lazy<SplineSegment<TPos, TDiff>>(() => s.ToSplineSegment(Ops)))
-                .ToImmutableArray();
-            var segmentOffsets = new Lazy<Length>[segments.Length];
-            segmentOffsets[0] = new(Length.Zero);
-            for (var i = 1; i < segments.Length; i++) {
-                var lastSegment = segments[i - 1];
-                var lastOffset = segmentOffsets[i - 1];
-                segmentOffsets[i] = new(() => lastOffset.Value + lastSegment.Value.Length);
-            }
-            return new(segments, segmentOffsets.ToImmutableArray());
+            var segments = ImmutableArray.CreateRange(Segments, (s, ops) => s.ToSplineSegment(ops), Ops);
+            var segmentOffsets = ImmutableArray.CreateBuilder<Length>(initialCapacity: Segments.Length);
+            var lastOffset = Length.Zero;
+            segmentOffsets.Add(Length.Zero);
+            for (var i = 1; i < segments.Length; i++) 
+                segmentOffsets.Add(lastOffset += segments[i - 1].Length);
+            return new(segments, segmentOffsets.MoveToImmutable());
         }
 
     }

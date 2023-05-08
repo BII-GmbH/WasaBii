@@ -145,19 +145,6 @@ namespace BII.WasaBii.Extra
                 return (res, finalSteps);
             }
         );
-        
-        public Operation<TRes> Step<TRes>(string label, Func<Task<TRes>> step) => new(
-            EstimatedStepCount + 1,
-            async ctx => {
-                var (_, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                ctx.OnStepStarted(label);
-                var res = await step();
-                var finalSteps = ctx.StepOffset + steps + 1;
-                ctx.OnStepCompleted(finalSteps);
-                return (res, finalSteps);
-            }
-        );
 
         public Operation<TRes> Step<TRes>(string label, Func<OperationStepContext<T>, Task<TRes>> step) => new(
             EstimatedStepCount + 1,
@@ -194,17 +181,6 @@ namespace BII.WasaBii.Extra
                 return (res, chainedSteps);
             }
         );
-        
-        public Operation<TRes> Chain<TRes>(Operation<TRes> other) =>
-            new(
-                EstimatedStepCount + other.EstimatedStepCount,
-                async ctx => {
-                    var (_, steps) = await run(ctx);
-                    ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    var (res, chainedSteps) = await other.run(ctx with { StepOffset = steps });
-                    return (res, chainedSteps);
-                }
-            );
 
         public Operation<TRes> Chain<TRes>(Operation<T, TRes> other) =>
             new(
@@ -292,20 +268,10 @@ namespace BII.WasaBii.Extra
             }
         );
         
-        public Operation<TStart, TRes> Step<TRes>(string label, Func<Task<TRes>> step) => new(
-            EstimatedStepCount + 1,
-            async ctx => {
-                var (_, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                ctx.OnStepStarted(label);
-                var res = await step();
-                var finalSteps = ctx.StepOffset + steps + 1;
-                ctx.OnStepCompleted(finalSteps);
-                return (res, finalSteps);
-            }
-        );
-        
-        public Operation<TStart, TResult> Step(string label, Func<OperationStepContext<TResult>, Task> step) => new(
+        public Operation<TStart, TResult> Step(
+            string label, 
+            Func<OperationStepContext<TResult>, Task> step
+        ) => new(
             EstimatedStepCount + 1,
             async ctx => {
                 var (res, steps) = await run(ctx);
@@ -334,22 +300,6 @@ namespace BII.WasaBii.Extra
             }
         );
 
-        public Operation<TStart, TRes> Step<TRes>(
-            string label, 
-            Func<OperationStepContext, TResult, Task<TRes>> step
-        ) => new(
-            EstimatedStepCount + 1,
-            async ctx => {
-                var (curr, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                ctx.OnStepStarted(label);
-                var res = await step(ctx, curr);
-                var finalSteps = ctx.StepOffset + steps + 1;
-                ctx.OnStepCompleted(finalSteps);
-                return (res, finalSteps);
-            }
-        );
-
         public Operation<TStart, TResult> Chain(Operation other) => new(
             EstimatedStepCount + other.EstimatedStepCount,
             async ctx => {
@@ -360,6 +310,7 @@ namespace BII.WasaBii.Extra
             }
         );
         
+        // Note CR: Cannot get rid of this unless we introduce an Operation with start value but without result
         public Operation<TStart, TRes> Chain<TRes>(Operation<TRes> other) =>
             new(
                 EstimatedStepCount + other.EstimatedStepCount,

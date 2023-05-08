@@ -240,8 +240,8 @@ namespace BII.WasaBii.Extra.Tests
 
             // Act
             var operation = Operation.From(input)
-                .Step("AddFive", async () => {
-                    int result = input + 5;
+                .Step("AddFive", async ctx => {
+                    int result = ctx.PreviousResult + 5;
                     return await Task.FromResult(result);
                 });
             var result = await operation.Run(_runContext);
@@ -272,22 +272,21 @@ namespace BII.WasaBii.Extra.Tests
         public async Task Chain_Returns_Operation_With_Expected_Result() {
             // Arrange
             int input = 10;
-            int expected = 6; // result of first discarded
+            int expected = input + 5 + 3; // result of first discarded
 
             var first = Operation.From(input)
-                .Step("AddFive", async () => {
-                    int result = input + 5;
+                .Step("AddFive", async ctx => {
+                    int result = ctx.PreviousResult + 5;
                     return await Task.FromResult(result);
                 });
 
-            var second = Operation.From(3);
+            var second = Operation.WithInput<int>().Step("AddThree", async context => {
+                int result = context.PreviousResult + 3;
+                return await Task.FromResult(result);
+            });
 
             // Act
-            var operation = first.Chain(second)
-                .Step("AddThree", async context => {
-                    int result = context.PreviousResult + 3;
-                    return await Task.FromResult(result);
-                });
+            var operation = first.Chain(second);
             var result = await operation.Run(_runContext);
 
             // Assert
@@ -301,8 +300,8 @@ namespace BII.WasaBii.Extra.Tests
             int expected = input + 5 + 3;
 
             var first = Operation.From(input)
-                .Step("AddFive", async () => {
-                    int result = input + 5;
+                .Step("AddFive", async ctx => {
+                    int result = ctx.PreviousResult + 5;
                     return await Task.FromResult(result);
                 });
 
@@ -323,8 +322,8 @@ namespace BII.WasaBii.Extra.Tests
             int expected = input + 5 + 3;
 
             var first = Operation.From(input)
-                .Step("AddFive", async () => {
-                    int result = input + 5;
+                .Step("AddFive", async ctx => {
+                    int result = ctx.PreviousResult + 5;
                     return await Task.FromResult(result);
                 });
 

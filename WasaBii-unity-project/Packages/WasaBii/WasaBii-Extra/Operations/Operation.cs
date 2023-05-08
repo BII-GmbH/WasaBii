@@ -4,8 +4,6 @@ using BII.WasaBii.Core;
 
 namespace BII.WasaBii.Extra
 {
-    // TODO: consider variants with Error, incorporating Result in the monad transformer stack
-    // TODO: ensure that exceptions are debuggable, especially when thrown on another thread
     // TODO: consider removing Step()s in error stack trace
 
     public sealed class Operation

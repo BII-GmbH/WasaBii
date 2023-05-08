@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using BII.WasaBii.Core;
 
@@ -7,13 +6,14 @@ namespace BII.WasaBii.Extra
 {
     // TODO: consider variants with Error, incorporating Result in the monad transformer stack
     // TODO: ensure that exceptions are debuggable, especially when thrown on another thread
+    // TODO: consider removing "downgrading" or lossy methods
 
     public record Operation(int EstimatedStepCount, Func<OperationContext, Task> Run)
     {
-        public static Operation Empty() => new(0, _ => Task.CompletedTask);
-        
-        public static Operation<T> From<T>(T initialResult) => new(0, _ => initialResult.AsCompletedTask());
+        // TODO CR: Accurate completed step number by letting `Run` return an index
 
+        public static Operation Empty() => new(0, _ => Task.CompletedTask);
+        public static Operation<T> From<T>(T initialResult) => new(0, _ => initialResult.AsCompletedTask());
         public static Operation<TInput, TInput> WithInput<TInput>() => new(0, v => v.StartValue.AsCompletedTask());
 
         public async Task<Result<Nothing, Exception>> RunSafe(OperationContext context) {
@@ -40,7 +40,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 await step();
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
             }
         );
         
@@ -51,7 +51,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 await step(ctx);
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
             }
         );
         
@@ -62,7 +62,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 var res = await step(ctx);
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
                 return res;
             }
         );
@@ -72,7 +72,7 @@ namespace BII.WasaBii.Extra
             async ctx => {
                 await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
-                await op.Run(ctx.withStepOffset(EstimatedStepCount));
+                await op.Run(ctx);
             }
         );
         
@@ -81,16 +81,16 @@ namespace BII.WasaBii.Extra
             async ctx => {
                 await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
-                return await op.Run(ctx.withStepOffset(EstimatedStepCount));
+                return await op.Run(ctx);
             }
         );
         
         public Operation<TStart, TRes> Chain<TStart, TRes>(Operation<TStart, TRes> op) => new(
             EstimatedStepCount + op.EstimatedStepCount,
             async ctx => {
-                await Run(ctx.withoutStartValue());
+                await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
-                return await op.Run(ctx.withStepOffset(EstimatedStepCount));
+                return await op.Run(ctx);
             }
         );
     }
@@ -117,7 +117,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 await step();
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
                 return res;
             }
         );
@@ -129,7 +129,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 var res = await step();
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
                 return res;
             }
         );
@@ -141,7 +141,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 var res = await step(new(curr, ctx));
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
                 return res;
             }
         );
@@ -153,7 +153,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 await step(new(res, ctx));
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
                 return res;
             }
         );
@@ -163,7 +163,7 @@ namespace BII.WasaBii.Extra
             async ctx => {
                 var res = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
-                await other.Run(ctx.withStepOffset(EstimatedStepCount));
+                await other.Run(ctx);
                 return res;
             }
         );
@@ -174,7 +174,7 @@ namespace BII.WasaBii.Extra
                 async ctx => {
                     var _ = await Run(ctx);
                     ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    return await other.Run(ctx.withStepOffset(EstimatedStepCount));
+                    return await other.Run(ctx);
                 }
             );
 
@@ -184,7 +184,7 @@ namespace BII.WasaBii.Extra
                 async ctx => {
                     var res = await Run(ctx);
                     ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    return await other.Run(ctx.withStartValue(res).withStepOffset(EstimatedStepCount));
+                    return await other.Run(ctx.withStartValue(res));
                 }
             );
         
@@ -197,8 +197,9 @@ namespace BII.WasaBii.Extra
                 var result = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 var newOp = mapper(result);
-                ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
-                return await newOp.Run(ctx.withStepOffset(EstimatedStepCount).withStepCountOffset(EstimatedStepCount));
+                var stepDiff = newOp.EstimatedStepCount - stepCountPrediction;
+                if (stepDiff != 0) ctx.OnStepCountDiff(stepDiff);
+                return await newOp.Run(ctx);
             }
         );
         
@@ -208,11 +209,12 @@ namespace BII.WasaBii.Extra
         ) => new(
             EstimatedStepCount + stepCountPrediction,
             async ctx => {
-                var result = await Run(ctx.withoutStartValue());
+                var result = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 var newOp = mapper(result);
-                ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
-                return await newOp.Run(ctx.withStepOffset(EstimatedStepCount).withStepCountOffset(EstimatedStepCount));
+                var stepDiff = newOp.EstimatedStepCount - stepCountPrediction;
+                if (stepDiff != 0) ctx.OnStepCountDiff(stepDiff);
+                return await newOp.Run(ctx);
             }
         );
     }
@@ -240,7 +242,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 await step();
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
                 return res;
             }
         );
@@ -252,7 +254,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 var res = await step();
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
                 return res;
             }
         );
@@ -264,7 +266,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 await step(new(res, ctx));
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
                 return res;
             }
         );
@@ -276,7 +278,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 var newRes = await step(new(res, ctx));
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
                 return newRes;
             }
         );
@@ -291,7 +293,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
                 var res = await step(ctx, curr);
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
+                ctx.OnStepCompleted(label);
                 return res;
             }
         );
@@ -301,7 +303,7 @@ namespace BII.WasaBii.Extra
             async ctx => {
                 var res = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
-                await other.Run(ctx.withoutStartValue().withStepOffset(EstimatedStepCount));
+                await other.Run(ctx);
                 return res;
             }
         );
@@ -312,7 +314,7 @@ namespace BII.WasaBii.Extra
                 async ctx => {
                     var _ = await Run(ctx);
                     ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    return await other.Run(ctx.withoutStartValue().withStepOffset(EstimatedStepCount));
+                    return await other.Run(ctx);
                 }
             );
 
@@ -322,7 +324,7 @@ namespace BII.WasaBii.Extra
                 async ctx => {
                     var res = await Run(ctx);
                     ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    return await other.Run(ctx.withStartValue(res).withStepOffset(EstimatedStepCount));
+                    return await other.Run(ctx.withStartValue(res));
                 }
             );
         
@@ -335,10 +337,9 @@ namespace BII.WasaBii.Extra
                 var result = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 var newOp = mapper(result);
-                ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
-                return await newOp.Run(
-                    ctx.withoutStartValue().withStepOffset(EstimatedStepCount).withStepCountOffset(EstimatedStepCount)
-                );
+                var stepDiff = newOp.EstimatedStepCount - stepCountPrediction;
+                if (stepDiff != 0) ctx.OnStepCountDiff(stepDiff);
+                return await newOp.Run(ctx);
             }
         );
         
@@ -351,8 +352,9 @@ namespace BII.WasaBii.Extra
                 var result = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 var newOp = mapper(result);
-                ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
-                return await newOp.Run(ctx.withStepOffset(EstimatedStepCount).withStepCountOffset(EstimatedStepCount));
+                var stepDiff = newOp.EstimatedStepCount - stepCountPrediction;
+                if (stepDiff != 0) ctx.OnStepCountDiff(stepDiff);
+                return await newOp.Run(ctx);
             }
         );
     }

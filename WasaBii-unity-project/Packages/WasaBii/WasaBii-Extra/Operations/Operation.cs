@@ -10,7 +10,11 @@ namespace BII.WasaBii.Extra
 
     public record Operation(int EstimatedStepCount, Func<OperationContext, Task> Run)
     {
-        public static Operation Empty => new(0, _ => Task.CompletedTask);
+        public static Operation Empty() => new(0, _ => Task.CompletedTask);
+        
+        public static Operation<T> From<T>(T initialResult) => new(0, _ => initialResult.AsCompletedTask());
+
+        public static Operation<TInput, TInput> WithInput<TInput>() => new(0, v => v.StartValue.AsCompletedTask());
 
         public async Task<Result<Nothing, Exception>> RunSafe(OperationContext context) {
             try {
@@ -68,7 +72,7 @@ namespace BII.WasaBii.Extra
             async ctx => {
                 await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
-                await op.Run(ctx.WithStepOffset(EstimatedStepCount));
+                await op.Run(ctx.withStepOffset(EstimatedStepCount));
             }
         );
         
@@ -77,25 +81,22 @@ namespace BII.WasaBii.Extra
             async ctx => {
                 await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
-                return await op.Run(ctx.WithStepOffset(EstimatedStepCount));
+                return await op.Run(ctx.withStepOffset(EstimatedStepCount));
             }
         );
         
         public Operation<TStart, TRes> Chain<TStart, TRes>(Operation<TStart, TRes> op) => new(
             EstimatedStepCount + op.EstimatedStepCount,
             async ctx => {
-                await Run(ctx.WithoutStartValue());
+                await Run(ctx.withoutStartValue());
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
-                return await op.Run(ctx.WithStepOffset(EstimatedStepCount));
+                return await op.Run(ctx.withStepOffset(EstimatedStepCount));
             }
         );
     }
 
     public record Operation<T>(int EstimatedStepCount, Func<OperationContext, Task<T>> Run)
     {
-        public static Operation<T> From(T result) =>
-            new(0, _ => result.AsCompletedTask());
-        
         public async Task<Result<T, Exception>> RunSafe(OperationContext context) {
             try {
                 return await Run(context);
@@ -133,49 +134,25 @@ namespace BII.WasaBii.Extra
             }
         );
 
-        public Operation<TRes> Step<TRes>(string label, Func<T, Task<TRes>> step) => new(
+        public Operation<TRes> Step<TRes>(string label, Func<OperationStepContext<T>, Task<TRes>> step) => new(
             EstimatedStepCount + 1,
             async ctx => {
                 var curr = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
-                var res = await step(curr);
+                var res = await step(new(curr, ctx));
                 ctx.OnStepCompleted(EstimatedStepCount + 1);
                 return res;
             }
         );
         
-        public Operation<T> Step(string label, Func<OperationStepContext, Task> step) => new(
+        public Operation<T> Step(string label, Func<OperationStepContext<T>, Task> step) => new(
             EstimatedStepCount + 1,
             async ctx => {
                 var res = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
-                await step(ctx);
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
-                return res;
-            }
-        );
-        
-        public Operation<TRes> Step<TRes>(string label, Func<OperationStepContext, Task<TRes>> step) => new(
-            EstimatedStepCount + 1,
-            async ctx => {
-                _ = await Run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                ctx.OnStepStarted(label);
-                var res = await step(ctx);
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
-                return res;
-            }
-        );
-
-        public Operation<TRes> Step<TRes>(string label, Func<OperationStepContext, T, Task<TRes>> step) => new(
-            EstimatedStepCount + 1,
-            async ctx => {
-                var curr = await Run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                ctx.OnStepStarted(label);
-                var res = await step(ctx, curr);
+                await step(new(res, ctx));
                 ctx.OnStepCompleted(EstimatedStepCount + 1);
                 return res;
             }
@@ -186,7 +163,7 @@ namespace BII.WasaBii.Extra
             async ctx => {
                 var res = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
-                await other.Run(ctx.WithStepOffset(EstimatedStepCount));
+                await other.Run(ctx.withStepOffset(EstimatedStepCount));
                 return res;
             }
         );
@@ -197,7 +174,7 @@ namespace BII.WasaBii.Extra
                 async ctx => {
                     var _ = await Run(ctx);
                     ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    return await other.Run(ctx.WithStepOffset(EstimatedStepCount));
+                    return await other.Run(ctx.withStepOffset(EstimatedStepCount));
                 }
             );
 
@@ -207,7 +184,7 @@ namespace BII.WasaBii.Extra
                 async ctx => {
                     var res = await Run(ctx);
                     ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    return await other.Run(ctx.WithStartValue(res).WithStepOffset(EstimatedStepCount));
+                    return await other.Run(ctx.withStartValue(res).withStepOffset(EstimatedStepCount));
                 }
             );
         
@@ -221,7 +198,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 var newOp = mapper(result);
                 ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
-                return await newOp.Run(ctx.WithStepOffset(EstimatedStepCount).WithStepCountOffset(EstimatedStepCount));
+                return await newOp.Run(ctx.withStepOffset(EstimatedStepCount).withStepCountOffset(EstimatedStepCount));
             }
         );
         
@@ -231,20 +208,17 @@ namespace BII.WasaBii.Extra
         ) => new(
             EstimatedStepCount + stepCountPrediction,
             async ctx => {
-                var result = await Run(ctx.WithoutStartValue());
+                var result = await Run(ctx.withoutStartValue());
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 var newOp = mapper(result);
                 ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
-                return await newOp.Run(ctx.WithStepOffset(EstimatedStepCount).WithStepCountOffset(EstimatedStepCount));
+                return await newOp.Run(ctx.withStepOffset(EstimatedStepCount).withStepCountOffset(EstimatedStepCount));
             }
         );
     }
 
     public record Operation<TStart, TResult>(int EstimatedStepCount, Func<OperationContext<TStart>, Task<TResult>> Run)
     {
-        public static Operation<TStart, TResult> From(Func<TStart, TResult> initialMapping) =>
-            new(0, ctx => initialMapping(ctx.StartValue).AsCompletedTask());
-
         public async Task<Result<TResult, Exception>> RunSafe(OperationContext<TStart> context) {
             try {
                 return await Run(context);
@@ -254,7 +228,7 @@ namespace BII.WasaBii.Extra
         }
 
         public Operation<TResult> WithStartValue(TStart startValue) => 
-            new(EstimatedStepCount, ctx => Run(ctx.WithStartValue(startValue)));
+            new(EstimatedStepCount, ctx => Run(ctx.withStartValue(startValue)));
 
         public Operation<TStart, TRes> Map<TRes>(Func<TResult, TRes> mapper) => 
             new(EstimatedStepCount, ctx => Run(ctx).Map(mapper));
@@ -282,40 +256,28 @@ namespace BII.WasaBii.Extra
                 return res;
             }
         );
-
-        public Operation<TStart, TRes> Step<TRes>(string label, Func<TResult, Task<TRes>> step) => new(
-            EstimatedStepCount + 1,
-            async ctx => {
-                var curr = await Run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                ctx.OnStepStarted(label);
-                var res = await step(curr);
-                ctx.OnStepCompleted(EstimatedStepCount + 1);
-                return res;
-            }
-        );
         
-        public Operation<TStart, TResult> Step(string label, Func<OperationStepContext, Task> step) => new(
+        public Operation<TStart, TResult> Step(string label, Func<OperationStepContext<TResult>, Task> step) => new(
             EstimatedStepCount + 1,
             async ctx => {
                 var res = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
-                await step(ctx);
+                await step(new(res, ctx));
                 ctx.OnStepCompleted(EstimatedStepCount + 1);
                 return res;
             }
         );
 
-        public Operation<TStart, TRes> Step<TRes>(string label, Func<OperationStepContext, Task<TRes>> step) => new(
+        public Operation<TStart, TRes> Step<TRes>(string label, Func<OperationStepContext<TResult>, Task<TRes>> step) => new(
             EstimatedStepCount + 1,
             async ctx => {
-                _ = await Run(ctx);
+                var res = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 ctx.OnStepStarted(label);
-                var res = await step(ctx);
+                var newRes = await step(new(res, ctx));
                 ctx.OnStepCompleted(EstimatedStepCount + 1);
-                return res;
+                return newRes;
             }
         );
 
@@ -339,7 +301,7 @@ namespace BII.WasaBii.Extra
             async ctx => {
                 var res = await Run(ctx);
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
-                await other.Run(ctx.WithoutStartValue().WithStepOffset(EstimatedStepCount));
+                await other.Run(ctx.withoutStartValue().withStepOffset(EstimatedStepCount));
                 return res;
             }
         );
@@ -350,7 +312,7 @@ namespace BII.WasaBii.Extra
                 async ctx => {
                     var _ = await Run(ctx);
                     ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    return await other.Run(ctx.WithoutStartValue().WithStepOffset(EstimatedStepCount));
+                    return await other.Run(ctx.withoutStartValue().withStepOffset(EstimatedStepCount));
                 }
             );
 
@@ -360,7 +322,7 @@ namespace BII.WasaBii.Extra
                 async ctx => {
                     var res = await Run(ctx);
                     ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    return await other.Run(ctx.WithStartValue(res).WithStepOffset(EstimatedStepCount));
+                    return await other.Run(ctx.withStartValue(res).withStepOffset(EstimatedStepCount));
                 }
             );
         
@@ -375,7 +337,7 @@ namespace BII.WasaBii.Extra
                 var newOp = mapper(result);
                 ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
                 return await newOp.Run(
-                    ctx.WithoutStartValue().WithStepOffset(EstimatedStepCount).WithStepCountOffset(EstimatedStepCount)
+                    ctx.withoutStartValue().withStepOffset(EstimatedStepCount).withStepCountOffset(EstimatedStepCount)
                 );
             }
         );
@@ -390,7 +352,7 @@ namespace BII.WasaBii.Extra
                 ctx.CancellationToken?.ThrowIfCancellationRequested();
                 var newOp = mapper(result);
                 ctx.OnNewStepCount(EstimatedStepCount + newOp.EstimatedStepCount);
-                return await newOp.Run(ctx.WithStepOffset(EstimatedStepCount).WithStepCountOffset(EstimatedStepCount));
+                return await newOp.Run(ctx.withStepOffset(EstimatedStepCount).withStepCountOffset(EstimatedStepCount));
             }
         );
     }

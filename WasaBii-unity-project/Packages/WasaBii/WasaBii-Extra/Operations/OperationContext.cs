@@ -5,8 +5,22 @@ namespace BII.WasaBii.Extra
 {
     public interface OperationStepContext
     {
-        Action<double> ReportProgressInStep { get; init; }
-        CancellationToken? CancellationToken { get; init; }
+        Action<double> ReportProgressInStep { get; }
+        CancellationToken? CancellationToken { get; }
+    }
+
+    public readonly struct OperationStepContext<T> : OperationStepContext
+    {
+        public readonly T PreviousResult;
+        private readonly OperationStepContext backingContext;
+        
+        internal OperationStepContext(T previousResult, OperationStepContext backingContext) {
+            PreviousResult = previousResult;
+            this.backingContext = backingContext;
+        }
+
+        public Action<double> ReportProgressInStep => backingContext.ReportProgressInStep;
+        public CancellationToken? CancellationToken => backingContext.CancellationToken;
     }
 
     public record OperationContext(
@@ -16,7 +30,7 @@ namespace BII.WasaBii.Extra
         Action<double> ReportProgressInStep, 
         CancellationToken? CancellationToken
     ) : OperationStepContext {
-        public OperationContext<T> WithStartValue<T>(T startValue) => new(
+        internal OperationContext<T> withStartValue<T>(T startValue) => new(
             startValue,
             OnStepStarted,
             OnStepCompleted,
@@ -25,10 +39,10 @@ namespace BII.WasaBii.Extra
             CancellationToken
         );
 
-        public OperationContext WithStepOffset(int stepsToAdd) =>
+        internal OperationContext withStepOffset(int stepsToAdd) =>
             this with {OnStepCompleted = steps => OnStepCompleted(steps + stepsToAdd)};
         
-        public OperationContext WithStepCountOffset(int stepsToAdd) =>
+        internal OperationContext withStepCountOffset(int stepsToAdd) =>
             this with {OnNewStepCount = steps => OnNewStepCount(steps + stepsToAdd)};
     }
 
@@ -40,7 +54,7 @@ namespace BII.WasaBii.Extra
         Action<double> ReportProgressInStep, 
         CancellationToken? CancellationToken
     ) : OperationContext(OnStepStarted, OnStepCompleted, OnNewStepCount, ReportProgressInStep, CancellationToken) {
-        public OperationContext WithoutStartValue() => new(
+        internal OperationContext withoutStartValue() => new(
             OnStepStarted,
             OnStepCompleted,
             OnNewStepCount,
@@ -48,10 +62,10 @@ namespace BII.WasaBii.Extra
             CancellationToken
         );
         
-        public new OperationContext<T> WithStepOffset(int stepsToAdd) =>
+        internal new OperationContext<T> withStepOffset(int stepsToAdd) =>
             this with {OnStepCompleted = steps => OnStepCompleted(steps + stepsToAdd)};
         
-        public new OperationContext<T> WithStepCountOffset(int stepsToAdd) =>
+        internal new OperationContext<T> withStepCountOffset(int stepsToAdd) =>
             this with {OnNewStepCount = steps => OnNewStepCount(steps + stepsToAdd)};
     }
 }

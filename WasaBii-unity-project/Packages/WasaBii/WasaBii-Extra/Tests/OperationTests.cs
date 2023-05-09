@@ -50,6 +50,9 @@ namespace BII.WasaBii.Extra.Tests
         
         private class TestException : Exception { }
         
+        // Note: There is `Assert.ThrowsAsync`, but I do not trust that to do what I want here.
+        //       I explicitly want to test different low-level, low-magic async cases here.
+        
         [Test]
         public async Task Run_Linear_WhenException_ThenReported() {
             var op = Operation.Empty().Step("throw", ctx => throw new TestException());
@@ -285,25 +288,7 @@ namespace BII.WasaBii.Extra.Tests
         }
 
         [Test]
-        public async Task Step_With_Task_Returns_Operation_With_Expected_Result() {
-            // Arrange
-            int input = 10;
-            int expected = input + 5;
-
-            // Act
-            var operation = Operation.From(input)
-                .Step("AddFive", async ctx => {
-                    int result = ctx.PreviousResult + 5;
-                    return await Task.FromResult(result);
-                });
-            var result = await operation.Run(_runContext);
-
-            // Assert
-            Assert.AreEqual(expected, result);
-        }
-
-        [Test]
-        public async Task Step_With_Context_Returns_Operation_With_Expected_Result() {
+        public async Task Step_Returns_Operation_With_Expected_Result() {
             // Arrange
             int input = 10;
             int expected = input + 5;
@@ -324,7 +309,7 @@ namespace BII.WasaBii.Extra.Tests
         public async Task Chain_Returns_Operation_With_Expected_Result() {
             // Arrange
             int input = 10;
-            int expected = input + 5 + 3; // result of first discarded
+            int expected = input + 5 + 3;
 
             var first = Operation.From(input)
                 .Step("AddFive", async ctx => {
@@ -344,31 +329,9 @@ namespace BII.WasaBii.Extra.Tests
             // Assert
             Assert.AreEqual(expected, result);
         }
-
-        [Test]
-        public async Task ChainWithStart_Returns_Operation_With_Expected_Result() {
-            // Arrange
-            int input = 10;
-            int expected = input + 5 + 3;
-
-            var first = Operation.From(input)
-                .Step("AddFive", async ctx => {
-                    int result = ctx.PreviousResult + 5;
-                    return await Task.FromResult(result);
-                });
-
-            var second = Operation.WithInput<int>().Map(v => v + 3);
-
-            // Act
-            var operation = first.Chain(second);
-            var result = await operation.Run(_runContext);
-
-            // Assert
-            Assert.AreEqual(expected, result);
-        }
         
         [Test]
-        public async Task FlatMapWithStart_Returns_Operation_With_Expected_Result() {
+        public async Task FlatMap_Returns_Operation_With_Expected_Result() {
             // Arrange
             int input = 10;
             int expected = input + 5 + 3;

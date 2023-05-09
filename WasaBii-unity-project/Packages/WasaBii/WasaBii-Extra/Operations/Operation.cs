@@ -13,7 +13,9 @@ namespace BII.WasaBii.Extra
         public static Operation<TInput, TInput> WithInput<TInput>() => new(0, v => (v.StartValue, 0).AsCompletedTask());
 
         public readonly int EstimatedStepCount;
-        internal readonly Func<OperationContext, Task<int>> run;
+        
+        /// <returns> The actual number of steps that have been run. </returns>
+        internal readonly Func<OperationContext, Task<int>> run; 
 
         public Operation(int estimatedStepCount, Func<OperationContext, Task<int>> run) {
             EstimatedStepCount = estimatedStepCount;

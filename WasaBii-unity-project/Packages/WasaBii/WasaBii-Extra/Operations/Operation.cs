@@ -1,63 +1,78 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using BII.WasaBii.Core;
 
 namespace BII.WasaBii.Extra
 {
-    // TODO: consider removing Step()s in error stack trace
+    using RunInOrderList = ImmutableList<Func<object?, OperationContext, Task<(object? Result, int DoneSteps)>>>;
+    using SafeRunInOrderList = ImmutableList<Func<object, OperationContext, Task<(object Result, int DoneSteps)>>>;
 
     public sealed class Operation
     {
-        public static Operation Empty() => new(0, _ => Task.FromResult(0));
-        public static Operation<T> From<T>(T initialResult) => new(0, _ => (initialResult, 0).AsCompletedTask());
-        public static Operation<TInput, TInput> WithInput<TInput>() => new(0, v => (v.StartValue, 0).AsCompletedTask());
+        public static Operation Empty() => new(0, RunInOrderList.Empty);
+        
+        public static Operation<T> From<T>(T initialResult) where T : notnull => 
+            new(0, RunInOrderList.Empty, (_, ctx) => (initialResult, ctx.StepOffset).AsCompletedTask());
+        
+        public static Operation<TInput, TInput> WithInput<TInput>() where TInput : notnull => 
+            new(0, SafeRunInOrderList.Empty, null);
 
         public readonly int EstimatedStepCount;
-        
-        /// <returns> The actual number of steps that have been run. </returns>
-        internal readonly Func<OperationContext, Task<int>> run; 
+        internal readonly RunInOrderList runInOrder;
 
-        public Operation(int estimatedStepCount, Func<OperationContext, Task<int>> run) {
+        internal Operation(
+            int estimatedStepCount, 
+            RunInOrderList runInOrder
+        ) {
             EstimatedStepCount = estimatedStepCount;
-            this.run = run;
+            this.runInOrder = runInOrder;
         }
 
-        public Task Run(OperationContext context) => run(context);
+        public async Task Run(OperationContext context) {
+            object? curr = null;
+            var steps = 0;
+            foreach (var run in runInOrder) {
+                context.CancellationToken?.ThrowIfCancellationRequested();
+                (curr, steps) = await run(curr, context with {StepOffset = steps});
+            }
+        }
 
         public async Task<Result<Nothing, Exception>> RunSafe(OperationContext context) {
             try {
-                await run(context);
+                await Run(context);
                 return new Nothing();
             } catch (Exception e) {
                 return e;
             }
         }
 
-        public Operation<T> WithResult<T>(Func<T> resultGetter) => new(
+        public Operation<T> WithResult<T>(Func<T> resultGetter)
+        where T : notnull => new(
             EstimatedStepCount,
-            async ctx => {
-                var steps = await run(ctx);
-                return (resultGetter(), steps);
-            }
+            runInOrder,
+            (_, ctx) => Task.FromResult((resultGetter(), ctx.StepOffset))
         );
         
         public Operation Step(string label, Func<OperationStepContext, Task> step) => new(
             EstimatedStepCount + 1,
-            async ctx => {
-                var steps = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
+            runInOrder.Add(async (r, ctx) => {
+                var steps = ctx.StepOffset;
                 ctx.OnStepStarted(label);
                 await step(ctx);
                 ctx.OnStepCompleted(steps + 1);
-                return steps + 1;
-            }
+                return (r, steps + 1);
+            })
         );
         
-        public Operation<T> Step<T>(string label, Func<OperationStepContext, Task<T>> step) => new(
+        public Operation<T> Step<T>(string label, Func<OperationStepContext, Task<T>> step) 
+        where T : notnull => new(
             EstimatedStepCount + 1,
-            async ctx => {
-                var steps = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
+            runInOrder,
+            async (_, ctx) => {
+                var steps = ctx.StepOffset;
                 ctx.OnStepStarted(label);
                 var res = await step(ctx);
                 ctx.OnStepCompleted(steps + 1);
@@ -67,68 +82,95 @@ namespace BII.WasaBii.Extra
 
         public Operation Chain(Operation op) => new(
             EstimatedStepCount + op.EstimatedStepCount,
-            async ctx => {
-                var steps = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                var chainedSteps = await op.run(ctx with { StepOffset = steps });
-                return steps + chainedSteps;
-            }
+            runInOrder.AddRange(op.runInOrder)
         );
         
-        public Operation<T> Chain<T>(Operation<T> op) => new(
+        public Operation<T> Chain<T>(Operation<T> op) 
+        where T : notnull => new(
             EstimatedStepCount + op.EstimatedStepCount,
-            async ctx => {
-                var steps = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                var (res, chainedSteps) = await op.run(ctx with { StepOffset = steps });
-                return (res, steps + chainedSteps);
-            }
+            runInOrder.AddRange(op.runInOrder),
+            op.run
         );
         
-        public Operation<TStart, TRes> Chain<TStart, TRes>(Operation<TStart, TRes> op) => new(
-            EstimatedStepCount + op.EstimatedStepCount,
-            async ctx => {
-                var steps = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                var (res, chainedSteps) = await op.run(ctx with { StepOffset = steps });
-                return (res, steps + chainedSteps);
-            }
-        );
+        public Operation<TStart, TRes> Chain<TStart, TRes>(Operation<TStart, TRes> op) 
+        where TStart : notnull where TRes : notnull {
+            // We sneak in two run steps: the first saves the start value,
+            //  and the second after this' runInOrder restores the start value as result.
+            TStart startClosureSlot = default!;
+            return new Operation<TStart, TRes>(
+                EstimatedStepCount + op.EstimatedStepCount, 
+                runInOrder
+                    .Insert(0, (r, ctx) => {
+                        startClosureSlot = (TStart) r!;
+                        return Task.FromResult((r, ctx.StepOffset));
+                    })
+                    .Add((_, ctx) => Task.FromResult(((object?) startClosureSlot, ctx.StepOffset)))
+                    .AddRange(op.runInOrder!)!, 
+                op.run
+            );
+        }
     }
-
-    public sealed class Operation<T>
+    
+    public sealed class Operation<T> where T : notnull
     {
         public readonly int EstimatedStepCount;
-        internal readonly Func<OperationContext, Task<(T Result, int DoneSteps)>> run;
+        internal readonly RunInOrderList runInOrder;
+        internal readonly Func<object?, OperationContext, Task<(T Result, int DoneSteps)>>? run;
 
-        public Operation(int estimatedStepCount, Func<OperationContext, Task<(T Result, int DoneSteps)>> run) {
+        internal RunInOrderList shiftRunInOrder() => 
+            run == null 
+                ? runInOrder 
+                : runInOrder.Add(
+                    async (v, ctx) => {
+                        var (res, steps) = await run(v, ctx);
+                        return (res, steps);
+                    }
+                );
+
+        internal Operation(
+            int estimatedStepCount, 
+            RunInOrderList runInOrder, 
+            Func<object?, OperationContext, Task<(T Result, int DoneSteps)>>? run
+        ) {
             EstimatedStepCount = estimatedStepCount;
+            this.runInOrder = runInOrder;
             this.run = run;
         }
 
-        public Task<T> Run(OperationContext context) => run(context).Map(r => r.Result);
-        
+        public async Task<T> Run(OperationContext context) {
+            object? curr = null;
+            var steps = 0;
+            foreach (var earlierRun in runInOrder) {
+                context.CancellationToken?.ThrowIfCancellationRequested();
+                (curr, steps) = await earlierRun(curr, context with {StepOffset = steps});
+            }
+            if (run != null) return (await run(curr, context with {StepOffset = steps})).Result;
+            else return (T) curr!;
+        }
+
         public async Task<Result<T, Exception>> RunSafe(OperationContext context) {
             try {
-                return (await run(context)).Item1;
+                return await Run(context);
             } catch (Exception e) {
                 return e;
             }
         }
 
-        public Operation WithoutResult() => new(EstimatedStepCount, async ctx => (await run(ctx)).DoneSteps);
+        public Operation WithoutResult() => 
+            new(EstimatedStepCount, shiftRunInOrder());
 
-        public Operation<TRes> Map<TRes>(Func<T, TRes> mapper) => 
-            new(EstimatedStepCount, ctx => run(ctx).Map(t => (mapper(t.Result), t.DoneSteps)));
+        public Operation<TRes> Map<TRes>(Func<T, TRes> mapper) where TRes : notnull => 
+            new(EstimatedStepCount, shiftRunInOrder(), (v, ctx) => Task.FromResult((mapper((T) v!), ctx.StepOffset)));
 
-        public Operation<TRes> Step<TRes>(string label, Func<OperationStepContext<T>, Task<TRes>> step) => new(
+        public Operation<TRes> Step<TRes>(string label, Func<OperationStepContext<T>, Task<TRes>> step) 
+        where TRes : notnull => new(
             EstimatedStepCount + 1,
-            async ctx => {
-                var (curr, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
+            shiftRunInOrder(),
+            async (curr, ctx) => {
+                var steps = ctx.StepOffset;
                 ctx.OnStepStarted(label);
-                var res = await step(new(curr, ctx));
-                var finalSteps = ctx.StepOffset + steps + 1;
+                var res = await step(new((T) curr!, ctx));
+                var finalSteps = steps + 1;
                 ctx.OnStepCompleted(finalSteps);
                 return (res, finalSteps);
             }
@@ -136,195 +178,275 @@ namespace BII.WasaBii.Extra
         
         public Operation<T> Step(string label, Func<OperationStepContext<T>, Task> step) => new(
             EstimatedStepCount + 1,
-            async ctx => {
-                var (res, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
+            shiftRunInOrder(),
+            async (res, ctx) => {
+                var steps = ctx.StepOffset;
                 ctx.OnStepStarted(label);
-                await step(new(res, ctx));
-                var finalSteps = ctx.StepOffset + steps + 1;
+                await step(new((T) res!, ctx));
+                var finalSteps = steps + 1;
                 ctx.OnStepCompleted(finalSteps);
-                return (res, finalSteps);
+                return ((T) res!, finalSteps);
             }
         );
 
-        public Operation<T> Chain(Operation other) => new(
-            EstimatedStepCount + other.EstimatedStepCount,
-            async ctx => {
-                var (res, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                var chainedSteps = await other.run(ctx with { StepOffset = steps });
-                return (res, chainedSteps);
-            }
-        );
-
-        public Operation<TRes> Chain<TRes>(Operation<T, TRes> other) =>
-            new(
+        public Operation<T> Chain(Operation other) {
+            // We sneak in two run steps: the first before 'other' sets this variable,
+            //  and the second at the end restores it as the operation's result.
+            T resultOfThisClosureSlot = default!;
+            return new(
                 EstimatedStepCount + other.EstimatedStepCount,
-                async ctx => {
-                    var (curr, steps) = await run(ctx);
-                    ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    var (res, chainedSteps) = await other.run(ctx.withStartValue(curr) with { StepOffset = steps });
-                    return (res, chainedSteps);
-                }
+                shiftRunInOrder()
+                    .Add((r, ctx) => {
+                        resultOfThisClosureSlot = (T)r!;
+                        return Task.FromResult((r, ctx.StepOffset));
+                    })
+                    .AddRange(other.runInOrder),
+                (_, ctx) => Task.FromResult((magicClosureResult: resultOfThisClosureSlot, ctx.StepOffset))
+            );
+        }
+
+        public Operation<TRes> Chain<TRes>(Operation<T, TRes> op) where TRes : notnull =>
+            new(
+                EstimatedStepCount + op.EstimatedStepCount,
+                shiftRunInOrder().AddRange(op.runInOrder!),
+                op.run == null ? null : (r, ctx) => op.run(r!, ctx)
             );
         
         public Operation<TRes> FlatMap<TRes>(
             int stepCountPrediction, 
             Func<T, Operation<TRes>> mapper
-        ) => new(
+        ) where TRes : notnull => new(
             EstimatedStepCount + stepCountPrediction,
-            async ctx => {
-                var (result, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                var newOp = mapper(result);
+            shiftRunInOrder(),
+            async (result, ctx) => {
+                var steps = ctx.StepOffset;
+                var newOp = mapper((T) result!);
                 var stepDiff = newOp.EstimatedStepCount - stepCountPrediction;
                 if (stepDiff != 0) ctx.OnStepCountDiff(stepDiff);
-                var (res, newSteps) = await newOp.run(ctx with { StepOffset = steps });
-                return (res, newSteps);
+                
+                object? curr = null;
+                foreach (var newRun in newOp.runInOrder) {
+                    ctx.CancellationToken?.ThrowIfCancellationRequested();
+                    (curr, steps) = await newRun(curr, ctx with {StepOffset = steps});
+                }
+
+                if (newOp.run != null) return await newOp.run(curr, ctx with {StepOffset = steps});
+                else {
+                    var finalResult = curr!; // Operation<T> always returns a value
+                    return ((TRes) finalResult, steps);
+                }
             }
         );
         
         public Operation<TStart, TRes> FlatMap<TStart, TRes>(
             int stepCountPrediction, 
             Func<T, Operation<TStart, TRes>> mapper
-        ) => new(
+        ) where TStart : notnull where TRes : notnull => new(
             EstimatedStepCount + stepCountPrediction,
-            async ctx => {
-                var (result, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                var newOp = mapper(result);
-                var stepDiff = newOp.EstimatedStepCount - stepCountPrediction;
-                if (stepDiff != 0) ctx.OnStepCountDiff(stepDiff);
-                var (res, newSteps) = await newOp.run(ctx with { StepOffset = steps });
-                return (res, newSteps);
-            }
+            SafeRunInOrderList.Empty.Add(
+                async (start, ctx) => {
+                    // First run the current operation
+                    var steps = 0;
+                    object? currentRes = null;
+                    foreach (var earlierRun in runInOrder) {
+                        ctx.CancellationToken?.ThrowIfCancellationRequested();
+                        (currentRes, steps) = await earlierRun(currentRes, ctx with {StepOffset = steps});
+                    }
+                    
+                    // Then get the new operation
+                    var newOp = mapper((T) currentRes!);
+                    var stepDiff = newOp.EstimatedStepCount - stepCountPrediction;
+                    if (stepDiff != 0) ctx.OnStepCountDiff(stepDiff);
+                    
+                    // finally run the new operation
+                    object newRes = start!;
+                    foreach (var newRun in newOp.runInOrder) {
+                        ctx.CancellationToken?.ThrowIfCancellationRequested();
+                        (newRes, steps) = await newRun(newRes, ctx with {StepOffset = steps});
+                    }
+                    
+                    if (newOp.run != null) return await newOp.run(newRes, ctx with {StepOffset = steps});
+                    else return ((TRes) newRes, steps);
+                }),
+            null // nothing to do
         );
     }
 
-    public sealed class Operation<TStart, TResult>
+    public sealed class Operation<TStart, TResult> where TStart : notnull where TResult : notnull
     {
         public readonly int EstimatedStepCount;
-        internal readonly Func<OperationContext<TStart>, Task<(TResult Result, int DoneSteps)>> run;
+        internal readonly SafeRunInOrderList runInOrder;
+        internal readonly Func<object, OperationContext, Task<(TResult Result, int DoneSteps)>>? run;
+        
+        internal SafeRunInOrderList shiftRunInOrder() => 
+            run == null 
+                ? runInOrder 
+                : runInOrder.Add(
+                    async (v, ctx) => {
+                        var (res, steps) = await run(v!, ctx);
+                        return (res, steps);
+                    }
+                );
 
-        public Operation(
+        internal Operation(
             int estimatedStepCount, 
-            Func<OperationContext<TStart>, Task<(TResult Result, int DoneSteps)>> run
+            SafeRunInOrderList runInOrder, 
+            Func<object, OperationContext, Task<(TResult Result, int DoneSteps)>>? run
         ) {
             EstimatedStepCount = estimatedStepCount;
+            this.runInOrder = runInOrder;
             this.run = run;
         }
 
-        public Task<TResult> Run(OperationContext<TStart> context) => run(context).Map(r => r.Result);
-        
+        public async Task<TResult> Run(OperationContext<TStart> context) {
+            object curr = context.StartValue;
+            var steps = 0;
+            foreach (var earlierRun in runInOrder) {
+                context.CancellationToken?.ThrowIfCancellationRequested();
+                (curr, steps) = await earlierRun(curr, context with {StepOffset = steps});
+            }
+            if (run != null) return (await run(curr, context with {StepOffset = steps})).Result;
+            else return (TResult) curr;
+        }
+
         public async Task<Result<TResult, Exception>> RunSafe(OperationContext<TStart> context) {
             try {
-                return (await run(context)).Result;
+                return await Run(context);
             } catch (Exception e) {
                 return e;
             }
         }
 
-        public Operation<TResult> WithStartValue(TStart startValue) => 
-            new(EstimatedStepCount, ctx => run(ctx.withStartValue(startValue)));
+        public Operation<TResult> WithStartValue(TStart startValue) => new(
+            EstimatedStepCount, 
+            shiftRunInOrder().Insert(0, (_, _) => Task.FromResult(((object) startValue, 0)))!, 
+            null
+        );
 
-        public Operation<TStart, TRes> Map<TRes>(Func<TResult, TRes> mapper) => 
-            new(EstimatedStepCount, ctx => run(ctx).Map(t => (mapper(t.Result), t.DoneSteps)));
+        public Operation<TStart, TRes> Map<TRes>(Func<TResult, TRes> mapper) 
+        where TRes : notnull => new(
+            EstimatedStepCount, 
+            shiftRunInOrder(), 
+            (r, ctx) => Task.FromResult((mapper((TResult) r), ctx.StepOffset))
+        );
         
         public Operation<TStart, TResult> Step(
             string label, 
             Func<OperationStepContext<TResult>, Task> step
         ) => new(
             EstimatedStepCount + 1,
-            async ctx => {
-                var (res, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
+            shiftRunInOrder(), 
+            async (res, ctx) => {
+                var steps = ctx.StepOffset;
                 ctx.OnStepStarted(label);
-                await step(new(res, ctx));
-                var finalSteps = ctx.StepOffset + steps + 1;
+                await step(new((TResult) res, ctx));
+                var finalSteps = steps + 1;
                 ctx.OnStepCompleted(finalSteps);
-                return (res, finalSteps);
+                return ((TResult) res, finalSteps);
             }
         );
 
         public Operation<TStart, TRes> Step<TRes>(
             string label, 
             Func<OperationStepContext<TResult>, Task<TRes>> step
-        ) => new(
+        ) where TRes : notnull => new(
             EstimatedStepCount + 1,
-            async ctx => {
-                var (res, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
+            shiftRunInOrder(), 
+            async (res, ctx) => {
+                var steps = ctx.StepOffset;
                 ctx.OnStepStarted(label);
-                var newRes = await step(new(res, ctx));
-                var finalSteps = ctx.StepOffset + steps + 1;
+                var newRes = await step(new((TResult) res, ctx));
+                var finalSteps = steps + 1;
                 ctx.OnStepCompleted(finalSteps);
                 return (newRes, finalSteps);
             }
         );
 
-        public Operation<TStart, TResult> Chain(Operation other) => new(
-            EstimatedStepCount + other.EstimatedStepCount,
-            async ctx => {
-                var (res, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                var chainedSteps = await other.run(ctx with { StepOffset = steps });
-                return (res, chainedSteps);
-            }
-        );
-        
-        // Note CR: Cannot get rid of this unless we introduce an Operation with start value but without result
-        public Operation<TStart, TRes> Chain<TRes>(Operation<TRes> other) =>
-            new(
+        public Operation<TStart, TResult> Chain(Operation other) {
+            // We sneak in two run steps: the first before 'other' sets this variable,
+            //  and the second at the end restores it as the operation's result.
+            TResult resultOfThisClosureSlot = default!;
+            return new(
                 EstimatedStepCount + other.EstimatedStepCount,
-                async ctx => {
-                    var (_, steps) = await run(ctx);
-                    ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    var (res, chainedSteps) = await other.run(ctx with { StepOffset = steps });
-                    return (res, chainedSteps);
-                }
+                shiftRunInOrder()
+                    .Add((r, ctx) => {
+                        resultOfThisClosureSlot = (TResult) r!;
+                        return Task.FromResult((r, ctx.StepOffset));
+                    })
+                    .AddRange(other.runInOrder!),
+                (_, ctx) => Task.FromResult((magicClosureResult: resultOfThisClosureSlot, ctx.StepOffset))
             );
+        }
 
-        public Operation<TStart, TRes> Chain<TRes>(Operation<TResult, TRes> other) =>
-            new(
-                EstimatedStepCount + other.EstimatedStepCount,
-                async ctx => {
-                    var (curr, steps) = await run(ctx);
-                    ctx.CancellationToken?.ThrowIfCancellationRequested();
-                    var (res, chainedSteps) = await other.run(ctx.withStartValue(curr) with { StepOffset = steps });
-                    return (res, chainedSteps);
-                }
-            );
+        // Note CR: Cannot get rid of this unless we introduce an Operation with start value but without result
+        public Operation<TStart, TRes> Chain<TRes>(Operation<TRes> other) 
+        where TRes : notnull => new(
+            EstimatedStepCount + other.EstimatedStepCount,
+            shiftRunInOrder().AddRange(other.runInOrder!), 
+            other.run
+        );
+
+        public Operation<TStart, TRes> Chain<TRes>(Operation<TResult, TRes> other) 
+        where TRes : notnull => new(
+            EstimatedStepCount + other.EstimatedStepCount,
+            shiftRunInOrder().AddRange(other.runInOrder), 
+            other.run
+        );
         
         public Operation<TStart, TRes> FlatMap<TRes>(
             int stepCountPrediction, 
             Func<TResult, Operation<TRes>> mapper
-        ) => new(
+        ) where TRes : notnull => new(
             EstimatedStepCount + stepCountPrediction,
-            async ctx => {
-                var (result, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                var newOp = mapper(result);
+            shiftRunInOrder(),
+            async (result, ctx) => {
+                var steps = ctx.StepOffset;
+                var newOp = mapper((TResult) result);
                 var stepDiff = newOp.EstimatedStepCount - stepCountPrediction;
                 if (stepDiff != 0) ctx.OnStepCountDiff(stepDiff);
-                var (res, newSteps) = await newOp.run(ctx with { StepOffset = steps });
-                return (res, newSteps);
+                
+                object? curr = null;
+                foreach (var newRun in newOp.runInOrder) {
+                    ctx.CancellationToken?.ThrowIfCancellationRequested();
+                    (curr, steps) = await newRun(curr, ctx with {StepOffset = steps});
+                }
+
+                if (newOp.run != null) return await newOp.run(curr, ctx with {StepOffset = steps});
+                else return ((TRes) curr!, steps);
             }
         );
         
         public Operation<TStart, TRes> FlatMap<TRes>(
             int stepCountPrediction, 
             Func<TResult, Operation<TStart, TRes>> mapper
-        ) => new(
+        ) where TRes : notnull => new(
             EstimatedStepCount + stepCountPrediction,
-            async ctx => {
-                var (result, steps) = await run(ctx);
-                ctx.CancellationToken?.ThrowIfCancellationRequested();
-                var newOp = mapper(result);
-                var stepDiff = newOp.EstimatedStepCount - stepCountPrediction;
-                if (stepDiff != 0) ctx.OnStepCountDiff(stepDiff);
-                var (res, newSteps) = await newOp.run(ctx with { StepOffset = steps });
-                return (res, newSteps);
-            }
+            SafeRunInOrderList.Empty.Add(
+                async (start, ctx) => {
+                    // First run the current operation
+                    var steps = 0;
+                    object curr = start;
+                    foreach (var earlierRun in runInOrder) {
+                        ctx.CancellationToken?.ThrowIfCancellationRequested();
+                        (curr, steps) = await earlierRun(curr, ctx with {StepOffset = steps});
+                    }
+                    
+                    // Then get the new operation
+                    var newOp = mapper((TResult) curr);
+                    var stepDiff = newOp.EstimatedStepCount - stepCountPrediction;
+                    if (stepDiff != 0) ctx.OnStepCountDiff(stepDiff);
+                    
+                    // finally run the new operation
+                    curr = start;
+                    foreach (var newRun in newOp.runInOrder) {
+                        ctx.CancellationToken?.ThrowIfCancellationRequested();
+                        (curr, steps) = await newRun(curr, ctx with {StepOffset = steps});
+                    }
+                    
+                    if (newOp.run != null) return await newOp.run(curr, ctx with {StepOffset = steps});
+                    else return ((TRes) curr, steps);
+                }),
+            null // nothing to do
         );
     }
 }

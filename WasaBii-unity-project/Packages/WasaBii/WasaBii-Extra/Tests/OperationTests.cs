@@ -29,7 +29,7 @@ namespace BII.WasaBii.Extra.Tests
             ) : base(
                 initialValue,
                 stepsStarted.Add,
-                stepsCompleted.Add,
+                s => stepsCompleted.Add(s),
                 stepCountDiffs.Add,
                 reportedProgress.Add,
                 new CancellationToken()

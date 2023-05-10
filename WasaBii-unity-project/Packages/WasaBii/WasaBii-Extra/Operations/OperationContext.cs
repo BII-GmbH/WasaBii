@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Threading;
 
 namespace BII.WasaBii.Extra
@@ -49,5 +51,12 @@ namespace BII.WasaBii.Extra
         Action<double> ReportProgressInStep,
         CancellationToken? CancellationToken,
         int StepOffset = 0
-    ) : OperationContext(OnStepStarted, OnStepCompleted, OnStepCountDiff, ReportProgressInStep, CancellationToken);
+    ) : OperationContext(
+        OnStepStarted, 
+        OnStepCompleted, 
+        OnStepCountDiff, 
+        ReportProgressInStep, 
+        CancellationToken, 
+        StepOffset
+    );
 }

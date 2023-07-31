@@ -26,8 +26,8 @@ namespace BII.WasaBii.Splines {
             Spline = spline;
             StartLocation = startLocation;
             EndLocation = endLocation;
-            StartLocationNormalized = spline.Normalize(startLocation).ResultOrThrow(error => error.AsException);
-            EndLocationNormalized = spline.Normalize(endLocation).ResultOrThrow(error => error.AsException);
+            StartLocationNormalized = spline.NormalizeOrThrow(startLocation);
+            EndLocationNormalized = spline.NormalizeOrThrow(endLocation);
             Length = endLocation - startLocation;
             if(StartLocation > EndLocation) throw new ArgumentException($"StartLocation ({StartLocation}) must be before EndLocation ({EndLocation})");
             if(Length < Length.Zero) throw new ArgumentException($"PartialSpline must have a positive length (was {Length})");

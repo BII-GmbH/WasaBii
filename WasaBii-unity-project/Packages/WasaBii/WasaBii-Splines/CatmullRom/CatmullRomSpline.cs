@@ -73,7 +73,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
         public TPos this[SplineHandleIndex index] => handles[index];
 
-        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location).ResultOrThrow(error => error.AsException)];
+        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.NormalizeOrThrow(location)];
 
         public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => cache.Value.SplineSegments[index];
         
@@ -177,8 +177,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
         public static IEnumerable<TPos> HandlesBetween<TPos, TDiff>(
             this CatmullRomSpline<TPos, TDiff> spline, SplineLocation start, SplineLocation end
         ) where TPos : unmanaged where TDiff : unmanaged {
-            var fromNormalized = spline.Normalize(start).ResultOrThrow(error => error.AsException);
-            var toNormalized = spline.Normalize(end).ResultOrThrow(error => error.AsException);
+            var fromNormalized = spline.NormalizeOrThrow(start);
+            var toNormalized = spline.NormalizeOrThrow(end);
 
             yield return spline[fromNormalized].Position;
 

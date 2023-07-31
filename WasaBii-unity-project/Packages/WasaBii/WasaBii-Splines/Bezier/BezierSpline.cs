@@ -43,7 +43,7 @@ namespace BII.WasaBii.Splines.Bezier {
         IEnumerable<SplineSegment<TPos, TDiff>> Spline<TPos, TDiff>.Segments => cache.Value.SplineSegments;
 
         public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => cache.Value.SplineSegments[index];
-        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location).ResultOrThrow(error => error.AsException)];
+        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.NormalizeOrThrow(location)];
         public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => 
             SplineSample<TPos, TDiff>.From(this, location).GetOrThrow(() => 
                 new ArgumentOutOfRangeException(

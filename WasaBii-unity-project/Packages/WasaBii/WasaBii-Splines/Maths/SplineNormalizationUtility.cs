@@ -17,30 +17,27 @@ namespace BII.WasaBii.Splines.Maths {
     /// But location is generally used more
     internal static class SplineNormalizationUtility {
         
-        public readonly struct SplineLocationOutOfRangeError
+        public sealed class SplineLocationOutOfRangeError : Exception
         {
             public readonly SplineLocation Location;
             public readonly Length SplineLength;
-            public SplineLocationOutOfRangeError(SplineLocation location, Length splineLength) {
+            public SplineLocationOutOfRangeError(SplineLocation location, Length splineLength) 
+            : base($"Location must be between {Length.Zero} and {splineLength}, was {location}"){
                 Location = location;
                 SplineLength = splineLength;
             }
 
-            public Exception AsException =>
-                new($"Location must be between {Length.Zero} and {SplineLength}, was {Location}");
         }
 
-        public readonly struct NormalizedSplineLocationOutOfRangeError
+        public sealed class NormalizedSplineLocationOutOfRangeError : Exception
         {
             public readonly NormalizedSplineLocation Location;
             public readonly NormalizedSplineLocation Max;
-            public NormalizedSplineLocationOutOfRangeError(NormalizedSplineLocation location, NormalizedSplineLocation max) {
+            public NormalizedSplineLocationOutOfRangeError(NormalizedSplineLocation location, NormalizedSplineLocation max) 
+            : base($"Normalized location must be between {0} and {max.Value}, was {location.Value}") {
                 Location = location;
                 Max = max;
             }
-            
-            public Exception AsException =>
-                new($"Normalized location must be between {0} and {Max.Value}, was {Location.Value}");
         }
 
         /// Normalizing a spline location to calculate the normalized spline location for a given spline
@@ -52,10 +49,12 @@ namespace BII.WasaBii.Splines.Maths {
         /// because calculating a spline's length is always an approximation of its actual length.
         public static readonly SplineLocation DefaultSplineLocationOvershootTolerance = 0.1.Meters();
 
+        /// <summary>
         /// Converts a location on the spline from <see cref="SplineLocation"/>
         /// to <see cref="NormalizedSplineLocation"/>.
         /// Such a conversion is desirable when performance is relevant,
         /// since operations on <see cref="NormalizedSplineLocation"/> are faster.
+        /// </summary>
         public static Result<NormalizedSplineLocation, SplineLocationOutOfRangeError> Normalize<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
             SplineLocation location,
@@ -87,11 +86,25 @@ namespace BII.WasaBii.Splines.Maths {
             };
         }
 
+        /// <inheritdoc cref="Normalize{TPos,TDiff}"/>
+        /// <exception cref="SplineLocationOutOfRangeError">When the queried <paramref name="location"/>
+        /// does not lie on the spline within the <paramref name="splineLocationOvershootTolerance"/>,
+        /// i.e. when it is less than <see cref="SplineLocation.Zero"/> or greater than the
+        /// <paramref name="spline"/> length.</exception>
+        public static NormalizedSplineLocation NormalizeOrThrow<TPos, TDiff>(
+            this Spline<TPos, TDiff> spline,
+            SplineLocation location,
+            SplineLocation? splineLocationOvershootTolerance = null
+        ) where TPos : unmanaged where TDiff : unmanaged =>
+            spline.Normalize(location, splineLocationOvershootTolerance).ResultOrThrow();
+
+        /// <summary>
         /// Converts a location on the spline from <see cref="NormalizedSplineLocation"/>
         /// to <see cref="SplineLocation"/>.
         /// Such a conversion is desirable when the location value needs to be interpreted,
         /// since <see cref="SplineLocation"/> is equal to the distance
         /// from the beginning of the spline to the location, in meters.
+        /// </summary>
         public static Result<SplineLocation, NormalizedSplineLocationOutOfRangeError> DeNormalize<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
             NormalizedSplineLocation t,
@@ -122,6 +135,18 @@ namespace BII.WasaBii.Splines.Maths {
 
             return new SplineLocation(location);
         }
+
+        /// <inheritdoc cref="DeNormalize"/>
+        /// <exception cref="NormalizedSplineLocationOutOfRangeError">When the queried <paramref name="t"/>
+        /// does not lie on the spline within the <paramref name="overshootTolerance"/>, i.e. when it is
+        /// less than <see cref="NormalizedSplineLocation.Zero"/> or greater than the <paramref name="spline"/>
+        /// <see cref="Spline{TPos,TDiff}.SegmentCount"/>.</exception>
+        public static SplineLocation DeNormalizeOrThrow<TPos, TDiff>(
+            this Spline<TPos, TDiff> spline,
+            NormalizedSplineLocation t,
+            NormalizedSplineLocation? overshootTolerance = null
+        ) where TPos : unmanaged where TDiff : unmanaged =>
+            spline.DeNormalize(t, overshootTolerance).ResultOrThrow();
 
         /// For a given node on a spline and locations relative to it,
         /// this method will normalize all of these locations and return them in the same order.
@@ -181,12 +206,9 @@ namespace BII.WasaBii.Splines.Maths {
                         // treat the current location as if it were in the last segment
                         currentLocation = segmentAbsoluteEnd;
                     } else {
-                        var overshoot = currentLocation - segmentAbsoluteEnd;
                         // If neither is true, this is an error.
-                        throw new ArgumentOutOfRangeException(
-                            nameof(locations), 
-                            $"The location {currentLocation} is outside of the spline's" +
-                            $" length ({spline.Length()}) and cannot be normalized! Tolerance overshoot: {overshoot.Value}"
+                        throw new SplineLocationOutOfRangeError(
+                            currentLocation, spline.Length()
                         );
                     }
                    

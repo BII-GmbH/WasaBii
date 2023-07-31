@@ -112,8 +112,8 @@ namespace BII.WasaBii.Splines {
                     SampleRange.From(fromAbsolute, inclusive: true)
                         .To(toAbsolute, inclusive: true)
                         .Sample(samples, SplineLocation.Lerp))
-                : SampleRange.From(spline.Normalize(fromAbsolute).ResultOrThrow(error => error.AsException), inclusive: true)
-                    .To(spline.Normalize(toAbsolute).ResultOrThrow(error => error.AsException), inclusive: true)
+                : SampleRange.From(spline.NormalizeOrThrow(fromAbsolute), inclusive: true)
+                    .To(spline.NormalizeOrThrow(toAbsolute), inclusive: true)
                     .Sample(samples, NormalizedSplineLocation.Lerp);
                 
             var result = sampleLocations.Select(nl => spline[nl]);

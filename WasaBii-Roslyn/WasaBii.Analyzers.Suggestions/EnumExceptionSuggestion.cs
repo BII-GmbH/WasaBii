@@ -58,7 +58,8 @@ public class EnumExceptionSuggestion : DiagnosticAnalyzer {
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context) {
             if (context.Document is {} document && 
-                await document.GetSyntaxRootAsync().ConfigureAwait(continueOnCapturedContext: false) is {} root) {
+                await document.GetSyntaxRootAsync().ConfigureAwait(continueOnCapturedContext: false) is {} root
+            ) {
                 foreach (var diagnostic in context.Diagnostics) {
                     context.RegisterCodeFix(
                         CodeAction.Create(
@@ -66,9 +67,9 @@ public class EnumExceptionSuggestion : DiagnosticAnalyzer {
                             createChangedDocument: _ => {
                                 var node = root.FindNode(diagnostic.Location.SourceSpan);
                                 var newRoot = root.ReplaceNode(node, SwitchExpressionArm(
-                                    VarPattern(SingleVariableDesignation(Identifier("val"))),
+                                    VarPattern(SingleVariableDesignation(Identifier("unsupported"))),
                                     ThrowExpression(ObjectCreationExpression(IdentifierName("UnsupportedEnumValueException"))
-                                        .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("val"))))))));
+                                        .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("unsupported"))))))));
                                 return Task.FromResult(document.WithSyntaxRoot(newRoot));
                             },
                             equivalenceKey: "UnsupportedEnumValueException"),

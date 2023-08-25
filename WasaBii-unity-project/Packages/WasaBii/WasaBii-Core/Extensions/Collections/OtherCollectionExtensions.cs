@@ -17,8 +17,8 @@ namespace BII.WasaBii.Core {
         }
         
         public static void Add<T>(this IList<T> source, params T[] items) {
-            // IList doesn't have an `AddRange`, hence the loop.
-            foreach(var item in items) source.Add(item);
+            if(source is List<T> l) l.AddRange(items);
+            else foreach(var item in items) source.Add(item);
         }
         
         public static ImmutableHashSet<T> AddAllImmutable<T>(this ImmutableHashSet<T> set, IEnumerable<T> toAdd) {

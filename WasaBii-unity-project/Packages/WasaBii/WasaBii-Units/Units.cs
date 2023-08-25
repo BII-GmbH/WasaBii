@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
 using BII.WasaBii.Core;
+
+#nullable enable
 
 namespace BII.WasaBii.UnitSystem {
 
@@ -199,6 +202,50 @@ namespace BII.WasaBii.UnitSystem {
             roundingMode,
             zeroThreshold
         );
+
+        public static TSelf Round<TSelf, TUnit>(this TSelf value, TUnit unit)
+        where TSelf : struct, IUnitValue<TSelf, TUnit>
+        where TUnit : IUnit =>
+            From<TSelf, TUnit>(Math.Round(value.As(unit)), unit);
+
+        public static TSelf RoundToWholeMultipleOf<TSelf>(this TSelf value, TSelf factor)
+        where TSelf : struct, IUnitValue<TSelf> =>
+            new TSelf { SiValue = Math.Round(value.SiValue / factor.SiValue) * factor.SiValue };
+
+        
+        public static TSelf CeilToWholeMultipleOf<TSelf>(this TSelf value, TSelf factor)
+        where TSelf : struct, IUnitValue<TSelf> =>
+            new TSelf { SiValue = Math.Ceiling(value.SiValue / factor.SiValue) * factor.SiValue };
+        
+        public static TSelf FloorToWholeMultipleOf<TSelf>(this TSelf value, TSelf factor)
+        where TSelf : struct, IUnitValue<TSelf> =>
+        new TSelf { SiValue = Math.Floor(value.SiValue / factor.SiValue) * factor.SiValue };
+
+        /// <summary>
+        /// Tries to parse the given text as a value of <typeparamref name="TValue"/>.
+        /// Uses the unit given by the string postfix, if present.
+        /// </summary>
+        /// <param name="fallbackUnit">The unit to use if none is given in the <paramref name="text"/>.</param>
+        /// <returns>The value if it could be parsed successfully. <see cref="Option.None"/> if the string is not
+        /// a valid numeral or does not end with the unit while no <paramref name="fallbackUnit"/> is specified.</returns>
+        /// <remarks>Assumes the decimal separator given by the <paramref name="numberFormatInfo"/>. A text with the
+        /// wrong decimal separator might result in a faulty value.</remarks>
+        public static Option<TValue> TryParse<TValue, TUnit>(
+            string text,
+            TUnit? fallbackUnit = default,
+            NumberStyles numberStyles = NumberStyles.Float, 
+            NumberFormatInfo? numberFormatInfo = null
+        ) where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit {
+            var formatInfo = numberFormatInfo ?? NumberFormatInfo.InvariantInfo;
+            foreach(var unit in unitDescriptionOf<TUnit>().AllUnits)
+                if ((text.EndsWith(unit.ShortName) && double.TryParse(text[..^unit.ShortName.Length].Trim(), numberStyles, formatInfo, out var val)) || 
+                    (text.EndsWith(unit.LongName) && double.TryParse(text[..^unit.LongName.Length].Trim(), numberStyles, formatInfo, out val)))
+                    return From<TValue, TUnit>(val, unit);
+            return fallbackUnit != null && double.TryParse(text, numberStyles, formatInfo, out var unitlessVal)
+                ? From<TValue, TUnit>(unitlessVal, fallbackUnit)
+                : Option.None;
+        }
+        
     }
 
 }

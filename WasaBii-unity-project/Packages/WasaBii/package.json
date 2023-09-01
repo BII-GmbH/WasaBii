@@ -9,7 +9,7 @@
   "changelogUrl": "https://github.com/BII-GmbH/WasaBii/blob/main/changelog.md",
   "licensesUrl": "https://github.com/BII-GmbH/WasaBii/blob/main/LICENSE",
   "dependencies": {
-    "com.unity.test-framework": "1.1.33"
+    "com.unity.test-framework": "2.0.1-exp.2"
   },
   "keywords": [
     "utils",

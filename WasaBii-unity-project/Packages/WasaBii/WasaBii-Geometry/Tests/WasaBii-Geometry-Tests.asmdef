@@ -1,6 +1,6 @@
 {
     "name": "WasaBii-Geometry-Tests",
-    "rootNamespace": "BII.WasaBii",
+    "rootNamespace": "BII.WasaBii.Geometry.Tests",
     "references": [
         "WasaBii.Geometry",
         "UnityEngine.TestRunner",

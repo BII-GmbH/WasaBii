@@ -9,7 +9,7 @@ using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 
-namespace BII.WasaBii.Unity.Geometry.Splines {
+namespace BII.WasaBii.Unity.Geometry {
 
     [Serializable]
     public sealed class LocalSpline : SpecificSplineBase<LocalSpline, LocalPosition, LocalOffset> {
@@ -21,7 +21,7 @@ namespace BII.WasaBii.Unity.Geometry.Splines {
         public static LocalSpline FromHandles(IEnumerable<LocalPosition> source, SplineType? splineType = null, bool shouldLoop = false)
             => new(CatmullRomSpline.FromHandlesOrThrow(source, GeometricOperations.Instance, splineType, shouldLoop));
 
-        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}(TPos,System.Collections.Generic.IEnumerable{TPos},TPos,BII.WasaBii.Splines.Maths.GeometricOperations{TPos,TDiff},System.Nullable{BII.WasaBii.Splines.CatmullRom.SplineType})"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}(TPos,System.Collections.Generic.IEnumerable{TPos},TPos,GeometricOperations{TPos,TDiff},System.Nullable{SplineType})"/>
         [Pure]
         public static LocalSpline FromHandles(
             LocalPosition beginMarginHandle, 

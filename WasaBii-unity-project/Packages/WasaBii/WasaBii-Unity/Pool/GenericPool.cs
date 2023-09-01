@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using BII.WasaBii.Unity.Exceptions;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {

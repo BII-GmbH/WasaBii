@@ -4,7 +4,7 @@ using BII.WasaBii.Splines;
 using BII.WasaBii.UnitSystem;
 using UnityEngine;
 
-namespace BII.WasaBii.Unity.Editor {
+namespace BII.WasaBii.Unity {
     
     /// <summary>
     /// Contains methods to debug unity splines as gizmos. Remember to only

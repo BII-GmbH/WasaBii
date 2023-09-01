@@ -22,6 +22,9 @@ namespace BII.WasaBii.Core {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Option<T> If<T>(bool predicate, Func<T> then) => predicate ? Some(then()) : Option<T>.None;
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<T> If<T>(bool predicate, T thenValue) => predicate ? Some(thenValue) : Option<T>.None;
+        
         public static Option<T> Try<T>(Func<T> valueConstructor) {
             try {
                 return Some(valueConstructor());
@@ -78,6 +81,9 @@ namespace BII.WasaBii.Core {
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public T GetOrElse(Func<T> elseResultGetter) => HasValue ? ValueOrDefault! : elseResultGetter();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Pure] public T GetOrElse(T elseResult) => HasValue ? ValueOrDefault! : elseResult;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public T? GetOrDefault() => ValueOrDefault;

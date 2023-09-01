@@ -107,6 +107,15 @@ public class RoslynAnalyzerTemplateTest {
             public struct Unmanaged { public int Field; }
             public class EnsureIsUnmanaged : NestedLevelUnmanagedMutable<Unmanaged> { }");
     
+    [Test]
+    public Task Multiple_Diagnostics_Work() =>
+        AssertDiagnostics(4, @"
+            public struct Vector { public float X, Y, Z; }
+            public class Cell<T> { public T Value; }
+
+            [MustBeImmutable] 
+            public record VeryMutable<T>(Cell<T> Cell) { public int SomeNumber; public Vector V; }");
+    
 #endregion
 
 #region Tuples
@@ -575,6 +584,8 @@ public class RoslynAnalyzerTemplateTest {
 
             [MustBeImmutable] 
             public class SubstitutedImmutable<[__IgnoreMustBeImmutable] T> { public readonly Wrapper<Wrapper<T>> Field; }");
+    
+    
     
 #endregion
 

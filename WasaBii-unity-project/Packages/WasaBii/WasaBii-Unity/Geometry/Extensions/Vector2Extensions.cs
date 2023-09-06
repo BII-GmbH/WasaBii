@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using BII.WasaBii.Core;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -7,6 +8,7 @@ namespace BII.WasaBii.Unity.Geometry {
     
     public static class Vector2Extensions {
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public static float DistanceTo(this Vector2 v1, Vector2 v2)
             => Vector2.Distance(v1, v2);
 

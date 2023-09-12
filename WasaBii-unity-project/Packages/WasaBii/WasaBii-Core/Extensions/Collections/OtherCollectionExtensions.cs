@@ -16,7 +16,11 @@ namespace BII.WasaBii.Core {
             }
         }
         
-        public static void Add<T>(this IList<T> source, params T[] items) {
+        // first item is to prevent `list.Add()`, which adds nothing.
+        // second item is to prevent `list.Add(something)`, which is just a single add
+        public static void Add<T>(this IList<T> source, T firstItem, T secondItem, params T[] items) {
+            source.Add(firstItem);
+            source.Add(secondItem);
             if(source is List<T> l) l.AddRange(items);
             else foreach(var item in items) source.Add(item);
         }

@@ -83,6 +83,10 @@ namespace BII.WasaBii.Geometry {
 
         [Pure] public static GlobalOffset operator -(GlobalOffset offset) => new(-offset.AsNumericsVector);
 
+        [Pure]
+        public static GlobalVelocity operator/(GlobalOffset offset, Duration duration) => 
+            new(offset.AsNumericsVector / (float)duration.AsSeconds());
+
         public readonly struct Builder {
             private readonly GlobalPosition origin;
             public Builder(GlobalPosition origin) => this.origin = origin;

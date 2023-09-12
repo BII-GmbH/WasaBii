@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.Contracts;
-using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 
@@ -75,6 +74,11 @@ namespace BII.WasaBii.Geometry {
 
         [Pure] public static LocalOffset operator *(Length a, LocalDirection b) => new((float)a.AsMeters() * b.AsNumericsVector);
         [Pure] public static LocalOffset operator *(LocalDirection b, Length a) => a * b;
+        
+        [Pure] public static LocalVelocity operator *(LocalDirection velocity, Speed speed) => 
+            new(velocity.AsNumericsVector * (float)speed.AsMetersPerSecond());
+        [Pure] public static LocalVelocity operator *(Speed speed, LocalDirection velocity) => velocity * speed;
+
         [Pure] public static LocalDirection operator -(LocalDirection dir) => new(-dir.AsNumericsVector);
 
     }

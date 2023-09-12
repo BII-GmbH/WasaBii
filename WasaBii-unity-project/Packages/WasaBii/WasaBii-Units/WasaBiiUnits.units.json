@@ -187,7 +187,7 @@
     },
     
     {
-      "typeName": "Velocity",
+      "typeName": "Speed",
       "primary": "Length",
       "secondary": "Duration",
       "siUnit": {
@@ -230,7 +230,7 @@
 
     {
       "typeName": "Acceleration",
-      "primary": "Velocity",
+      "primary": "Speed",
       "secondary": "Duration",
       "siUnit": {
         "name": "MetersPerSecondSquared",

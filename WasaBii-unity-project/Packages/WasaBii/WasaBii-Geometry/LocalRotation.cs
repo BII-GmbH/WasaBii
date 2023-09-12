@@ -47,6 +47,9 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static LocalDirection operator *(LocalRotation rotation, LocalDirection direction) => 
             System.Numerics.Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsLocalDirection();
         
+        [Pure] public static LocalVelocity operator *(LocalRotation rotation, LocalVelocity direction) => 
+            System.Numerics.Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsLocalVelocity();
+        
         [Pure] public static LocalRotation operator *(LocalRotation left, LocalRotation right) => 
             new(System.Numerics.Quaternion.Concatenate(left.AsNumericsQuaternion, right.AsNumericsQuaternion));
         

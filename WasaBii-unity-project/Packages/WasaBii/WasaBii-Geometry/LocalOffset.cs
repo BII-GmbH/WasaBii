@@ -95,6 +95,10 @@ namespace BII.WasaBii.Geometry {
 
         [Pure] public static LocalOffset operator -(LocalOffset offset) => new(-offset.AsNumericsVector);
 
+        [Pure]
+        public static LocalVelocity operator/(LocalOffset offset, Duration duration) => 
+            new(offset.AsNumericsVector / (float)duration.AsSeconds());
+
         public readonly struct Builder {
             private readonly LocalPosition origin;
             public Builder(LocalPosition origin) => this.origin = origin;

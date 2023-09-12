@@ -1,8 +1,10 @@
-﻿using BII.WasaBii.Unity.Geometry.Splines;
+﻿using BII.WasaBii.Splines.CatmullRom;
+using BII.WasaBii.Unity;
+using BII.WasaBii.Unity.Geometry;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.WasaBii.Splines.CatmullRom.Tests {
+namespace BII.WasaBii.Splines.Tests {
     public class CatmulRomSplineTests {
         [Test]
         public void Ctor_WhenInitializedCorrectly_ThenCorrectNodePositionsAndValidSpline() {

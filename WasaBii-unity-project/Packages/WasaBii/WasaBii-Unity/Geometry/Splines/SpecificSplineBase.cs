@@ -9,7 +9,7 @@ using BII.WasaBii.Splines.CatmullRom;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
 
-namespace BII.WasaBii.Unity.Geometry.Splines {
+namespace BII.WasaBii.Unity.Geometry {
 
     /// <summary>
     /// Base class for non-generic spline implementations like <see cref="UnitySpline"/> that hides

@@ -1,6 +1,6 @@
 {
     "name": "WasaBii.Units.Tests",
-    "rootNamespace": "",
+    "rootNamespace": "BII.WasaBii.UnitSystem.Tests",
     "references": [
         "WasaBii.Units",
         "UnityEngine.TestRunner",

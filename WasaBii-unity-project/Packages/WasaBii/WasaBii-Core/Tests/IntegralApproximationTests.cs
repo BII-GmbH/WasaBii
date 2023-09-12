@@ -1,8 +1,7 @@
 ﻿using System;
-using BII.WasaBii.Core;
 using NUnit.Framework;
 
-namespace Core.Tests {
+namespace BII.WasaBii.Core.Tests {
     
     public class IntegralApproximationTests {
 

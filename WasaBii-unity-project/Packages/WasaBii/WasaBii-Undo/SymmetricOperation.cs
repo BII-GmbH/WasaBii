@@ -7,7 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using BII.WasaBii.Core;
 
-namespace BII.WasaBii.Undos {
+namespace BII.WasaBii.Undo {
 
     // ReSharper disable all InvalidXmlDocComment // for the caller arguments which are explicitly not documented
 

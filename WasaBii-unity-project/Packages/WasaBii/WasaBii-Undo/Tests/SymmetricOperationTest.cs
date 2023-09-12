@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using BII.WasaBii.Core;
-using BII.WasaBii.Undos;
 using NUnit.Framework;
 
 namespace BII.WasaBii.Undo.Tests {

@@ -34,9 +34,12 @@ namespace BII.WasaBii.UnitSystem {
         }
 
         private static IUnitDescription<TUnit> unitDescriptionOf<TUnit>() where TUnit : IUnit =>
+            unitDescriptionOfDynamic<TUnit>(typeof(TUnit));
+
+        private static IUnitDescription<TUnit> unitDescriptionOfDynamic<TUnit>(Type unitType) where TUnit : IUnit =>
             Activator.CreateInstance(
-                typeof(TUnit).GetCustomAttribute<UnitMetadataAttribute>()?.UnitDescriptionType
-                ?? throw new ArgumentException($"{typeof(TUnit)} needs an attribute of type {nameof(UnitMetadataAttribute)}!")
+                unitType.GetCustomAttribute<UnitMetadataAttribute>()?.UnitDescriptionType
+                ?? throw new ArgumentException($"{unitType} needs an attribute of type {nameof(UnitMetadataAttribute)}!")
             ) as IUnitDescription<TUnit>
             ?? throw new ArgumentException($"The {nameof(UnitMetadataAttribute.UnitDescriptionType)} of the {nameof(UnitMetadataAttribute)} " +
                                            $"must be of type {typeof(IUnitDescription<TUnit>)}.");
@@ -44,6 +47,7 @@ namespace BII.WasaBii.UnitSystem {
         public static TUnit SiUnitOf<TUnit>() where TUnit : IUnit => unitDescriptionOf<TUnit>().SiUnit;
         
         public static IReadOnlyList<TUnit> AllUnitsOf<TUnit>() where TUnit : IUnit => unitDescriptionOf<TUnit>().AllUnits;
+        private static IReadOnlyList<IUnit> allUnitsOfDynamic(Type unitType) => unitDescriptionOfDynamic<IUnit>(unitType).AllUnits;
         
         // Basic maths
         
@@ -239,21 +243,44 @@ namespace BII.WasaBii.UnitSystem {
         /// "kph" might not be recognized if the specified name is "km/h".</remarks>
         public static Option<TValue> TryParse<TValue, TUnit>(
             string text,
-            TUnit? fallbackUnit = default,
+            TUnit fallbackUnit,
+            NumberStyles numberStyles = NumberStyles.Float,
+            NumberFormatInfo? numberFormatInfo = null
+        ) where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit => tryParse<TValue>(
+            text,
+            fallbackUnit,
+            numberStyles,
+            numberFormatInfo
+        );
+
+        /// <inheritdoc cref="TryParse{TValue,TUnit}"/>
+        public static Option<TValue> TryParse<TValue>(
+            string text,
+            NumberStyles numberStyles = NumberStyles.Float,
+            NumberFormatInfo? numberFormatInfo = null
+        ) where TValue : struct, IUnitValue<TValue> => tryParse<TValue>(
+            text,
+            numberStyles: numberStyles,
+            numberFormatInfo: numberFormatInfo
+        );
+        
+        private static Option<TValue> tryParse<TValue>(
+            string text,
+            IUnit? fallbackUnit = default,
             NumberStyles numberStyles = NumberStyles.Float, 
             NumberFormatInfo? numberFormatInfo = null
-        ) where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit {
+        ) where TValue : struct, IUnitValue<TValue> {
             var formatInfo = numberFormatInfo ?? NumberFormatInfo.InvariantInfo;
             var regexResult = parseRegex.Match(text.Trim());
             if (regexResult.Success && double.TryParse(regexResult.Groups[1].Value, numberStyles, formatInfo, out var val)) {
                 var unitStr = removeAllWhitespaces(regexResult.Groups[2].Value);
                 if (unitStr == string.Empty)
-                    return fallbackUnit == null ? Option.None : From<TValue, TUnit>(val, fallbackUnit);
+                    return fallbackUnit == null ? Option.None : FromSiValue<TValue>(val * fallbackUnit.SiFactor);
                 else {
-                    var unit = AllUnitsOf<TUnit>().FirstOrNone(u => 
+                    var unit = allUnitsOfDynamic(default(TValue).UnitType).FirstOrNone(u => 
                         string.Equals(unitStr, removeAllWhitespaces(u.ShortName), StringComparison.OrdinalIgnoreCase)
                         || string.Equals(unitStr, removeAllWhitespaces(u.LongName), StringComparison.OrdinalIgnoreCase));
-                    return unit.Map(u => From<TValue, TUnit>(val, u));
+                    return unit.Map(u => FromSiValue<TValue>(val * u.SiFactor));
                 }
             }
 

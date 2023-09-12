@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 using BII.WasaBii.Core;
 
 #nullable enable
@@ -222,13 +224,19 @@ namespace BII.WasaBii.UnitSystem {
 
         /// <summary>
         /// Tries to parse the given text as a value of <typeparamref name="TValue"/>.
-        /// Uses the unit given by the string postfix, if present.
+        /// Uses the unit given by the string postfix, if present. Unit strings are detected
+        /// by their <see cref="IUnit.LongName"/> and <see cref="IUnit.ShortName"/>,
+        /// which correspond to "name" and "short" as given in the ".units.json" file.
+        /// Whitespaces and case are ignored for unit detection.
         /// </summary>
         /// <param name="fallbackUnit">The unit to use if none is given in the <paramref name="text"/>.</param>
         /// <returns>The value if it could be parsed successfully. <see cref="Option.None"/> if the string is not
         /// a valid numeral or does not end with the unit while no <paramref name="fallbackUnit"/> is specified.</returns>
         /// <remarks>Assumes the decimal separator given by the <paramref name="numberFormatInfo"/>. A text with the
-        /// wrong decimal separator might result in a faulty value.</remarks>
+        /// wrong decimal separator might result in a faulty value.
+        /// 
+        /// As the units are detected using their names as specified in the JSON file, note that strings like
+        /// "kph" might not be recognized if the specified name is "km/h".</remarks>
         public static Option<TValue> TryParse<TValue, TUnit>(
             string text,
             TUnit? fallbackUnit = default,
@@ -236,13 +244,32 @@ namespace BII.WasaBii.UnitSystem {
             NumberFormatInfo? numberFormatInfo = null
         ) where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit {
             var formatInfo = numberFormatInfo ?? NumberFormatInfo.InvariantInfo;
-            foreach(var unit in unitDescriptionOf<TUnit>().AllUnits)
-                if ((text.EndsWith(unit.ShortName) && double.TryParse(text[..^unit.ShortName.Length].Trim(), numberStyles, formatInfo, out var val)) || 
-                    (text.EndsWith(unit.LongName) && double.TryParse(text[..^unit.LongName.Length].Trim(), numberStyles, formatInfo, out val)))
-                    return From<TValue, TUnit>(val, unit);
-            return fallbackUnit != null && double.TryParse(text, numberStyles, formatInfo, out var unitlessVal)
-                ? From<TValue, TUnit>(unitlessVal, fallbackUnit)
-                : Option.None;
+            var regexResult = parseRegex.Match(text.Trim());
+            if (regexResult.Success && double.TryParse(regexResult.Groups[1].Value, numberStyles, formatInfo, out var val)) {
+                var unitStr = removeAllWhitespaces(regexResult.Groups[2].Value);
+                if (unitStr == string.Empty)
+                    return fallbackUnit == null ? Option.None : From<TValue, TUnit>(val, fallbackUnit);
+                else {
+                    var unit = unitDescriptionOf<TUnit>().AllUnits.FirstOrNone(u => 
+                        string.Equals(unitStr, removeAllWhitespaces(u.ShortName), StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(unitStr, removeAllWhitespaces(u.LongName), StringComparison.OrdinalIgnoreCase));
+                    return unit.Map(u => From<TValue, TUnit>(val, u));
+                }
+            }
+
+            return Option.None;
+        }
+
+        private static readonly Regex parseRegex = new(@"^([\d\.\,]+)(.*)$");
+
+        // Supposedly, this is the fastest method unless you want to go for weird low level array pool stuff.
+        // https://code-maze.com/replace-whitespaces-string-csharp/
+        private static string removeAllWhitespaces(string original) {
+            var builder = new StringBuilder(original.Length);
+            foreach (var c in original) {
+                if (!char.IsWhiteSpace(c)) builder.Append(c);
+            }
+            return original.Length == builder.Length ? original : builder.ToString();
         }
         
     }

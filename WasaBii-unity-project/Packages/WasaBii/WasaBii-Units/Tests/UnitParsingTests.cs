@@ -11,6 +11,8 @@ namespace BII.WasaBii.UnitSystem.Tests
         public void ValidateUnitParsing() {
             Assert.That(Units.TryParse<Length, Length.Unit>("1337m"), Is.EqualTo(1337.0.Meters().Some()));
             Assert.That(Units.TryParse<Length, Length.Unit>("420 Meters"), Is.EqualTo(420.0.Meters().Some()));
+            Assert.That(Units.TryParse<Velocity, Velocity.Unit>("420MetersPerSecond"), Is.EqualTo(420.0.MetersPerSecond().Some()));
+            Assert.That(Units.TryParse<Velocity, Velocity.Unit>("420 meters per second"), Is.EqualTo(420.0.MetersPerSecond().Some()));
             Assert.That(Units.TryParse<Length, Length.Unit>("288", fallbackUnit: Length.Unit.Centimeters.Instance), 
                 Is.EqualTo(288.0.Centimeters().Some()));
 

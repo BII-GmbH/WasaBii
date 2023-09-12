@@ -40,10 +40,10 @@ namespace BII.WasaBii.Splines.Maths {
             }
         }
 
-        /// Normalizing a spline location to calculate the normalized spline location for a given spline
-        /// is normally not possible when the location is above the spline's length.
-        /// This is the tolerance the location can be above the length and to be considered
-        /// to exactly match the length of the spline.
+        /// Calculating a normalized spline location is normally not possible when
+        /// the non-normalized location is greater than the given spline's length.
+        /// This is the tolerance the location can be above the length while being
+        /// considered to exactly match the length of the spline.
         ///
         /// Such a threshold is necessary since the normalization algorithm is inherently inaccurate
         /// because calculating a spline's length is always an approximation of its actual length.

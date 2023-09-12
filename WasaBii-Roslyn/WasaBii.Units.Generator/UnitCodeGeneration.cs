@@ -32,7 +32,7 @@ public partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     public static Unit SiUnit => Unit.{unit.SiUnit.Name}.Instance;
 
     [UnitMetadata(typeof(Description))]
-    public abstract class Unit : IUnit.{unitBase} {{
+    public abstract class Unit : IUnit.{unitBase}, IUnit<{name}> {{
         public abstract string LongName {{ get; }}
         public abstract string ShortName {{ get; }}
         public abstract double SiFactor {{ get; }}

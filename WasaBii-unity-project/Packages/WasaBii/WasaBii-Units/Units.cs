@@ -15,15 +15,15 @@ namespace BII.WasaBii.UnitSystem {
         
         // Construction and metadata
 
-        public static TValue From<TValue, TUnit>(double value, TUnit unit)
-        where TUnit : IUnit where TValue: struct, IUnitValue<TValue, TUnit> => 
+        public static TValue From<TValue>(double value, IUnit<TValue> unit)
+        where TValue: struct, IUnitValue<TValue> => 
             FromSiValue<TValue>(value * unit.SiFactor);
         
         public static TValue FromSiValue<TValue>(double value) where TValue : IUnitValue, new() =>
             new TValue {SiValue = value};
 
-        public static double As<TValue, TUnit>(this TValue value, TUnit unit)
-            where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit => value.SiValue * unit.InverseSiFactor;
+        public static double As<TValue>(this TValue value, IUnit<TValue> unit)
+            where TValue : struct, IUnitValue<TValue> => value.SiValue * unit.InverseSiFactor;
 
         public static double As(this IUnitValue value, IUnit unit) {
             if (!value.UnitType.IsInstanceOfType(unit))
@@ -208,10 +208,9 @@ namespace BII.WasaBii.UnitSystem {
             zeroThreshold
         );
 
-        public static TSelf Round<TSelf, TUnit>(this TSelf value, TUnit unit)
-        where TSelf : struct, IUnitValue<TSelf, TUnit>
-        where TUnit : IUnit =>
-            From<TSelf, TUnit>(Math.Round(value.As(unit)), unit);
+        public static TSelf Round<TSelf>(this TSelf value, IUnit<TSelf> unit)
+        where TSelf : struct, IUnitValue<TSelf> =>
+            From(Math.Round(value.As(unit)), unit);
 
         public static TSelf RoundToWholeMultipleOf<TSelf>(this TSelf value, TSelf factor)
         where TSelf : struct, IUnitValue<TSelf> =>
@@ -241,32 +240,9 @@ namespace BII.WasaBii.UnitSystem {
         /// 
         /// As the units are detected using their names as specified in the JSON file, note that strings like
         /// "kph" might not be recognized if the specified name is "km/h".</remarks>
-        public static Option<TValue> TryParse<TValue, TUnit>(
-            string text,
-            TUnit fallbackUnit,
-            NumberStyles numberStyles = NumberStyles.Float,
-            NumberFormatInfo? numberFormatInfo = null
-        ) where TValue : struct, IUnitValue<TValue, TUnit> where TUnit : IUnit => tryParse<TValue>(
-            text,
-            fallbackUnit,
-            numberStyles,
-            numberFormatInfo
-        );
-
-        /// <inheritdoc cref="TryParse{TValue,TUnit}"/>
         public static Option<TValue> TryParse<TValue>(
             string text,
-            NumberStyles numberStyles = NumberStyles.Float,
-            NumberFormatInfo? numberFormatInfo = null
-        ) where TValue : struct, IUnitValue<TValue> => tryParse<TValue>(
-            text,
-            numberStyles: numberStyles,
-            numberFormatInfo: numberFormatInfo
-        );
-        
-        private static Option<TValue> tryParse<TValue>(
-            string text,
-            IUnit? fallbackUnit = default,
+            IUnit<TValue>? fallbackUnit = default,
             NumberStyles numberStyles = NumberStyles.Float, 
             NumberFormatInfo? numberFormatInfo = null
         ) where TValue : struct, IUnitValue<TValue> {

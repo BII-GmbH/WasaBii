@@ -13,7 +13,7 @@ namespace BII.WasaBii.UnitSystem {
     /// drawers for auto-generated unit value types are also auto-generated to inherit this.
     /// </summary>
     public abstract class ValueWithUnitEditor<TUnitValue, TUnit> : PropertyDrawer 
-    where TUnit : IUnit
+    where TUnit : IUnit<TUnitValue>
     where TUnitValue : struct, IUnitValue<TUnitValue, TUnit> {
         
         // For each unit type, the last selected unit (eg m vs km) is cached and displayed the next time an

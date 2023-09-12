@@ -13,7 +13,7 @@ namespace BII.WasaBii.UnitSystem.Tests
             Assert.That(Units.TryParse<Length>("420 Meters"), Is.EqualTo(420.0.Meters().Some()));
             Assert.That(Units.TryParse<Velocity>("420MetersPerSecond"), Is.EqualTo(420.0.MetersPerSecond().Some()));
             Assert.That(Units.TryParse<Velocity>("420 meters per second"), Is.EqualTo(420.0.MetersPerSecond().Some()));
-            Assert.That(Units.TryParse<Length, Length.Unit>("288", fallbackUnit: Length.Unit.Centimeters.Instance), 
+            Assert.That(Units.TryParse("288", fallbackUnit: Length.Unit.Centimeters.Instance), 
                 Is.EqualTo(288.0.Centimeters().Some()));
 
             var formatInfo = new NumberFormatInfo { NumberDecimalSeparator = "." };

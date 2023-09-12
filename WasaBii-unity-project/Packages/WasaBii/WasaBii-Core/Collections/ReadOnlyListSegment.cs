@@ -26,7 +26,8 @@ namespace BII.WasaBii.Core {
 
         public T this[int i] {
             get {
-                if (i >= Count) throw new IndexOutOfRangeException();
+                if (i >= Count || i < 0) throw new IndexOutOfRangeException($"Index {i} is out of range for "
+                    + $"{nameof(ReadOnlyListSegment<T>)} with count {Count} (offset: {_offset}, original count: {_wrapped.Count})");
                 return _wrapped[i + _offset];
             }
         }

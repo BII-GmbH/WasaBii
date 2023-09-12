@@ -1,15 +1,15 @@
+using BII.WasaBii.Splines.CatmullRom;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
-using BII.WasaBii.Unity.Geometry.Splines;
+using BII.WasaBii.Unity;
+using BII.WasaBii.Unity.Geometry;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.WasaBii.Splines.CatmullRom.Tests {
+namespace BII.WasaBii.Splines.Tests {
     
     using Spline = CatmullRomSpline<Vector3, Vector3>;
-    using SplineSegment = SplineSegment<Vector3, Vector3>;
-    using SplineSample = SplineSample<Vector3, Vector3>;
-    
+
     internal class SplineTestUtils {
 
         private const float splineTypeAlphaValue = 0.5f;

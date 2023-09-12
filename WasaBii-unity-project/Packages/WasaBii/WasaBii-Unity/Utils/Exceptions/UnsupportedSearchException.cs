@@ -1,6 +1,6 @@
 using System;
 
-namespace BII.WasaBii.Unity.Exceptions {
+namespace BII.WasaBii.Unity {
     /// <summary>
     /// Author: Cameron Reuschel
     /// <br/><br/>

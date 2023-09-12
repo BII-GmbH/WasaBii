@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
 using NUnit.Framework;
-using UnityEngine;
-using static BII.WasaBii.Splines.Maths.SplineNormalizationUtility;
-using static BII.WasaBii.Splines.CatmullRom.Tests.SplineTestUtils;
+using static BII.WasaBii.Splines.Tests.SplineTestUtils;
 
-namespace BII.WasaBii.Splines.CatmullRom.Tests {
+namespace BII.WasaBii.Splines.Tests {
     public class SplineNormalizationUtilityTest {
         private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizaionSamples = new Dictionary<double, double>
             {{0, 0}, {0.5, 0.202}, {1, 0.322}, {2.6, 0.622}, {3, 0.696}, {4.414, 1}}.ToDictionary(

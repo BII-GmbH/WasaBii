@@ -1,6 +1,5 @@
 #nullable enable
 
-using BII.WasaBii.Unity.Exceptions;
 using JetBrains.Annotations;
 using UnityEngine;
 

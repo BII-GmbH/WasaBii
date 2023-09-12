@@ -1,9 +1,10 @@
-﻿using BII.WasaBii.Unity.Geometry.Splines;
+﻿using BII.WasaBii.Unity;
+using BII.WasaBii.Unity.Geometry;
 using NUnit.Framework;
 using UnityEngine;
-using static BII.WasaBii.Splines.CatmullRom.Tests.SplineTestUtils;
+using static BII.WasaBii.Splines.Tests.SplineTestUtils;
 
-namespace BII.WasaBii.Splines.CatmullRom.Tests {
+namespace BII.WasaBii.Splines.Tests {
     public class ClosestOnSplineTests {
       
         [Test]

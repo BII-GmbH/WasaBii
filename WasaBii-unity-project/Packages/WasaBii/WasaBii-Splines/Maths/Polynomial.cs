@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using BII.WasaBii.Core;
@@ -30,14 +31,14 @@ namespace BII.WasaBii.Splines.Maths {
         /// All coefficients of the polynomial function except the first. Eg. a cubic polynomial has
         /// three <see cref="TailC"/> entries and is calculated in the form of: A + Bt + Ct² + Dt³
         /// where A = <see cref="FirstC"/>, [B, C, D] = <see cref="TailC"/>
-        private readonly IReadOnlyList<TDiff> TailC;
+        private readonly ImmutableArray<TDiff> TailC;
         private readonly TPos FirstC;
 
         internal readonly GeometricOperations<TPos, TDiff> Ops;
 
         public Length ArcLength => SplineSegmentUtils.SimpsonsLengthOf(this);
         
-        public Polynomial(GeometricOperations<TPos, TDiff> ops, TPos firstC, IReadOnlyList<TDiff> tailC) {
+        public Polynomial(GeometricOperations<TPos, TDiff> ops, TPos firstC, ImmutableArray<TDiff> tailC) {
             this.FirstC = firstC;
             this.TailC = tailC;
             this.Ops = ops;
@@ -45,7 +46,7 @@ namespace BII.WasaBii.Splines.Maths {
 
         public Polynomial(GeometricOperations<TPos, TDiff> ops, TPos firstC, params TDiff[] tailC) {
             this.FirstC = firstC;
-            this.TailC = tailC;
+            this.TailC = tailC.ToImmutableArray();
             this.Ops = ops;
         }
 
@@ -91,9 +92,9 @@ namespace BII.WasaBii.Splines.Maths {
         public TDiff EvaluateNthDerivative(double t, int n) {
             if(!t.IsInsideInterval(0, 1, threshold: 0.001)) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var ops = Ops;
-            var factorials = new int[TailC.Count + 1];
+            var factorials = new int[TailC.Length + 1];
             factorials[0] = 1;
-            for (var i = 1; i <= TailC.Count; i++) factorials[i] = factorials[i - 1] * i;
+            for (var i = 1; i <= TailC.Length; i++) factorials[i] = factorials[i - 1] * i;
             return TailC.Skip(n - 1).ZipWithIndices().Aggregate(
                 seed: (res: Ops.ZeroDiff, t: 1.0),
                 (acc, diff) => (

@@ -26,9 +26,22 @@ namespace BII.WasaBii.Core {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Result<TValue, TError> If<TValue, TError>(
             bool predicate, Func<TValue> then, Func<TError> onError
-        ) => predicate 
-            ? Result<TValue, TError>.Success(then()) 
-            : Result<TValue, TError>.Failure(onError());
+        ) => predicate ? Success<TValue, TError>(then()) : Failure<TValue, TError>(onError());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Result<TValue, TError> If<TValue, TError>(
+            bool predicate, TValue thenValue, Func<TError> onError
+        ) => predicate ? Success<TValue, TError>(thenValue) : Failure<TValue, TError>(onError());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Result<TValue, TError> If<TValue, TError>(
+            bool predicate, Func<TValue> then, TError errorValue
+        ) => predicate ? Success<TValue, TError>(then()) : Failure<TValue, TError>(errorValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Result<TValue, TError> If<TValue, TError>(
+            bool predicate, TValue thenValue, TError errorValue
+        ) => predicate ? Success<TValue, TError>(thenValue) : Failure<TValue, TError>(errorValue);
 
         public static Result<TValue, TError> IfNotNull<TValue, TError>(
             TValue? value, Func<TError> whenNull

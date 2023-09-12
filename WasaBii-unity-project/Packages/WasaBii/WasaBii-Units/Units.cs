@@ -250,7 +250,7 @@ namespace BII.WasaBii.UnitSystem {
                 if (unitStr == string.Empty)
                     return fallbackUnit == null ? Option.None : From<TValue, TUnit>(val, fallbackUnit);
                 else {
-                    var unit = unitDescriptionOf<TUnit>().AllUnits.FirstOrNone(u => 
+                    var unit = AllUnitsOf<TUnit>().FirstOrNone(u => 
                         string.Equals(unitStr, removeAllWhitespaces(u.ShortName), StringComparison.OrdinalIgnoreCase)
                         || string.Equals(unitStr, removeAllWhitespaces(u.LongName), StringComparison.OrdinalIgnoreCase));
                     return unit.Map(u => From<TValue, TUnit>(val, u));

@@ -101,8 +101,8 @@ namespace System.Runtime.CompilerServices {
 
         string makeDrawerFor(IUnitDef unit) => $@"
 [CustomPropertyDrawer(typeof({unit.TypeName}))]
-public sealed class {unit.TypeName}Editor : ValueWithUnitEditor<{unit.TypeName}, {unit.TypeName}.Unit> {{
-    protected override IUnitDescription<{unit.TypeName}.Unit> description =>
+public sealed class {unit.TypeName}Editor : ValueWithUnitEditor<{unit.TypeName}> {{
+    protected override IUnitDescription<IUnit<{unit.TypeName}>> description =>
         new {unit.TypeName}.Unit.Description();
 }}
 ";

@@ -47,7 +47,12 @@ namespace BII.WasaBii.UnitSystem {
         public static TUnit SiUnitOf<TUnit>() where TUnit : IUnit => unitDescriptionOf<TUnit>().SiUnit;
         
         public static IReadOnlyList<TUnit> AllUnitsOf<TUnit>() where TUnit : IUnit => unitDescriptionOf<TUnit>().AllUnits;
-        private static IReadOnlyList<IUnit> allUnitsOfDynamic(Type unitType) => unitDescriptionOfDynamic<IUnit>(unitType).AllUnits;
+        
+        public static IReadOnlyList<IUnit<TValue>> AllUnitsFor<TValue>() where TValue : struct, IUnitValue<TValue> => 
+            unitDescriptionOfDynamic<IUnit<TValue>>(default(TValue).UnitType).AllUnits;
+        
+        private static IReadOnlyList<IUnit> allUnitsOfDynamic(Type unitType) => 
+            unitDescriptionOfDynamic<IUnit>(unitType).AllUnits;
         
         // Basic maths
         
@@ -146,16 +151,16 @@ namespace BII.WasaBii.UnitSystem {
         /// Only <see cref="allowedUnits"/> will be considered if it is not null.
         /// These units will be sorted by their factor. In a performance critical context,
         /// you may want to pass an already sorted list. In this case, pass `true` for <see cref="areUnitsSorted"/>.
-        public static TUnit MostFittingDisplayUnitFor<TUnit>(
-            IUnitValueOf<TUnit> value, 
-            IEnumerable<TUnit> allowedUnits, 
+        public static IUnit<TValue> MostFittingDisplayUnitFor<TValue>(
+            TValue value, 
+            IEnumerable<IUnit<TValue>>? allowedUnits, 
             bool areUnitsSorted = false
-        ) where TUnit : IUnit {
+        ) where TValue : struct, IUnitValue<TValue> {
             var allowed = allowedUnits?.If(!areUnitsSorted, 
-                units => (IEnumerable<TUnit>) units.OrderBy(u => u.SiFactor)
-            ).AsReadOnlyList() ?? AllUnitsOf<TUnit>();
+                units => (IEnumerable<IUnit<TValue>>) units.OrderBy(u => u.SiFactor)
+            ).AsReadOnlyList() ?? AllUnitsFor<TValue>();
 
-            if (!allowed.Any()) throw new ArgumentException($"No allowed units given for {typeof(TUnit)}.");
+            if (!allowed.Any()) throw new ArgumentException($"No allowed units given for {typeof(TValue)}.");
             
             var displayUnit = allowed[0];
             foreach (var unit in allowed.Skip(1)) {
@@ -169,18 +174,18 @@ namespace BII.WasaBii.UnitSystem {
 
         /// Returns the unit which leads to the smallest possible value not less than 1 when applied.
         /// If no unit yields a value >= 1, the unit with the greatest value is returned.
-        public static TUnit MostFittingDisplayUnitFor<TUnit>(
-            IUnitValueOf<TUnit> value
-        ) where TUnit : IUnit => MostFittingDisplayUnitFor(value, AllUnitsOf<TUnit>(), areUnitsSorted: false);
+        public static IUnit<TValue> MostFittingDisplayUnitFor<TValue>(
+            TValue value
+        ) where TValue : struct, IUnitValue<TValue> => MostFittingDisplayUnitFor(value, null);
 
         // TODO CR for maintainer: provide default format with most fitting unit & implement analyzer to prefer this over .ToString()
-        public static string Format<TUnit>(
-            this IUnitValueOf<TUnit> value, 
-            TUnit unit, 
+        public static string Format<TValue>(
+            this TValue value, 
+            IUnit<TValue> unit, 
             int digits, 
             RoundingMode roundingMode, 
             double zeroThreshold = 1E-5f
-        ) where TUnit : IUnit {
+        ) where TValue : struct, IUnitValue<TValue> {
             var doubleValue = value.As(unit);
             var fractalDigits = 0;
             switch (roundingMode) {
@@ -199,9 +204,9 @@ namespace BII.WasaBii.UnitSystem {
             return $"{doubleValue.Round(digits, roundingMode).ToString(formatSpecifier)} {unit.ShortName}";
         }
 
-        public static string Format<TUnit>(
-            this IUnitValueOf<TUnit> value, int digits, RoundingMode roundingMode, double zeroThreshold = 1E-5f
-        ) where TUnit : IUnit => value.Format(
+        public static string Format<TValue>(
+            this TValue value, int digits, RoundingMode roundingMode, double zeroThreshold = 1E-5f
+        ) where TValue : struct, IUnitValue<TValue, IUnit<TValue>> => value.Format(
             MostFittingDisplayUnitFor(value),
             digits,
             roundingMode,

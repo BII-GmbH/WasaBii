@@ -12,16 +12,15 @@ namespace BII.WasaBii.UnitSystem {
     /// The base class for all <see cref="TUnitValue"/> <see cref="PropertyDrawer"/>s. The
     /// drawers for auto-generated unit value types are also auto-generated to inherit this.
     /// </summary>
-    public abstract class ValueWithUnitEditor<TUnitValue, TUnit> : PropertyDrawer 
-    where TUnit : IUnit<TUnitValue>
-    where TUnitValue : struct, IUnitValue<TUnitValue, TUnit> {
+    public abstract class ValueWithUnitEditor<TUnitValue> : PropertyDrawer 
+    where TUnitValue : struct, IUnitValue<TUnitValue, IUnit<TUnitValue>> {
         
         // For each unit type, the last selected unit (eg m vs km) is cached and displayed the next time an
         // editor of this unit type ist drawn
         // ReSharper disable once StaticMemberInGenericType // intentional, related to the generics
         private static int _unitIndex = -1;
 
-        protected abstract IUnitDescription<TUnit> description { get; }
+        protected abstract IUnitDescription<IUnit<TUnitValue>> description { get; }
 
         private int unitIndex { 
             get => _unitIndex == -1 ? _unitIndex = description.AllUnits.ToList().IndexOf(description.SiUnit) : _unitIndex;

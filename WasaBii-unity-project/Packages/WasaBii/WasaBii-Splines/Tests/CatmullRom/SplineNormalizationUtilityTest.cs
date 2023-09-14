@@ -24,7 +24,7 @@ namespace BII.WasaBii.Splines.Tests {
             var uut = SplineTestUtils.ExampleCurvedSpline.Spline;
         
             foreach (var kvp in deNormalizaionSamples) {
-                var location = uut.DeNormalize(kvp.Key);
+                var location = uut.DeNormalizeOrThrow(kvp.Key);
                 Assert.That(location.Value.SiValue, Is.EqualTo(kvp.Value.Value.SiValue).Within(SplineLocationTolerance));
             }
         }
@@ -34,7 +34,7 @@ namespace BII.WasaBii.Splines.Tests {
             var uut = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
         
             foreach (var t in new[] {0, 0.1, 0.3, 0.5, 0.77, 1, 1.5, 1.99, 2}) {
-                var location = uut.DeNormalize(NormalizedSplineLocation.From(t)).Value.AsMeters();
+                var location = uut.DeNormalizeOrThrow(NormalizedSplineLocation.From(t)).Value.AsMeters();
         
                 Assert.That(location, Is.EqualTo(t).Within(0.0001), $"Equidistant DeNormalization for t={t} did not work");
             }
@@ -46,7 +46,7 @@ namespace BII.WasaBii.Splines.Tests {
             var uut = SplineTestUtils.ExampleCurvedSpline.Spline;
         
             foreach (var kvp in normalizaionSamples) {
-                var t = uut.Normalize(kvp.Key);
+                var t = uut.NormalizeOrThrow(kvp.Key);
                 Assert.That(t.Value, Is.EqualTo(kvp.Value.Value).Within(SplineLocationTolerance));
             }
         }
@@ -56,7 +56,7 @@ namespace BII.WasaBii.Splines.Tests {
             var uut = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
         
             foreach (var t in new[] {0, 0.1, 0.3, 0.5, 0.77, 1, 1.5, 1.87, 2}.Select(SplineLocation.From)) {
-                var location = uut.Normalize(t);
+                var location = uut.NormalizeOrThrow(t);
         
                 Assert.That(location, Is.EqualTo(NormalizedSplineLocation.From(t)), $"Equidistant Normalization for t={t} did not work");
             }
@@ -68,7 +68,7 @@ namespace BII.WasaBii.Splines.Tests {
             var spline = SplineTestUtils.ExampleEquidistantLinearSpline.Spline;
             var length = spline[SplineSegmentIndex.Zero].Length;
             
-            var uut = spline.Normalize(length);
+            var uut = spline.NormalizeOrThrow(length);
         
             Assert.That(uut.Value, Is.EqualTo((int) uut));
         }

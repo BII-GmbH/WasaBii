@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
@@ -16,8 +17,10 @@ namespace BII.WasaBii.Splines {
         int SegmentCount { get; }
 
         SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] { get; }
-        SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.Normalize(location)];
+        SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.NormalizeOrThrow(location)];
         SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] { get; }
+
+        ImmutableArray<Length> SegmentOffsetsFromBegin { get; }
         
         GeometricOperations<TPos, TDiff> Ops { get; }
 

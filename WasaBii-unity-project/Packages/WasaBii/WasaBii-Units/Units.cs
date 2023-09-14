@@ -153,7 +153,7 @@ namespace BII.WasaBii.UnitSystem {
         /// you may want to pass an already sorted list. In this case, pass `true` for <see cref="areUnitsSorted"/>.
         public static IUnit<TValue> MostFittingDisplayUnitFor<TValue>(
             TValue value, 
-            IEnumerable<IUnit<TValue>>? allowedUnits, 
+            IEnumerable<IUnit<TValue>>? allowedUnits = null,
             bool areUnitsSorted = false
         ) where TValue : struct, IUnitValue<TValue> {
             var allowed = allowedUnits?.If(!areUnitsSorted, 
@@ -171,12 +171,6 @@ namespace BII.WasaBii.UnitSystem {
 
             return displayUnit;
         }
-
-        /// Returns the unit which leads to the smallest possible value not less than 1 when applied.
-        /// If no unit yields a value >= 1, the unit with the greatest value is returned.
-        public static IUnit<TValue> MostFittingDisplayUnitFor<TValue>(
-            TValue value
-        ) where TValue : struct, IUnitValue<TValue> => MostFittingDisplayUnitFor(value, null);
 
         // TODO CR for maintainer: provide default format with most fitting unit & implement analyzer to prefer this over .ToString()
         public static string Format<TValue>(
@@ -252,34 +246,58 @@ namespace BII.WasaBii.UnitSystem {
             NumberFormatInfo? numberFormatInfo = null
         ) where TValue : struct, IUnitValue<TValue> {
             var formatInfo = numberFormatInfo ?? NumberFormatInfo.InvariantInfo;
-            var regexResult = parseRegex.Match(text.Trim());
-            if (regexResult.Success && double.TryParse(regexResult.Groups[1].Value, numberStyles, formatInfo, out var val)) {
-                var unitStr = removeAllWhitespaces(regexResult.Groups[2].Value);
-                if (unitStr == string.Empty)
-                    return fallbackUnit == null ? Option.None : FromSiValue<TValue>(val * fallbackUnit.SiFactor);
+
+            var chars = text.ToCharArray();
+#region select number span
+            var numberStartIndex = 0;
+            while (numberStartIndex < chars.Length && char.IsWhiteSpace(chars[numberStartIndex])) numberStartIndex++;
+            var numberEndIndex = numberStartIndex;
+            while (numberEndIndex < chars.Length) {
+                if (char.IsDigit(chars[numberEndIndex])) numberEndIndex++;
+                else if (formatInfo.NumberDecimalSeparator.Length == 1
+                    ? chars[numberEndIndex] == formatInfo.NumberDecimalSeparator[0]
+                    : new ArraySegment<char>(chars, numberEndIndex, formatInfo.NumberDecimalSeparator.Length)
+                        .SequenceEqual(formatInfo.NumberDecimalSeparator))
+                    numberEndIndex += formatInfo.NumberDecimalSeparator.Length;
+                else if (formatInfo.NumberGroupSeparator.Length == 1
+                    ? chars[numberEndIndex] == formatInfo.NumberGroupSeparator[0]
+                    : new ArraySegment<char>(chars, numberEndIndex, formatInfo.NumberGroupSeparator.Length)
+                        .SequenceEqual(formatInfo.NumberGroupSeparator))
+                    numberEndIndex += formatInfo.NumberGroupSeparator.Length;
                 else {
-                    var unit = allUnitsOfDynamic(default(TValue).UnitType).FirstOrNone(u => 
-                        string.Equals(unitStr, removeAllWhitespaces(u.ShortName), StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(unitStr, removeAllWhitespaces(u.LongName), StringComparison.OrdinalIgnoreCase));
-                    return unit.Map(u => FromSiValue<TValue>(val * u.SiFactor));
+                    break;
                 }
             }
+#endregion
+            if(numberEndIndex == numberStartIndex || !double.TryParse(
+                new ReadOnlySpan<char>(chars, numberStartIndex, numberEndIndex - numberStartIndex), 
+                numberStyles, formatInfo, out var val)
+            ) return Option.None;
 
+            var unitStartIndex = numberEndIndex;
+            while (unitStartIndex < chars.Length && char.IsWhiteSpace(chars[unitStartIndex])) unitStartIndex++;
+            if (unitStartIndex == chars.Length) 
+                return fallbackUnit == null ? Option.None : FromSiValue<TValue>(val * fallbackUnit.SiFactor);
+
+            foreach (var unit in allUnitsOfDynamic(default(TValue).UnitType)) {
+                foreach (var unitName in new [] { unit.ShortName, unit.LongName }) {
+                    var textI = unitStartIndex;
+                    var unitI = 0;
+                    while (unitI < unitName.Length && char.IsWhiteSpace(unitName[unitI])) unitI++;
+                    while (textI < chars.Length && unitI < unitName.Length) {
+                        if (char.ToLower(chars[textI]) != char.ToLower(unitName[unitI])) break;
+                        do unitI++; while (unitI < unitName.Length && char.IsWhiteSpace(unitName[unitI]));
+                        do textI++; while (textI < chars.Length && char.IsWhiteSpace(chars[textI]));
+                    }
+
+                    if (textI == chars.Length && unitI == unitName.Length)
+                        return Option.Some(FromSiValue<TValue>(val * unit.SiFactor));
+                }
+            }
+            
             return Option.None;
         }
 
-        private static readonly Regex parseRegex = new(@"^([\d\.\,]+)(.*)$");
-
-        // Supposedly, this is the fastest method unless you want to go for weird low level array pool stuff.
-        // https://code-maze.com/replace-whitespaces-string-csharp/
-        private static string removeAllWhitespaces(string original) {
-            var builder = new StringBuilder(original.Length);
-            foreach (var c in original) {
-                if (!char.IsWhiteSpace(c)) builder.Append(c);
-            }
-            return original.Length == builder.Length ? original : builder.ToString();
-        }
-        
     }
 
 }

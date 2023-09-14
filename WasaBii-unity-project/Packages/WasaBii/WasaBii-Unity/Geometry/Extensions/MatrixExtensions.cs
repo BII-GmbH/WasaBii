@@ -4,17 +4,6 @@ namespace BII.WasaBii.Unity.Geometry {
     
     public static class MatrixExtensions {
         
-        public static Vector3 ExtractPosition(this Matrix4x4 matrix) => matrix.GetColumn(3);
-        
-        public static Vector3 ExtractScale(this Matrix4x4 matrix) => new Vector3(
-            matrix.GetColumn(0).magnitude,
-            matrix.GetColumn(1).magnitude,
-            matrix.GetColumn(2).magnitude
-        );
-        
-        public static Quaternion ExtractRotation(this Matrix4x4 m) => 
-            Quaternion.LookRotation( m.GetColumn(2),  m.GetColumn(1));
-
         public static Matrix4x4 ToUnityMatrix(this System.Numerics.Matrix4x4 m) => new Matrix4x4(
             column0: new Vector4(m.M11, m.M12, m.M13, m.M14),
             column1: new Vector4(m.M21, m.M22, m.M23, m.M24),

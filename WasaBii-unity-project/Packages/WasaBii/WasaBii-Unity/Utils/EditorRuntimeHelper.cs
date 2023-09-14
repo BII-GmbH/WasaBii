@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using BII.WasaBii.Core;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -18,11 +19,10 @@ namespace BII.WasaBii.Unity {
         /// Can be called in non-editor code to mark the scene dirty
         /// if in edit mode. This exists to avoid the error-prone 
         /// compiler conditions in normal code and to avoid repetition.
+        [Conditional("UNITY_EDITOR")]
         public static void IfInEditorMarkScenesDirty() {
-            #if UNITY_EDITOR
             if (!Application.isPlaying)
                 EditorSceneManager.MarkAllScenesDirty();
-            #endif
         }
 
         /// <summary>
@@ -33,12 +33,11 @@ namespace BII.WasaBii.Unity {
         /// This exists to avoid the error-prone 
         /// compiler conditions in normal code and to avoid repetition.
         /// </summary>
+        [Conditional("UNITY_EDITOR")]
         public static void IfInEditorMarkObjectsDirty(params UnityEngine.Object[] objects) {
-            #if UNITY_EDITOR
             if (!Application.isPlaying) {
                 objects.ForEach(EditorUtility.SetDirty);
             }
-            #endif
         }
 
         public static void DoOnlyInPlayMode(Action action) {
@@ -50,11 +49,10 @@ namespace BII.WasaBii.Unity {
             #endif
         }
         
+        [Conditional("UNITY_EDITOR")]
         public static void DoOnlyInEditMode(Action action) {
-            #if UNITY_EDITOR
             if (!Application.isPlaying)
                 action();
-            #endif
         }
 
         public static void IfInPlayMode(Action then, Action elseAction) {

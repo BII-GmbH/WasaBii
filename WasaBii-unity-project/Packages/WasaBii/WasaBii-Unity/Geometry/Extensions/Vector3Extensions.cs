@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using BII.WasaBii.Core;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace BII.WasaBii.Unity.Geometry {
         [Pure] public static bool IsValid(this Vector3 vector)
             => !(float.IsNaN(vector.x) || float.IsNaN(vector.y) || float.IsNaN(vector.z));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public static float DistanceTo(this Vector3 v1, Vector3 v2)
             => Vector3.Distance(v1, v2);
 
@@ -29,12 +31,15 @@ namespace BII.WasaBii.Unity.Geometry {
             && lhs.y.IsNearly(rhs.y, equalityThreshold) 
             && lhs.z.IsNearly(rhs.z, equalityThreshold);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public static float Dot(this Vector3 lhs, Vector3 rhs)
             => Vector3.Dot(lhs, rhs);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public static Vector3 Cross(this Vector3 lhs, Vector3 rhs)
             => Vector3.Cross(lhs, rhs);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure] public static bool PointsInSameDirectionAs(this Vector3 lhs, Vector3 rhs) => lhs.Dot(rhs) > 0;
         
         [Pure] public static Vector3 Map(this Vector3 v, Func<float, float> func) => 

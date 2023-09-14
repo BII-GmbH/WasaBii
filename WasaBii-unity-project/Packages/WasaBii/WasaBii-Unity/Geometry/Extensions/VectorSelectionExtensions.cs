@@ -4,11 +4,7 @@ namespace BII.WasaBii.Unity.Geometry {
     // ReSharper disable all InconsistentNaming
 
     /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
-    /// The methods in this class are GENERATED through the
-    /// 'generateVectorSelectionExtensions.sc' scala script
-    /// in the '_CodeGenScripts' folder.
+    /// The methods in this class are generated to emulate the swizzling accessors in GLSL.
     /// </summary>
     public static class VectorSelectionExtensions {
         /// <summary> 

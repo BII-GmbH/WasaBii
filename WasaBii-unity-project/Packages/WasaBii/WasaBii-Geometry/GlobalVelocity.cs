@@ -74,7 +74,7 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static GlobalVelocity operator +(GlobalVelocity left, GlobalVelocity right) => new(left.AsNumericsVector + right.AsNumericsVector);
         [Pure] public static GlobalVelocity operator -(GlobalVelocity left, GlobalVelocity right) => new(left.AsNumericsVector - right.AsNumericsVector);
 
-        [Pure] public static GlobalVelocity operator -(GlobalVelocity Velocity) => new(-Velocity.AsNumericsVector);
+        [Pure] public static GlobalVelocity operator -(GlobalVelocity velocity) => new(-velocity.AsNumericsVector);
 
         [Pure]
         public static GlobalOffset operator *(GlobalVelocity velocity, Duration duration) => 
@@ -112,8 +112,8 @@ namespace BII.WasaBii.Geometry {
             => new(globalVelocity);
 
         [Pure]
-        public static GlobalVelocity Sum(this IEnumerable<GlobalVelocity> Velocitys) => 
-            Velocitys.Select(o => o.AsNumericsVector).Aggregate(System.Numerics.Vector3.Add).AsGlobalVelocity();
+        public static GlobalVelocity Sum(this IEnumerable<GlobalVelocity> velocities) => 
+            velocities.Select(o => o.AsNumericsVector).Aggregate(System.Numerics.Vector3.Add).AsGlobalVelocity();
 
     }
     

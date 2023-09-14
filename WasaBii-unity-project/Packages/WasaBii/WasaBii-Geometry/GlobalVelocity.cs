@@ -42,7 +42,7 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static Builder From(GlobalPosition origin) => new Builder(origin);
 
         /// <summary>
-        /// <inheritdoc cref="TransformProvider.InverseTransformVelocity"/>
+        /// Transforms a velocity from global to local space.
         /// This is the inverse of <see cref="LocalVelocity.ToGlobalWith"/>
         /// </summary>
         /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code> </example>

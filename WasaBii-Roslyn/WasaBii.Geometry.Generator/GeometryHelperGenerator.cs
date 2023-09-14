@@ -22,15 +22,6 @@ public class GeometryHelperGenerator : ISourceGenerator {
         isEnabledByDefault: true
     );
 
-    private static readonly DiagnosticDescriptor Foo = new(
-        id: "WasaBiiGeometryHelpersFoo",
-        title: "Foo",
-        messageFormat: "Look:\n{0}",
-        category: "WasaBii",
-        DiagnosticSeverity.Error,
-        isEnabledByDefault: true
-    );
-
     public void Initialize(GeneratorInitializationContext context) =>
         context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 

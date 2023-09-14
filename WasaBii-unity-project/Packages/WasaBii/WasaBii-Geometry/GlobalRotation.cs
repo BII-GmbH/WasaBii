@@ -55,8 +55,8 @@ namespace BII.WasaBii.Geometry {
         #endif
         [Pure] public static GlobalDirection operator *(GlobalDirection direction, GlobalRotation rotation) => rotation * direction;
         
-        [Pure] public static GlobalVelocity operator *(GlobalRotation rotation, GlobalVelocity direction) => 
-            System.Numerics.Vector3.Transform(direction.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalVelocity();
+        [Pure] public static GlobalVelocity operator *(GlobalRotation rotation, GlobalVelocity velocity) => 
+            System.Numerics.Vector3.Transform(velocity.AsNumericsVector, rotation.AsNumericsQuaternion).AsGlobalVelocity();
 
         [Pure] public static GlobalRotation operator *(GlobalRotation left, GlobalRotation right) => 
         #if UNITY_2022_1_OR_NEWER

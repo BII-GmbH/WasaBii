@@ -9,8 +9,8 @@ using BII.WasaBii.UnitSystem;
 namespace BII.WasaBii.Geometry {
 
     /// <summary>
-    /// A 3D vector that represents a the difference between two world-space positions.
-    /// Can also be viewed as a <see cref="GlobalDirection"/> with a length.
+    /// A 3D vector that represents a linear change of position over time in world-space.
+    /// Can also be viewed as a <see cref="GlobalDirection"/> with a <see cref="Speed"/>.
     /// </summary>
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]

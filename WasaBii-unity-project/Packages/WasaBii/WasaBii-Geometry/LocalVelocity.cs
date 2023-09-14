@@ -9,8 +9,8 @@ using BII.WasaBii.UnitSystem;
 namespace BII.WasaBii.Geometry {
 
     /// <summary>
-    /// A 3D vector that represents a the difference between two positions in the same local space.
-    /// Can also be viewed as a <see cref="LocalDirection"/> with a length.
+    /// A 3D vector that represents a linear change of position over time in local space.
+    /// Can also be viewed as a <see cref="LocalDirection"/> with a <see cref="Speed"/>.
     /// </summary>
     [Serializable]
     [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]

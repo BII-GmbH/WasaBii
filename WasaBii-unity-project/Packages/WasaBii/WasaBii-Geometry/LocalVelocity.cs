@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 
@@ -13,7 +12,7 @@ namespace BII.WasaBii.Geometry {
     /// Can also be viewed as a <see cref="LocalDirection"/> with a <see cref="Speed"/>.
     /// </summary>
     [Serializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, memberType: nameof(Speed), convertToMemberType: nameof(SpeedConstructionExtensions.MetersPerSecond), hasOrientation: true)]
     public partial struct LocalVelocity : 
         LocalDirectionLike<LocalVelocity>, 
         IsLocalVariant<LocalVelocity, GlobalVelocity> {
@@ -27,7 +26,7 @@ namespace BII.WasaBii.Geometry {
         
         public LocalVelocity(UnityEngine.Vector3 toWrap) => AsUnityVector = toWrap;
         public LocalVelocity(System.Numerics.Vector3 toWrap) => AsUnityVector = toWrap.ToUnityVector();
-        public LocalVelocity(float x, float y, float z) => AsUnityVector = new(x, y, z);
+        public LocalVelocity(float x, float y, float z) => AsUnityVector =  new(x, y, z);
         #else
         public System.Numerics.Vector3 AsNumericsVector { get; private set; }
         public LocalVelocity(System.Numerics.Vector3 toWrap) => AsNumericsVector = toWrap;
@@ -37,7 +36,7 @@ namespace BII.WasaBii.Geometry {
         public LocalDirection Direction => new(AsNumericsVector);
         public Speed Magnitude => AsNumericsVector.Length().MetersPerSecond();
 
-        public LocalVelocity(Length x, Length y, Length z) : this((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()) { }
+        public LocalVelocity(Speed x, Speed y, Speed z) : this((float)x.AsMetersPerSecond(), (float)y.AsMetersPerSecond(), (float)z.AsMetersPerSecond()) { }
 
         [Pure] public static Builder From(LocalPosition origin) => new Builder(origin);
 

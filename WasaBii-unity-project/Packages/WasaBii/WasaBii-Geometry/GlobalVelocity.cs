@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 
@@ -13,7 +12,7 @@ namespace BII.WasaBii.Geometry {
     /// Can also be viewed as a <see cref="GlobalDirection"/> with a <see cref="Speed"/>.
     /// </summary>
     [Serializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, memberType: nameof(Speed), convertToMemberType: nameof(SpeedConstructionExtensions.MetersPerSecond), hasOrientation: true)]
     public partial struct GlobalVelocity : 
         GlobalDirectionLike<GlobalVelocity>,
         IsGlobalVariant<GlobalVelocity, LocalVelocity>
@@ -38,7 +37,7 @@ namespace BII.WasaBii.Geometry {
         public GlobalDirection Direction => new(AsNumericsVector);
         public Speed Magnitude => AsNumericsVector.Length().MetersPerSecond();
 
-        public GlobalVelocity(Length x, Length y, Length z) : this((float)x.AsMeters(), (float)y.AsMeters(), (float)z.AsMeters()) { }
+        public GlobalVelocity(Speed x, Speed y, Speed z) : this((float)x.AsMetersPerSecond(), (float)y.AsMetersPerSecond(), (float)z.AsMetersPerSecond()) { }
 
         [Pure] public static Builder From(GlobalPosition origin) => new Builder(origin);
 

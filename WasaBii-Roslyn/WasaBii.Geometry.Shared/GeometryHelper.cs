@@ -29,10 +29,23 @@ public sealed class GeometryHelper : Attribute {
     /// <summary>
     /// Whether the object represents something that has spatial dimensions. For example, a direction has no
     /// length / magnitude, but a position can be viewed as being a certain distance away from (0,0,0).
-    /// When generating the <c>X</c>, <c>Y</c> and <c>Z</c> getter properties for vector wrappers, it will be
-    /// a <c>Length</c> for something with magnitude, but a scalar (double) for something without.
+    /// The scaling operators will only be generated for types with a magnitude.
     /// </summary>
     public readonly bool HasMagnitude;
+    
+    /// <summary>
+    /// When generating the <c>X</c>, <c>Y</c> and <c>Z</c> getter properties for vector wrappers, this will be
+    /// the type. The code generation might expect a constructor taking three of these to exist.
+    /// </summary>
+    /// <remarks>If no type is given explicitly, <see cref="float"/> will be used.</remarks>
+    public readonly string MemberType;
+    
+    /// <summary>
+    /// In case the <see cref="MemberType"/> is something different than the backing fields of the wrapped vector
+    /// type, this is a member or extension function that will be invoked on said backing fields to construct an
+    /// instance of the <see cref="MemberType"/>.
+    /// </summary>
+    public readonly string? ConvertToMemberType;
 
     /// <summary>
     /// Whether the object represents something that is directional. For example, a direction has an orientation,
@@ -48,6 +61,24 @@ public sealed class GeometryHelper : Attribute {
     public GeometryHelper(bool areFieldsIndependent, bool hasMagnitude, bool hasOrientation) {
         AreFieldsIndependent = areFieldsIndependent;
         HasMagnitude = hasMagnitude;
+        MemberType = "float";
+        ConvertToMemberType = null;
+        HasOrientation = hasOrientation;
+    }
+
+    public GeometryHelper(bool areFieldsIndependent, bool hasMagnitude, string memberType, bool hasOrientation) {
+        AreFieldsIndependent = areFieldsIndependent;
+        HasMagnitude = hasMagnitude;
+        MemberType = memberType;
+        ConvertToMemberType = null;
+        HasOrientation = hasOrientation;
+    }
+
+    public GeometryHelper(bool areFieldsIndependent, bool hasMagnitude, string memberType, string convertToMemberType, bool hasOrientation) {
+        AreFieldsIndependent = areFieldsIndependent;
+        HasMagnitude = hasMagnitude;
+        MemberType = memberType;
+        ConvertToMemberType = convertToMemberType;
         HasOrientation = hasOrientation;
     }
 }

@@ -22,6 +22,15 @@ public class GeometryHelperGenerator : ISourceGenerator {
         isEnabledByDefault: true
     );
 
+    private static readonly DiagnosticDescriptor Foo = new(
+        id: "WasaBiiGeometryHelpersFoo",
+        title: "Foo",
+        messageFormat: "Look:\n{0}",
+        category: "WasaBii",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+
     public void Initialize(GeneratorInitializationContext context) =>
         context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 
@@ -52,6 +61,9 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 var hasMagnitude = (bool) attributeArguments.First(a => a.Name == "hasMagnitude").Value;
                 var hasOrientation = (bool) attributeArguments.First(a => a.Name == "hasOrientation").Value;
 
+                var memberType = attributeArguments.FirstOrDefault(a => a.Name == "memberType")?.Value as string ?? "float";
+                var convertToMemberType = attributeArguments.FirstOrDefault(a => a.Name == "convertToMemberType")?.Value as string;
+                
                 var firstFieldTypeModel = wrappedFieldDecls.Count == 1 ? TypeSymbolFor(wrappedFieldDecls[0].type, semanticModel) : null;
                 var isVector = firstFieldTypeModel is INamedTypeSymbol { Name: "Vector3" };
                 var isQuaternion = firstFieldTypeModel is INamedTypeSymbol { Name: "Quaternion" };
@@ -65,11 +77,11 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 var extensionMethods = new List<MemberDeclarationSyntax>();
 
                 if(wrappedFieldDecls.Count == 1)
-                    allMembers.AddRange(mkAccessorProperties(wrappedType, wrappedFieldDecls[0].identifier, hasMagnitude, isUnity));
+                    allMembers.AddRange(mkAccessorProperties(wrappedType, wrappedFieldDecls[0].identifier, memberType, convertToMemberType, isUnity));
                 
-                allMembers.AddRange(mkMapAndScale(typeDecl, areFieldsIndependent, isVector, wrappedFieldDecls, hasMagnitude && hasOrientation, isUnity));
+                allMembers.AddRange(mkMapAndScale(typeDecl, areFieldsIndependent, isVector, wrappedFieldDecls, hasMagnitude && hasOrientation, isUnity, memberType));
                 if (isVector && areFieldsIndependent) {
-                    allMembers.AddRange(mkWithFieldMethods(typeDecl, wrappedFieldDecls[0].identifier, isUnity));
+                    allMembers.AddRange(mkWithFieldMethods(typeDecl, wrappedFieldDecls[0].identifier, memberType, isUnity));
                     allMembers.AddRange(mkMinMax(typeDecl, wrappedFieldDecls[0].identifier));
                 }
 
@@ -148,17 +160,17 @@ public class GeometryHelperGenerator : ISourceGenerator {
         }
     }
 
-    private IEnumerable<MemberDeclarationSyntax> mkAccessorProperties(WrappedType wrappedType, SyntaxToken wrappedIdentifier, bool hasMagnitude, bool isUnity) {
+    private IEnumerable<MemberDeclarationSyntax> mkAccessorProperties(WrappedType wrappedType, SyntaxToken wrappedIdentifier, string memberType, string? convertToMemberType, bool isUnity) {
         MemberDeclarationSyntax mk(string field) {
             var fieldMember = MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 IdentifierName(wrappedIdentifier),
                 IdentifierName(isUnity ? field.ToLower() : field));
             return PropertyDeclaration(
-                    type: hasMagnitude ? IdentifierName("Length") : PredefinedType(Token(SyntaxKind.FloatKeyword)),
+                    type: IdentifierName(memberType),
                     identifier: field
                 ).WithExpressionBody(ArrowExpressionClause(
-                    hasMagnitude ? InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, fieldMember, IdentifierName("Meters"))) : fieldMember
+                    convertToMemberType == null ? fieldMember : InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, fieldMember, IdentifierName(convertToMemberType)))
                 ))
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword)))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
@@ -190,7 +202,10 @@ public class GeometryHelperGenerator : ISourceGenerator {
     
     private IEnumerable<MemberDeclarationSyntax> mkMapAndScale(TypeDeclarationSyntax typeDecl,
         bool areFieldsIndependent, bool isVector,
-        IReadOnlyList<(TypeSyntax type, SyntaxToken id)> fields, bool hasMagnitudeAndDirection, bool isUnity) {
+        IReadOnlyList<(TypeSyntax type, SyntaxToken id)> fields, 
+        bool hasMagnitudeAndDirection, bool isUnity,
+        string memberType
+    ) {
         if (fields.Count > 1) {
             for (var i = 0; i < fields.Count; i++) {
                 var fieldNameWithoutUnderscore = fields[i].id.Text.Trim('_');
@@ -235,7 +250,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     ParameterList(Parameter(
                         List(Enumerable.Empty<AttributeListSyntax>()),
                         TokenList(),
-                        GenericName(Identifier("Func"), TypeArgumentList(IdentifierName("Length"), IdentifierName("Length"))),
+                        GenericName(Identifier("Func"), TypeArgumentList(IdentifierName(memberType), IdentifierName(memberType))),
                         Identifier("mapping"),
                         null
                     )),
@@ -312,11 +327,11 @@ public class GeometryHelperGenerator : ISourceGenerator {
         yield return mkBinaryOperator(result, token, parameter2, parameter1, expression);
     }
 
-    private IEnumerable<MethodDeclarationSyntax> mkWithFieldMethods(TypeDeclarationSyntax typeDecl, SyntaxToken fieldId, bool isUnity) {
+    private IEnumerable<MethodDeclarationSyntax> mkWithFieldMethods(TypeDeclarationSyntax typeDecl, SyntaxToken fieldId, string memberType, bool isUnity) {
         var fields = new[] { "X", "Y", "Z" };
         for(var i = 0; i < fields.Length; i++)
             foreach (var isLength in new[]{ true, false }) {
-                TypeSyntax type = isLength ? IdentifierName("Length") : PredefinedType(Token(SyntaxKind.FloatKeyword));
+                TypeSyntax type = isLength ? IdentifierName(memberType) : PredefinedType(Token(SyntaxKind.FloatKeyword));
 
                 IEnumerable<ExpressionSyntax> asArguments(IEnumerable<string> args)
                     => args.Select(a => isLength

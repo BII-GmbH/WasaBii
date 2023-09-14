@@ -22,6 +22,8 @@ public interface IUnit {
         where TNumerator : IUnit where TDenominator : IUnit { }
 }
 
+public interface IUnit<out TValue> : IUnit { }
+
 // TODO CR: ensure every unit has this and that the description type fits somehow
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class UnitMetadataAttribute : Attribute {

@@ -137,7 +137,6 @@ namespace BII.WasaBii.Unity {
         /// <param name="afterwards">
         /// The coroutine to execute after this coroutine is done.
         /// </param>
-        // ReSharper disable once InvalidXmlDocComment
         public static IEnumerator AndThen(this IEnumerator coroutine, IEnumerator afterwards) {
             yield return coroutine;
             yield return afterwards;
@@ -148,7 +147,6 @@ namespace BII.WasaBii.Unity {
         /// Mostly used for 'cleanup code', especially in combination with <see cref="YieldWhile"/>.
         /// </summary>
         /// <param name="afterwards">The block of code to be executed once the execution of this coroutine ends.</param>
-        // ReSharper disable once InvalidXmlDocComment
         public static IEnumerator Afterwards(this IEnumerator coroutine, Action afterwards) {
             var flattened = coroutine.Flatten();
             try {
@@ -234,6 +232,7 @@ namespace BII.WasaBii.Unity {
         /// <param name="action">
         /// The action containing a single step of a coroutine and returns a value to be yielded repeatedly.
         /// </param>
+        /// <param name="delayType"> Defines the point in time when the <paramref name="action"/> is executed. </param>
         /// <param name="times">
         /// The optional number of times the passed action is called and yielded.
         /// </param>
@@ -275,7 +274,6 @@ namespace BII.WasaBii.Unity {
         /// A function which returns the object which should be yielded to the Unity runtime
         /// after each condition check. If null, yields null and waits for the next frame.
         /// </param>
-        // ReSharper disable once InvalidXmlDocComment
         [Pure]
         public static IEnumerator WaitUntil(
             Condition condition, 
@@ -293,7 +291,7 @@ namespace BII.WasaBii.Unity {
         /// <param name="afterwards">
         /// The block of code to be executed once the specified number of frames have passed.
         /// </param>
-        // ReSharper disable all InvalidXmlDocComment
+        /// <param name="delayType"> Defines the point in time when <paramref name="afterwards"/> is executed. </param>
         [Pure]
         public static IEnumerator DelayForFrames(
             uint frames, 
@@ -333,10 +331,7 @@ namespace BII.WasaBii.Unity {
         /// </summary>
         /// <param name="action">The body of the loop</param>
         /// <param name="seconds">Number of seconds the action is executed for.</param>
-        /// <param name="fixedUpdate">
-        /// If true, executes the action once per fixedUpdate.
-        /// Otherwise once per frame. Defaults to false.
-        /// </param>
+        /// <param name="delayType"> Defines the point in time when the <paramref name="action"/> is executed. </param>
         [Pure]
         public static IEnumerator RepeatForSeconds(
             float seconds, 
@@ -351,14 +346,25 @@ namespace BII.WasaBii.Unity {
         }
 
         /// <summary>
+        /// Repeats the passed action each frame (or each fixedUpdate) until
+        /// a given <see cref="duration"/> has passed.
+        /// </summary>
+        /// <param name="action">The body of the loop</param>
+        /// <param name="duration">The duration the action is executed for.</param>
+        /// <param name="delayType"> Defines the point in time when the <paramref name="action"/> is executed. </param>
+        [Pure]
+        public static IEnumerator RepeatFor(
+            Duration duration,
+            Action action,
+            DelayType delayType = DelayType.Default
+        ) => RepeatForSeconds((float)duration.AsSeconds(), action, delayType);
+
+        /// <summary>
         /// Repeats the passed action a number of times as a coroutine.
         /// </summary>
         /// <param name="action">The body of the loop</param>
         /// <param name="frames">Number of times the body is executed</param>
-        /// <param name="fixedUpdate">
-        /// If true, executes the action once per fixedUpdate.
-        /// Otherwise once per frame. Defaults to false.
-        /// </param>
+        /// <param name="delayType"> Defines the point in time when the <paramref name="action"/> is executed. </param>
         [Pure]
         public static IEnumerator RepeatForFrames(
             uint frames, 
@@ -377,6 +383,7 @@ namespace BII.WasaBii.Unity {
         /// </summary>
         /// <param name="action">The body of the loop</param>
         /// <param name="condition">Execute the action as long as this function returns true</param>
+        /// <param name="delayType"> Defines the point in time when the <paramref name="action"/> is executed. </param>
         [Pure]
         public static IEnumerator RepeatWhile(
             Condition condition, 

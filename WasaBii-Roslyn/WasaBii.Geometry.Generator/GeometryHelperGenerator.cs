@@ -151,7 +151,11 @@ public class GeometryHelperGenerator : ISourceGenerator {
         }
     }
 
-    private IEnumerable<MemberDeclarationSyntax> mkAccessorProperties(WrappedType wrappedType, SyntaxToken wrappedIdentifier, string memberType, string? convertToMemberType, bool isUnity) {
+    private IEnumerable<MemberDeclarationSyntax> mkAccessorProperties(
+        WrappedType wrappedType, SyntaxToken wrappedIdentifier, 
+        string memberType, string? convertToMemberType, 
+        bool isUnity
+    ) {
         MemberDeclarationSyntax mk(string field) {
             var fieldMember = MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
@@ -161,7 +165,10 @@ public class GeometryHelperGenerator : ISourceGenerator {
                     type: IdentifierName(memberType),
                     identifier: field
                 ).WithExpressionBody(ArrowExpressionClause(
-                    convertToMemberType == null ? fieldMember : InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, fieldMember, IdentifierName(convertToMemberType)))
+                    convertToMemberType == null 
+                        ? fieldMember
+                        : InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
+                            fieldMember, IdentifierName(convertToMemberType)))
                 ))
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword)))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
@@ -174,8 +181,10 @@ public class GeometryHelperGenerator : ISourceGenerator {
         };
     }
 
-    private MethodDeclarationSyntax mkCopyMethod(TypeDeclarationSyntax typeDecl, SyntaxToken identifier, ParameterListSyntax parameters, ArgumentListSyntax arg, bool isStatic = false) => 
-        MethodDeclaration(
+    private MethodDeclarationSyntax mkCopyMethod(
+        TypeDeclarationSyntax typeDecl, SyntaxToken identifier, 
+        ParameterListSyntax parameters, ArgumentListSyntax arg, bool isStatic = false
+    ) => MethodDeclaration(
             attributeLists: AttributeList(Pure),
             modifiers: isStatic ? TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword)) : TokenList(Token(SyntaxKind.PublicKeyword)),
             returnType: IdentifierName(typeDecl.Identifier),
@@ -318,7 +327,9 @@ public class GeometryHelperGenerator : ISourceGenerator {
         yield return mkBinaryOperator(result, token, parameter2, parameter1, expression);
     }
 
-    private IEnumerable<MethodDeclarationSyntax> mkWithFieldMethods(TypeDeclarationSyntax typeDecl, SyntaxToken fieldId, string memberType, bool isUnity) {
+    private IEnumerable<MethodDeclarationSyntax> mkWithFieldMethods(
+        TypeDeclarationSyntax typeDecl, SyntaxToken fieldId, string memberType, bool isUnity
+    ) {
         var fields = new[] { "X", "Y", "Z" };
         for(var i = 0; i < fields.Length; i++)
             foreach (var isLength in new[]{ true, false }) {

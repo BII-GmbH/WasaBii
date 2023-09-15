@@ -45,6 +45,9 @@ public sealed class GeometryHelper : Attribute {
     /// type, this is a member or extension function that will be invoked on said backing fields to construct an
     /// instance of the <see cref="MemberType"/>.
     /// </summary>
+    /// <remarks>Note that this string will be pasted into the generated code. If it cannot be invoked as a
+    /// parameterless function on the <see cref="MemberType"/>, then there will be compiler errors in the
+    /// generated code. It is best practice to use <c>nameof()</c> on a function you are confident will work.</remarks>
     public readonly string? ConvertToMemberType;
 
     /// <summary>

@@ -4,7 +4,8 @@
     "references": [
         "WasaBii.Units",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "WasaBii.Core"
     ],
     "includePlatforms": [
         "Editor"

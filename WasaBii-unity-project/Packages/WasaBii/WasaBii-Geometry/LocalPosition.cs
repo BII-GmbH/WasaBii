@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.Contracts;
-using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 
@@ -11,7 +10,7 @@ namespace BII.WasaBii.Geometry {
     /// Can also be viewed as a <see cref="LocalOffset"/> from the local space origin.
     /// </summary>
     [Serializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, memberType: nameof(Length), convertToMemberType: nameof(LengthConstructionExtensions.Meters), hasOrientation: false)]
     public partial struct LocalPosition : IsLocalVariant<LocalPosition, GlobalPosition> {
 
         public static readonly LocalPosition Zero = new(System.Numerics.Vector3.Zero);

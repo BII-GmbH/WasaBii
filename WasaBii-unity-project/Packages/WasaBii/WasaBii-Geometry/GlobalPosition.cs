@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 
@@ -10,7 +9,7 @@ namespace BII.WasaBii.Geometry {
     /// A 3D vector that represents a world-space position.
     /// </summary>
     [Serializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: false)]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, memberType: nameof(Length), convertToMemberType: nameof(LengthConstructionExtensions.Meters), hasOrientation: false)]
     public partial struct GlobalPosition : IsGlobalVariant<GlobalPosition, LocalPosition> {
         
         public static readonly GlobalPosition Zero = new(System.Numerics.Vector3.Zero);

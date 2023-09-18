@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
 
@@ -13,7 +12,7 @@ namespace BII.WasaBii.Geometry {
     /// Can also be viewed as a <see cref="GlobalDirection"/> with a length.
     /// </summary>
     [Serializable]
-    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, hasOrientation: true)]
+    [GeometryHelper(areFieldsIndependent: true, hasMagnitude: true, memberType: nameof(Length), convertToMemberType: nameof(LengthConstructionExtensions.Meters), hasOrientation: true)]
     public partial struct GlobalOffset : 
         GlobalDirectionLike<GlobalOffset>,
         IsGlobalVariant<GlobalOffset, LocalOffset>
@@ -82,6 +81,10 @@ namespace BII.WasaBii.Geometry {
         [Pure] public static GlobalOffset operator -(GlobalOffset left, GlobalOffset right) => new(left.AsNumericsVector - right.AsNumericsVector);
 
         [Pure] public static GlobalOffset operator -(GlobalOffset offset) => new(-offset.AsNumericsVector);
+
+        [Pure]
+        public static GlobalVelocity operator/(GlobalOffset offset, Duration duration) => 
+            new(offset.AsNumericsVector / (float)duration.AsSeconds());
 
         public readonly struct Builder {
             private readonly GlobalPosition origin;

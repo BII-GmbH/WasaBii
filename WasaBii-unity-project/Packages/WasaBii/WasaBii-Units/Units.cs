@@ -51,9 +51,6 @@ namespace BII.WasaBii.UnitSystem {
         public static IReadOnlyList<IUnit<TValue>> AllUnitsFor<TValue>() where TValue : struct, IUnitValue<TValue> => 
             unitDescriptionOfDynamic<IUnit<TValue>>(default(TValue).UnitType).AllUnits;
         
-        private static IReadOnlyList<IUnit> allUnitsOfDynamic(Type unitType) => 
-            unitDescriptionOfDynamic<IUnit>(unitType).AllUnits;
-        
         // Basic maths
         
         public static TSelf Abs<TSelf>(this TSelf val)
@@ -277,9 +274,9 @@ namespace BII.WasaBii.UnitSystem {
             var unitStartIndex = numberEndIndex;
             while (unitStartIndex < chars.Length && char.IsWhiteSpace(chars[unitStartIndex])) unitStartIndex++;
             if (unitStartIndex == chars.Length) 
-                return fallbackUnit == null ? Option.None : FromSiValue<TValue>(val * fallbackUnit.SiFactor);
+                return fallbackUnit == null ? Option.None : From(val, fallbackUnit);
 
-            foreach (var unit in allUnitsOfDynamic(default(TValue).UnitType)) {
+            foreach (var unit in AllUnitsFor<TValue>()) {
                 foreach (var unitName in new [] { unit.ShortName, unit.LongName }) {
                     var textI = unitStartIndex;
                     var unitI = 0;
@@ -291,7 +288,7 @@ namespace BII.WasaBii.UnitSystem {
                     }
 
                     if (textI == chars.Length && unitI == unitName.Length)
-                        return Option.Some(FromSiValue<TValue>(val * unit.SiFactor));
+                        return Option.Some(From(val, unit));
                 }
             }
             

@@ -5,20 +5,18 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Unity {
     /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
     /// Singleton that provides static methods to query all components which
     /// inherit from <see cref="QueryableBehaviour"/> in a scene.
-    /// <br/><br/>
+    /// 
     /// You can either query all objects in the scene using <see cref="All{T}"/>
     /// or only the currently active ones using <see cref="AllActive{T}"/>.
-    /// <br/><br/>
+    /// 
     /// By using <see cref="AllWith{T}"/> and <see cref="AllActiveWith{T}"/>
     /// you can specify an arbitrary number of additional queryable behaviour
     /// types that must also be present on the objects to be queried.
     /// The additional type constraints are passed as <see cref="Type"/>
     /// objects, using `typeof(Foo)` or `bar.GetType()`.
-    /// <br/><br/>
+    /// 
     /// Every method returns an `IEnumerable` that can only be traversed <b>once</b>.
     /// </summary>
     public class Query : LazySingleton<Query> {

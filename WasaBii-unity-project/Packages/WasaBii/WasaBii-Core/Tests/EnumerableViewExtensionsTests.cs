@@ -3,13 +3,13 @@ using NUnit.Framework;
 
 namespace BII.WasaBii.Core.Tests {
     
-    public class PairwiseEnumerableExtensionsTests {
+    public class EnumerableViewExtensionsTests {
         
         [Test]
         public void Grouped_WhenSourceEmpty_ThenEmptyResultAndDoesNotThrow() {
             var source = Array.Empty<int>();
             
-            Assert.That(source.Grouped(), Is.Empty);
+            Assert.That(source.Grouped(groupSize: 2), Is.Empty);
         }
         
         [Test]
@@ -66,7 +66,7 @@ namespace BII.WasaBii.Core.Tests {
         public void Sliding_WhenSourceEmpty_ThenEmptyResultAndDoesNotThrow() {
             var source = Array.Empty<int>();
             
-            Assert.That(source.Sliding(), Is.Empty);
+            Assert.That(source.Sliding(slideSize: 2), Is.Empty);
         }
         
         [Test]

@@ -4,8 +4,6 @@ using System.Runtime.CompilerServices;
 
 namespace BII.WasaBii.Core {
     
-    // TODO CR PREMERGE: remove for performance?
-    
     public static class GenericExtensions {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TRes If<T, TRes>(this T t, bool condition, Func<T, TRes> thenFunc, Func<T, TRes> elseFunc) => 

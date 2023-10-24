@@ -150,16 +150,18 @@ namespace BII.WasaBii.Unity.Geometry {
 #endregion Mapping
 #region Expansion
 
-        /// Expands the vector to a 3D one by appending <see cref="z"/> as the last value.
+        /// <summary> Expands the vector to a 3D one by appending <see cref="z"/> as the last value. </summary>
         [Pure]
         public static Vector3 WithZ(this Vector2 xy, float z) => new(xy.x, xy.y, z);
 
+        /// <summary>
         /// Expands the vector to a 3D one by inserting <see cref="y"/> in between the
         /// existing values, transforming the original y component to the z dimension.
+        /// </summary>
         [Pure]
         public static Vector3 AsXZWithY(this Vector2 xz, float y) => new(xz.x, y, xz.y);
 
-        /// Expands the vector to a 4D one by appending <see cref="w"/> as the last value.
+        /// <summary> Expands the vector to a 4D one by appending <see cref="w"/> as the last value. </summary>
         [Pure]
         public static Vector4 WithW(this Vector3 xyz, float w) => new(xyz.x, xyz.y, xyz.z, w);
 

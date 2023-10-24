@@ -7,9 +7,11 @@ using BII.WasaBii.Splines.Maths;
 
 namespace BII.WasaBii.Splines.Bezier {
     
+    /// <summary>
     /// Contains generic factory methods for building bezier splines.
     /// For explicitly typed variants with <see cref="GeometricOperations{TPos,TDiff}"/>
     /// included, use `UnitySpline`, `GlobalSpline` or `LocalSpline` in the Unity assembly.
+    /// </summary>
     public static class BezierSpline {
 
         [Pure]

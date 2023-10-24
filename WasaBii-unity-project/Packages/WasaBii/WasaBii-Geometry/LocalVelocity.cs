@@ -56,13 +56,13 @@ namespace BII.WasaBii.Geometry {
         /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) = local</code> </example>
         [Pure] public LocalVelocity TransformBy(LocalPose localParent) => localParent.Rotation * this;
         
-        /// Projects this Velocity onto the given direction.
+        /// <summary> Projects this Velocity onto the given direction. </summary>
         [Pure] public LocalVelocity Project(LocalDirection onNormal) => this.Dot(onNormal) * onNormal;
 
-        /// Projects this Velocity onto the plane defined by its normal.
+        /// <summary> Projects this Velocity onto the plane defined by its normal. </summary>
         [Pure] public LocalVelocity ProjectOnPlane(LocalDirection planeNormal) => this - this.Project(planeNormal);
 
-        /// Reflects this Velocity off the plane defined by the given normal
+        /// <summary> Reflects this Velocity off the plane defined by the given normal. </summary>
         [Pure]
         public LocalVelocity Reflect(LocalDirection planeNormal) => this - 2 * this.Project(planeNormal);
 

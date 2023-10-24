@@ -12,8 +12,10 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines.CatmullRom {
    
+    /// <summary>
     /// Describes the area between two spline handles (p1 and p2), 
-    /// with the supporting handles p0 and p3
+    /// with the supporting handles p0 and p3.
+    /// </summary>
     internal readonly struct CatmullRomSegment<TPos, TDiff> 
         where TPos : unmanaged 
         where TDiff : unmanaged {
@@ -70,13 +72,15 @@ namespace BII.WasaBii.Splines.CatmullRom {
     internal static class CatmullRomSegment {
         public const double EndOfSplineOvershootTolerance = 0.01;
         
+        /// <summary>
         /// Given a SplineNode and a normalized location relative to that node,
         /// this method returns the four nodes around that location that are needed
         /// to calculate the position / tangent / etc. of that location on the spline.
         /// 
         /// The given location will be between the nodes P1 and P2 of the returned segment.
         /// The exact position between P1 and P2 is determined by the returned NormalizedOvershoot:
-        /// 0.0f is at P1, 1.0f is at P2 and the values in between are lerped. 
+        /// 0.0f is at P1, 1.0f is at P2 and the values in between are lerped.
+        /// </summary>
         public static (CatmullRomSegment<TPos, TDiff> Segment, double NormalizedOvershoot)? 
             CatmullRomSegmentAt<TPos, TDiff>(CatmullRomSpline<TPos, TDiff> spline, NormalizedSplineLocation location) 
         where TPos : unmanaged 

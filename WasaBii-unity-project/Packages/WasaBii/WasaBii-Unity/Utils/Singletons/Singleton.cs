@@ -1,15 +1,14 @@
 #nullable enable
 
-using JetBrains.Annotations;
 using UnityEngine;
 
 namespace BII.WasaBii.Unity {
     
-    /// Non-generic marker interface.
+    /// &lt;summary&gt; Non-generic marker interface for type safety. &lt;/summary&gt;
     public interface Singleton { }
 
     /// <summary>
-    /// Any BaseBehaviour that is a singleton should only be found once.
+    /// Any MonoBehaviour that is a singleton should only be found once.
     /// Enables static access to this single object by using <code>Classname.Instance</code>.
     /// </summary>
     /// <typeparam name="T">The implementing type itself</typeparam>

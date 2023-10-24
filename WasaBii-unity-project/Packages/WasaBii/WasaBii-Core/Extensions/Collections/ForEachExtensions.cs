@@ -5,8 +5,10 @@ namespace BII.WasaBii.Core {
     
     public static class ForEachExtensions {
         
+        /// <summary>
         /// Executes the specified action with side effects for each element in this sequence,
         /// thereby consuming the sequence if it was only iterable once.
+        /// </summary>
         public static void ForEach<T>(this IEnumerable<T> sequence, Action<T> action) {
             foreach (var item in sequence) action(item);
         }
@@ -16,10 +18,12 @@ namespace BII.WasaBii.Core {
             foreach (var (t1, t2) in sequence) action(t1, t2);
         }
 
+        /// <summary>
         /// Executes the specified action with side effects for each element in this sequence,
         /// thereby consuming the sequence if it was only iterable once. The action also takes
         /// the index of the element as second argument, thus allowing you to potentially replace
         /// simple counting for loops with this function.
+        /// </summary>
         public static void ForEachWithIndex<T>(this IEnumerable<T> sequence, Action<T, int> action) => 
             sequence.ZipWithIndices().ForEach(action);
         

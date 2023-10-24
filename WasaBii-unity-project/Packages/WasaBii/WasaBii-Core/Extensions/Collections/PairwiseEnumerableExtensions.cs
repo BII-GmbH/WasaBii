@@ -5,6 +5,8 @@ using System.Linq;
 namespace BII.WasaBii.Core {
     public static class PairwiseEnumerableExtensions {
         
+        // TODO CR PREMERGE: docs?
+        
         public static IEnumerable<IReadOnlyList<T>> Grouped<T>(this IReadOnlyList<T> source, int groupSize = 2, bool withPartial = true) {
             if (groupSize < 2)
                 throw new ArgumentException($"The group size ({groupSize}) cannot be less than 2!");

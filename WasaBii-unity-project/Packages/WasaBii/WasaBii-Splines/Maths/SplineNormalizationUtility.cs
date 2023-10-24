@@ -5,16 +5,18 @@ using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines.Maths {
+    /// <summary>
     /// When querying positions, tangents etc on a spline, the parameters t or location can be used
     /// t is a normalized parameter, which means that the nodes of the spline are at 0, 1, 2, ..
-    /// and 0.5 is for instance in the middle between node 0 and 1
+    /// and 0.5 is for instance in the middle between node 0 and 1.
     /// Location is denormalized, which means that it is the position location units away from the start node
-    /// along the spline
+    /// along the spline.
     /// 
-    /// This class contains function for converting from t to location and back
+    /// This class contains function for converting from t to location and back.
     /// 
-    /// In general, using t is more performant, especially on splines with many nodes
-    /// But location is generally used more
+    /// In general, using t is more performant, especially on splines with many nodes.
+    /// But location is generally used more.
+    /// </summary>
     internal static class SplineNormalizationUtility {
         
         public sealed class SplineLocationOutOfRangeError : Exception
@@ -40,6 +42,7 @@ namespace BII.WasaBii.Splines.Maths {
             }
         }
 
+        /// <summary>
         /// Calculating a normalized spline location is normally not possible when
         /// the non-normalized location is greater than the given spline's length.
         /// This is the tolerance the location can be above the length while being
@@ -47,6 +50,7 @@ namespace BII.WasaBii.Splines.Maths {
         ///
         /// Such a threshold is necessary since the normalization algorithm is inherently inaccurate
         /// because calculating a spline's length is always an approximation of its actual length.
+        /// </summary>
         public static readonly SplineLocation DefaultSplineLocationOvershootTolerance = 0.1.Meters();
 
         /// <summary>
@@ -148,6 +152,7 @@ namespace BII.WasaBii.Splines.Maths {
         ) where TPos : unmanaged where TDiff : unmanaged =>
             spline.DeNormalize(t, overshootTolerance).ResultOrThrow();
 
+        /// <summary>
         /// For a given node on a spline and locations relative to it,
         /// this method will normalize all of these locations and return them in the same order.
         /// However, the provided locations have to be sorted in ascending order,
@@ -158,6 +163,7 @@ namespace BII.WasaBii.Splines.Maths {
         /// 
         /// This method is a more performant alternative to <see cref="Normalize{TPos,TDiff}"/>
         /// when normalizing multiple locations at once.
+        /// </summary>
         public static IEnumerable<NormalizedSplineLocation> BulkNormalizeOrdered<TPos, TDiff>(
             this Spline<TPos, TDiff> spline,
             IEnumerable<SplineLocation> locations,

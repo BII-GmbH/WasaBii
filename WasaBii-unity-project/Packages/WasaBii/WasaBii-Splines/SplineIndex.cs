@@ -1,9 +1,11 @@
 using System;
 
 namespace BII.WasaBii.Splines {
+    /// <summary>
     /// A typed wrapper around an int for indexing the handles of a spline.
     /// Handles are the points that describe a spline and its trajectory.
     /// In our case, all handles (except the margin ones) will be interpolated.
+    /// </summary>
     [Serializable]
     public readonly struct SplineHandleIndex : IEquatable<SplineHandleIndex> {
         public static readonly SplineHandleIndex Zero = At(0);
@@ -54,8 +56,10 @@ namespace BII.WasaBii.Splines {
         public override int GetHashCode() => Value.GetHashCode();
     }
     
+    /// <summary>
     /// A typed wrapper around an int for indexing a segment of a spline.
     /// A segment is the curve of a spline between two handles.
+    /// </summary>
     [Serializable]
     public readonly struct SplineSegmentIndex : IEquatable<SplineSegmentIndex> {
         public static readonly SplineSegmentIndex Zero = At(0);

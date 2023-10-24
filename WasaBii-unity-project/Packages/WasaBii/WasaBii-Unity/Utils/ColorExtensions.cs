@@ -4,11 +4,6 @@ using UnityEngine;
 
 namespace BII.WasaBii.Unity {
     
-    /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
-    /// The class holding all extension methods specific to colors in the core library.
-    /// </summary>
     public static class ColorExtensions {
         
         /// <summary>

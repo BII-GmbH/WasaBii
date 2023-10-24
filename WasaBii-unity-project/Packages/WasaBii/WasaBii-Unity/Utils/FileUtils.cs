@@ -9,9 +9,11 @@ namespace BII.WasaBii.Unity {
 
     public static class FileUtils {
 
+        /// <summary>
         /// Compares if two path strings refer to the same file or folder.
         /// Works, even if paths are relative / absolute or
         /// use different separator characters.
+        /// </summary>
         public static bool IsSamePathAs(this string original, string other) {
             // Note DG: Since C# has no in-build way to do this, this code has been adapted from
             // https://stackoverflow.com/questions/2281531/how-can-i-compare-directory-paths-in-c
@@ -31,9 +33,11 @@ namespace BII.WasaBii.Unity {
             ) == 0;
         }
         
+        /// <summary>
         /// Returns the file paths of all files in the directory <paramref name="path"/>
         /// that match the <paramref name="searchPattern"/>.
         /// If the Directory does not exist, an empty Enumerable is returned.
+        /// </summary>
         public static IEnumerable<string> GetFilePathsInDirectory(string path, string searchPattern) {
             if (!Directory.Exists(path))
                 return Enumerable.Empty<string>();
@@ -42,9 +46,11 @@ namespace BII.WasaBii.Unity {
                 .Select(f => f.Replace('\\', '/'));
         }
 
+        /// <summary>
         /// Returns all sub-directories in the directory <paramref name="rootDir"/>
         /// that match the <paramref name="searchPattern"/>.
         /// If <paramref name="rootDir"/> does not exist, an empty Enumerable is returned.
+        /// </summary>
         public static IEnumerable<string> GetSubDirectories(string rootDir, string searchPattern) {
             if (!Directory.Exists(rootDir))
                 return Enumerable.Empty<string>();
@@ -64,12 +70,14 @@ namespace BII.WasaBii.Unity {
         private static readonly Regex invalidFileCharacters =
             new Regex("[" + Regex.Escape(string.Join("", Path.GetInvalidFileNameChars())) + "]");
 
-        /// Returns true if the file name contains no invalid characters (like /, \, etc.)
+        /// <summary> Returns true if the file name contains no invalid characters (like /, \, etc.). </summary>
         public static bool IsValidFileName(string fileName) =>
             !string.IsNullOrEmpty(fileName) &&
             !invalidFileCharacters.IsMatch(fileName);
 
-        /// Copies all files and Subdirectories form <paramref name="sourceDir"/> into <paramref name="targetDir"/>
+        /// <summary>
+        /// Copies all files and Subdirectories form <paramref name="sourceDir"/> into <paramref name="targetDir"/>.
+        /// </summary>
         public static void CopyDirectoryContents(string sourceDir, string targetDir, bool overwrite) {
             Directory.CreateDirectory(targetDir);
             var sourceDirInfo = new DirectoryInfo(sourceDir);

@@ -5,8 +5,10 @@ using BII.WasaBii.UnitSystem;
 namespace BII.WasaBii.Splines.CatmullRom {
     public static class CatmullRomSplineCopyUtils {
     
+        /// <summary>
         /// Creates a new spline with a similar trajectory as <paramref name="original"/>, but with all handle
         /// positions being moved by a certain offset which depends on the spline's tangent at these points.
+        /// </summary>
         public static CatmullRomSpline<TPos, TDiff> CopyWithOffset<TPos, TDiff>(
             CatmullRomSpline<TPos, TDiff> original, Func<TDiff, TDiff> tangentToOffset
         ) where TPos : unmanaged where TDiff : unmanaged {
@@ -29,10 +31,12 @@ namespace BII.WasaBii.Splines.CatmullRom {
             );
         }
 
+        /// <summary>
         /// Creates a new spline with the same trajectory as
         /// <paramref name="original"/>, but with all handle positions
         /// being moved along a certain <paramref name="offset"/>,
         /// independent of the spline's tangent at these points.
+        /// </summary>
         public static CatmullRomSpline<TPos, TDiff> CopyWithStaticOffset<TPos, TDiff>(
             CatmullRomSpline<TPos, TDiff> original, TDiff offset
         ) where TPos : unmanaged where TDiff : unmanaged {
@@ -46,9 +50,11 @@ namespace BII.WasaBii.Splines.CatmullRom {
             );
         }
         
+        /// <summary>
         /// Creates a new spline with a similar trajectory as
         /// <paramref name="original"/>, but different spacing
         /// between the non-margin handles.
+        /// </summary>
         public static CatmullRomSpline<TPos, TDiff> CopyWithDifferentHandleDistance<TPos, TDiff>(
             CatmullRomSpline<TPos, TDiff> original, Length desiredHandleDistance
         ) where TPos : unmanaged where TDiff : unmanaged =>

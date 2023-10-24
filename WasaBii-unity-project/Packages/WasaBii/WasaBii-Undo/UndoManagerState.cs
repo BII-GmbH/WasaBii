@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace BII.WasaBii.Undo {
 
-    /// Contains the undo buffer based state for the UndoManager and encapsulates it
+    /// <summary> Contains the undo buffer based state for the UndoManager and encapsulates it. </summary>
     internal sealed class UndoManagerState<TLabel> {
 
         // Naming conventions are private-based, as they are private to all but the 

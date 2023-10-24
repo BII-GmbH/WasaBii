@@ -4,25 +4,27 @@ using BII.WasaBii.Core;
 
 namespace BII.WasaBii.Undo {
 
+    /// <summary>
     /// Class that handles the current behavior of the UndoManager.
     /// It manages completed undo actions and the actual undo and redo logic.
+    /// </summary>
     public abstract class UndoBuffer<TLabel> {
 
         public abstract void RegisterUndo(UndoAction<TLabel> res);
 
-        /// Undos at most n actions. Returns the number of actions actually undone.
+        /// <summary> Undos at most n actions. Returns the number of actions actually undone. </summary>
         public abstract int Undo(int n);
 
-        /// Redos at most n actions. Returns the number of actions actually redone.
+        /// <summary> Redos at most n actions. Returns the number of actions actually redone. </summary>
         public abstract int Redo(int n);
 
         public abstract void ClearUndoStack();
         public abstract void ClearRedoStack();
 
-        /// Called before this buffer is pushed to the undo buffer stack.
+        /// <summary> Called before this buffer is pushed to the undo buffer stack. </summary>
         public abstract void OnBeforeAttach();
 
-        /// Called after this buffer is popped from the undo buffer stack.
+        /// <summary> Called after this buffer is popped from the undo buffer stack. </summary>
         public abstract void OnAfterDetach();
 
         public abstract IEnumerable<UndoAction<TLabel>> UndoStack { get; }
@@ -32,14 +34,18 @@ namespace BII.WasaBii.Undo {
     }
 
 
+    /// <summary>
     /// Default implementation for the UndoBuffer interface
     /// with callbacks to be implemented by concrete implementations.
     /// These callbacks manage what may relative to the current state
     /// of the UndoManager.
+    /// </summary>
     public abstract class DefaultUndoBuffer<TLabel> : UndoBuffer<TLabel> {
 
+        /// <summary>
         /// Every undo or redo after this causes the oldest undo or redo
         /// to be forgotten and its resources to be freed.
+        /// </summary>
         public readonly int MaxStackSize;
 
         private readonly MaxSizeStack<UndoAction<TLabel>> _undoStack;

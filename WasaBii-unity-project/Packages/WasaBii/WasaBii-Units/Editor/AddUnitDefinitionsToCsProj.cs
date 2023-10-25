@@ -3,7 +3,6 @@
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using BII.WasaBii.Core;
 using UnityEditor;
 using UnityEngine;
 
@@ -26,7 +25,7 @@ namespace BII.WasaBii.UnitSystem
                 .Select(x => x.Replace('\\', '/'))
                 .ToArray();
             
-            if (files.IsEmpty()) return content;
+            if (files.Length == 0) return content;
 
             // Locate the ItemGroup where you want to insert the additional files
             var newItemGroup = new XElement(ns + "ItemGroup");

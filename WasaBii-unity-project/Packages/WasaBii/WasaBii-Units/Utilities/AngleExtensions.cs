@@ -6,6 +6,7 @@ using Quaternion = System.Numerics.Quaternion;
 using Vector3 = System.Numerics.Vector3;
 
 namespace BII.WasaBii.UnitSystem {
+    
     public static class Angles {
         
         public static readonly Angle HalfCircle = Math.PI.Radians();

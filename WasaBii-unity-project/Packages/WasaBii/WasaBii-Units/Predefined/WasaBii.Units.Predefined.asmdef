@@ -1,18 +1,14 @@
 {
-    "name": "WasaBii.Units",
-    "rootNamespace": "BII.WasaBii.UnitSystem",
+    "name": "WasaBii.Units.Predefined",
+    "rootNamespace": "BII.WasaBii.UnitSystem.Predefined",
     "references": [
-        "WasaBii.Core"
+        "WasaBii.Units.Editor"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
-    "precompiledReferences": [
-        "WasaBii.Analyzers.Shared.dll",
-        "WasaBii.Units.Shared.dll",
-        "Newtonsoft.Json.dll"
-    ],
+    "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

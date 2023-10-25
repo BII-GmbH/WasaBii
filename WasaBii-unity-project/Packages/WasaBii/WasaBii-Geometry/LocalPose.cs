@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using BII.WasaBii.Core;
 using BII.WasaBii.Geometry.Shared;
 
 namespace BII.WasaBii.Geometry {

@@ -38,7 +38,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
             double DTFor(TPos pos1, TPos pos2, double orWhenZero) =>
                 Math.Pow(ops.Distance(pos1, pos2).AsMeters(), alpha)
-                    .If(dt => dt < float.Epsilon, _ => orWhenZero);
+                    .Let((dt, owz) => dt < float.Epsilon ? owz : dt, orWhenZero);
 
             var dt1 = DTFor(P1, P2, orWhenZero: 1.0f);
             var dt0 = DTFor(P0, P1, orWhenZero: dt1);

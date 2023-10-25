@@ -38,7 +38,7 @@ public class UnitGenerator : ISourceGenerator {
                         f.GetText()!.ToString(), 
                         new JsonSerializerOptions {PropertyNameCaseInsensitive = true}
                     )!;
-                    var filename = fileNameFull[..(fileNameFull.Count() - ".units.json".Count())];
+                    var filename = fileNameFull.Substring(0, fileNameFull.Length - ".units.json".Length);
                     return (FileName: filename, Defs: defs);
                 }).ToList();
             

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,10 @@ public class UnitGenerator : ISourceGenerator {
     );
 
     public void Initialize(GeneratorInitializationContext context) { }
+    
+    // TODO CR PREMERGE remove
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
 
     public void Execute(GeneratorExecutionContext context) {
         // Ensure proper printing of decimal constants as valid C# code
@@ -28,8 +33,18 @@ public class UnitGenerator : ISourceGenerator {
         var isUnityEditor = context.ParseOptions.PreprocessorSymbolNames.Contains("UNITY_EDITOR");
 
         try {
+            var additionalFiles = context.AdditionalFiles;
+            
+            // TODO CR PREMERGE remove
+            if (additionalFiles.Count(f => f.Path.EndsWith("json")) > 0)
+                MessageBox(
+                    hWnd: IntPtr.Zero, 
+                    text: string.Join("\n", additionalFiles.Select(t => t.Path).Where(p => p.EndsWith("json"))), 
+                    caption: "found additional files", 
+                    type: 0
+                );
 
-            var unitDefs = context.AdditionalFiles
+            var unitDefs = additionalFiles
                 .Where(f => f.Path.EndsWith(".units.json"))
                 .Select(f => {
                     // Sometimes, the paths passed to this are not consistent with `Path.PathSeparator`...

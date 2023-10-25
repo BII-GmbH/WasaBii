@@ -1,0 +1,14 @@
+{
+    "name": "WasaBii.Units.Editor",
+    "rootNamespace": "BII.WasaBii.UnitSystem.Editor",
+    "references": [],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

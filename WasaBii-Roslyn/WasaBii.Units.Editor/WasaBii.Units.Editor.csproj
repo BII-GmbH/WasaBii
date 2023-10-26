@@ -8,7 +8,7 @@
     <LangVersion>default</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup>    
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>C:\Program Files\Unity\2022.2.6f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
       <Private>false</Private>

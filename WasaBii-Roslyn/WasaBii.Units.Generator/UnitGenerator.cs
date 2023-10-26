@@ -18,10 +18,6 @@ public class UnitGenerator : ISourceGenerator {
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
-    
-    // TODO CR PREMERGE
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    public static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
 
     public void Initialize(GeneratorInitializationContext context) { }
 
@@ -33,10 +29,6 @@ public class UnitGenerator : ISourceGenerator {
         var isUnityEditor = context.ParseOptions.PreprocessorSymbolNames.Contains("UNITY_EDITOR");
 
         try {
-            
-            if (context.AdditionalFiles.Count(f => f.Path.EndsWith("json")) > 0)
-                MessageBox(IntPtr.Zero, string.Join("\n", context.AdditionalFiles.Select(f => f.Path)), "Found files", 0);
-
             var unitDefs = context.AdditionalFiles
                 .Where(f => f.Path.EndsWith(".units.json"))
                 .Select(f => {
@@ -64,8 +56,6 @@ public class UnitGenerator : ISourceGenerator {
                         $"{fileName}PropertyDrawer.g.cs",
                         GeneratePropertyDrawerSourceFor(unitDef)
                     );
-                
-                MessageBox(IntPtr.Zero, fileName, "Made file", 0);
             }
 
         }

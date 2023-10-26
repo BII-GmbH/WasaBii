@@ -36,13 +36,13 @@ public class UnitGenerator : ISourceGenerator {
             var additionalFiles = context.AdditionalFiles;
             
             // TODO CR PREMERGE remove
-            // if (additionalFiles.Count(f => f.Path.EndsWith("json")) > 0)
-            //     MessageBox(
-            //         hWnd: IntPtr.Zero, 
-            //         text: string.Join("\n", additionalFiles.Select(t => t.Path).Where(p => p.EndsWith("json"))), 
-            //         caption: "found additional files", 
-            //         type: 0
-            //     );
+            if (additionalFiles.Count(f => f.Path.EndsWith("json")) > 0)
+                MessageBox(
+                    hWnd: IntPtr.Zero, 
+                    text: string.Join("\n", additionalFiles.Select(t => t.Path).Where(p => p.EndsWith("json"))), 
+                    caption: "found additional files", 
+                    type: 0
+                );
 
             var unitDefs = additionalFiles
                 .Where(f => f.Path.EndsWith(".units.json"))
@@ -60,29 +60,17 @@ public class UnitGenerator : ISourceGenerator {
             foreach (var (fileName, unitDef) in unitDefs) {
                 // Step 1: Pre-parse and find all possible conversions
                 var conversions = UnitConversions.AllConversionsFor(unitDef);
-                
                 // Step 2: Generate the actual code
                 var source = GenerateSourceFor(unitDef, conversions);
-                
                 context.AddSource(
                     $"{fileName}.g.cs",
                     source
                 );
-                
-                if (isUnityEditor) {
+                if(isUnityEditor)
                     context.AddSource(
                         $"{fileName}PropertyDrawer.g.cs",
                         GeneratePropertyDrawerSourceFor(unitDef)
                     );
-                }
-                
-                // TODO CR PREMERGE remove
-                // MessageBox(
-                //     hWnd: IntPtr.Zero, 
-                //     text: fileName, 
-                //     caption: "generated source file", 
-                //     type: 0
-                // );
             }
 
         }

@@ -3,11 +3,10 @@
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using BII.WasaBii.Core;
 using UnityEditor;
 using UnityEngine;
 
-namespace BII.WasaBii.UnitSystem
+namespace BII.WasaBii.Units
 {
     public class AddUnitDefinitionsToCsProj : AssetPostprocessor
     {
@@ -19,37 +18,22 @@ namespace BII.WasaBii.UnitSystem
             // Define the namespace for easier reference
             XNamespace ns = "http://schemas.microsoft.com/developer/msbuild/2003";
 
+            // Locate the ItemGroup where you want to insert the additional files
+            var itemGroup = doc.Root!.Element(ns + "ItemGroup");
+
             // Find all .units.json files in the related assembly
             var files = doc.Descendants(ns + "None")
                 .Select(x => (string)x.Attribute("Include"))
                 .Where(x => x?.EndsWith(".units.json") == true)
-                .Select(x => x.Replace('\\', '/'))
                 .ToArray();
-            
-            if (files.IsEmpty()) return content;
-
-            // Locate the ItemGroup where you want to insert the additional files
-            var newItemGroup = new XElement(ns + "ItemGroup");
 
             // Add each .units.json file as an additional file
-            foreach (var relFile in files) {
-
-                var file = Path.GetFullPath(relFile);
-                
+            foreach (var file in files) {
                 var additionalFile = new XElement(ns + "AdditionalFiles", new XAttribute("Include", file));
-                newItemGroup.Add(additionalFile);
-                
-                Debug.Log("Found WasaBii unit definition file at: " + file + "\nFor project: " + path);
+                itemGroup!.Add(additionalFile);
+                Debug.Log("Found WasaBii unit definition file at: " + file);
             }
-            
-            // Add the new ItemGroup right after the first one
-            if (doc.Root?.Elements(ns + "ItemGroup").FirstOrDefault() is { } firstItemGroup) {
-                firstItemGroup.AddAfterSelf(newItemGroup);
-            } else {
-                // If there's no existing ItemGroup, add it to the root
-                doc.Root!.Add(newItemGroup);
-            }
-            
+
             return doc.ToString(SaveOptions.None);
         }
     }

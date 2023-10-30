@@ -33,5 +33,17 @@
     </ProjectReference>
     <ProjectReference Include="..\WasaBii.Units.Shared\WasaBii.Units.Shared.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>C:\Program Files\Unity\2022.2.6f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="UnityEngine">
+      <HintPath>C:\Program Files\Unity\2022.2.6f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
 
 </Project>

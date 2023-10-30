@@ -21,7 +21,8 @@
         "WasaBii-Units-Shared.dll",
         "nunit.framework.dll",
         "WasaBii.Analyzers.Shared.dll",
-        "WasaBii.Units.Shared.dll"
+        "WasaBii.Units.Shared.dll",
+        "WasaBii.Units.Defaults.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [

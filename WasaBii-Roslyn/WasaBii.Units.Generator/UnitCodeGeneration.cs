@@ -90,7 +90,7 @@ public partial struct {name} : IUnitValue<{name}, {name}.Unit> {{
     public override bool Equals(object obj) => obj is {name} other && Equals(other);
 
     // We include this type in case values of different units are hashed in the same collection
-    public override int GetHashCode() => HashCode.Combine(this.SiValue, typeof({name}));
+    public override int GetHashCode() => SiValue.GetHashCode() + 31 * typeof({name}).GetHashCode();
 
     public override string ToString() => $""{name}({{_siValue}}{{SiUnit.ShortName}})"";
     

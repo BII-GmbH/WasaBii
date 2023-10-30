@@ -44,6 +44,18 @@
       <HintPath>C:\Program Files\Unity\2022.2.6f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    
+    <!-- Note: fine to include references to editor as long as all code is guarded in #if -->
+
+    <Reference Include="UnityEditor.CoreModule">
+      <HintPath>C:\Program Files\Unity\2022.2.6f1\Editor\Data\Managed\UnityEngine\UnityEditor.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="UnityEditor">
+      <HintPath>C:\Program Files\Unity\2022.2.6f1\Editor\Data\Managed\UnityEngine\UnityEditor.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -29,7 +29,7 @@ public class UnitGenerator : ISourceGenerator {
 
         try {
             var unitDefs = context.AdditionalFiles
-                .Where(f => f.Path.EndsWith(".units.json"))
+                .Where(f => f?.Path?.EndsWith(".units.json") ?? false)
                 .Select(f => {
                     // Sometimes, the paths passed to this are not consistent with `Path.PathSeparator`...
                     var fileNameFull = Path.GetFileName(f.Path);

@@ -11,7 +11,7 @@
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.0.2",
     "com.unity.test-framework": "1.1.33",
-    "com.unity.physics": "1.0.16",
+    "com.unity.modules.physics": "1.0.0",
     "com.bii-gmbh.wasabii.core": "1.0.0",
     "com.bii-gmbh.wasabii.units": "1.0.0",
     "com.bii-gmbh.wasabii.splines": "1.0.0"

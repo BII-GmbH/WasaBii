@@ -60,8 +60,10 @@ public class AddUnitDefinitionsToCsProj : AssetPostprocessor {
                                               "# Your own changes to this file will be kept.\n");
             }
 
-            if (!File.ReadAllText(cscRspPath).Contains(path)) {
-                File.AppendAllText(cscRspPath, CommandFor(added) + Environment.NewLine);
+            var allText = File.ReadAllText(cscRspPath);
+            if (!allText.Contains(path)) {
+                var pre = allText.EndsWith("\n") ? "" : Environment.NewLine;
+                File.AppendAllText(cscRspPath, pre + CommandFor(added) + Environment.NewLine);
                 Debug.Log("Found new unit definition file. Adjusting csc.rsp to automatically register it. At: " + added);
             }
         }

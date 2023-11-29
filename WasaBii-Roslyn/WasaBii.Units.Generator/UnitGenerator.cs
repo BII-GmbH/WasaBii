@@ -28,9 +28,8 @@ public class UnitGenerator : ISourceGenerator {
         var isUnityEditor = context.ParseOptions.PreprocessorSymbolNames.Contains("UNITY_EDITOR");
 
         try {
-
             var unitDefs = context.AdditionalFiles
-                .Where(f => f.Path.EndsWith(".units.json"))
+                .Where(f => f?.Path?.EndsWith(".units.json") ?? false)
                 .Select(f => {
                     // Sometimes, the paths passed to this are not consistent with `Path.PathSeparator`...
                     var fileNameFull = Path.GetFileName(f.Path);
@@ -38,7 +37,7 @@ public class UnitGenerator : ISourceGenerator {
                         f.GetText()!.ToString(), 
                         new JsonSerializerOptions {PropertyNameCaseInsensitive = true}
                     )!;
-                    var filename = fileNameFull[..(fileNameFull.Count() - ".units.json".Count())];
+                    var filename = fileNameFull.Substring(0, fileNameFull.Length - ".units.json".Length);
                     return (FileName: filename, Defs: defs);
                 }).ToList();
             

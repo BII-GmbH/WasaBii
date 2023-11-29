@@ -15,7 +15,8 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll",
-        "WasaBii.Units.Shared.dll"
+        "WasaBii.Units.Shared.dll",
+        "WasaBii.Units.Defaults.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [

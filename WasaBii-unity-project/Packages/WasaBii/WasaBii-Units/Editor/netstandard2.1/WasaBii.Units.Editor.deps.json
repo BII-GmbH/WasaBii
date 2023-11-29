@@ -7,15 +7,15 @@
   "targets": {
     ".NETStandard,Version=v2.1": {},
     ".NETStandard,Version=v2.1/": {
-      "WasaBii.Geometry.Shared/1.0.0": {
+      "WasaBii.Units.Editor/1.0.0": {
         "runtime": {
-          "WasaBii.Geometry.Shared.dll": {}
+          "WasaBii.Units.Editor.dll": {}
         }
       }
     }
   },
   "libraries": {
-    "WasaBii.Geometry.Shared/1.0.0": {
+    "WasaBii.Units.Editor/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

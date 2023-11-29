@@ -40,7 +40,7 @@ public readonly struct UnitValueOf<TUnit> : IUnitValue<UnitValueOf<TUnit>, TUnit
     public override bool Equals(object obj) => obj is UnitValueOf<TUnit> other && Equals(other);
 
     // We include this type in case values of different units are hashed in the same collection
-    public override int GetHashCode() => HashCode.Combine(this.SiValue, typeof(UnitValueOf<TUnit>));
+    public override int GetHashCode() => this.SiValue.GetHashCode() * 31 + typeof(UnitValueOf<TUnit>).GetHashCode();
 
     public static UnitValueOf<TUnit> operator +(UnitValueOf<TUnit> first, UnitValueOf<TUnit> second) => new UnitValueOf<TUnit> { SiValue = first.SiValue + second.SiValue };
     public static UnitValueOf<TUnit> operator -(UnitValueOf<TUnit> first, UnitValueOf<TUnit> second) => new UnitValueOf<TUnit> { SiValue = first.SiValue - second.SiValue };

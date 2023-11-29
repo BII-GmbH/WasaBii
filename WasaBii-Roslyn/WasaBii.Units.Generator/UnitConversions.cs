@@ -86,13 +86,19 @@ public sealed class UnitConversions {
             // Note CR: We intentionally compare a to b, and then b to a.
             //  This way all we need to do is generate the operator `A op B = C` 
             //   in A, and symmetric operators are yielded as additional conversions.
-            foreach (var (a, ai) in nameToIdentifier)
-            foreach (var (b, bi) in nameToIdentifier) {
-                if (identifierToName.TryGetValue(ai * bi, out var c1))
-                    yield return new UnitConversion(a, b, c1, IsMul: true);
-                if (identifierToName.TryGetValue(ai / bi, out var c2))
-                    yield return new UnitConversion(a, b, c2, IsMul: false);
+            foreach (var x in nameToIdentifier) {
+                var a = x.Key;
+                var ai = x.Value;
+                foreach (var y in nameToIdentifier) {
+                    var b = y.Key;
+                    var bi = y.Value;
+                    if (identifierToName.TryGetValue(ai * bi, out var c1))
+                        yield return new UnitConversion(a, b, c1, IsMul: true);
+                    if (identifierToName.TryGetValue(ai / bi, out var c2))
+                        yield return new UnitConversion(a, b, c2, IsMul: false);
+                }
             }
+            
         }
 
         return new UnitConversions(FindPossibleConversions());
@@ -126,14 +132,22 @@ public sealed class UnitConversions {
         public override bool Equals(object obj) => obj is BaseUnitFactor other && Equals(other);
         public bool Equals(BaseUnitFactor other) {
             if (baseUnitPowers.Count != other.baseUnitPowers.Count) return false;
-            foreach (var (au, ai) in baseUnitPowers) {
-                if (!other.baseUnitPowers.TryGetValue(au, out var i)) return false;
-                if (i != ai) return false;
+            foreach (var entry in baseUnitPowers) {
+                if (!other.baseUnitPowers.TryGetValue(entry.Key, out var i)) return false;
+                if (i != entry.Value) return false;
             }
             return true;
         }
         
-        public override int GetHashCode() => baseUnitPowers.Aggregate(19, HashCode.Combine);
+        public override int GetHashCode() {
+            const int prime = 31;
+            var hash = 1;
+            foreach (var entry in baseUnitPowers) {
+                hash = hash * prime + entry.Key.GetHashCode();
+                hash = hash * prime + entry.Value.GetHashCode();
+            }
+            return hash;
+        }
 
         public static readonly BaseUnitFactor Empty = new(ImmutableSortedDictionary<string, int>.Empty);
 

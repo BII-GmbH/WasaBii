@@ -97,7 +97,8 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 if(allTransformOperators.Count > 0) {
                     allTransformOperators[0] = allTransformOperators[0].PrependTrivia(
                         Trivia(IfDirectiveTrivia(IdentifierName("TransformOperators"), true, true, true)));
-                    allTransformOperators[^1] = allTransformOperators[^1].AppendTrivia(
+                    var lastIdx = allTransformOperators.Count - 1;
+                    allTransformOperators[lastIdx] = allTransformOperators[lastIdx].AppendTrivia(
                         Trivia(EndIfDirectiveTrivia(true)));
                     allMembers.AddRange(allTransformOperators);
                 }
@@ -211,7 +212,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 var fieldNameWithoutUnderscore = fields[i].id.Text.Trim('_');
                 yield return mkCopyMethod( // e.g. pose.WithPosition(GlobalPosition => GlobalPosition)
                     typeDecl,
-                    Identifier($"With{char.ToUpper(fieldNameWithoutUnderscore[0]) + fieldNameWithoutUnderscore[1..]}"),
+                    Identifier($"With{char.ToUpper(fieldNameWithoutUnderscore[0]) + fieldNameWithoutUnderscore.Substring(startIndex: 1)}"),
                     ParameterList(Parameter(
                         List(Enumerable.Empty<AttributeListSyntax>()),
                         TokenList(),

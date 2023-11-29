@@ -17,28 +17,28 @@ namespace BII.WasaBii.Splines {
             cachedLocation = new Lazy<SplineLocation>(() => spline.DeNormalizeOrThrow(normalizedLocation));
         }
 
-        /// The normalized location on the spline whose position is closest to the queried position.
+        /// <summary> The normalized location on the spline whose position is closest to the queried position. </summary>
         public NormalizedSplineLocation NormalizedLocation { get; }
 
-        /// The position on the spline that is closest to the queried position.
+        /// <summary> The position on the spline that is closest to the queried position. </summary>
         public readonly TPos ClosestOnSpline;
 
         public readonly TPos QueriedPosition;
 
-        /// The spline where the closest position is on.
+        /// <summary> The spline where the closest position is on. </summary>
         public Spline<TPos, TDiff> Spline { get; }
 
-        // Since de-normalizing a location may be an expensive operation on long splines, the value is lazy & cached
+        // Since de-normalizing a location may be an expensive operation on long splines, the value is lazy & cached. 
         private readonly Lazy<SplineLocation> cachedLocation;
 
         
-        /// The location on the spline whose position is closest to the queried position.
+        /// <summary> The location on the spline whose position is closest to the queried position. </summary>
         public SplineLocation Location => cachedLocation.Value;
 
-        /// The spline's tangent at the location that is closest to the queried position
+        /// <summary> The spline's tangent at the location that is closest to the queried position. </summary>
         public TDiff Tangent => Spline[NormalizedLocation].Tangent;
         
-        /// The distance between the queried position and the spline / the position <see cref="ClosestOnSpline"/>
+        /// <summary> The distance between the queried position and the spline / the position <see cref="ClosestOnSpline"/>. </summary>
         public Length Distance => Spline.Ops.Distance(QueriedPosition, ClosestOnSpline);
     }
 }

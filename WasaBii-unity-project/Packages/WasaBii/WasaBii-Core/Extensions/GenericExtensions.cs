@@ -3,6 +3,7 @@ using System;
 using System.Runtime.CompilerServices;
 
 namespace BII.WasaBii.Core {
+    
     public static class GenericExtensions {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TRes If<T, TRes>(this T t, bool condition, Func<T, TRes> thenFunc, Func<T, TRes> elseFunc) => 

@@ -41,8 +41,10 @@ namespace BII.WasaBii.Core {
         public readonly struct UniversalNone { }
     }
     
+    /// <summary>
     /// A class that potentially wraps a value.
     /// Can be either Some(value) or None.
+    /// </summary>
     [Serializable]
     public readonly struct Option<T> : IEquatable<T>, IEquatable<Option<T>> {
         

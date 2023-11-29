@@ -5,13 +5,13 @@ using UnityEngine;
 
 namespace BII.WasaBii.Unity {
     
-    /// Used in coroutine delay techniques to define when the coroutine should resume-
+    /// <summary> Used in coroutine delay techniques to define when the coroutine should resume. </summary>
     public enum DelayType {
-        /// After `Update` and before `LateUpdate`. Corresponds to `yield return null`.
+        /// <summary> After `Update` and before `LateUpdate`. Corresponds to `yield return null`. </summary>
         Default,
-        /// After every `FixedUpdate`. Corresponds to `yield return new WaitForFixedUpdate()`.
+        /// <summary> After every `FixedUpdate`. Corresponds to `yield return new WaitForFixedUpdate()`. </summary>
         Fixed,
-        /// At the very end of the frame, after rendering has finished. Corresponds to `yield return new WaitForEndOfFrame()`.
+        /// <summary> At the very end of the frame, after rendering has finished. Corresponds to `yield return new WaitForEndOfFrame()`. </summary>
         EndOfFrame
     }
 

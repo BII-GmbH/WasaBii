@@ -53,11 +53,11 @@ namespace BII.WasaBii.Geometry {
         /// <example> <code>global.RelativeTo(parent).ToGlobalWith(parent) == global</code> </example>
         [Pure] public LocalDirection RelativeTo(TransformProvider parent) => parent.InverseTransformDirection(this);
         
-        /// Projects this direction onto the plane defined by its normal.
+        /// <summary> Projects this direction onto the plane defined by its normal. </summary>
         [Pure] public GlobalDirection ProjectOnPlane(GlobalDirection planeNormal) => 
             new GlobalOffset(AsNumericsVector).ProjectOnPlane(planeNormal).Normalized;
 
-        /// Reflects this direction off the plane defined by the given normal
+        /// <summary> Reflects this direction off the plane defined by the given normal. </summary>
         [Pure]
         public GlobalDirection Reflect(GlobalDirection planeNormal) => 
             new GlobalOffset(AsNumericsVector).Reflect(planeNormal).Normalized;

@@ -49,13 +49,13 @@ namespace BII.WasaBii.Geometry {
         [Pure] public LocalVelocity RelativeTo(TransformProvider parent)
             => new(parent.InverseTransformOffset(new(this.AsNumericsVector)).AsNumericsVector);
 
-        /// Projects this Velocity onto the given direction.
+        /// <summary> Projects this Velocity onto the given direction. </summary>
         [Pure] public GlobalVelocity Project(GlobalDirection onNormal) => this.Dot(onNormal) * onNormal;
 
-        /// Projects this Velocity onto the plane defined by its normal.
+        /// <summary> Projects this Velocity onto the plane defined by its normal. </summary>
         [Pure] public GlobalVelocity ProjectOnPlane(GlobalDirection planeNormal) => this - this.Project(planeNormal);
 
-        /// Reflects this Velocity off the plane defined by the given normal
+        /// <summary> Reflects this Velocity off the plane defined by the given normal. </summary>
         [Pure]
         public GlobalVelocity Reflect(GlobalDirection planeNormal) => this - 2 * this.Project(planeNormal);
 

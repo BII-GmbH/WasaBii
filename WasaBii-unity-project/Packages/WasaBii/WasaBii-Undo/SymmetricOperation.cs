@@ -12,7 +12,9 @@ namespace BII.WasaBii.Undo {
     // ReSharper disable all InvalidXmlDocComment // for the caller arguments which are explicitly not documented
 
 #if !WASABII_SYMOP_NODEBUGINFO
+    /// <summary>
     /// Contains debug data that specifies where a <see cref="SymmetricOperation"/> has been constructed.
+    /// </summary>
     public readonly struct SymmetricOperationDebugInfo {
         public readonly string CallerMemberName;
         public readonly string SourceFilePath;
@@ -272,10 +274,12 @@ namespace BII.WasaBii.Undo {
 #endif
             );
 
+        /// <summary>
         /// Result will be calculated the first time the symmetric operation is executed.
         /// Use this instead of <see cref="WithResult{T}"/>
-        ///   when the result depends on state modified
-        ///   through side-effects in the symmetric operation.
+        ///  when the result depends on state modified
+        ///  through side-effects in the symmetric operation.
+        /// </summary>
         public static SymmetricOperation<T> WithLazyResult<T>(this SymmetricOperation src, Func<T> result) {
             var cachedResult = Option<T>.None;
             return new SymmetricOperation<T>(
@@ -391,9 +395,11 @@ namespace BII.WasaBii.Undo {
             );
         }
 
+        /// <summary>
         /// Chains a <see cref="SymmetricOperation{T}"/> after a <see cref="SymmetricOperation"/>.
         /// The source operation will precede the symmetric operation with a result.
         /// Use <see cref="FlatMap{T,TRes}"/> when the source already has a result.
+        /// </summary>
         public static SymmetricOperation<TRes> AndThen<TRes>(
             this SymmetricOperation src, SymmetricOperation<TRes> then
         ) => new SymmetricOperation<TRes>(() => {
@@ -416,9 +422,11 @@ namespace BII.WasaBii.Undo {
 #endif
         );
 
+        /// <summary>
         /// Adds do and undo logic to an existing <see cref="SymmetricOperation"/>.
         /// <paramref name="doThen"/> will be executed after the source Do.
         /// <paramref name="undoThen"/> will be executed before the source Undo.
+        /// </summary>
         public static SymmetricOperation AndThenDo(
             this SymmetricOperation src,
             Action doThen,
@@ -470,11 +478,13 @@ namespace BII.WasaBii.Undo {
             );
         }
 
+        /// <summary>
         /// Adds do and undo logic to an existing <see cref="SymmetricOperation"/>.
         /// The returned <see cref="SymmetricOperation{T}"/> wraps the result of <paramref name="doThen"/>.
         /// <paramref name="doThen"/> will be executed after the source Do.
         /// <paramref name="undoThen"/> will be executed before the source Undo.
         /// Use <see cref="FlatMap{T,TRes}"/> if your Do code depends on a previous result.
+        /// </summary>
         public static SymmetricOperation<TRes> AndThenReturn<TRes>(
             this SymmetricOperation src, 
             Func<TRes> doThen, 

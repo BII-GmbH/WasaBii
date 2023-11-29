@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Threading.Tasks;
 using BII.WasaBii.UnitSystem;
-using UnityEngine;
 
 namespace BII.WasaBii.Unity {
 
+    /// <summary>
     /// Holds utility functions which enable you to await real
     /// time in linear Unity code using coroutines under the hood.
+    /// </summary>
     public static class AsyncWait {
 
         public static Task ForCoroutine(IEnumerator coroutine) {

@@ -5,12 +5,14 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines.Maths {
     
+    /// <summary>
     /// Our splines are representation-agnostic, meaning that you can define a spline using
     /// unity vectors, system vectors, 3D vectors, 2D vectors, 10D vectors, `LocalPosition`s,
     /// `GlobalPosition`s, cats, lazy vectors, GPU buffers or even <see cref="BII.WasaBii.Core.Nothing"/>,
     /// as long as you provide an implementation for all the necessary geometric operations.
-    /// Since C# does not have proper support for type classes 😢, this means passing an
+    /// Since C# does not have proper support for type classes, this means passing an
     /// implementation of this interface wherever necessary.
+    /// </summary>
     [MustBeImmutable]
     public interface GeometricOperations<TPos, TDiff>
         where TPos : unmanaged 

@@ -5,8 +5,10 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Geometry {
 
+    /// <summary>
     /// A 3D vector that represents a local direction.
     /// Can also be viewed as a normalized <see cref="LocalOffset"/>.
+    /// </summary>
     [Serializable]
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: true)]
     public partial struct LocalDirection :
@@ -59,11 +61,11 @@ namespace BII.WasaBii.Geometry {
         /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) = local</code> </example>
         [Pure] public LocalDirection TransformBy(LocalPose localParent) => localParent.Rotation * this;
         
-        /// Projects this direction onto the plane defined by its normal.
+        /// <summary> Projects this direction onto the plane defined by its normal. </summary>
         [Pure] public LocalDirection ProjectOnPlane(LocalDirection planeNormal) => 
             new LocalOffset(AsNumericsVector).ProjectOnPlane(planeNormal).Normalized;
 
-        /// Reflects this direction off the plane defined by the given normal
+        /// <summary> Reflects this direction off the plane defined by the given normal. </summary>
         [Pure]
         public LocalDirection Reflect(LocalDirection planeNormal) => 
             new LocalOffset(AsNumericsVector).Reflect(planeNormal).Normalized;

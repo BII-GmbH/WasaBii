@@ -11,14 +11,14 @@ namespace BII.WasaBii.UnitSystem {
         public static readonly Angle HalfCircle = Math.PI.Radians();
         public static readonly Angle FullCircle = 2 * HalfCircle;
         
-        /// The angle between 0° and 360°
+        /// <summary> The angle between 0° and 360° </summary>
         public static Angle Normalized360(this Angle angle) {
             angle %= FullCircle;
             if (angle < Angle.Zero) angle += FullCircle;
             return angle;
         }
         
-        /// The angle between -180° and 180°
+        /// <summary> The angle between -180° and 180° </summary>
         public static Angle Normalized180(this Angle angle) => 
             angle.Normalized360().If(n => n > HalfCircle, n => n - FullCircle);
         

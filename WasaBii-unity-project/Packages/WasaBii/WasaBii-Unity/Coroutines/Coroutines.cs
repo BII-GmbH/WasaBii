@@ -115,7 +115,7 @@ namespace BII.WasaBii.Unity {
         }
 
         /// <summary>
-        /// <b>Before</b> each execution step of this coroutine, check if the
+        /// <b>Before each execution step of this coroutine, check if the
         /// specified condition holds true. Once it fails, cancel the coroutine immediately.
         /// One can use <see cref="Afterwards"/> to execute code regardless of interruption.
         /// This checks the condition once <b>before</b> executing any code.

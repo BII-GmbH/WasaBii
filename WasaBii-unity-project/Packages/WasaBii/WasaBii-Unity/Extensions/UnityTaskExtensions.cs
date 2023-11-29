@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 namespace BII.WasaBii.Unity {
     public static class UnityTaskExtensions {
         // Note DG: Because Unity sucks, there is no typed variant of a resource request :/
-        /// Throws an exception if the provided resource is not of the given type.
+        /// <exception cref="ArgumentException">If the provided resource is not of the given type.</exception>
         public static Task<T> AsTask<T>(
             this ResourceRequest request, 
             Action<float>? reportProgressEachFrame = null
@@ -25,7 +25,7 @@ namespace BII.WasaBii.Unity {
             request.completed += _ => {
                 Debug.Assert(request.asset != null);
                 res.SetResult(
-                    request.asset as T ?? throw new Exception(
+                    request.asset as T ?? throw new ArgumentException(
                         $"The result of the operation {request.asset} was not of the expected type {typeof(T)}")
                 );
             };
@@ -33,7 +33,7 @@ namespace BII.WasaBii.Unity {
             return res.Task;
         } 
         
-        /// Convert a Task into an IEnumerator intended to be used as a Unity-Coroutine
+        /// <summary> Convert a Task into an IEnumerator intended to be used as a Unity-Coroutine.</summary>
         public static IEnumerator AsCoroutine(this Task task) {
             while (!task.IsCompleted) yield return null;
             task.GetAwaiter().GetResult();

@@ -1,5 +1,4 @@
-﻿using BII.WasaBii.Unity;
-using BII.WasaBii.Unity.Geometry;
+﻿using BII.WasaBii.Unity.Geometry;
 using NUnit.Framework;
 using UnityEngine;
 using static BII.WasaBii.Splines.Tests.SplineTestUtils;

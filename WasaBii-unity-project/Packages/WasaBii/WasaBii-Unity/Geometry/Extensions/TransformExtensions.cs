@@ -69,9 +69,11 @@ namespace BII.WasaBii.Unity.Geometry {
 
         /// Traverses depth-first.
         /// Lazy. Do not modify hierarchy while consuming
-        public static IEnumerable<Transform> GetAllChildrenRecursive(this Transform transform, bool includeSelf = false)
-            => transform.GetChildren().SelectMany(c => c.GetAllChildrenRecursive(includeSelf: true))
-                .If(includeSelf, children => children.Prepend(transform));
+        public static IEnumerable<Transform> GetAllChildrenRecursive(this Transform transform, bool includeSelf = false) {
+            var children = transform.GetChildren()
+                .SelectMany(c => c.GetAllChildrenRecursive(includeSelf: true));
+            return includeSelf ? children.Prepend(transform) : children;
+        }
     }
 
 }

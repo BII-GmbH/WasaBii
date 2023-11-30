@@ -96,7 +96,7 @@ namespace BII.WasaBii.Extra {
         private IEnumerator updateValue() {
             lastUpdateTime = Time.time;
             while(true) {
-                yield return _updateDelay?.Let(d => new WaitForSeconds(d));
+                yield return _updateDelay == null ? null : new WaitForSeconds(_updateDelay.Value);
                 CurrentValue = interpolate(CurrentValue, TargetGetter(), Smoothness, Time.time - lastUpdateTime);
                 lastUpdateTime = Time.time;
             }

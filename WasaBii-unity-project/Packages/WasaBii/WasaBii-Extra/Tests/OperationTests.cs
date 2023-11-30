@@ -11,7 +11,11 @@ namespace BII.WasaBii.Extra.Tests
     public class OperationTests
     {
         private const int initialValue = 0;
+        
+        // Non-nullable field is initialized in `SetUp`, not the constructor
+        #pragma warning disable 8618
         private RunContext _runContext;
+        #pragma warning restore
 
         [SetUp]
         public void SetUp() {

@@ -1,7 +1,7 @@
-﻿using System.Diagnostics.Contracts;
-using System.Numerics;
+﻿using System.Numerics;
 using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
+using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
     
@@ -61,11 +61,13 @@ namespace BII.WasaBii.Geometry {
         /// <param name="c"> length of the third side</param>
         /// <returns> returns the angles of the triangle (A is the opposing angle of side a, ect.)</returns>
         [Pure] public static (Angle A, Angle B, Angle C) SolveTriangleFromSideLengths(double a, double b, double c) {
-            Contract.Assert(
+            #if UNITY_2022_1_OR_NEWER
+            UnityEngine.Debug.Assert(
                 a + b > c && a + c > b && b + c > a,
                 "Can only solve triangle if lengths can form a valid triangle" +
                 "\n Lengths are: \n A: {a}\n B: {b}\n C: {c}"
             );
+            #endif
             var aAngle = Angles.Acos((b * b + c * c - a * a) / (2 * b * c));
             var bAngle = Angles.Acos((a * a + c * c - b * b) / (2 * a * c));
             var cAngle = 180d.Degrees() - (aAngle + bAngle);

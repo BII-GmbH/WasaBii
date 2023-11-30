@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
+using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
@@ -61,16 +61,21 @@ namespace BII.WasaBii.Geometry {
         [Pure]
         public GlobalOffset Reflect(GlobalDirection planeNormal) => this - 2 * this.Project(planeNormal);
 
+        [Pure]
         public Length Dot(GlobalDirection normal) => System.Numerics.Vector3.Dot(AsNumericsVector, normal.AsNumericsVector).Meters();
 
+        [Pure]
         public Area Dot(GlobalOffset other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector).SquareMeters();
         
+        [Pure]
         public GlobalOffset Cross(GlobalOffset other) =>
             new(System.Numerics.Vector3.Cross(AsNumericsVector, other.AsNumericsVector));
 
+        [Pure]
         public Angle SignedAngleTo(GlobalOffset other, GlobalDirection axis, Handedness handedness = Handedness.Default) =>
             AsNumericsVector.SignedAngleTo(other.AsNumericsVector, axis.AsNumericsVector, handedness);
 
+        [Pure]
         public Angle SignedAngleOnPlaneTo(GlobalOffset other, GlobalDirection axis, Handedness handedness = Handedness.Default) =>
             AsNumericsVector.SignedAngleOnPlaneTo(other.AsNumericsVector, axis.AsNumericsVector, handedness);
 

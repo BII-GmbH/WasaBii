@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
 using BII.WasaBii.Geometry.Shared;
+using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
@@ -81,6 +81,7 @@ namespace BII.WasaBii.Geometry {
         /// given <paramref name="localParent"/>!
         /// </summary>
         /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) = local</code> </example>
+        [Pure]
         public LocalPose TransformBy(LocalPose localParent) => new(
             localParent.Position + localParent.Rotation * this.Position.AsOffset,
             localParent.Rotation * this.Rotation
@@ -90,6 +91,7 @@ namespace BII.WasaBii.Geometry {
         /// Combines the two poses by staking both the offset from local zero and the rotation independently.
         /// Only applicable if both poses are defined relative to the same parent!
         /// </summary>
+        [Pure]
         public LocalPose CombineWith(LocalPose other) => new(
             this.Position + other.Position.AsOffset,
             other.Rotation * this.Rotation

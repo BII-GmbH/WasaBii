@@ -2,9 +2,9 @@
  #define IsUnity
 #endif
 
-using System.Diagnostics.Contracts;
 using System.Runtime.InteropServices;
 using BII.WasaBii.Core;
+using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
     

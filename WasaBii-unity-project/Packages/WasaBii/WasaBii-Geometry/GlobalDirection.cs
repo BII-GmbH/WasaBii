@@ -1,7 +1,7 @@
 using System;
-using System.Diagnostics.Contracts;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
+using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
@@ -62,8 +62,10 @@ namespace BII.WasaBii.Geometry {
         public GlobalDirection Reflect(GlobalDirection planeNormal) => 
             new GlobalOffset(AsNumericsVector).Reflect(planeNormal).Normalized;
         
+        [Pure]
         public float Dot(GlobalDirection other) => System.Numerics.Vector3.Dot(AsNumericsVector, other.AsNumericsVector);
         
+        [Pure]
         public GlobalOffset Cross(GlobalDirection other) => 
             new(System.Numerics.Vector3.Cross(AsNumericsVector, other.AsNumericsVector));
 

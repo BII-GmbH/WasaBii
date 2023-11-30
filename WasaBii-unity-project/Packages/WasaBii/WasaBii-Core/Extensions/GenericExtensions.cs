@@ -3,6 +3,7 @@ using System;
 using System.Runtime.CompilerServices;
 
 namespace BII.WasaBii.Core {
+    
     public static class GenericExtensions {
 
         /// <summary>

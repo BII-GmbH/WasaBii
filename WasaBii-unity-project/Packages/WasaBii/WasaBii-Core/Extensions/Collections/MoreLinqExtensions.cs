@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -29,18 +31,22 @@ namespace BII.WasaBii.Core {
         public static IEnumerable<T> SkipLast<T>(this IReadOnlyCollection<T> collection, int count) => 
             collection.Take(collection.Count - count);
         
+        /// <summary>
         /// Finds and returns the minimum element of <paramref name="source"/> by
         /// mapping each element to an <see cref="IComparable{T}"/>.
         /// If there are multiple minimum elements, the first one is returned.
         /// Returns None if the <see cref="source"/> is empty.
+        /// </summary>
         public static Option<TSource> MinBy<TSource, TComparable>(
             this IEnumerable<TSource> source, Func<TSource, TComparable> comparableSelector
         ) where TComparable : IComparable<TComparable> => minOrMaxBy(source, comparableSelector, prefersPositiveComparisonResult: false);
 
+        /// <summary>
         /// Finds and returns the maximum element of <paramref name="source"/> by
         /// mapping each element to an <see cref="IComparable{T}"/>.
         /// If there are multiple maximum elements, the first one is returned.
         /// Returns None if the <see cref="source"/> is empty.
+        /// </summary>
         public static Option<TSource> MaxBy<TSource, TComparable>(
             this IEnumerable<TSource> source, Func<TSource, TComparable> comparableSelector
         ) where TComparable : IComparable<TComparable> => minOrMaxBy(source, comparableSelector, prefersPositiveComparisonResult: true);
@@ -73,13 +79,15 @@ namespace BII.WasaBii.Core {
         public static bool TryFindIndexOf<T>(this IEnumerable<T> collection, T element, out int index) => 
             TryFindIndexOf(collection, current => Equals(element, current), out index);
         
-        /// Shuffles this sequence, yielding a <b>new</b> IEnumerable with all elements in random order.
-        /// Uses the <a href="https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle">Fisher–Yates algorithm</a>.
-        /// <br/>If the passed IEnumerable is only iterable once it is consumed in the process.
-        public static List<T> Shuffled<T>(this IEnumerable<T> l, Random? random = null) {
+        /// <summary>
+        /// Uses the <a href="https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle">Fisher–Yates algorithm</a>
+        /// to shuffle the passed collection. Returns a new array with the shuffled elements.
+        /// If the passed enumerable is only iterable once, then it is consumed in the process.
+        /// </summary>
+        public static T[] Shuffled<T>(this IEnumerable<T> l, Random? random = null) {
             random ??= new Random();
-            var list = l.ToList(); // force shallow copy
-            var n = list.Count;
+            var list = l.ToArray(); // force shallow copy
+            var n = list.Length;
             while (n > 1) {
                 n--;
                 var k = random.Next(n + 1);

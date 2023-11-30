@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -28,9 +27,11 @@ namespace BII.WasaBii.Splines.Maths {
         where TPos : unmanaged 
         where TDiff : unmanaged {
     
+        /// <summary>
         /// All coefficients of the polynomial function except the first. Eg. a cubic polynomial has
         /// three <see cref="TailC"/> entries and is calculated in the form of: A + Bt + Ct² + Dt³
         /// where A = <see cref="FirstC"/>, [B, C, D] = <see cref="TailC"/>
+        /// </summary>
         private readonly ImmutableArray<TDiff> TailC;
         private readonly TPos FirstC;
 

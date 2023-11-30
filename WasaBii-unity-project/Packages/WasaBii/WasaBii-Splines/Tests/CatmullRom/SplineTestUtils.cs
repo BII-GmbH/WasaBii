@@ -1,7 +1,6 @@
 using BII.WasaBii.Splines.CatmullRom;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
-using BII.WasaBii.Unity;
 using BII.WasaBii.Unity.Geometry;
 using NUnit.Framework;
 using UnityEngine;

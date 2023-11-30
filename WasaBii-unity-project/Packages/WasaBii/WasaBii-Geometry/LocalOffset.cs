@@ -60,16 +60,16 @@ namespace BII.WasaBii.Geometry {
         /// <example> <code>local.TransformBy(parent).TransformBy(parent.Inverse) = local</code> </example>
         [Pure] public LocalOffset TransformBy(LocalPose localParent) => localParent.Rotation * this;
         
-        /// Projects this offset onto the other one.
+        /// <summary> Projects this offset onto the other one. </summary>
         [Pure] public LocalOffset Project(LocalOffset other) => this.Dot(other) / other.SqrMagnitude * other;
 
-        /// Projects this offset onto the given direction.
+        /// <summary> Projects this offset onto the given direction. </summary>
         [Pure] public LocalOffset Project(LocalDirection onNormal) => this.Dot(onNormal) * onNormal;
 
-        /// Projects this offset onto the plane defined by its normal.
+        /// <summary> Projects this offset onto the plane defined by its normal. </summary>
         [Pure] public LocalOffset ProjectOnPlane(LocalDirection planeNormal) => this - this.Project(planeNormal);
 
-        /// Reflects this offset off the plane defined by the given normal
+        /// <summary> Reflects this offset off the plane defined by the given normal. </summary>
         [Pure]
         public LocalOffset Reflect(LocalDirection planeNormal) => this - 2 * this.Project(planeNormal);
 

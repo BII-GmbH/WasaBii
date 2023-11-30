@@ -3,6 +3,7 @@ using BII.WasaBii.Core;
 
 namespace BII.WasaBii.Splines.CatmullRom {
     
+    /// <summary>
     /// Describes how closely a catmull-rom spline interpolates its handles.
     /// Centripetal is the recommended default, as Uniform may cause loops
     /// and Chordal may cause sharp curves.
@@ -10,6 +11,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
     ///   this graph
     /// </a>
     /// for a visual demonstration.
+    /// </summary>
     [Serializable] 
     public enum SplineType {
         Uniform,
@@ -19,7 +21,10 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
     internal static class SplineTypeUtils {
         
-        /// A mathematical value used by the catmull-rom segment interpolation calculations to determine how the interpolation is influenced by the respective handles.
+        /// <summary>
+        /// A mathematical value used by the catmull-rom segment interpolation calculations
+        ///  to determine how the interpolation is influenced by the respective handles.
+        /// </summary>
         public static float ToAlpha(this SplineType type) =>
             type switch {
                 SplineType.Uniform => 0,

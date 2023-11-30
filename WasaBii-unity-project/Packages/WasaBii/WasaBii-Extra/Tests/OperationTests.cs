@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
@@ -11,11 +13,7 @@ namespace BII.WasaBii.Extra.Tests
     public class OperationTests
     {
         private const int initialValue = 0;
-        
-        // Non-nullable field is initialized in `SetUp`, not the constructor
-        #pragma warning disable 8618
-        private RunContext _runContext;
-        #pragma warning restore
+        private RunContext _runContext = null!; // overriden in SetUp
 
         [SetUp]
         public void SetUp() {

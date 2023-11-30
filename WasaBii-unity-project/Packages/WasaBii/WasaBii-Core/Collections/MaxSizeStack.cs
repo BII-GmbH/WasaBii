@@ -4,10 +4,12 @@ using System.Collections.Generic;
 
 namespace BII.WasaBii.Core {
 
+    /// <summary>
     /// Special stack implementation which limits its size
     /// to the given value. If a push causes the content to
     /// exceed that size, then the oldest entry is disposed
     /// and removed.
+    /// </summary>
     public class MaxSizeStack<T> : IEnumerable<T> where T : IDisposable {
 
         private readonly LinkedList<T> underlying = new LinkedList<T>();

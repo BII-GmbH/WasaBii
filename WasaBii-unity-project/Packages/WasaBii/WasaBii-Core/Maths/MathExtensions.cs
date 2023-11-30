@@ -7,14 +7,18 @@ using System.Linq;
 namespace BII.WasaBii.Core {
 
     public enum RoundingMode {
-        /// Rounds to the given number of digits after the point, independent of the value:
+        /// <summary>
+        /// Rounds to the given number of digits after the point, independent of the value.
+        /// </summary>
         /// <example>
         /// 123.456f.Round(digits: 2, DecimalPlaces) == 123.46f
         /// 12345.6f.Round(digits: 2, DecimalPlaces) == 12345.60f
         /// 1.23456f.Round(digits: 2, DecimalPlaces) == 1.23f
         /// </example>
         DecimalPlaces,
-        /// Rounds to the given number of digits, counted from the leftmost non-zero digit:
+        /// <summary>
+        /// Rounds to the given number of digits, counted from the leftmost non-zero digit.
+        /// </summary>
         /// <example>
         /// 123.456f.Round(digits: 2, SignificantDigits) == 120f
         /// 12345.6f.Round(digits: 2, SignificantDigits) == 12000f
@@ -65,14 +69,14 @@ namespace BII.WasaBii.Core {
             => Math.Round(value / factor) * factor;
 
         // From https://stackoverflow.com/a/374470
-        /// e.g. 2 for 645.65, 0 for 5.6 or -2 for 0.07656.
-        /// NaN for 0
+        // e.g. 2 for 645.65, 0 for 5.6 or -2 for 0.07656.
+        // NaN for 0
         [Pure] public static int PositionOfFirstSignificantDigit(this float value) =>
             (int) Math.Floor(Math.Log10(Math.Abs(value)));
 
         // From https://stackoverflow.com/a/374470
-        /// e.g. 2 for 645.65, 0 for 5.6 or -2 for 0.07656.
-        /// NaN for 0
+        // e.g. 2 for 645.65, 0 for 5.6 or -2 for 0.07656.
+        // NaN for 0
         [Pure] public static int PositionOfFirstSignificantDigit(this double value) =>
             (int) Math.Floor(Math.Log10(Math.Abs(value)));
 
@@ -159,10 +163,12 @@ namespace BII.WasaBii.Core {
         [Pure] public static float Sqr(this float value) => value * value;
         [Pure] public static double Sqr(this double value) => value * value;
         
+        /// <summary>
         /// Remainder of dividing <paramref name="x"/> by <paramref name="m"/>.
         /// Equal to the % operator for positive arguments,
         ///  but will always yield a positive result for negative arguments.
         /// Always positive for any x as long as m > 0.
+        /// </summary>
         [Pure] public static int Rem(int x, int m) => (x % m + m) % m;
         
         /// <inheritdoc cref="Rem(int,int)"/>

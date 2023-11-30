@@ -1,17 +1,15 @@
 namespace BII.WasaBii.Unity {
     /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
     /// Flag for component search utilities that specify
-    /// in which gameObjects to search for components. <br/>
+    /// in which gameObjects to search for components.
     /// Specifying anything other than <see cref="Search.InWholeHierarchy"/>
     /// or <see cref="Search.InSiblings"/>
     /// causes the lookups to search until either the scene root is
-    /// reached or there are no more children.<br/>
+    /// reached or there are no more children.
     /// When specifying <see cref="Search.InWholeHierarchy"/>,
     /// the parents are always searched first for performance reasons,
     /// as the hierarchy of parents can be traversed linearly, while
-    /// searching children results in a depth-first-search.<br/>
+    /// searching children results in a depth-first-search.
     /// <see cref="Search.InSiblings"/> linearly traverses all children
     /// of the target's parent, including the target itself. 
     /// </summary>

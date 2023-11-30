@@ -2,8 +2,6 @@ using System;
 
 namespace BII.WasaBii.Unity {
     /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
     /// Thrown when an invalid <see cref="Search"/> value is passed
     /// to a function. Should never happen unless you manually modified
     /// the <see cref="Search"/> enum.

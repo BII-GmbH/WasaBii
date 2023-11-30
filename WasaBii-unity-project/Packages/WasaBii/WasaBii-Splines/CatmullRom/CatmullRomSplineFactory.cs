@@ -6,9 +6,11 @@ using BII.WasaBii.Splines.Maths;
 
 namespace BII.WasaBii.Splines.CatmullRom {
     
+    /// <summary>
     /// Utilities for constructing generic catmull-rom splines.
     /// For explicitly typed variants with <see cref="GeometricOperations{TPos,TDiff}"/>
     /// included, use `UnitySpline`, `GlobalSpline` or `LocalSpline` in the Unity assembly.
+    /// </summary>
     public static partial class CatmullRomSpline {
         
         /// <summary>
@@ -86,6 +88,7 @@ namespace BII.WasaBii.Splines.CatmullRom {
             return new CatmullRomSpline<TPos, TDiff>(beginHandle, handles, endHandle, ops, splineType);
         }
 
+        /// <summary>
         /// Creates a catmull-rom spline that interpolates the provided positions.
         /// The margin handles of the spline are created automatically
         /// using <see cref="calculateSplineMarginHandles{TPos,TDiff}"/>.
@@ -93,7 +96,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// This should be used when the trajectory at the spline's begin / end
         /// should just be similar to the trajectory of the rest of the spline.
         /// 
-        /// Returns <see cref="NotEnoughHandles"/> if too few positions are provided
+        /// Returns <see cref="NotEnoughHandles"/> if too few positions are provided.
+        /// </summary>
         public static Result<CatmullRomSpline<TPos, TDiff>, NotEnoughHandles> FromHandles<TPos, TDiff>(
             IEnumerable<TPos> source, GeometricOperations<TPos, TDiff> ops, SplineType? type = null, bool shouldLoop = false
         ) where TPos : unmanaged where TDiff : unmanaged {

@@ -2,8 +2,6 @@ using System;
 
 namespace BII.WasaBii.Unity {
     /// <summary>
-    /// Author: Cameron Reuschel
-    /// <br/><br/>
     /// Thrown when calling <see cref="Singleton{T}.Instance"/>
     /// and there are either none or multiple instances of the
     /// component in a scene.

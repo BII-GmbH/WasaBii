@@ -11,6 +11,7 @@
     "precompiledReferences": [
         "WasaBii.Analyzers.Shared.dll",
         "WasaBii.Units.Shared.dll",
+        "WasaBii.Units.Defaults.dll",
         "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,

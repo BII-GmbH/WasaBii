@@ -167,12 +167,14 @@ namespace BII.WasaBii.Splines.CatmullRom {
         where TPos : unmanaged where TDiff : unmanaged =>
             spline.Handles[^1];
 
+        /// <summary>
         /// Returns all the positions of spline handles that are between the given locations on the spline.
         /// The positions of the locations on the spline themselves are included at begin and end.
         /// This is a more performant way to sample a spline than the methods in
         /// <see cref="SplineSampleExtensions"/>.
         /// This is because sampling has to normalize the locations for every sample made,
         /// while this operation is only done twice here.
+        /// </summary>
         [Pure]
         public static IEnumerable<TPos> HandlesBetween<TPos, TDiff>(
             this CatmullRomSpline<TPos, TDiff> spline, SplineLocation start, SplineLocation end

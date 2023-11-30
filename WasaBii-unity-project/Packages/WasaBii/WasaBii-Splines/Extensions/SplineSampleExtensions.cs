@@ -11,11 +11,13 @@ using BII.WasaBii.UnitSystem;
 namespace BII.WasaBii.Splines {
     public static class SplineSampleExtensions {
         
+        /// <summary>
         /// This method samples the positions on the entire spline.
         /// The sample rate is a defined amount between each segment of spline handles.
         /// Returns all sampled positions in order from the begin of the spline to its end.
         /// The samples are not distributed equidistantly, meaning that the distance between two successive samples
         /// can vary, especially for splines where the segments vary in length and for some higher-order-segments.
+        /// </summary>
         [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplinePerSegment<TPos, TDiff>(
             this Spline<TPos, TDiff> spline, int samplesPerSegment
         ) where TPos : unmanaged where TDiff : unmanaged {
@@ -29,8 +31,10 @@ namespace BII.WasaBii.Splines {
                 .Select(location => spline[location]);
         }
 
+        /// <summary>
         /// Behaves similar to <see cref="SampleSplineBetween{TPos,TDiff}(Spline{TPos,TDiff},SplineLocation,SplineLocation,Length,int,bool)"/>
         /// but the spline is always sampled along its entire length.
+        /// </summary>
         /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
         /// This prevents samples "clumping together", which can happen especially with higher-order-curves. However,
         /// it is much more computationally intensive, so leaving this off is significantly faster.</param>
@@ -48,8 +52,10 @@ namespace BII.WasaBii.Splines {
                 equidistant
             );
 
+        /// <summary>
         /// Behaves similar to <see cref="SampleSplineBetween{TPos,TDiff}(Spline{TPos,TDiff},SplineLocation,SplineLocation,int,bool)"/>
         /// but the spline is always sampled along its entire length.
+        /// </summary>
         /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
         /// This prevents samples "clumping together", which can happen especially with higher-order-curves. However,
         /// it is much more computationally intensive, so leaving this off is significantly faster.</param>
@@ -65,8 +71,10 @@ namespace BII.WasaBii.Splines {
                 equidistant
             );
         
+        /// <summary>
         /// Samples locations on the spline between <paramref name="fromAbsolute"/> to <paramref name="toAbsolute"/>. The returned samples
-        /// will have the same distance between each other, which is approximately equal to the <paramref name="desiredSampleLength"/>.
+        /// will have the same distance between each other, which is approximately equal to the <paramref name="desiredSampleLength"/>.\
+        /// </summary>
         /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
         /// Turning this off can cause samples to "clump together" and thus deviate from the <paramref name="desiredSampleLength"/>,
         /// which can happen especially with higher-order-curves. However, it is much more computationally intensive,
@@ -88,7 +96,9 @@ namespace BII.WasaBii.Splines {
             return spline.SampleSplineBetween(fromAbsolute, toAbsolute, segments, equidistant);
         }
 
+        /// <summary>
         /// Samples locations on the spline between <paramref name="fromAbsolute"/> to <paramref name="toAbsolute"/>.
+        /// </summary>
         /// <returns><see cref="samples"/> uniformly distributed samples</returns>
         /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
         /// This prevents samples "clumping together", which can happen especially with higher-order-curves. However,

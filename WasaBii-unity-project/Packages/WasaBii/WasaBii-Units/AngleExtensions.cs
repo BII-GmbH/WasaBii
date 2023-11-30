@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using BII.WasaBii.Core;
 using JetBrains.Annotations;
 using Quaternion = System.Numerics.Quaternion;
 using Vector3 = System.Numerics.Vector3;
@@ -11,19 +10,18 @@ namespace BII.WasaBii.UnitSystem {
         public static readonly Angle HalfCircle = Math.PI.Radians();
         public static readonly Angle FullCircle = 2 * HalfCircle;
         
-        /// The angle between 0° and 360°
+        /// <summary> The angle between 0° and 360° </summary>
         public static Angle Normalized360(this Angle angle) {
             angle %= FullCircle;
             if (angle < Angle.Zero) angle += FullCircle;
             return angle;
         }
         
-        /// The angle between -180° and 180°
+        /// <summary> The angle between -180° and 180° </summary>
         public static Angle Normalized180(this Angle angle) {
             var ret = angle.Normalized360();
             return ret > HalfCircle ? ret - FullCircle : ret;
         }
-
         /// <summary>
         /// Brings the two angles into the same "space" (either [0°, 360°) or [-180°, 180°))
         /// where the absolute of the difference between them is minimal.

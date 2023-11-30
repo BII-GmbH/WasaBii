@@ -5,7 +5,9 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
     
+    /// <summary>
     /// A location on a spline, represented as the distance away from the beginning along the spline (and not euclidean distance)
+    /// </summary>
     [Serializable]
     public readonly struct SplineLocation : IEquatable<SplineLocation>, IComparable<SplineLocation> {
         public static readonly SplineLocation Zero = new(Length.Zero);
@@ -106,7 +108,10 @@ namespace BII.WasaBii.Splines {
         public override int GetHashCode() => Value.GetHashCode();
     }
 
-    /// Represents a location on a spline: It is equal to the index of the node plus the progress to the next
+    /// <summary>
+    /// Represents a location on a spline:
+    /// It is equal to the index of the node plus the progress to the next.
+    /// </summary>
     [Serializable]
     public readonly struct NormalizedSplineLocation : IEquatable<NormalizedSplineLocation> {
         public static readonly NormalizedSplineLocation Zero = From(0);

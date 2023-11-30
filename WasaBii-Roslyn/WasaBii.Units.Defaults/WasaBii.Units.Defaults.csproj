@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>BII.WasaBii.UnitSystem</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>default</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="WasaBiiUnits.units.json" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Units\dlls\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>..\..\WasaBii-unity-project\Packages\WasaBii\WasaBii-Units\dlls\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WasaBii.Units.Generator\WasaBii.Units.Generator.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\WasaBii.Units.Shared\WasaBii.Units.Shared.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>C:\Program Files\Unity\2022.2.6f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="UnityEngine">
+      <HintPath>C:\Program Files\Unity\2022.2.6f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    
+    <!-- Note: fine to include references to editor as long as all code is guarded in #if -->
+
+    <Reference Include="UnityEditor.CoreModule">
+      <HintPath>C:\Program Files\Unity\2022.2.6f1\Editor\Data\Managed\UnityEngine\UnityEditor.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="UnityEditor">
+      <HintPath>C:\Program Files\Unity\2022.2.6f1\Editor\Data\Managed\UnityEngine\UnityEditor.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

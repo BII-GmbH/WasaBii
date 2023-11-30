@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
 using BII.WasaBii.Core;
 
 #nullable enable
@@ -138,11 +136,13 @@ namespace BII.WasaBii.UnitSystem {
         
         // Formatting
         
+        /// <summary>
         /// Returns the unit which leads to the smallest possible value not less than 1 when applied.
         /// If no unit yields a value >= 1, the unit with the greatest value is returned.
         /// Only <see cref="allowedUnits"/> will be considered if it is not null.
         /// These units will be sorted by their factor. In a performance critical context,
         /// you may want to pass an already sorted list. In this case, pass `true` for <see cref="areUnitsSorted"/>.
+        /// </summary>
         public static IUnit<TValue> MostFittingDisplayUnitFor<TValue>(
             TValue value, 
             IEnumerable<IUnit<TValue>>? allowedUnits = null,
@@ -166,7 +166,7 @@ namespace BII.WasaBii.UnitSystem {
             return displayUnit;
         }
 
-        // TODO CR for maintainer: provide default format with most fitting unit & implement analyzer to prefer this over .ToString()
+        // TODO: provide default format with most fitting unit & implement analyzer to prefer this over .ToString()
         public static string Format<TValue>(
             this TValue value, 
             IUnit<TValue> unit, 

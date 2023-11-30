@@ -5,8 +5,10 @@ using System.Diagnostics;
 
 namespace BII.WasaBii.Core {
     
+    /// <summary>
     /// A readonly <see cref="ArraySegment{T}"/> but for <see cref="IReadOnlyList{T}"/>s.
     /// This is a view on a list, mutating the original will mutate this too.
+    /// </summary>
     public readonly struct ReadOnlyListSegment<T> : IReadOnlyList<T> {
 
         private readonly IReadOnlyList<T> _wrapped;

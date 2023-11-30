@@ -7,7 +7,7 @@ namespace BII.WasaBii.Geometry {
     
     public static class GeometryUtils {
 
-        /// Rotates x and z around the Y-Axis while lerping y.
+        /// <summary> Rotates x and z around the Y-Axis while lerping y. </summary>
         public static GlobalPosition Cirp(
             GlobalPosition from, GlobalPosition to, GlobalPosition pivot, double progress, bool shouldClamp = true
         ) {
@@ -18,7 +18,7 @@ namespace BII.WasaBii.Geometry {
                 .WithY(Units.Lerp(from.Y, to.Y, progress, shouldClamp));
         }
 
-        /// Rotates x and z around the Y-Axis while lerping y.
+        /// <summary> Rotates x and z around the Y-Axis while lerping y. </summary>
         public static GlobalPose Cirp(
             GlobalPose from, GlobalPose to, GlobalPosition pivot, double progress, bool shouldClamp = true
         ) {
@@ -73,18 +73,23 @@ namespace BII.WasaBii.Geometry {
             return (A: aAngle, B: bAngle, C: cAngle);
         }
 
+        /// <summary>
         /// Reflects the point <see cref="self"/> off <see cref="on"/>. Has the same effect
         /// as rotating <see cref="self"/> around <see cref="on"/> by 180° around an axis
         /// perpendicular to the difference between the two.
+        /// </summary>
         [Pure] public static Vector3 PointReflect(this Vector3 self, Vector3 on) => on + on - self;
 
         /// Reflects the vector <see cref="offset"/> on the plane defined by the <see cref="planeNormal"/>.
+        /// </summary>
         /// <param name="offset">The vector to reflect.</param>
         /// <param name="planeNormal">The normal of the plane. Must be normalized.</param>
         [Pure] public static Vector3 Reflect(this Vector3 offset, Vector3 planeNormal)
             => Vector3.Reflect(offset, planeNormal);
         
+        /// <summary>
         /// Reflects the <see cref="point"/> on a plane.
+        /// </summary>
         /// <param name="point">The point to reflect</param>
         /// <param name="pointOnPlane">Any point on the plane</param>
         /// <param name="planeNormal">The normal of the plane. Must be normalized.</param>

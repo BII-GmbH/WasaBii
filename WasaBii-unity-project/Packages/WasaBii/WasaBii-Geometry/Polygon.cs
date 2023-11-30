@@ -7,9 +7,11 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Geometry {
     
+    /// <summary>
     /// A polygon consisting of any finite number of vertices that define its boundaries.
     /// The vertices are given in clockwise order and are expected to be planar. Note
     /// that polygons might be self-intersecting, but some utilities expect them not to be.
+    /// </summary>
     [MustBeImmutable][Serializable]
     public sealed class Polygon : IEquatable<Polygon> {
 

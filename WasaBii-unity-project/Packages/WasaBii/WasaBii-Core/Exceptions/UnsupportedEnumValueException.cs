@@ -2,9 +2,7 @@
 
 namespace BII.WasaBii.Core {
     
-    public class UnsupportedEnumValueException : Exception
-    {
-
+    public class UnsupportedEnumValueException : Exception {
         public readonly Enum Value;
 
         public UnsupportedEnumValueException(Enum value) : base(

@@ -216,7 +216,7 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                 // We allow all immutable collections even though they might internally be mutable
                 if (
                     iEnumerableSymbol != null
-                    && type.ContainingAssembly.Name == typeof(ImmutableArray).Namespace.Split(",").First() 
+                    && type.ContainingAssembly.Name == typeof(ImmutableArray).Namespace.Split(',').First() 
                     && type.AllInterfaces.Contains(iEnumerableSymbol)
                 ) {
                     if (!namedType.IsGenericType)

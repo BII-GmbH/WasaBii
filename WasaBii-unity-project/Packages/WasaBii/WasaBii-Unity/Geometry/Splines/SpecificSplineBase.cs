@@ -99,7 +99,7 @@ namespace BII.WasaBii.Unity.Geometry {
             };
 
         /// <inheritdoc cref="Spline{TPos,TDiff}.Copyable.Reversed"/>
-        [Pure] public TSelf Reversed => mkNew(((Spline<TPos, TDiff>.Copyable)this).Reversed);
+        public TSelf Reversed => mkNew(((Spline<TPos, TDiff>.Copyable)this).Reversed);
         
         Spline<TPos, TDiff> Spline<TPos, TDiff>.Copyable.Reversed =>
             Wrapped switch {

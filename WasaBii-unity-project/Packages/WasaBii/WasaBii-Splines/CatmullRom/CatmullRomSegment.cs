@@ -36,9 +36,10 @@ namespace BII.WasaBii.Splines.CatmullRom {
         internal Polynomial<TPos, TDiff> ToPolynomial(float alpha) {
             var ops = Ops;
 
-            double DTFor(TPos pos1, TPos pos2, double orWhenZero) =>
-                Math.Pow(ops.Distance(pos1, pos2).AsMeters(), alpha)
-                    .Let((dt, owz) => dt < float.Epsilon ? owz : dt, orWhenZero);
+            double DTFor(TPos pos1, TPos pos2, double orWhenZero) {
+                var dt = Math.Pow(ops.Distance(pos1, pos2).AsMeters(), alpha);
+                return dt < float.Epsilon ? orWhenZero : dt;
+            }
 
             var dt1 = DTFor(P1, P2, orWhenZero: 1.0f);
             var dt0 = DTFor(P0, P1, orWhenZero: dt1);

@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+#nullable enable
+
 namespace BII.WasaBii.Core {
     
     /// <summary>
@@ -17,10 +19,13 @@ namespace BII.WasaBii.Core {
         public int Count { get; }
 
         public ReadOnlyListSegment(IReadOnlyList<T> wrapped, int offset, int count) {
-            Debug.Assert(wrapped != null);
-            Debug.Assert(offset >= 0);
-            Debug.Assert(count >= 0);
-            Debug.Assert(wrapped.Count >= offset + count);
+            if(offset < 0) 
+                throw new ArgumentOutOfRangeException($"{nameof(offset)} must be non-negative (was {offset})");
+            if(count < 0) 
+                throw new ArgumentOutOfRangeException($"{nameof(count)} must be non-negative (was {count})");
+            if(wrapped.Count < offset + count) 
+                throw new ArgumentOutOfRangeException($"Segment exceeds wrapped list length (segment end: {offset + count}, wrapped length: {wrapped.Count})");
+            
             _wrapped = wrapped;
             this._offset = offset;
             this.Count = count;

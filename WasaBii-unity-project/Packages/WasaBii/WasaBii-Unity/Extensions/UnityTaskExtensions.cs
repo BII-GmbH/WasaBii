@@ -22,13 +22,10 @@ namespace BII.WasaBii.Unity {
                     action: () => reportProgressEachFrame.Invoke(request.progress)
                 ).Start();
             
-            request.completed += _ => {
-                Debug.Assert(request.asset != null);
-                res.SetResult(
-                    request.asset as T ?? throw new ArgumentException(
-                        $"The result of the operation {request.asset} was not of the expected type {typeof(T)}")
-                );
-            };
+            request.completed += _ => res.SetResult(
+                request.asset as T ?? throw new ArgumentException(
+                    $"The result of the operation {request.asset} was not of the expected type {typeof(T)}")
+            );
             
             return res.Task;
         } 

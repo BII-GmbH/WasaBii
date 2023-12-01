@@ -70,7 +70,7 @@ namespace BII.WasaBii.Unity {
         /// </summary>
         public static T IfAbsentComputeThenReturn<T>(ref T? field, Func<T> getter) where T : struct {
             IfAbsentCompute(ref field, () => getter());
-            Debug.Assert(field != null);
+            if (field == null) throw new ArgumentException($"{nameof(getter)} returned null");
             return field!.Value;
         }
 

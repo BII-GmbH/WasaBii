@@ -1,9 +1,10 @@
 #if UNITY_2022_1_OR_NEWER
-#define IsUnity
+ #define IsUnity
 #endif
 
 using System.Runtime.InteropServices;
 using BII.WasaBii.Core;
+using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
     
@@ -11,13 +12,11 @@ namespace BII.WasaBii.Geometry {
 #if IsUnity
     using Matrix = UnityEngine.Matrix4x4;
     using Vector3 = UnityEngine.Vector3;
-    using Vector4 = UnityEngine.Vector4;
     using Quaternion = UnityEngine.Quaternion;
 #else
     using System;
     using Matrix = System.Numerics.Matrix4x4;
     using Vector3 = System.Numerics.Vector3;
-    using Vector4 = System.Numerics.Vector4;
     using Quaternion = System.Numerics.Quaternion;
 #endif
 
@@ -91,16 +90,14 @@ namespace BII.WasaBii.Geometry {
         /// <summary>
         /// Transforms a position from local space to global space.
         /// </summary>
+        [Pure]
         public GlobalPosition TransformPoint(LocalPosition local) => type switch {
 #if IsUnity
-            Type.Matrix => (localToGlobalMatrix * local.AsUnityVector.Let(vec3 => new Vector4(vec3.x, vec3.y, vec3.z, 1)))
-                .Let(vec4 => new Vector3(vec4.x, vec4.y, vec4.z)).AsGlobalPosition(),
+            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+            Type.Matrix => localToGlobalMatrix.MultiplyPoint3x4(local.AsUnityVector).AsGlobalPosition(),
             Type.Transform => transform.TransformPoint(local.AsUnityVector).AsGlobalPosition(),
 #else
-            Type.Matrix => Vector4.Transform(
-                local.AsNumericsVector.Let(vec3 => new Vector4(vec3.X, vec3.Y, vec3.Z, 1)), 
-                localToGlobalMatrix
-            ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsGlobalPosition(),
+            Type.Matrix => Vector3.Transform(local.AsNumericsVector, localToGlobalMatrix).AsGlobalPosition(),
 #endif
             Type.Pose => pose.Position + local.AsNumericsVector.AsGlobalOffset() * pose.Rotation,
             _ => throw new UnsupportedEnumValueException(type)
@@ -109,16 +106,14 @@ namespace BII.WasaBii.Geometry {
         /// <summary>
         /// Transforms a position from global space to local space.
         /// </summary>
+        [Pure]
         public LocalPosition InverseTransformPoint(GlobalPosition global) => type switch {
             #if IsUnity
-            Type.Matrix => (GlobalToLocalMatrix * global.AsUnityVector.Let(vec3 => new Vector4(vec3.x, vec3.y, vec3.z, 1)))
-                .Let(vec4 => new Vector3(vec4.x, vec4.y, vec4.z)).AsLocalPosition(),
+            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+            Type.Matrix => GlobalToLocalMatrix.MultiplyPoint3x4(global.AsUnityVector).AsLocalPosition(),
             Type.Transform => transform.InverseTransformPoint(global.AsUnityVector).AsLocalPosition(),
             #else
-            Type.Matrix => Vector4.Transform(
-                global.AsNumericsVector.Let(vec3 => new Vector4(vec3.X, vec3.Y, vec3.Z, 1)), 
-                GlobalToLocalMatrix
-            ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsLocalPosition(),
+            Type.Matrix => Vector3.Transform(global.AsNumericsVector, GlobalToLocalMatrix).AsLocalPosition(),
             #endif
             Type.Pose => ((global - pose.Position) * pose.Rotation.Inverse).AsNumericsVector.AsLocalPosition(),
             _ => throw new UnsupportedEnumValueException(type)
@@ -127,16 +122,14 @@ namespace BII.WasaBii.Geometry {
         /// <summary>
         /// Transforms an offset from local space to global space.
         /// </summary>
+        [Pure]
         public GlobalOffset TransformOffset(LocalOffset local) => type switch {
             #if IsUnity
-            Type.Matrix => (localToGlobalMatrix * local.AsUnityVector.Let(vec3 => new Vector4(vec3.x, vec3.y, vec3.z, 0)))
-                .Let(vec4 => new Vector3(vec4.x, vec4.y, vec4.z)).AsGlobalOffset(),
+            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+            Type.Matrix => localToGlobalMatrix.MultiplyVector(local.AsUnityVector).AsGlobalOffset(),
             Type.Transform => transform.TransformVector(local.AsUnityVector).AsGlobalOffset(),
             #else
-            Type.Matrix => Vector4.Transform(
-                local.AsNumericsVector.Let(vec3 => new Vector4(vec3.X, vec3.Y, vec3.Z, 0)), 
-                localToGlobalMatrix
-            ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsGlobalOffset(),
+            Type.Matrix => Vector3.TransformNormal(local.AsNumericsVector, localToGlobalMatrix).AsGlobalOffset(),
             #endif
             Type.Pose => local.AsNumericsVector.AsGlobalOffset() * pose.Rotation,
             _ => throw new UnsupportedEnumValueException(type)
@@ -145,16 +138,14 @@ namespace BII.WasaBii.Geometry {
         /// <summary>
         /// Transforms an offset from global to local space.
         /// </summary>
+        [Pure]
         public LocalOffset InverseTransformOffset(GlobalOffset global) => type switch {
             #if IsUnity
-            Type.Matrix => (GlobalToLocalMatrix * global.AsUnityVector.Let(vec3 => new Vector4(vec3.x, vec3.y, vec3.z, 0)))
-                .Let(vec4 => new Vector3(vec4.x, vec4.y, vec4.z)).AsLocalOffset(),
+            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+            Type.Matrix => GlobalToLocalMatrix.MultiplyVector(global.AsUnityVector).AsLocalOffset(),
             Type.Transform => transform.InverseTransformVector(global.AsUnityVector).AsLocalOffset(),
             #else
-            Type.Matrix => Vector4.Transform(
-                global.AsNumericsVector.Let(vec3 => new Vector4(vec3.X, vec3.Y, vec3.Z, 0)), 
-                GlobalToLocalMatrix
-            ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsLocalOffset(),
+            Type.Matrix => Vector3.TransformNormal(global.AsNumericsVector, GlobalToLocalMatrix).AsLocalOffset(),
             #endif
             Type.Pose => (global * pose.Rotation.Inverse).AsNumericsVector.AsLocalOffset(),
             _ => throw new UnsupportedEnumValueException(type)
@@ -163,16 +154,14 @@ namespace BII.WasaBii.Geometry {
         /// <summary>
         /// Transforms a direction from local space to global space.
         /// </summary>
+        [Pure]
         public GlobalDirection TransformDirection(LocalDirection local) => type switch {
             #if IsUnity
-            Type.Matrix => (localToGlobalMatrix * local.AsUnityVector.Let(vec3 => new Vector4(vec3.x, vec3.y, vec3.z, 0)))
-                .Let(vec4 => new Vector3(vec4.x, vec4.y, vec4.z)).AsGlobalDirection(),
+            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+            Type.Matrix => localToGlobalMatrix.MultiplyVector(local.AsUnityVector).AsGlobalDirection(),
             Type.Transform => transform.TransformDirection(local.AsUnityVector).AsGlobalDirection(),
             #else
-            Type.Matrix => Vector4.Transform(
-                local.AsNumericsVector.Let(vec3 => new Vector4(vec3.X, vec3.Y, vec3.Z, 0)), 
-                localToGlobalMatrix
-            ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsGlobalDirection(),
+            Type.Matrix => Vector3.TransformNormal(local.AsNumericsVector, localToGlobalMatrix).AsGlobalDirection(),
             #endif
             Type.Pose => local.AsNumericsVector.AsGlobalDirection() * pose.Rotation,
             _ => throw new UnsupportedEnumValueException(type)
@@ -181,16 +170,14 @@ namespace BII.WasaBii.Geometry {
         /// <summary>
         /// Transforms a direction from global to local space.
         /// </summary>
+        [Pure]
         public LocalDirection InverseTransformDirection(GlobalDirection global) => type switch {
             #if IsUnity
-            Type.Matrix => (GlobalToLocalMatrix * global.AsUnityVector.Let(vec3 => new Vector4(vec3.x, vec3.y, vec3.z, 0)))
-                .Let(vec4 => new Vector3(vec4.x, vec4.y, vec4.z)).AsLocalDirection(),
+            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+            Type.Matrix => GlobalToLocalMatrix.MultiplyVector(global.AsUnityVector).AsLocalDirection(),
             Type.Transform => transform.InverseTransformDirection(global.AsUnityVector).AsLocalDirection(),
             #else
-            Type.Matrix => Vector4.Transform(
-                global.AsNumericsVector.Let(vec3 => new Vector4(vec3.X, vec3.Y, vec3.Z, 0)), 
-                GlobalToLocalMatrix
-            ).Let(vec4 => new Vector3(vec4.X, vec4.Y, vec4.Z)).AsLocalDirection(),
+            Type.Matrix => Vector3.TransformNormal(global.AsNumericsVector, GlobalToLocalMatrix).AsLocalDirection(),
             #endif
             Type.Pose => (global * pose.Rotation.Inverse).AsNumericsVector.AsLocalDirection(),
             _ => throw new UnsupportedEnumValueException(type)
@@ -199,6 +186,7 @@ namespace BII.WasaBii.Geometry {
         /// <summary>
         /// Transforms a rotation from local space to global space.
         /// </summary>
+        [Pure]
         public GlobalRotation TransformRotation(LocalRotation local) => type switch {
             #if IsUnity
             Type.Matrix => (localToGlobalMatrix.rotation * local.AsUnityQuaternion).AsGlobalRotation(),
@@ -213,6 +201,7 @@ namespace BII.WasaBii.Geometry {
         /// <summary>
         /// Transforms a rotation from global to local space.
         /// </summary>
+        [Pure]
         public LocalRotation InverseTransformRotation(GlobalRotation global) => type switch {
             #if IsUnity
             Type.Matrix => (GlobalToLocalMatrix.rotation * global.AsUnityQuaternion).AsLocalRotation(),
@@ -224,6 +213,7 @@ namespace BII.WasaBii.Geometry {
             _ => throw new UnsupportedEnumValueException(type)
         };
 
+        [Pure]
         public static TransformProvider From(Vector3? pos = null, Quaternion? rotation = null, Vector3? scale = null) =>
 #if IsUnity
             new(pos ?? Vector3.zero, rotation ?? Quaternion.identity, scale ?? Vector3.one);

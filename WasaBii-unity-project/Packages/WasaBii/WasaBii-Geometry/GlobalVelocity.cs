@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using BII.WasaBii.Geometry.Shared;
 using BII.WasaBii.UnitSystem;
+using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry {
 
@@ -59,14 +59,18 @@ namespace BII.WasaBii.Geometry {
         [Pure]
         public GlobalVelocity Reflect(GlobalDirection planeNormal) => this - 2 * this.Project(planeNormal);
 
+        [Pure]
         public Speed Dot(GlobalDirection normal) => System.Numerics.Vector3.Dot(AsNumericsVector, normal.AsNumericsVector).MetersPerSecond();
 
+        [Pure]
         public GlobalVelocity Cross(GlobalVelocity other) =>
             new(System.Numerics.Vector3.Cross(AsNumericsVector, other.AsNumericsVector));
 
+        [Pure]
         public Angle SignedAngleTo(GlobalVelocity other, GlobalDirection axis, Handedness handedness = Handedness.Default) =>
             AsNumericsVector.SignedAngleTo(other.AsNumericsVector, axis.AsNumericsVector, handedness);
 
+        [Pure]
         public Angle SignedAngleOnPlaneTo(GlobalVelocity other, GlobalDirection axis, Handedness handedness = Handedness.Default) =>
             AsNumericsVector.SignedAngleOnPlaneTo(other.AsNumericsVector, axis.AsNumericsVector, handedness);
 

@@ -41,9 +41,11 @@ namespace BII.WasaBii.Core {
         /// A value outside of (0,1), if <see cref="value"/> is outside of (<see cref="a"/>,<see cref="b"/>) and <see cref="shouldClamp"/> is false.
         /// *: assuming a is less than b, invert if this is not the case.
         /// </returns>
-        public static double InverseLerp(double a, double b, double value, bool shouldClamp = true) => a != b 
-            ? ((value - a) / (b - a)).If(shouldClamp, val => val.Clamp01()) 
-            : 0.0;
+        public static double InverseLerp(double a, double b, double value, bool shouldClamp = true) {
+            if (a.IsNearly(b)) return 0.0;
+            var t = (value - a) / (b - a);
+            return shouldClamp ? t.Clamp01() : t;
+        }
 
         public static int FloorToInt(double d) => (int) Math.Floor(d);
 

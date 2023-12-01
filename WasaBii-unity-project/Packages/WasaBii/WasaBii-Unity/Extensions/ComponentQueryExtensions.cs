@@ -182,7 +182,7 @@ namespace BII.WasaBii.Unity {
             Search.InSiblings => go.transform.parent.IsNull(out var p)
                 ? go.All<T>(includeInactive: includeInactive)
                 : go.transform.parent.GetChildren()
-                    .If(includeInactive, ch => ch.Where(c => c.gameObject.activeSelf && c.gameObject.activeInHierarchy))
+                    .ApplyIf(includeInactive, ch => ch.Where(c => c.gameObject.activeSelf && c.gameObject.activeInHierarchy))
                     .Collect(c => c.gameObject.GetComponent<T>())
                     .ToArray(),
             Search.InWholeHierarchy => go.transform.parent.IfNotNull(p => 

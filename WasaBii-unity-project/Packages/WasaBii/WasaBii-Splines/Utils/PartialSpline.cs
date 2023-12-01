@@ -38,24 +38,20 @@ namespace BII.WasaBii.Splines {
         public SplineSample<TPos, TDiff> SampleAt(double percentage) => Spline[NormalizedSplineLocation.Lerp(StartLocationNormalized, EndLocationNormalized, percentage)];
 
         public SplineSample<TPos, TDiff> SampleFromStart(Length distanceFromStart) {
-            Debug.Assert(
-                distanceFromStart >= -Length.Epsilon, 
+            if(distanceFromStart < -Length.Epsilon) throw new ArgumentException(
                 $"Distance must be above 0, but was {distanceFromStart}"
             );
-            Debug.Assert(
-                distanceFromStart <= Length + Length.Epsilon, 
+            if(distanceFromStart > Length + Length.Epsilon) throw new ArgumentException(
                 $"Distance must be below the length of {Length}, but was {distanceFromStart}"
             );
             return Spline[distanceFromStart + StartLocation];
         }
 
         public SplineSample<TPos, TDiff> SampleFromEnd(Length distanceFromEnd) {
-            Debug.Assert(
-                distanceFromEnd >= -Length.Epsilon, 
+            if(distanceFromEnd < -Length.Epsilon) throw new ArgumentException(
                 $"Distance must be above 0, but was {distanceFromEnd}"
             );
-            Debug.Assert(
-                distanceFromEnd <= Length + Length.Epsilon, 
+            if(distanceFromEnd > Length + Length.Epsilon) throw new ArgumentException(
                 $"Distance must be below the length of {Length}, but was {distanceFromEnd}"
             );
             return Spline[EndLocation - distanceFromEnd];

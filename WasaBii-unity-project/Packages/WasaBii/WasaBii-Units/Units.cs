@@ -128,14 +128,9 @@ namespace BII.WasaBii.UnitSystem {
                 throw new ArgumentException($"At least 2 sample points are needed. {sampleCount} were requested.");
             
             for (double i = 0; i < sampleCount; i++) {
-                yield return Lerp(
-                    from, 
-                    to, 
-                    (i / (sampleCount - 1)).If(
-                        progressExponent != null, 
-                        p => Math.Pow(p, progressExponent!.Value)
-                    )
-                );
+                var t = i / (sampleCount - 1);
+                if (progressExponent != null) t = Math.Pow(t, progressExponent.Value);
+                yield return Lerp(from, to, t);
             }
         }
         
@@ -153,9 +148,11 @@ namespace BII.WasaBii.UnitSystem {
             IEnumerable<IUnit<TValue>>? allowedUnits = null,
             bool areUnitsSorted = false
         ) where TValue : struct, IUnitValue<TValue> {
-            var allowed = allowedUnits?.If(!areUnitsSorted, 
-                units => (IEnumerable<IUnit<TValue>>) units.OrderBy(u => u.SiFactor)
-            ).AsReadOnlyList() ?? AllUnitsFor<TValue>();
+            var allowed = allowedUnits != null
+                ? areUnitsSorted
+                    ? allowedUnits.AsReadOnlyList()
+                    : allowedUnits.OrderBy(u => u.SiFactor).ToList()
+                : AllUnitsFor<TValue>();
 
             if (!allowed.Any()) throw new ArgumentException($"No allowed units given for {typeof(TValue)}.");
             

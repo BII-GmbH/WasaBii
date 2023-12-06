@@ -290,11 +290,29 @@ namespace BII.WasaBii.Core {
             return b;
         }
         
+        [Pure] public bool TryGetValue(out TValue val, out TError err) {
+            bool b;
+            (val, err, b) = Match(
+                res => (res, default(TError)!, true),
+                fail => (default(TValue)!, fail, false)
+            );
+            return b;
+        }
+        
         [Pure] public bool TryGetError(out TError err) {
             bool b;
             (err, b) = Match(
                 _ => (default!, false),
                 err => (err, true)
+            );
+            return b;
+        }
+
+        [Pure] public bool TryGetError(out TError err, out TValue val) {
+            bool b;
+            (val, err, b) = Match(
+                res => (res, default(TError)!, false),
+                fail => (default(TValue)!, fail, true)
             );
             return b;
         }

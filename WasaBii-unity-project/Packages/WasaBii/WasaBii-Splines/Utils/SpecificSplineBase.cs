@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
 using BII.WasaBii.Core;
-using BII.WasaBii.Splines;
 using BII.WasaBii.Splines.Bezier;
 using BII.WasaBii.Splines.CatmullRom;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
-using JetBrains.Annotations;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Splines {
 
     /// <summary>
     /// Base class for non-generic spline implementations like <see cref="UnitySpline"/> that hides

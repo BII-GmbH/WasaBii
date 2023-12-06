@@ -9,7 +9,7 @@ using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 
-namespace BII.WasaBii.Unity.Geometry {
+namespace BII.WasaBii.Extra.Geometry {
 
     [Serializable]
     public sealed class GlobalSpline : SpecificSplineBase<GlobalSpline, GlobalPosition, GlobalOffset> {

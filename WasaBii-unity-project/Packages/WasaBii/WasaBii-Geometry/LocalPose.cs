@@ -9,7 +9,7 @@ namespace BII.WasaBii.Geometry {
     /// </summary>
     [Serializable]
     [GeometryHelper(areFieldsIndependent: false, hasMagnitude: false, hasOrientation: false)]
-    public partial struct LocalPose : IsLocalVariant<LocalPose, GlobalPose> {
+    public partial struct LocalPose : IsLocalVariant<LocalPose, GlobalPose>, WithLerp<LocalPose> {
         
         public static readonly LocalPose Identity = new(LocalPosition.Zero, LocalRotation.Identity);
         

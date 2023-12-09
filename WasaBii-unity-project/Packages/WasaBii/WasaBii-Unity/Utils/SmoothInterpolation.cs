@@ -5,11 +5,10 @@ using System.Collections;
 using BII.WasaBii.Core;
 using BII.WasaBii.Geometry;
 using BII.WasaBii.UnitSystem;
-using BII.WasaBii.Unity;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace BII.WasaBii.Extra {
+namespace BII.WasaBii.Unity {
 
     public static class SmoothInterpolation {
         
@@ -23,7 +22,7 @@ namespace BII.WasaBii.Extra {
         /// The formula is designed such that the result of two consecutive calls with the same
         /// smoothness value is equal to one call with added progress:
         /// <example><code>
-        /// 10f.SmoothInterpolateTo(50f, 0.5f, 1.5f).SmoothInterpolateTo(50f, 0.5f, 3.5f) ==
+        /// Interpolate(Interpolate(10f, 50f, 0.5f, 1.5f), 50f, 0.5f, 3.5f) ==
         /// 10f.SmoothInterpolateTo(50f, 0.5f, 5f)
         /// </code></example>
         /// </summary>
@@ -36,30 +35,34 @@ namespace BII.WasaBii.Extra {
         /// <param name="progress">Defines how far to interpolate. This will usually be the time that
         /// has passed since the last call (which returned <see cref="current"/>), e.g. <see cref="Time.deltaTime"/>.
         /// Must be greater than or equal to 0.</param>
-        [Pure] public static float SmoothInterpolateTo(this float current, float target, float smoothness, float progress) =>
+        [Pure] public static float Interpolate(float current, float target, float smoothness, float progress) =>
             Mathf.Lerp(target, current, Mathf.Pow(smoothness, progress));
             // Proof why the property of consecutive calls mentioned in the summary holds true:
             // float c, t, s, a, b;
-            // c.SmoothInterpolateTo(t, s, a).SmoothInterpolateTo(t, s, b)
-            // == (c * s^a + t * (1 - s^a)).SmoothInterpolateTo(t, s, b)
+            // Interpolate(Interpolate(c, t, s, a), t, s, b)
+            // == Interpolate(c * s^a + t * (1 - s^a), t, s, b)
             // == (c * s^a + t * (1 - s^a)) * s^b + t * (1 - s^b)
             // == c * s^(a+b) + t * (s^b - s^(a+b)) + t * (1 - s^b)
             // == c * s^(a+b) + t * (1 - s^(a+b))
-            // == c.SmoothInterpolateTo(t, s, a+b)
+            // == Interpolate(c, t, s, a+b)
 
-        /// <inheritdoc cref="SmoothInterpolateTo(float,float,float,float)"/>
-        [Pure] public static double SmoothInterpolateTo(this double current, double target, double smoothness, double progress) => 
+        /// <inheritdoc cref="Interpolate(float,float,float,float)"/>
+        [Pure] public static double Interpolate(double current, double target, double smoothness, double progress) => 
             MathD.Lerp(target, current, Math.Pow(smoothness, progress));
-    }
-
-    public static class UnitSmoothInterpolation {
-        /// <inheritdoc cref="SmoothInterpolation.SmoothInterpolateTo(float,float,float,float)"/>
-        [Pure] public static T SmoothInterpolateTo<T>(this T current, T target, double smoothness, double progress) 
+        
+        /// <inheritdoc cref="Interpolate(float,float,float,float)"/>
+        [Pure] public static T Interpolate<T>(T current, T target, double smoothness, double progress) 
             where T : struct, IUnitValue<T> => 
             Units.Lerp(target, current, Math.Pow(smoothness, progress));
     }
 
-    // TODO DS: Document.
+    /// <summary>
+    /// The base for classes that track a single <see cref="CurrentValue"/> of type <typeparamref name="T"/> and
+    /// update it automatically over time such that it tends towards the <see cref="Target"/> as specified in
+    /// <see cref="SmoothInterpolation.Interpolate(float, float, float, float)"/>. The changing of the value
+    /// happens in <c>Update()</c> / in a coroutine managed by the <see cref="Coroutines.CoroutineRunner"/>.
+    /// Child classes specify the type-specific (liner) interpolation.
+    /// </summary>
     public abstract class Smoothed<T> : IDisposable 
     where T : struct {
         
@@ -96,57 +99,83 @@ namespace BII.WasaBii.Extra {
         private IEnumerator updateValue() {
             lastUpdateTime = Time.time;
             while(true) {
-                yield return _updateDelay?.Let(d => new WaitForSeconds(d));
-                CurrentValue = interpolate(CurrentValue, TargetGetter(), Smoothness, Time.time - lastUpdateTime);
+                yield return _updateDelay == null ? null : new WaitForSeconds(_updateDelay.Value);
+                var t = Math.Pow(Smoothness, Time.time - lastUpdateTime);
+                CurrentValue = interpolate(CurrentValue, TargetGetter(), t);
                 lastUpdateTime = Time.time;
             }
             // ReSharper disable once IteratorNeverReturns
             // Designed to be aborted in `Stop`
         }
 
-        protected abstract T interpolate(T current, T target, float smoothness, float progress);
+        protected abstract T interpolate(T current, T target, double progress);
 
         public void Dispose() => Stop();
     }
-
+    
+    /// <summary>
+    /// Tracks a single floating point <see cref="Smoothed{Single}.CurrentValue"/> and updates it automatically
+    /// over <see cref="Time.time"/> such that it tends towards the <see cref="Smoothed{Single}.Target"/> as
+    /// specified in <see cref="SmoothInterpolation.Interpolate(float, float, float, float)"/> via coroutine.
+    /// </summary>
     public sealed class SmoothedFloat : Smoothed<float> {
         public SmoothedFloat(float startValue, Func<float> targetGetter, float smoothness, float? updateDelay = null) 
             : base(startValue, targetGetter, smoothness, updateDelay) { }
 
-        protected override float interpolate(float current, float target, float smoothness, float progress)
-            => current.SmoothInterpolateTo(target, smoothness, progress);
+        protected override float interpolate(float current, float target, double progress)
+            => Mathf.Lerp(target, current, (float) progress);
     }
 
+    /// <summary>
+    /// Tracks a single double precision floating point <see cref="Smoothed{Single}.CurrentValue"/> and updates
+    /// it automatically over <see cref="Time.time"/> such that it tends towards the <see cref="Smoothed{Single}.Target"/>
+    /// as specified in <see cref="SmoothInterpolation.Interpolate(float, float, float, float)"/> via coroutine.
+    /// </summary>
     public sealed class SmoothedDouble : Smoothed<double> {
         public SmoothedDouble(double startValue, Func<double> targetGetter, float smoothness, float? updateDelay = null) 
             : base(startValue, targetGetter, smoothness, updateDelay) { }
 
-        protected override double interpolate(double current, double target, float smoothness, float progress)
-            => current.SmoothInterpolateTo(target, smoothness, progress);
+        protected override double interpolate(double current, double target, double progress)
+            => MathD.Lerp(current, target, progress);
     }
 
+    /// <summary>
+    /// Tracks a single <see cref="IUnitValue"/> <see cref="Smoothed{Single}.CurrentValue"/> and updates it automatically
+    /// over <see cref="Time.time"/> such that it tends towards the <see cref="Smoothed{Single}.Target"/> as
+    /// specified in <see cref="SmoothInterpolation.Interpolate(float, float, float, float)"/> via coroutine.
+    /// </summary>
     public sealed class SmoothedUnitValue<T> : Smoothed<T> where T : struct, IUnitValue<T> {
         public SmoothedUnitValue(T startValue, Func<T> targetGetter, float smoothness, float? updateDelay = null) 
             : base(startValue, targetGetter, smoothness, updateDelay) { }
 
-        protected override T interpolate(T current, T target, float smoothness, float progress)
-            => current.SmoothInterpolateTo(target, smoothness, progress);
+        protected override T interpolate(T current, T target, double progress)
+            => Units.Lerp(current, target, progress);
     }
 
+    /// <summary>
+    /// Tracks a single <see cref="WithLerp{T}"/> <see cref="Smoothed{Single}.CurrentValue"/> and updates it automatically
+    /// over <see cref="Time.time"/> such that it tends towards the <see cref="Smoothed{Single}.Target"/> as
+    /// specified in <see cref="SmoothInterpolation.Interpolate(float, float, float, float)"/> via coroutine.
+    /// </summary>
     public sealed class SmoothedLerp<T> : Smoothed<T> where T : struct, WithLerp<T> {
         public SmoothedLerp(T startValue, Func<T> targetGetter, float smoothness, float? updateDelay = null) 
             : base(startValue, targetGetter, smoothness, updateDelay) { }
 
-        protected override T interpolate(T current, T target, float smoothness, float progress)
-            => current.SmoothLerpTo(target, smoothness, progress);
+        protected override T interpolate(T current, T target, double progress)
+            => current.LerpTo(target, progress);
     }
 
+    /// <summary>
+    /// Tracks a single <see cref="WithSlerp{T}"/> <see cref="Smoothed{Single}.CurrentValue"/> and updates it automatically
+    /// over <see cref="Time.time"/> such that it tends towards the <see cref="Smoothed{Single}.Target"/> as
+    /// specified in <see cref="SmoothInterpolation.Interpolate(float, float, float, float)"/> via coroutine.
+    /// </summary>
     public sealed class SmoothedSlerp<T> : Smoothed<T> where T : struct, WithSlerp<T> {
         public SmoothedSlerp(T startValue, Func<T> targetGetter, float smoothness, float? updateDelay = null) 
             : base(startValue, targetGetter, smoothness, updateDelay) { }
 
-        protected override T interpolate(T current, T target, float smoothness, float progress)
-            => current.SmoothSlerpTo(target, smoothness, progress);
+        protected override T interpolate(T current, T target, double progress)
+            => current.SlerpTo(target, progress);
     }
 
 }

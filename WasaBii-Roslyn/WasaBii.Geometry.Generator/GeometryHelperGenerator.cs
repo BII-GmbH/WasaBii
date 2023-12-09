@@ -47,6 +47,8 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 var attributeData = semanticModel.GetDeclaredSymbol(typeDecl)!.GetAttributes()
                     .First(a => a.AttributeClass!.Name == nameof(GeometryHelper));
                 var attributeArguments = attributeData.GetArgumentValues().ToArray();
+
+                var bases = new List<BaseTypeSyntax>();
                 
                 var areFieldsIndependent = (bool) attributeArguments.First(a => a.Name == "areFieldsIndependent").Value;
                 var hasMagnitude = (bool) attributeArguments.First(a => a.Name == "hasMagnitude").Value;
@@ -104,8 +106,14 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 }
                 #endregion
 
-                if (areFieldsIndependent) allMembers.AddRange(mkLerp(typeDecl, wrappedFieldDecls));
-                if (hasOrientation) allMembers.AddRange(mkSlerp(typeDecl, wrappedFieldDecls[0]));
+                if (areFieldsIndependent) {
+                    allMembers.AddRange(mkLerp(typeDecl, wrappedFieldDecls));
+                    bases.Add(SimpleBaseType(GenericName(Identifier("WithLerp"), TypeArgumentList(IdentifierName(typeDecl.Identifier)))));
+                }
+                if (hasOrientation) {
+                    allMembers.AddRange(mkSlerp(typeDecl, wrappedFieldDecls[0]));
+                    bases.Add(SimpleBaseType(GenericName(Identifier("WithSlerp"), TypeArgumentList(IdentifierName(typeDecl.Identifier)))));
+                }
                 
                 if (isVector && hasOrientation) {
                     allMembers.AddRange(mkAngleTo(typeDecl, hasMagnitude, wrappedFieldDecls[0]));
@@ -117,7 +125,7 @@ public class GeometryHelperGenerator : ISourceGenerator {
                 extensionMethods.Add(mkAverage(typeDecl, wrappedFieldDecls));
                 
                 var result = typeDecl
-                    .WithBaseList(null)
+                    .WithBaseList(bases.Count > 0 ? BaseList(SeparatedList(bases)) : null)
                     .WithAttributeLists(List(Enumerable.Empty<AttributeListSyntax>()))
                     .ClearTrivia()
                     .WithMembers(List(allMembers));

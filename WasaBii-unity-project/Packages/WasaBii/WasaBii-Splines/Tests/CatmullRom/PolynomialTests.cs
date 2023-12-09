@@ -1,5 +1,6 @@
 ﻿using System;
 using BII.WasaBii.Core;
+using BII.WasaBii.Extra.Geometry;
 using BII.WasaBii.Geometry;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;

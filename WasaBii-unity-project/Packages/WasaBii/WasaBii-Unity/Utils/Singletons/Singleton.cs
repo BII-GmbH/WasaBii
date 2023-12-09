@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace BII.WasaBii.Unity {
     
-    /// &lt;summary&gt; Non-generic marker interface for type safety. &lt;/summary&gt;
+    /// <summary> Non-generic marker interface for type safety. </summary>
     public interface Singleton { }
 
     /// <summary>

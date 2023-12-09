@@ -14,7 +14,7 @@ namespace BII.WasaBii.Core {
         }
 
         public static T? FirstOrNull<T>(this IEnumerable<T> enumerable) where T : struct
-            => enumerable.Select(e => e.AsNullable()).FirstOrDefault();
+            => enumerable.Select(e => (T?)e).FirstOrDefault();
 
         public static T? FirstOrNull<T>(this IEnumerable<T> enumerable, Predicate<T> predicate)
         where T : struct {

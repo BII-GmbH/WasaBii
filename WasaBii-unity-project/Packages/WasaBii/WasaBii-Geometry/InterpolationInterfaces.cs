@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Geometry
 {
-    public interface WithLerp<T> where T: WithLerp<T> {
+    public interface WithLerp<T> {
         [Pure] T LerpTo(T other, double progress, bool shouldClamp = true);
         
         /// <summary>
@@ -15,7 +15,7 @@ namespace BII.WasaBii.Geometry
             LerpTo(other, Math.Pow(smoothness, progress));
     }
     
-    public interface WithSlerp<T> where T: WithSlerp<T> {
+    public interface WithSlerp<T> {
         [Pure] T SlerpTo(T other, double progress, bool shouldClamp = true);
         
         /// <summary>

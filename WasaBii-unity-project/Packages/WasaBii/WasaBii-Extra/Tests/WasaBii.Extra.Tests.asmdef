@@ -1,5 +1,5 @@
 {
-    "name": "WasaBii.Extra.Editor.Tests",
+    "name": "WasaBii.Extra.Tests",
     "rootNamespace": "BII.WasaBii.Extra.Tests",
     "references": [
         "WasaBii.Extra",

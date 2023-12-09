@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 
-namespace BII.WasaBii.Extra.Tests {
+namespace BII.WasaBii.Unity.Tests {
     
     public class SmoothInterpolationTests {
 
@@ -11,7 +11,7 @@ namespace BII.WasaBii.Extra.Tests {
             var to = -20f;
             var smoothness = 0.5f;
             var time = 2f;
-            var result = from.SmoothInterpolateTo(to, smoothness, time);
+            var result = SmoothInterpolation.Interpolate(from, to, smoothness, time);
             Assert.Greater(result, Mathf.Min(from, to));
             Assert.Less(result, Mathf.Max(from, to));
         }
@@ -23,8 +23,8 @@ namespace BII.WasaBii.Extra.Tests {
             var smoothness1 = 0.25f;
             var smoothness2 = 0.75f;
             var time = 2f;
-            var result1 = from.SmoothInterpolateTo(to, smoothness1, time);
-            var result2 = from.SmoothInterpolateTo(to, smoothness2, time);
+            var result1 = SmoothInterpolation.Interpolate(from, to, smoothness1, time);
+            var result2 = SmoothInterpolation.Interpolate(from, to, smoothness2, time);
             Assert.Less(Mathf.Abs(from - result2), Mathf.Abs(from - result1));
         }
         
@@ -35,10 +35,9 @@ namespace BII.WasaBii.Extra.Tests {
             var smoothness = 0.5d;
             var time1 = 2d;
             var time2 = 5d;
-            var consecutively = from
-                .SmoothInterpolateTo(to, smoothness, time1)
-                .SmoothInterpolateTo(to, smoothness, time2);
-            var singleCall = from.SmoothInterpolateTo(to, smoothness, time1 + time2);
+            var med = SmoothInterpolation.Interpolate(from, to, smoothness, time1);
+            var consecutively = SmoothInterpolation.Interpolate(med, to, smoothness, time2);
+            var singleCall = SmoothInterpolation.Interpolate(from, to, smoothness, time1 + time2);
             Assert.AreEqual(consecutively, singleCall, delta: 1E-10d);
         }
         
@@ -48,7 +47,7 @@ namespace BII.WasaBii.Extra.Tests {
             var to = -20f;
             var smoothness = 0f;
             var time = 2f;
-            var result = from.SmoothInterpolateTo(to, smoothness, time);
+            var result = SmoothInterpolation.Interpolate(from, to, smoothness, time);
             Assert.AreEqual(result, to, delta: 1E-10f);
         }
         
@@ -58,7 +57,7 @@ namespace BII.WasaBii.Extra.Tests {
             var to = -20f;
             var smoothness = 1f;
             var time = 2f;
-            var result = from.SmoothInterpolateTo(to, smoothness, time);
+            var result = SmoothInterpolation.Interpolate(from, to, smoothness, time);
             Assert.AreEqual(result, from, delta: 1E-10f);
         }
         

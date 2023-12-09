@@ -28,12 +28,11 @@ namespace BII.WasaBii.Unity.Geometry {
             public GlobalAngleBuilder(GlobalDirection from) => this.from = from;
             public Angle UnsignedTo(GlobalDirection to) => ((double) Vector3.Angle(from.AsUnityVector, to.AsUnityVector)).Degrees();
 
-            public Angle To(GlobalDirection to, GlobalDirection axis, bool projectOffsetsToPlane = true) =>
-                ((double) Vector3.SignedAngle(
-                    from.If(projectOffsetsToPlane, f => f.ProjectOnPlane(axis)).AsUnityVector,
-                    to.If(projectOffsetsToPlane, t => t.ProjectOnPlane(axis)).AsUnityVector,
-                    axis.AsUnityVector
-                )).Degrees();
+            public Angle To(GlobalDirection to, GlobalDirection axis, bool projectOffsetsToPlane = true) {
+                var f = projectOffsetsToPlane ? from.ProjectOnPlane(axis) : from;
+                var t = projectOffsetsToPlane ? to.ProjectOnPlane(axis) : to;
+                return ((double)Vector3.SignedAngle(f.AsUnityVector, t.AsUnityVector, axis.AsUnityVector)).Degrees();
+            }
         }
         
         public readonly struct RelativeAngleBuilder {
@@ -41,12 +40,11 @@ namespace BII.WasaBii.Unity.Geometry {
             public RelativeAngleBuilder(LocalDirection from) => this.from = from;
             public Angle UnsignedTo(LocalDirection to) => ((double) Vector3.Angle(from.AsUnityVector, to.AsUnityVector)).Degrees();
 
-            public Angle To(LocalDirection to, LocalDirection axis, bool projectOffsetsToPlane = true) =>
-                ((double) Vector3.SignedAngle(
-                    from.If(projectOffsetsToPlane, f => f.ProjectOnPlane(axis)).AsUnityVector,
-                    to.If(projectOffsetsToPlane, t => t.ProjectOnPlane(axis)).AsUnityVector,
-                    axis.AsUnityVector
-                )).Degrees();
+            public Angle To(LocalDirection to, LocalDirection axis, bool projectOffsetsToPlane = true) {
+                var f = projectOffsetsToPlane ? from.ProjectOnPlane(axis) : from;
+                var t = projectOffsetsToPlane ? to.ProjectOnPlane(axis) : to;
+                return ((double)Vector3.SignedAngle(f.AsUnityVector, t.AsUnityVector, axis.AsUnityVector)).Degrees();
+            }
         }
         
     }

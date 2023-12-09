@@ -163,7 +163,7 @@ namespace BII.WasaBii.Extra {
                     yield break;
                 yield return sourceType;
                 var recRes = sourceType.GetInterfaces()
-                    .If(sourceType.BaseType != null, interfaces => interfaces.Prepend(sourceType.BaseType!))
+                    .ApplyIf(sourceType.BaseType != null, interfaces => interfaces.Prepend(sourceType.BaseType!))
                     .SelectMany(allMetadataTypesFor);
                 foreach (var res in recRes)
                     if (res != typeof(TSupertype))

@@ -139,7 +139,7 @@ namespace BII.WasaBii.Core {
         [Pure] public static IEnumerable<int> Until(this int from, int toExclusive) => Enumerable.Range(from, toExclusive);
 
         [Pure] public static int LerpTo(this int fromInclusive, int toExclusive, float progress) {
-            Debug.Assert(fromInclusive < toExclusive);
+            if (fromInclusive >= toExclusive) throw new ArgumentOutOfRangeException();
             return ((int) Lerp(fromInclusive, toExclusive, progress)).Min(toExclusive - 1);
         }
         [Pure] public static float Lerp(float a, float b, float t) => a + (b - a) * Clamp01(t);
@@ -151,7 +151,7 @@ namespace BII.WasaBii.Core {
         }
         
         [Pure] public static int LerpTo(this int fromInclusive, int toExclusive, double progress) {
-            Debug.Assert(fromInclusive < toExclusive);
+            if (fromInclusive >= toExclusive) throw new ArgumentOutOfRangeException();
             return ((int) MathD.Lerp(fromInclusive, toExclusive, progress)).Min(toExclusive - 1);
         }
         

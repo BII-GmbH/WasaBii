@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -109,7 +110,7 @@ namespace BII.WasaBii.Core {
                 (true, true) => EqualityComparer<T>.Default.Equals(other.ValueOrDefault!, ValueOrDefault!)
             };
 
-        [Pure] public override bool Equals(object obj) =>
+        [Pure] public override bool Equals(object? obj) =>
             obj is Option<T> other && Equals(other) || obj is T otherValue && Equals(otherValue);
 
         [Pure] public static bool operator ==(Option<T> first, Option<T> second) => first.Equals(second);
@@ -127,16 +128,17 @@ namespace BII.WasaBii.Core {
         
         [Pure] public bool IsNone => !HasValue;
 
-        public T GetOrThrow(Func<Exception>? exception = null) =>
-            GetOrElse(() => throw exception?.Invoke() ?? new InvalidOperationException("No value present."));
+        public T GetOrThrow(Func<Exception>? exception = null) => HasValue
+            ? ValueOrDefault!
+            : throw exception?.Invoke() ?? new InvalidOperationException("No value present.");
         
         [Pure] public Option<T> OrWhenNone(Func<Option<T>> noneResultGetter) => HasValue ? this : noneResultGetter();
 
-        [Pure] public Option<T> Where(Func<T, bool> predicate) =>
-            FlatMap(v => Option.If(predicate(v), () => v));
+        [Pure] public Option<T> Where(Func<T, bool> predicate) => 
+            HasValue && predicate(ValueOrDefault!) ? this : Option.None;
 
         [Pure] public bool TryGetValue(out T result) {
-            result = GetOrElse(elseResultGetter: () => default!);
+            result = ValueOrDefault!;
             return HasValue;
         }
 
@@ -160,52 +162,96 @@ namespace BII.WasaBii.Core {
     public static class OptionQueryExtensions {
         [Pure] public static T? GetOrNull<T>(this Option<T> option) where T : struct => 
             option.TryGetValue(out var val) ? val : null;
-        
-        [Pure] public static IEnumerable<Option<T>> Flip<T>(this Option<IEnumerable<T>> option, int sizeIfNone) => 
-            option.Map(enumerable => enumerable.Select(Option.Some))
-                .GetOrElse(() => Enumerable.Repeat(Option<T>.None, sizeIfNone));
 
-        [Pure] public static IReadOnlyCollection<Option<T>> Flip<T>(this Option<IReadOnlyCollection<T>> option, int sizeIfNone) => 
-            option.Map(enumerable => enumerable.Select(Option.Some))
-                .GetOrElse(() => Enumerable.Repeat(Option<T>.None, sizeIfNone)).AsReadOnlyCollection();
+        [Pure]
+        public static IEnumerable<Option<T>> Flip<T>(this Option<IEnumerable<T>> option, int sizeIfNone) =>
+            option.HasValue
+                ? option.ValueOrDefault!.Select(Option.Some)
+                : Enumerable.Repeat(Option<T>.None, sizeIfNone);
 
-        [Pure] public static IReadOnlyList<Option<T>> Flip<T>(this Option<IReadOnlyList<T>> option, int sizeIfNone) => 
-            option.Map(enumerable => enumerable.Select(Option.Some))
-                .GetOrElse(() => Enumerable.Repeat(Option<T>.None, sizeIfNone)).AsReadOnlyList();
+        [Pure] public static IReadOnlyCollection<Option<T>> Flip<T>(this Option<IReadOnlyCollection<T>> option, int sizeIfNone) {
+            if (option.HasValue) {
+                var val = option.ValueOrDefault!;
+                var res = new Option<T>[val.Count];
+                var i = 0;
+                foreach (var c in val) res[i++] = c.Some();
+                return res;
+            } else {
+                var res = new Option<T>[sizeIfNone];
+                for (var i = 0; i < sizeIfNone; ++i)
+                    res[i] = Option<T>.None;
+                return res;
+            }
+        }
 
-        [Pure] public static Option<IEnumerable<T>> Flip<T>(this IEnumerable<Option<T>> enumerable) => 
-            enumerable.Aggregate(
-                Option.Some(Enumerable.Empty<T>()), 
-                (resO, nowO) => resO.FlatMap(res => nowO.Map(res.Append))
-            );
+        [Pure] public static IReadOnlyList<Option<T>> Flip<T>(this Option<IReadOnlyList<T>> option, int sizeIfNone) {
+            if (option.HasValue) {
+                var val = option.ValueOrDefault!;
+                var res = new Option<T>[val.Count];
+                for (var i = 0; i < sizeIfNone; ++i)
+                    res[i] = val[i].Some();
+                return res;
+            } else {
+                var res = new Option<T>[sizeIfNone];
+                for (var i = 0; i < sizeIfNone; ++i)
+                    res[i] = Option<T>.None;
+                return res;
+            }
+        }
 
-        [Pure] public static Option<IEnumerable<T>> Traverse<T>(this IEnumerable<T> enumerable, Func<T, Option<T>>? f = null) =>
-            enumerable.Select(element => f?.Invoke(element) ?? Option.Some(element)).Flip();
-        
-        
-        [Pure] public static Option<IEnumerable<T>> TraverseNoneIfEmpty<T>(this IEnumerable<T> enumerable, Func<T, Option<T>>? f = null) =>
-            enumerable.Select(element => f?.Invoke(element) ?? Option.Some(element)).OrIfEmpty(() => Option<T>.None.WrapAsEnumerable()).Flip();
-        
-        [Pure] public static Option<T> Flatten<T>(this Option<Option<T>> option)
-            => option.FlatMap(o => o);
+        [Pure] public static Option<IReadOnlyList<T>> Flip<T>(this IEnumerable<Option<T>> enumerable) {
+            // Allocate with proper capacity if we know it. Optimistically assume no errors.
+            List<T> res = enumerable is ICollection collection ? new(collection.Count) : new();
+            foreach (var curr in enumerable) {
+                if (!curr.TryGetValue(out var val)) 
+                    return Option.None;
+                res.Add(val);
+            }
+            return res.Some<IReadOnlyList<T>>();
+        }
 
-        [Pure] public static IEnumerable<T> Collect<T>(this IEnumerable<Option<T>> options) {
-            foreach (var element in options)
-                if (element.TryGetValue(out var val))
+        [Pure] public static Option<IReadOnlyList<T>> Traverse<T>(this IEnumerable<T> enumerable, Func<T, Option<T>> fn) {
+            // Allocate with proper capacity if we know it. Optimistically assume no errors.
+            List<T> res = enumerable is ICollection collection ? new(collection.Count) : new();
+            foreach (var curr in enumerable) {
+                if (!fn(curr).TryGetValue(out var val)) 
+                    return Option.None;
+                res.Add(val);
+            }
+            return res.Some<IReadOnlyList<T>>();
+        }
+
+        [Pure] public static Option<T> Flatten<T>(this Option<Option<T>> option) => option.ValueOrDefault;
+
+        [Pure] public static IEnumerable<S> Collect<T, S>(this IEnumerable<T> input, Func<T, Option<S>> mapping) {
+            foreach (var element in input)
+                if (mapping(element).TryGetValue(out var val))
                     yield return val;
         }
 
-        [Pure] public static IEnumerable<S> Collect<T, S>(this IEnumerable<T> input, Func<T, Option<S>> mapping) =>
-            input.Select(mapping).Collect();
+        [Pure]
+        public static IEnumerable<S> CollectMany<T, S>(
+            this IEnumerable<T> input,
+            Func<T, IEnumerable<Option<S>>> mapping
+        ) {
+            foreach (var element in input) 
+            foreach (var result in mapping(element))
+                if (result.TryGetValue(out var r))
+                    yield return r;
+        }
         
-        [Pure] public static IEnumerable<S> CollectMany<T, S>(this IEnumerable<T> input, Func<T, IEnumerable<Option<S>>> mapping) =>
-            input.SelectMany(mapping).Collect();
-        
-        [Pure] public static Option<T> FirstSomeOrNone<T>(this IEnumerable<Option<T>> options)
-            => options.Collect().FirstOrNone();
+        [Pure] public static Option<T> FirstSomeOrNone<T>(this IEnumerable<Option<T>> options) {
+            foreach (var element in options)
+                if (element.HasValue)
+                    return element;
+            return Option.None;
+        }
 
-        [Pure] public static IEnumerable<T> Flatten<T>(IEnumerable<Option<T>> source) =>
-            source.Where(opt => opt.HasValue).Select(opt => opt.GetOrThrow());
+        [Pure] public static IEnumerable<T> Flatten<T>(IEnumerable<Option<T>> source) {
+            foreach (var element in source)
+                if (element.TryGetValue(out var val))
+                    yield return val;
+        }
 
         [Pure] public static Result<Option<TVal>, TErr> Flip<TVal, TErr>(this Option<Result<TVal, TErr>> option) =>
             option.Match(
@@ -219,9 +265,8 @@ namespace BII.WasaBii.Core {
                 () => Option<TVal>.None.AsCompletedTask()
             );
 
-        [Pure] public static IEnumerable<T> AsEnumerable<T>(this Option<T> option) => option.Match(
-            onHasValue: value => value.WrapAsEnumerable(),
-            onNone: Enumerable.Empty<T>
-        );
+        [Pure]
+        public static IEnumerable<T> AsEnumerable<T>(this Option<T> option) =>
+            option.TryGetValue(out var res) ? new[]{res} : Enumerable.Empty<T>();
     }
 }

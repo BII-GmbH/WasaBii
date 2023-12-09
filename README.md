@@ -5,13 +5,23 @@
 
 ## Description
 
-Short description of what this Unity package does and the problem it solves.
+A collection of polished and optimized general purpose utilities used in the [*dProB* software](https://www.bii-gmbh.com/).
+Requires only JSON.NET as dependency, which should automatically be included by the Unity package manager.
 
-## Features
+While this is primarily designed as a Unity package, only the `Unity` and `Extra` packages require Unity as a dependency.
 
-- Feature 1
-- Feature 2
-- Feature 3
+Includes:
+- Common types for error handling: `Option<T>` and `Result<T, TError>`
+- LINQ-style extensions for collections common in other programming languages
+- Unity Coroutine utilities that allow composition in a declarative, functional style
+- Customizable unit system to ascribe physical units to numbers
+- Extensible geometry wrapper types for typesafe calculations in 3D space
+- Standalone Undo System which can be dropped into any type of program
+- A customizable spline system including Catmull-Rom splines as well as Bezier splines
+- Compiler diagnostics to validate that types are actually immutable when required
+- Many other small utilities and minor systems
+
+For a detailed presentation of the available modules and features, you can read [the report](Report.pdf).
 
 ## Installation
 
@@ -45,17 +55,9 @@ WasaBii is separated into several dependent sub-packages which can be imported a
 - **Extra** includes rarely used additional utilities and systems. Requires unity.
   - `https://github.com/BII-GmbH/WasaBii.git?path=WasaBii-unity-project/Packages/WasaBii/WasaBii-Extra`
 
-## Usage
-
-```csharp
-// Sample code to demonstrate how to use WasaBii
-```
-
-## Documentation
-
-For more detailed documentation, please refer to [DOCUMENTATION.md](DOCUMENTATION.md).
-
 ## Contributing
+
+Feel free to open issues and pull requests!
 
 1. Fork the repository.
 2. Create your feature branch (`git checkout -b feature/YourFeature`).

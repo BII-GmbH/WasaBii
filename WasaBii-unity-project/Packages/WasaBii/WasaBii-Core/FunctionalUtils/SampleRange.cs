@@ -13,14 +13,19 @@ namespace BII.WasaBii.Core {
         [Pure] public static IEnumerable<double> Sample01(
             int count, bool includeZero, bool includeOne
         ) {
-            if(count < 2) throw new ArgumentException($"Cannot sample less than 2 values (tried to sample {count})");
+            if (count < 2) 
+                throw new ArgumentException($"Cannot sample less than 2 values (tried to sample {count})");
             var normalizationFactor = 1 / (includeZero, includeOne) switch {
                 (false, false) => count + 1d,
                 (true, false) or (false, true) => count,
                 (true, true) => count - 1d
             };
-            for (var i = includeZero ? 0 : 1; i < count; ++i) 
-                yield return i * normalizationFactor;
+            return sampleEnumerator(normalizationFactor);
+            
+            IEnumerable<double> sampleEnumerator(double n) {
+                for (var i = includeZero ? 0 : 1; i <= count; ++i) 
+                    yield return i * n;
+            }
         }
         
         /// <returns><see cref="count"/> equidistant samples of the interpolation in ascending order</returns>.

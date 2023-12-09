@@ -1,0 +1,19 @@
+﻿{
+  "name": "WasaBii.Unity.Tests",
+  "references": [
+    "WasaBii.Unity"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "versionDefines": [],
+  "noEngineReferences": false
+}

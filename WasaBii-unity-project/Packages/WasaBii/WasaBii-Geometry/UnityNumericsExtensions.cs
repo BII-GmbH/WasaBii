@@ -25,7 +25,7 @@ namespace BII.WasaBii.Geometry
                 ? Vector3.Slerp(from, to, (float)progress)
                 : Vector3.SlerpUnclamped(from, to, (float)progress);
 
-        public static bool IsNearly(this Quaternion lhs, Quaternion rhs, double equalityThreshold = 1E-30f) => 
+        public static bool IsNearly(this Quaternion lhs, Quaternion rhs, double equalityThreshold = 1E-06) => 
             lhs.x.IsNearly(rhs.x, (float)equalityThreshold) 
             && lhs.y.IsNearly(rhs.y, (float)equalityThreshold) 
             && lhs.z.IsNearly(rhs.z, (float)equalityThreshold)

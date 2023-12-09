@@ -8,7 +8,8 @@
         "WasaBii.Unity",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "WasaBii.Geometry"
+        "WasaBii.Geometry",
+        "WasaBii.Extra"
     ],
     "includePlatforms": [
         "Editor"

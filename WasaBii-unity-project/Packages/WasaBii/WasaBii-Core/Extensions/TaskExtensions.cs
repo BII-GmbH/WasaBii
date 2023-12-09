@@ -26,8 +26,8 @@ namespace BII.WasaBii.Core {
 
         /// If the task has already completed, returns the result without the need to await the task.
         /// Returns None if the task has not completed yet or if it is canceled or failed.
-        public static Option<T> GetIfCompletedSuccessfully<T>(this Task<T> task) => 
-            Option.If(task.Status == TaskStatus.RanToCompletion, () => task.Result);
+        public static Option<T> GetIfCompletedSuccessfully<T>(this Task<T> task) =>
+            task.Status == TaskStatus.RanToCompletion ? task.Result : Option.None;
 
         public static async Task<Option<T>> NoneIfFailed<T>(this Task<T> task) {
             try {

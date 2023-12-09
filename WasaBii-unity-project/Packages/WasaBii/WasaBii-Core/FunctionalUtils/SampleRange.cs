@@ -19,8 +19,8 @@ namespace BII.WasaBii.Core {
                 (true, false) or (false, true) => count,
                 (true, true) => count - 1d
             };
-            return Enumerable.Range(includeZero ? 0 : 1, count)
-                .Select(i => i * normalizationFactor);
+            for (var i = includeZero ? 0 : 1; i < count; ++i) 
+                yield return i * normalizationFactor;
         }
         
         /// <returns><see cref="count"/> equidistant samples of the interpolation in ascending order</returns>.
@@ -53,8 +53,7 @@ namespace BII.WasaBii.Core {
             int count, Func<T, T, double, T> interpolate
         ) {
             var (from, to) = (From, To);
-            T CalcVal(double t) => interpolate(from, to, t);
-            return SampleRange.Sample(CalcVal, count, IncludeFrom, IncludeTo);
+            return SampleRange.Sample(t => interpolate(from, to, t), count, IncludeFrom, IncludeTo);
         }
 
         public sealed class Builder {

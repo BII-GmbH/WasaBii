@@ -17,7 +17,7 @@ namespace BII.WasaBii.UnitSystem {
         where TValue: struct, IUnitValue<TValue> => 
             FromSiValue<TValue>(value * unit.SiFactor);
         
-        public static TValue FromSiValue<TValue>(double value) where TValue : IUnitValue, new() =>
+        public static TValue FromSiValue<TValue>(double value) where TValue : struct, IUnitValue =>
             new TValue {SiValue = value};
 
         public static double As<TValue>(this TValue value, IUnit<TValue> unit)
@@ -73,6 +73,14 @@ namespace BII.WasaBii.UnitSystem {
         public static TSelf Average<TSelf>(this IEnumerable<TSelf> values)
             where TSelf : struct, IUnitValue<TSelf>
             => new TSelf {SiValue = values.Average(v => v.SiValue)};
+
+        public static TSelf Min<TSelf>(TSelf first, TSelf other) where TSelf : struct, IUnitValue<TSelf> =>
+            first.SiValue <= other.SiValue ? first : other;
+        
+        public static TSelf Max<TSelf>(
+            TSelf first, TSelf other
+        ) where TSelf : struct, IUnitValue<TSelf> =>
+            first.SiValue >= other.SiValue ? first : other;
         
         public static TSelf Min<TSelf>(
             TSelf first, params TSelf[] values

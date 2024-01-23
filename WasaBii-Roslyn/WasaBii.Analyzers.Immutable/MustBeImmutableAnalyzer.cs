@@ -249,6 +249,9 @@ public class MustBeImmutableAnalyzer : DiagnosticAnalyzer {
                     ) {
                         if (field.IsConst) continue;
 
+                        if (field.GetAttributes().Any(a => Equal(a.AttributeClass, ignoreMustBeImmutableSymbol)))
+                            continue;
+
                         // ReSharper disable once AccessToModifiedClosure // intentional
                         var locs = new Lazy<ImmutableArray<Location>>(() =>
                             Equal(currentType, namedType) ? field.Locations : namedType.BaseType!.Locations);

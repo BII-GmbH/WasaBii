@@ -89,6 +89,16 @@ public class RoslynAnalyzerTemplateTest {
             }");
     
     [Test]
+    public Task IgnoreMustBeImmutableInField_IgnoresMutability() =>
+        AssertDiagnostics(0, @"
+            public sealed class MutableClass { [__IgnoreMustBeImmutable] public int Ignored; }
+
+            [MustBeImmutable]  
+            public sealed class ClassWithIgnoredField {
+                public readonly MutableClass Foo;
+            }");
+    
+    [Test]
     public Task ClassWithEnum_NoDiagnostics() =>
         AssertDiagnostics(0, @"
             public enum ImmutabilityTestEnum { Bagger, Two, EightEight }

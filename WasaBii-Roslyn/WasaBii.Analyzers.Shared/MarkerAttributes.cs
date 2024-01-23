@@ -32,7 +32,7 @@ public sealed class MustBeImmutableAttribute : Attribute { }
 
 /// <summary>
 /// Ignores the <see cref="MustBeImmutableAttribute"/> in a parent class.
-/// A type with this annotation is skipped during immutability validation.
+/// A type / field with this annotation is skipped during immutability validation.
 /// Type parameters with this are also not required to have a constraint with <see cref="MustBeImmutableAttribute"/>.
 /// </summary>
 /// <devremarks>
@@ -45,7 +45,8 @@ public sealed class MustBeImmutableAttribute : Attribute { }
     AttributeTargets.Interface 
     | AttributeTargets.Class 
     | AttributeTargets.Struct 
-    | AttributeTargets.GenericParameter, 
+    | AttributeTargets.GenericParameter
+    | AttributeTargets.Field, 
     Inherited = false
 )]
 public sealed class __IgnoreMustBeImmutableAttribute : Attribute { }

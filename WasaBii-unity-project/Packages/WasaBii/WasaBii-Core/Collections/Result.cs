@@ -317,18 +317,22 @@ namespace BII.WasaBii.Core {
             return WasSuccessful;
         }
         
-        [Pure] public bool TryGetValue(out TValue val, out TError err) {
-            val = ResultOrDefault!;
-            err = ErrorOrDefault!;
-            return WasSuccessful;
-        }
-        
         [Pure] public bool TryGetError(out TError err) {
             err = ErrorOrDefault!;
             return WasFailure;
         }
+        
+        [Pure] public bool TryGetValue(out TValue val, out TError err) {
+            if (Status == ValueStatus.Default) 
+                throw new InvalidOperationException("Result is default and neither has a value nor an error.");
+            val = ResultOrDefault!;
+            err = ErrorOrDefault!;
+            return WasSuccessful;
+        }
 
         [Pure] public bool TryGetError(out TError err, out TValue val) {
+            if (Status == ValueStatus.Default) 
+                throw new InvalidOperationException("Result is default and neither has a value nor an error.");
             val = ResultOrDefault!;
             err = ErrorOrDefault!;
             return WasFailure;

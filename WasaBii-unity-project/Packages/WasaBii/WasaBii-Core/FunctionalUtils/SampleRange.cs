@@ -23,7 +23,9 @@ namespace BII.WasaBii.Core {
             return sampleEnumerator(normalizationFactor);
             
             IEnumerable<double> sampleEnumerator(double n) {
-                for (var i = includeZero ? 0 : 1; i <= count; ++i) 
+                var min = includeZero ? 0 : 1;
+                var max = min + count;
+                for (var i = min; i < max; ++i) 
                     yield return i * n;
             }
         }

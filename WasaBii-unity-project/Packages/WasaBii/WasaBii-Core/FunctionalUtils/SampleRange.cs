@@ -13,14 +13,21 @@ namespace BII.WasaBii.Core {
         [Pure] public static IEnumerable<double> Sample01(
             int count, bool includeZero, bool includeOne
         ) {
-            if(count < 2) throw new ArgumentException($"Cannot sample less than 2 values (tried to sample {count})");
+            if (count < 2) 
+                throw new ArgumentException($"Cannot sample less than 2 values (tried to sample {count})");
             var normalizationFactor = 1 / (includeZero, includeOne) switch {
                 (false, false) => count + 1d,
                 (true, false) or (false, true) => count,
                 (true, true) => count - 1d
             };
-            return Enumerable.Range(includeZero ? 0 : 1, count)
-                .Select(i => i * normalizationFactor);
+            return sampleEnumerator(normalizationFactor);
+            
+            IEnumerable<double> sampleEnumerator(double n) {
+                var min = includeZero ? 0 : 1;
+                var max = min + count;
+                for (var i = min; i < max; ++i) 
+                    yield return i * n;
+            }
         }
         
         /// <returns><see cref="count"/> equidistant samples of the interpolation in ascending order</returns>.
@@ -53,8 +60,7 @@ namespace BII.WasaBii.Core {
             int count, Func<T, T, double, T> interpolate
         ) {
             var (from, to) = (From, To);
-            T CalcVal(double t) => interpolate(from, to, t);
-            return SampleRange.Sample(CalcVal, count, IncludeFrom, IncludeTo);
+            return SampleRange.Sample(t => interpolate(from, to, t), count, IncludeFrom, IncludeTo);
         }
 
         public sealed class Builder {

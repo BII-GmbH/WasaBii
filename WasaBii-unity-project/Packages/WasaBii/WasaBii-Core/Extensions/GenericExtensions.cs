@@ -25,6 +25,7 @@ namespace BII.WasaBii.Core {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static (T1New, T2) MapItem1<T1, T2, T1New>(this (T1, T2) tuple, Func<T1, T1New> f) => (f(tuple.Item1), tuple.Item2);
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static (T1, T2New) MapItem2<T1, T2, T2New>(this (T1, T2) tuple, Func<T2, T2New> f) => (tuple.Item1, f(tuple.Item2));
         

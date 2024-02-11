@@ -48,6 +48,7 @@ namespace BII.WasaBii.Core {
         }
 
         public static int FloorToInt(double d) => (int) Math.Floor(d);
+        public static int CeilToInt(double d) => (int) Math.Ceiling(d);
 
         public static double Min(double a, double b) => a < b ? a : b;
 

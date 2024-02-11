@@ -13,6 +13,8 @@ namespace BII.WasaBii.Unity
     /// vector) by dropping the field's name so that you get <c>{Pos: {x, y, z}}</c> instead
     /// of <c>{Pos: {AsUnityVector: {x, y, z}}}</c>.
     /// </summary>
+    [CustomPropertyDrawer(typeof(LocalVelocity))] 
+    [CustomPropertyDrawer(typeof(GlobalVelocity))]
     [CustomPropertyDrawer(typeof(LocalOffset))] 
     [CustomPropertyDrawer(typeof(GlobalOffset))]
     [CustomPropertyDrawer(typeof(LocalPosition))] 

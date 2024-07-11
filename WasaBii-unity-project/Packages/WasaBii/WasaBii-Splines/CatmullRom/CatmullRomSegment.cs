@@ -139,8 +139,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
                 spline[s0 + 2],
                 spline[s0 + 3],
                 dur,
-                s0 == 0 ? dur : spline.Ops.Sub(spline.TemporalSegmentOffsets[s0], spline.TemporalSegmentOffsets[s0 - 1]),
-                s0 == spline.SegmentCount ? dur : spline.Ops.Sub(spline.TemporalSegmentOffsets[s0 + 1], spline.TemporalSegmentOffsets[s0]),
+                s0 <= 0 ? dur : spline.Ops.Sub(spline.TemporalSegmentOffsets[s0], spline.TemporalSegmentOffsets[s0 - 1]),
+                s0 >= spline.SegmentCount - 1 ? dur : spline.Ops.Sub(spline.TemporalSegmentOffsets[s0 + 2], spline.TemporalSegmentOffsets[s0 + 1]),
                 spline.Ops
             ), overshoot);
         }

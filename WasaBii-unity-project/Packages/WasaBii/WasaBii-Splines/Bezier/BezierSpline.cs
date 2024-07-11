@@ -29,36 +29,47 @@ namespace BII.WasaBii.Splines.Bezier {
     /// it look less smooth.
     /// </summary>
     [Serializable]
-    public sealed class BezierSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : unmanaged where TDiff : unmanaged {
+    public sealed class BezierSpline<TPos, TDiff, TTime, TVel> : Spline<TPos, TDiff, TTime, TVel>.Copyable 
+    where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged
+    {
 
         internal sealed record Cache(
-            ImmutableArray<SplineSegment<TPos, TDiff>> SplineSegments,
-            ImmutableArray<Length> SegmentOffsetsFromBegin
+            ImmutableArray<SplineSegment<TPos, TDiff, TTime, TVel>> SplineSegments,
+            Length Length,
+            TTime TotalDuration,
+            ImmutableArray<Length> SpatialSegmentOffsets,
+            ImmutableArray<TTime> TemporalSegmentOffsets
         );
 
-        public readonly ImmutableArray<BezierSegment<TPos, TDiff>> Segments;
+        public readonly ImmutableArray<BezierSegment<TPos, TDiff, TTime, TVel>> Segments;
         [NonSerialized] private readonly Lazy<Cache> cache;
         public int SegmentCount => Segments.Length;
 
-        IEnumerable<SplineSegment<TPos, TDiff>> Spline<TPos, TDiff>.Segments => cache.Value.SplineSegments;
+        public Length Length => cache.Value.Length;
+        public TTime TotalDuration => cache.Value.TotalDuration;
 
-        public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => cache.Value.SplineSegments[index];
-        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.NormalizeOrThrow(location)];
-        public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => 
-            SplineSample<TPos, TDiff>.From(this, location).GetOrThrow(() => 
+        IEnumerable<SplineSegment<TPos, TDiff, TTime, TVel>> Spline<TPos, TDiff, TTime, TVel>.Segments => cache.Value.SplineSegments;
+
+        public SplineSample<TPos, TDiff, TTime, TVel> this[TTime t] =>
+            SplineSample<TPos, TDiff, TTime, TVel>.From(this, t);
+        public SplineSegment<TPos, TDiff, TTime, TVel> this[SplineSegmentIndex index] => cache.Value.SplineSegments[index];
+        public SplineSample<TPos, TDiff, TTime, TVel> this[SplineLocation location] => this[this.NormalizeOrThrow(location)];
+        public SplineSample<TPos, TDiff, TTime, TVel> this[NormalizedSplineLocation location] => 
+            SplineSample<TPos, TDiff, TTime, TVel>.From(this, location).GetOrThrow(() => 
                 new ArgumentOutOfRangeException(
                     nameof(location),
                     location,
                     $"Must be between 0 and {SegmentCount}"
                 ));
 
-        public ImmutableArray<Length> SegmentOffsetsFromBegin => cache.Value.SegmentOffsetsFromBegin;
+        public ImmutableArray<Length> SpatialSegmentOffsets => cache.Value.SpatialSegmentOffsets;
+        public ImmutableArray<TTime> TemporalSegmentOffsets => cache.Value.TemporalSegmentOffsets;
 
-        public GeometricOperations<TPos, TDiff> Ops { get; }
+        public GeometricOperations<TPos, TDiff, TTime, TVel> Ops { get; }
         
         public BezierSpline(
-            IEnumerable<BezierSegment<TPos, TDiff>> segments, 
-            GeometricOperations<TPos, TDiff> ops
+            IEnumerable<BezierSegment<TPos, TDiff, TTime, TVel>> segments, 
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
         ) {
             // Note CR: Serialization might pass only `default` parameters, so we support this case here
             if (segments != default) {
@@ -69,38 +80,48 @@ namespace BII.WasaBii.Splines.Bezier {
                             "Tried to construct a discontinuous spline. Each segment must "
                             + "start at the exact position where the previous one ended."
                         );
-            } else Segments = ImmutableArray<BezierSegment<TPos, TDiff>>.Empty;
+            } else Segments = ImmutableArray<BezierSegment<TPos, TDiff, TTime, TVel>>.Empty;
             
             Ops = ops;
             cache = new Lazy<Cache>(initCache);
         }
 
-        [Pure] public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
-            Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
-        ) where TPosNew : unmanaged where TDiffNew : unmanaged
-            => new BezierSpline<TPosNew, TDiffNew>(Segments.Select(s => s.Map<TPosNew, TDiffNew>(positionMapping)), newOps);
+        [Pure] public Spline<TPosNew, TDiffNew, TTime, TVelNew> Map<TPosNew, TDiffNew, TVelNew>(
+            Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew, TTime, TVelNew> newOps
+        ) where TPosNew : unmanaged where TDiffNew : unmanaged where TVelNew : unmanaged => 
+            new BezierSpline<TPosNew, TDiffNew, TTime, TVelNew>(Segments.Select(s => s.Map<TPosNew, TDiffNew, TVelNew>(positionMapping)), newOps);
 
-        [Pure] public Spline<TPos, TDiff> Reversed => new BezierSpline<TPos, TDiff>(Segments.Reverse().Select(s => s.Reversed), Ops);
+        [Pure] public Spline<TPos, TDiff, TTime, TVel> Reversed => new BezierSpline<TPos, TDiff, TTime, TVel>(Segments.Reverse().Select(s => s.Reversed), Ops);
         
-        [Pure] public Spline<TPos, TDiff> CopyWithOffset(Func<TDiff, TDiff> tangentToOffset) => 
+        [Pure] public Spline<TPos, TDiff, TTime, TVel> CopyWithOffset(Func<TVel, TDiff> tangentToOffset) => 
             BezierSplineCopyUtils.CopyWithOffset(this, tangentToOffset);
 
-        [Pure] public Spline<TPos, TDiff> CopyWithStaticOffset(TDiff offset) =>
+        [Pure] public Spline<TPos, TDiff, TTime, TVel> CopyWithStaticOffset(TDiff offset) =>
             BezierSplineCopyUtils.CopyWithStaticOffset(this, offset);
 
-        [Pure] public Spline<TPos, TDiff> CopyWithDifferentHandleDistance(Length desiredHandleDistance) =>
+        [Pure] public Spline<TPos, TDiff, TTime, TVel> CopyWithDifferentHandleDistance(Length desiredHandleDistance) =>
             BezierSplineCopyUtils.CopyWithDifferentHandleDistance(this, desiredHandleDistance);
 
         private Cache initCache() {
             var segments = ImmutableArray.CreateRange(Segments, (s, ops) => s.ToSplineSegment(ops), Ops);
-            var segmentOffsets = ImmutableArray.CreateBuilder<Length>(initialCapacity: Segments.Length);
+            var spatialOffsets = ImmutableArray.CreateBuilder<Length>(initialCapacity: Segments.Length);
+            var temporalOffsets = ImmutableArray.CreateBuilder<TTime>(initialCapacity: Segments.Length);
+            
             var lastOffset = Length.Zero;
-            segmentOffsets.Add(Length.Zero);
-            for (var i = 1; i < segments.Length; i++) 
-                segmentOffsets.Add(lastOffset += segments[i - 1].Length);
-            return new(segments, segmentOffsets.MoveToImmutable());
-        }
+            var lastTime = Ops.ZeroTime;
 
+            foreach (var segment in segments) {
+                if (segment.Duration.CompareTo(Ops.ZeroTime) == -1)
+                    throw new Exception(
+                        $"Tried to construct a spline with a segment of negative duration: {segment.Duration}"
+                    );
+                spatialOffsets.Add(lastOffset);
+                temporalOffsets.Add(lastTime);
+                lastOffset += segment.Length;
+                lastTime = Ops.Add(lastTime, segment.Duration);
+            }
+            return new(segments, lastOffset, lastTime, spatialOffsets.MoveToImmutable(), temporalOffsets.MoveToImmutable());
+        }
     }
 
 }

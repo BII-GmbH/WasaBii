@@ -4,11 +4,14 @@ using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
 
-    public readonly struct ClosestOnSplineQueryResult<TPos, TDiff> 
+    public readonly struct ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel> 
         where TPos : unmanaged 
-        where TDiff : unmanaged {
+        where TDiff : unmanaged
+        where TTime : unmanaged, IComparable<TTime>
+        where TVel : unmanaged
+    {
         internal ClosestOnSplineQueryResult(
-            TPos queriedPosition, Spline<TPos, TDiff> spline, TPos position, NormalizedSplineLocation normalizedLocation
+            TPos queriedPosition, Spline<TPos, TDiff, TTime, TVel> spline, TPos position, NormalizedSplineLocation normalizedLocation
         ) {
             QueriedPosition = queriedPosition;
             Spline = spline;
@@ -26,7 +29,7 @@ namespace BII.WasaBii.Splines {
         public readonly TPos QueriedPosition;
 
         /// <summary> The spline where the closest position is on. </summary>
-        public Spline<TPos, TDiff> Spline { get; }
+        public Spline<TPos, TDiff, TTime, TVel> Spline { get; }
 
         // Since de-normalizing a location may be an expensive operation on long splines, the value is lazy & cached. 
         private readonly Lazy<SplineLocation> cachedLocation;
@@ -36,7 +39,7 @@ namespace BII.WasaBii.Splines {
         public SplineLocation Location => cachedLocation.Value;
 
         /// <summary> The spline's tangent at the location that is closest to the queried position. </summary>
-        public TDiff Tangent => Spline[NormalizedLocation].Tangent;
+        public TVel Tangent => Spline[NormalizedLocation].Velocity;
         
         /// <summary> The distance between the queried position and the spline / the position <see cref="ClosestOnSpline"/>. </summary>
         public Length Distance => Spline.Ops.Distance(QueriedPosition, ClosestOnSpline);

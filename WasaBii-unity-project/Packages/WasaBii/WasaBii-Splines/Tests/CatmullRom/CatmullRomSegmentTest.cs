@@ -7,13 +7,13 @@ using static BII.WasaBii.Splines.Tests.SplineTestUtils;
 namespace BII.WasaBii.Splines.Tests {
 
     public class CatmullRomSegmentTest {
-        private void assertExistsAndEquals(
-            CatmullRomSegment<Vector3, Vector3>? segment,
+        private void assertExistsAndEquals<TTime, TVel>(
+            CatmullRomSegment<Vector3, Vector3, TTime, TVel>? segment,
             Vector3 expectedP0,
             Vector3 expectedP1,
             Vector3 expectedP2,
             Vector3 expectedP3
-        ) {
+        ) where TTime : unmanaged where TVel : unmanaged {
             Assert.That(segment.HasValue);
             if (segment is { } val) {
                 Assert.That(val.P0, Is.EqualTo(expectedP0));

@@ -23,19 +23,20 @@ namespace BII.WasaBii.Splines {
         /// Therefore differing distances between handles would lead to different
         /// querying accuracies on different points on the spline.
         /// </remarks>
-        [Pure] public static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff> queryResult)> QueryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff>(
-            this IEnumerable<TWithSpline> splines,
-            Func<TWithSpline, Spline<TPos, TDiff>> splineSelector,
-            TPos position,
-            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) where TPos : unmanaged where TDiff : unmanaged => 
+        [Pure] public static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel> queryResult)> 
+            QueryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff, TTime, TVel>(
+                this IEnumerable<TWithSpline> splines,
+                Func<TWithSpline, Spline<TPos, TDiff, TTime, TVel>> splineSelector,
+                TPos position,
+                int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+            ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
             queryClosestPositionOnSplinesTo(
                 splines,
                 queryFunction: withSpline => splineSelector(withSpline).QueryClosestPositionOnSplineTo(position, samples)
             );
 
         /// <summary>
-        /// Similar to <see cref="QueryClosestPositionOnSplinesTo{TWithSpline, TPos, TDiff}"/>,
+        /// Similar to <see cref="QueryClosestPositionOnSplinesTo{TWithSpline, TPos, TDiff, TTime, TVel}"/>,
         /// but a non-<see cref="Option"/>al result is returned.
         /// Throws when all provided splines are not valid.
         /// </summary>
@@ -51,20 +52,21 @@ namespace BII.WasaBii.Splines {
         /// Therefore differing distances between handles would lead to different
         /// querying accuracies on different points on the spline.
         /// </remarks>
-        [Pure] public static (TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff> queryResult) QueryClosestPositionOnSplinesToOrThrow<TWithSpline, TPos, TDiff>(
-            this IEnumerable<TWithSpline> splines,
-            Func<TWithSpline, Spline<TPos, TDiff>> splineSelector,
-            TPos position,
-            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        )where TPos : unmanaged where TDiff : unmanaged 
-            => splines.QueryClosestPositionOnSplinesTo(splineSelector, position, samples).GetOrThrow(() => new ArgumentException(
+        [Pure] public static (TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel> queryResult) 
+            QueryClosestPositionOnSplinesToOrThrow<TWithSpline, TPos, TDiff, TTime, TVel>(
+                this IEnumerable<TWithSpline> splines,
+                Func<TWithSpline, Spline<TPos, TDiff, TTime, TVel>> splineSelector,
+                TPos position,
+                int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
+            ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => splines.QueryClosestPositionOnSplinesTo(splineSelector, position, samples).GetOrThrow(() => new ArgumentException(
                 $"All splines given to {nameof(QueryClosestPositionOnSplinesToOrThrow)} were not valid and a query could therefore not be performed!"
             ));
 
-        private static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff> queryResult)> queryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff>(
-            IEnumerable<TWithSpline> splines,
-            Func<TWithSpline, Option<ClosestOnSplineQueryResult<TPos, TDiff>>> queryFunction
-        ) where TPos : unmanaged where TDiff : unmanaged => 
+        private static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel> queryResult)> 
+            queryClosestPositionOnSplinesTo<TWithSpline, TPos, TDiff, TTime, TVel>(
+                IEnumerable<TWithSpline> splines,
+                Func<TWithSpline, Option<ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel>>> queryFunction
+            ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
             splines.Collect(spline => queryFunction(spline).Map(queryResult => (spline, queryResult)))
                 .MinBy(t => t.queryResult.Distance);
     }

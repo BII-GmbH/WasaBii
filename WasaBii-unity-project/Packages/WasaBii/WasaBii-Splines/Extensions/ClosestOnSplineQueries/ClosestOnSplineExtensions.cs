@@ -7,7 +7,7 @@ namespace BII.WasaBii.Splines {
         public const int DefaultClosestOnSplineSamples = 5;
 
         /// <summary>
-        /// Equal to <see cref="QueryClosestPositionOnSplineTo{TPos, TDiff}"/>,
+        /// Equal to <see cref="QueryClosestPositionOnSplineTo{TPos, TDiff, TTime, TVel}"/>,
         /// but a non-<see cref="Option"/>al result is returned.
         /// Throws when the provided spline is invalid.
         /// </summary>
@@ -23,11 +23,11 @@ namespace BII.WasaBii.Splines {
         /// Therefore differing distances between handles would lead to different
         /// querying accuracies on different points on the spline.
         /// </remarks>
-        [Pure] public static ClosestOnSplineQueryResult<TPos, TDiff> QueryClosestPositionOnSplineToOrThrow<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        [Pure] public static ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel> QueryClosestPositionOnSplineToOrThrow<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             TPos position,
             int samples = DefaultClosestOnSplineSamples
-        ) where TPos : unmanaged where TDiff : unmanaged => 
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
             spline.QueryClosestPositionOnSplineTo(position, samples).GetOrThrow(() => 
                 new ArgumentException(
                     $"The spline given to {nameof(QueryClosestPositionOnSplineToOrThrow)} was not valid and a query could therefore not be performed!"
@@ -50,11 +50,11 @@ namespace BII.WasaBii.Splines {
         /// Therefore differing distances between handles would lead to different
         /// querying accuracies on different points on the spline.
         /// </remarks> 
-        public static Option<ClosestOnSplineQueryResult<TPos, TDiff>> QueryClosestPositionOnSplineTo<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        public static Option<ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel>> QueryClosestPositionOnSplineTo<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             TPos position,
             int samples = DefaultClosestOnSplineSamples
-        ) where TPos : unmanaged where TDiff : unmanaged {
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
 
             // 0: The position is on the plane,
             // > 0: The position is above the plane (in the direction of the normal)
@@ -62,7 +62,7 @@ namespace BII.WasaBii.Splines {
             double compareToPlane(TPos planePosition, TDiff planeNormal) =>
                 spline.Ops.Dot(spline.Ops.Sub(position, planePosition), planeNormal);
 
-            ClosestOnSplineQueryResult<TPos, TDiff> computeResult(
+            ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel> computeResult(
                 TPos closestPosition, NormalizedSplineLocation closestLocation
             ) => new(
                 position,
@@ -79,7 +79,9 @@ namespace BII.WasaBii.Splines {
             //                in which the queriedPosition is located.
             while (upper - lower > 1) {
                 var currentLocation = (upper + lower) / 2; // Intentional integer result
-                var (pos, tan) = spline[NormalizedSplineLocation.From(currentLocation)].PositionAndTangent;
+                var sample = spline[NormalizedSplineLocation.From(currentLocation)];
+                var pos = sample.Position;
+                var tan = sample.DerivativeInSegment;
                 var comparison = compareToPlane(pos, tan);
 
                 if (Math.Abs(comparison) < float.Epsilon) {
@@ -93,22 +95,21 @@ namespace BII.WasaBii.Splines {
                 }
             }
 
-            (TPos position, TDiff tangent) getPositionAndTangentAtNormalized(
-                NormalizedSplineLocation location
-            ) => spline[location].PositionAndTangent;
-
             // Edge case: If the queriedPosition is inside the first segment and comes before it, the closest location is 0
             if (lower == 0) {
-                var (pos, tan) = getPositionAndTangentAtNormalized(NormalizedSplineLocation.From(lower));
-                        
-
+                var sample = spline[NormalizedSplineLocation.From(lower)];
+                var pos = sample.Position;
+                var tan = sample.DerivativeInSegment;
+                
                 if (compareToPlane(pos, tan) <= 0)
                     return computeResult(pos, NormalizedSplineLocation.From(lower));
             }
 
             // Edge case: If the queriedPosition is inside the last segment and comes after it, the closest location is totalSegments
             if (upper == totalIntervals) {
-                var (pos, tan) = getPositionAndTangentAtNormalized(NormalizedSplineLocation.From(upper));
+                var sample = spline[NormalizedSplineLocation.From(upper)];
+                var pos = sample.Position;
+                var tan = sample.DerivativeInSegment;
 
                 if (compareToPlane(pos, tan) >= 0)
                     return computeResult(pos, NormalizedSplineLocation.From(upper));

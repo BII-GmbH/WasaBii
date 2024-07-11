@@ -19,19 +19,16 @@ namespace BII.WasaBii.Splines {
         public SplineLocation(Length value) => Value = value;
 
         [Pure]
-        public Length GetDistanceToClosestSideOf<TPos, TDiff>(Spline<TPos, TDiff> spline, Length? cachedLength = null) 
-            where TPos : unmanaged where TDiff : unmanaged {
-            var length = cachedLength ?? spline.Length();
-            var distanceFromEnd = length - Value;
+        public Length GetDistanceToClosestSideOf<TPos, TDiff, TTime, TVel>(Spline<TPos, TDiff, TTime, TVel> spline) 
+            where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
+            var distanceFromEnd = spline.Length - Value;
             return Units.Min(Value, distanceFromEnd);
         }
 
         [Pure]
-        public bool IsCloserToBeginOf<TPos, TDiff>(Spline<TPos, TDiff> spline, Length? cachedLength = null) 
-            where TPos : unmanaged where TDiff : unmanaged {
-            var length = cachedLength ?? spline.Length();
-            return (Value < length / 2f);
-        }
+        public bool IsCloserToBeginOf<TPos, TDiff, TTime, TVel>(Spline<TPos, TDiff, TTime, TVel> spline) 
+            where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
+            Value < spline.Length / 2f;
 
         public static implicit operator Length(SplineLocation l) => l.Value;
         public static implicit operator double(SplineLocation l) => l.Value.AsMeters();
@@ -120,9 +117,6 @@ namespace BII.WasaBii.Splines {
         
         public static NormalizedSplineLocation From(double value) => new(value);
         public NormalizedSplineLocation(double value) => Value = value;
-
-        public static implicit operator double(NormalizedSplineLocation l) => l.Value;
-        public static explicit operator NormalizedSplineLocation(double l) => new(l);
 
         public static NormalizedSplineLocation operator +(NormalizedSplineLocation l) => l;
 

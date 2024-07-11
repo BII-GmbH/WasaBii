@@ -70,7 +70,7 @@ namespace BII.WasaBii.Splines.Tests {
             
             var uut = spline.NormalizeOrThrow(length);
         
-            Assert.That(uut.Value, Is.EqualTo((int) uut));
+            Assert.That(uut.Value, Is.EqualTo((int) uut.Value));
         }
         
         

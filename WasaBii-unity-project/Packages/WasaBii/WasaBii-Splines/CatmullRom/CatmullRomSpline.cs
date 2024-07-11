@@ -22,39 +22,64 @@ namespace BII.WasaBii.Splines.CatmullRom {
     /// segment, i.e. between two succinct points.
     /// </summary>
     [Serializable]
-    public sealed class CatmullRomSpline<TPos, TDiff> : Spline<TPos, TDiff>.Copyable where TPos : unmanaged where TDiff : unmanaged {
+    public sealed class CatmullRomSpline<TPos, TDiff, TTime, TVel> : Spline<TPos, TDiff, TTime, TVel>.Copyable 
+    where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged
+    {
 
         internal sealed record Cache(
-            ImmutableArray<SplineSegment<TPos, TDiff>> SplineSegments,
-            ImmutableArray<Length> SegmentOffsetsFromBegin
+            ImmutableArray<SplineSegment<TPos, TDiff, TTime, TVel>> SplineSegments,
+            Length Length,
+            ImmutableArray<Length> SpatialSegmentOffsets
         );
 
         public CatmullRomSpline(
-            TPos startHandle, IEnumerable<TPos> handles, TPos endHandle, 
-            GeometricOperations<TPos, TDiff> ops,
-            SplineType? splineType = null
-        ) : this(handles.Prepend(startHandle).Append(endHandle), ops, splineType) {}
+            TPos startMarginHandle,
+            IEnumerable<(TPos, TTime)> handles,
+            TPos endMarginHandle,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops,
+            SplineType splineType = SplineType.Centripetal
+        ) {
+            
+            // Note CR: Serialization might pass only `default` parameters, so we support this case here
+            if (handles != default) {
+                var (handlePositions, handleTimes) = handles.Unzip();
+                if (handlePositions.Count < 2)
+                    throw new InsufficientNodePositionsException(actual: handlePositions.Count, required: 2);
+                var handlesBuilder = ImmutableArray.CreateBuilder<TPos>(handlePositions.Count + 2);
+                handlesBuilder.Add(startMarginHandle);
+                handlesBuilder.AddRange(handlePositions);
+                handlesBuilder.Add(endMarginHandle);
+                this.handles = handlesBuilder.MoveToImmutable();
+                this.TemporalSegmentOffsets = ImmutableArray.CreateRange(handleTimes);
+            }
+            Type = splineType;
+            cache = new Lazy<Cache>(initCache);
+            this.Ops = ops;
+        }
 
         public CatmullRomSpline(
-            IEnumerable<TPos> allHandlesIncludingMarginHandles, 
-            GeometricOperations<TPos, TDiff> ops, 
-            SplineType? splineType = null
+            IEnumerable<TPos> allHandlesIncludingMarginHandles,
+            IEnumerable<TTime> handleTimes,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops, 
+            SplineType splineType = SplineType.Centripetal
         ) {
             // Note CR: Serialization might pass only `default` parameters, so we support this case here
-            if (allHandlesIncludingMarginHandles != default) {
-                handles = ImmutableArray.CreateRange(allHandlesIncludingMarginHandles);
+            if (allHandlesIncludingMarginHandles != default && handleTimes != null) {
+                handles = allHandlesIncludingMarginHandles.ToImmutableArray();
+                TemporalSegmentOffsets = handleTimes.ToImmutableArray();
                 if (handles.Length < 4)
-                    throw new ArgumentException(
-                        $"Cannot construct a Catmull-Rom spline from {handles.Length} handles, at least 4 are needed"
-                    );
+                    throw new InsufficientNodePositionsException(actual: handles.Length, required: 4);
+                if (TemporalSegmentOffsets.Length + 2 != handles.Length)
+                    throw new ArgumentException("Number of timestamps does not match number of non-margin handles");
             } else handles = ImmutableArray<TPos>.Empty;
             
-            Type = splineType ?? SplineType.Centripetal;
+            Type = splineType;
             cache = new Lazy<Cache>(initCache);
             this.Ops = ops;
         }
 
         private readonly ImmutableArray<TPos> handles;
+        public ImmutableArray<TTime> TemporalSegmentOffsets { get; }
 
         public IReadOnlyList<TPos> HandlesIncludingMargin => handles;
         
@@ -65,42 +90,45 @@ namespace BII.WasaBii.Splines.CatmullRom {
         );
         public int SegmentCount => HandlesIncludingMargin.Count - 3;
 
+        public Length Length => cache.Value.Length;
+        public TTime TotalDuration => TemporalSegmentOffsets[^1];
+
         public SplineType Type { get; }
         
-        public GeometricOperations<TPos, TDiff> Ops { get; }
+        public GeometricOperations<TPos, TDiff, TTime, TVel> Ops { get; }
 
-        public IEnumerable<SplineSegment<TPos, TDiff>> Segments => cache.Value.SplineSegments;
+        public IEnumerable<SplineSegment<TPos, TDiff, TTime, TVel>> Segments => cache.Value.SplineSegments;
 
         public TPos this[SplineHandleIndex index] => handles[index];
 
-        public SplineSample<TPos, TDiff> this[SplineLocation location] => this[this.NormalizeOrThrow(location)];
-
-        public SplineSegment<TPos, TDiff> this[SplineSegmentIndex index] => cache.Value.SplineSegments[index];
-        
-        public SplineSample<TPos, TDiff> this[NormalizedSplineLocation location] => 
-            SplineSample<TPos, TDiff>.From(this, location).GetOrThrow(() => 
+        public SplineSample<TPos, TDiff, TTime, TVel> this[TTime t] =>
+            SplineSample<TPos, TDiff, TTime, TVel>.From(this, t);
+        public SplineSegment<TPos, TDiff, TTime, TVel> this[SplineSegmentIndex index] => cache.Value.SplineSegments[index];
+        public SplineSample<TPos, TDiff, TTime, TVel> this[SplineLocation location] => this[this.NormalizeOrThrow(location)];
+        public SplineSample<TPos, TDiff, TTime, TVel> this[NormalizedSplineLocation location] => 
+            SplineSample<TPos, TDiff, TTime, TVel>.From(this, location).GetOrThrow(() => 
                 new ArgumentOutOfRangeException(
                     nameof(location),
                     location,
                     $"Must be between 0 and {SegmentCount}"
                 ));
 
-        public ImmutableArray<Length> SegmentOffsetsFromBegin => cache.Value.SegmentOffsetsFromBegin;
+        public ImmutableArray<Length> SpatialSegmentOffsets => cache.Value.SpatialSegmentOffsets;
 
-        [Pure] public Spline<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(
-            Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew> newOps
-        ) where TPosNew : unmanaged where TDiffNew : unmanaged => 
-            new CatmullRomSpline<TPosNew, TDiffNew>(HandlesIncludingMargin.Select(positionMapping), newOps, Type);
+        [Pure] public Spline<TPosNew, TDiffNew, TTime, TVelNew> Map<TPosNew, TDiffNew, TVelNew>(
+            Func<TPos, TPosNew> positionMapping, GeometricOperations<TPosNew, TDiffNew, TTime, TVelNew> newOps
+        ) where TPosNew : unmanaged where TDiffNew : unmanaged where TVelNew : unmanaged => 
+            new CatmullRomSpline<TPosNew, TDiffNew, TTime, TVelNew>(HandlesIncludingMargin.Select(positionMapping), TemporalSegmentOffsets, newOps, Type);
 
-        [Pure] public Spline<TPos, TDiff> Reversed => new CatmullRomSpline<TPos, TDiff>(HandlesIncludingMargin.Reverse(), Ops, Type);
+        [Pure] public Spline<TPos, TDiff, TTime, TVel> Reversed => new CatmullRomSpline<TPos, TDiff, TTime, TVel>(HandlesIncludingMargin.Reverse(), TemporalSegmentOffsets, Ops, Type);
         
-        [Pure] public Spline<TPos, TDiff> CopyWithOffset(Func<TDiff, TDiff> tangentToOffset) => 
+        [Pure] public Spline<TPos, TDiff, TTime, TVel> CopyWithOffset(Func<TVel, TDiff> tangentToOffset) => 
             CatmullRomSplineCopyUtils.CopyWithOffset(this, tangentToOffset);
 
-        [Pure] public Spline<TPos, TDiff> CopyWithStaticOffset(TDiff offset) =>
+        [Pure] public Spline<TPos, TDiff, TTime, TVel> CopyWithStaticOffset(TDiff offset) =>
             CatmullRomSplineCopyUtils.CopyWithStaticOffset(this, offset);
 
-        [Pure] public Spline<TPos, TDiff> CopyWithDifferentHandleDistance(Length desiredHandleDistance) =>
+        [Pure] public Spline<TPos, TDiff, TTime, TVel> CopyWithDifferentHandleDistance(Length desiredHandleDistance) =>
             CatmullRomSplineCopyUtils.CopyWithDifferentHandleDistance(this, desiredHandleDistance);
         
 #region Segment Length Caching
@@ -110,8 +138,8 @@ namespace BII.WasaBii.Splines.CatmullRom {
 
         private Cache initCache() {
             var segmentCount = SegmentCount;
-            var segments = ImmutableArray.CreateBuilder<SplineSegment<TPos, TDiff>>(initialCapacity: segmentCount);
-            for(var i = 0; i< segmentCount; i++) segments.Add(new SplineSegment<TPos, TDiff>(
+            var segments = ImmutableArray.CreateBuilder<SplineSegment<TPos, TDiff, TTime, TVel>>(initialCapacity: segmentCount);
+            for(var i = 0; i< segmentCount; i++) segments.Add(new SplineSegment<TPos, TDiff, TTime, TVel>(
                 CatmullRomPolynomial.FromSplineAt(this, SplineSegmentIndex.At(i))
                     .GetOrThrow(() =>
                         new Exception(
@@ -119,12 +147,19 @@ namespace BII.WasaBii.Splines.CatmullRom {
                             "This should not happen and indicates a bug in this method."
                         )
                     )));
-            var segmentOffsets = ImmutableArray.CreateBuilder<Length>(initialCapacity: segmentCount);
+            
+            var spatialOffsets = ImmutableArray.CreateBuilder<Length>(initialCapacity: segmentCount);
+            
             var lastOffset = Length.Zero;
-            segmentOffsets.Add(Length.Zero);
-            for (var i = 1; i < segmentCount; i++) 
-                segmentOffsets.Add(lastOffset += segments[i - 1].Length);
-            return new(segments.MoveToImmutable(), segmentOffsets.MoveToImmutable());
+            foreach (var segment in segments) {
+                if (segment.Duration.CompareTo(Ops.ZeroTime) == -1)
+                    throw new Exception(
+                        $"Tried to construct a spline with a segment of negative duration: {segment.Duration}"
+                    );
+                spatialOffsets.Add(lastOffset);
+                lastOffset += segment.Length;
+            }
+            return new(segments.MoveToImmutable(), lastOffset, spatialOffsets.MoveToImmutable());
         }
         
         #endregion
@@ -151,20 +186,20 @@ namespace BII.WasaBii.Splines.CatmullRom {
             }
         }
 
-        public static TPos BeginMarginHandle<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> spline)
-        where TPos : unmanaged where TDiff : unmanaged =>
+        public static TPos BeginMarginHandle<TPos, TDiff, TTime, TVel>(this CatmullRomSpline<TPos, TDiff, TTime, TVel> spline)
+        where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged =>
             spline.HandlesIncludingMargin[0];
 
-        public static TPos EndMarginHandle<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> spline)
-        where TPos : unmanaged where TDiff : unmanaged =>
+        public static TPos EndMarginHandle<TPos, TDiff, TTime, TVel>(this CatmullRomSpline<TPos, TDiff, TTime, TVel> spline)
+        where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged =>
             spline.HandlesIncludingMargin[^1];
         
-        public static TPos FirstHandle<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> spline)
-        where TPos : unmanaged where TDiff : unmanaged =>
+        public static TPos FirstHandle<TPos, TDiff, TTime, TVel>(this CatmullRomSpline<TPos, TDiff, TTime, TVel> spline)
+        where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged =>
             spline.Handles[0];
 
-        public static TPos LastHandle<TPos, TDiff>(this CatmullRomSpline<TPos, TDiff> spline)
-        where TPos : unmanaged where TDiff : unmanaged =>
+        public static TPos LastHandle<TPos, TDiff, TTime, TVel>(this CatmullRomSpline<TPos, TDiff, TTime, TVel> spline)
+        where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged =>
             spline.Handles[^1];
 
         /// <summary>
@@ -176,27 +211,30 @@ namespace BII.WasaBii.Splines.CatmullRom {
         /// while this operation is only done twice here.
         /// </summary>
         [Pure]
-        public static IEnumerable<TPos> HandlesBetween<TPos, TDiff>(
-            this CatmullRomSpline<TPos, TDiff> spline, SplineLocation start, SplineLocation end
-        ) where TPos : unmanaged where TDiff : unmanaged {
+        public static IEnumerable<TPos> HandlesBetween<TPos, TDiff, TTime, TVel>(
+            this CatmullRomSpline<TPos, TDiff, TTime, TVel> spline, SplineLocation start, SplineLocation end
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
             var fromNormalized = spline.NormalizeOrThrow(start);
             var toNormalized = spline.NormalizeOrThrow(end);
 
-            yield return spline[fromNormalized].Position;
-
             if (fromNormalized > toNormalized) {
-                // Iterate from end of spline to begin
-                for (var nodeIndex = spline.Handles.Count - 1; nodeIndex >= 0; --nodeIndex)
-                    if (nodeIndex < fromNormalized && nodeIndex > toNormalized)
-                        yield return spline.Handles[nodeIndex];
+                var offset = MathD.CeilToInt(toNormalized.Value);
+                var count = MathD.FloorToInt(fromNormalized.Value) - offset;
+                return new ReadOnlyListSegment<TPos>(
+                    spline.Handles,
+                    offset,
+                    count
+                ).ReverseList()
+                    .Prepend(spline[fromNormalized].Position).Append(spline[toNormalized].Position);
             } else {
-                // Iterate from begin of spline to end
-                for (var nodeIndex = 0; nodeIndex < spline.Handles.Count; ++nodeIndex)
-                    if (nodeIndex > fromNormalized && nodeIndex < toNormalized)
-                        yield return spline.Handles[nodeIndex];
+                var offset = MathD.CeilToInt(fromNormalized.Value);
+                var count = MathD.FloorToInt(toNormalized.Value) - offset;
+                return new ReadOnlyListSegment<TPos>(
+                    spline.Handles,
+                    offset,
+                    count
+                ).Prepend(spline[fromNormalized].Position).Append(spline[toNormalized].Position);
             }
-
-            yield return spline[toNormalized].Position;
         }
 
     }

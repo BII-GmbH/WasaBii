@@ -14,9 +14,11 @@ namespace BII.WasaBii.Splines.Maths {
     /// implementation of this interface wherever necessary.
     /// </summary>
     [MustBeImmutable]
-    public interface GeometricOperations<TPos, TDiff>
+    public interface GeometricOperations<TPos, TDiff, TTime, TVel>
         where TPos : unmanaged 
-        where TDiff : unmanaged {
+        where TDiff : unmanaged 
+        where TTime : unmanaged 
+        where TVel : unmanaged {
         
         [Pure] TPos Add(TPos d1, TDiff d2);
         [Pure] TDiff Add(TDiff d1, TDiff d2);
@@ -28,7 +30,7 @@ namespace BII.WasaBii.Splines.Maths {
         // providing efficient implementations could improve performance
         [Pure] TPos Sub(TPos p, TDiff d) => Add(p, Mul(d, -1));
         [Pure] TDiff Sub(TDiff d1, TDiff d2) => Add(d1, Mul(d2, -1));
-        [Pure] TDiff Div(TDiff diff, double d) => Mul(diff, 1 / d);
+        [Pure] TDiff Div(TDiff diff, double d) => d.IsNearly(1) ? diff : Mul(diff, 1 / d);
         [Pure] Length Distance(TPos p0, TPos p1) {
             var diff = Sub(p1, p0);
             return Math.Sqrt(Dot(diff, diff)).Meters();
@@ -37,26 +39,32 @@ namespace BII.WasaBii.Splines.Maths {
         [Pure] TDiff Lerp(TDiff from, TDiff to, double t) => Add(from, Mul(Sub(to, from), t));
         
         [Pure] TDiff ZeroDiff { get; }
+        [Pure] TVel ZeroVel { get; }
+        [Pure] TTime ZeroTime { get; }
+        [Pure] TTime UnitTime { get; }
+        
+        [Pure] double Div(TTime a, TTime b);
+
+        [Pure] TDiff Mul(TVel v, TTime t);
+        [Pure] TVel Div(TDiff d, TTime t);
+        [Pure] TTime Add(TTime a, TTime b);
+        [Pure] TTime Sub(TTime a, TTime b);
+        [Pure] TTime Mul(TTime a, double b);
+
     }
 
-    public static class PositionOperationsExtensions {
+    [MustBeImmutable]
+    public interface ScalarTimeGeometricOperations<TPos, TDiff> : GeometricOperations<TPos, TDiff, double, TDiff>
+    where TPos : unmanaged where TDiff : unmanaged
+    {
+        TDiff GeometricOperations<TPos, TDiff, double, TDiff>.ZeroVel => ZeroDiff;
 
-        [Pure]
-        public static TPos Add<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TPos p, TDiff d1, TDiff d2) 
-            where TPos : unmanaged where TDiff : unmanaged => ops.Add(ops.Add(p, d1), d2);
+        double GeometricOperations<TPos, TDiff, double, TDiff>.ZeroTime => 0;
 
-        [Pure]
-        public static TPos Add<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TPos p, TDiff d1, TDiff d2, TDiff d3) 
-            where TPos : unmanaged where TDiff : unmanaged => ops.Add(ops.Add(p, d1, d2), d3);
-
-        [Pure]
-        public static TDiff Add<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TDiff d1, TDiff d2, TDiff d3) 
-            where TPos : unmanaged where TDiff : unmanaged => ops.Add(ops.Add(d1, d2), d3);
-
-        [Pure]
-        public static TDiff Sub<TPos, TDiff>(this GeometricOperations<TPos, TDiff> ops, TDiff d1, TDiff d2, TDiff d3) 
-            where TPos : unmanaged where TDiff : unmanaged => ops.Sub(ops.Sub(d1, d2), d3);
-
+        double GeometricOperations<TPos, TDiff, double, TDiff>.Div(double a, double b) => a / b;
+        double GeometricOperations<TPos, TDiff, double, TDiff>.Add(double a, double b) => a + b;
+        double GeometricOperations<TPos, TDiff, double, TDiff>.Sub(double a, double b) => a - b;
+        double GeometricOperations<TPos, TDiff, double, TDiff>.Mul(double a, double b) => a * b;
     }
     
 }

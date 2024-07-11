@@ -8,7 +8,7 @@ namespace BII.WasaBii.Splines.Tests {
       
         [Test]
         public void QueryGreedyClosestPositionOnSplineTo_WhenEquidistantNodes_ThenReturnsCorrectLocationAndDistance() {
-            var uut = UnitySpline.FromHandlesIncludingMargin(new []{
+            var uut = UniformUnitySpline.FromHandlesIncludingMargin(new []{
                 new Vector3(-1, 0, 0),
                 new Vector3(0, 0, 0),
                 new Vector3(1, 0, 0),

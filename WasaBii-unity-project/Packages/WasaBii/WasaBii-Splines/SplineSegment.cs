@@ -6,19 +6,25 @@ using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
 
 namespace BII.WasaBii.Splines {
-    public readonly struct SplineSegment<TPos, TDiff>
+    public readonly struct SplineSegment<TPos, TDiff, TTime, TVel>
         where TPos : unmanaged 
-        where TDiff : unmanaged {
-        internal readonly Polynomial<TPos, TDiff> Polynomial;
+        where TDiff : unmanaged 
+        where TTime : unmanaged, IComparable<TTime>
+        where TVel : unmanaged
+    {
+        internal readonly Polynomial<TPos, TDiff, TTime, TVel> Polynomial;
         private readonly Lazy<Length> cachedLength;
         public Length Length => cachedLength.Value;
 
-        internal SplineSegment(Polynomial<TPos, TDiff> polynomial, Lazy<Length>? cachedLength = null) {
+        public readonly TTime Duration;
+
+        internal SplineSegment(Polynomial<TPos, TDiff, TTime, TVel> polynomial, Lazy<Length>? cachedLength = null) {
             Polynomial = polynomial;
+            Duration = polynomial.Duration;
             this.cachedLength = cachedLength ?? new Lazy<Length>(() => SplineSegmentUtils.SimpsonsLengthOf(polynomial));
         }
         
-        public SplineSample<TPos, TDiff> SampleAt(double percentage) => new(this, percentage);
+        public SplineSample<TPos, TDiff, TTime, TVel> SampleAt(TTime globalT, TTime segmentOffset) => new(this, globalT, segmentOffset);
     }
 
     public static class SplineSegmentUtils {
@@ -28,15 +34,15 @@ namespace BII.WasaBii.Splines {
         /// applying the trapezoidal rule with <see cref="samples"/> sections.
         /// </summary>
         [Pure]
-        internal static Length TrapezoidalLengthOf<TPos, TDiff>(
-            Polynomial<TPos, TDiff> polynomial, 
+        internal static Length TrapezoidalLengthOf<TPos, TDiff, TTime, TVel>(
+            Polynomial<TPos, TDiff, TTime, TVel> polynomial, 
             double? start = 0.0, double? end = 1.0,
             int samples = 10
-        ) where TPos : unmanaged where TDiff : unmanaged {
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged where TVel : unmanaged {
             var range = SampleRange.From(start ?? 0.0, inclusive: true).To(end ?? 1.0, inclusive: true);
             var ops = polynomial.Ops;
             return range.Sample(samples + 1, (a, b, p) => MathD.Lerp(a, b, p))
-                .Select(polynomial.Evaluate)
+                .Select(polynomial.EvaluateNormalized)
                 .PairwiseSliding()
                 .Sum(sample => ops.Distance(sample.Item1, sample.Item2));
         }
@@ -46,16 +52,16 @@ namespace BII.WasaBii.Splines {
         /// Simpson's 1/3 rule with <see cref="sections"/> sections / double that in subsections.
         /// </summary>
         [Pure]
-        internal static Length SimpsonsLengthOf<TPos, TDiff>(
-            Polynomial<TPos, TDiff> polynomial, 
+        internal static Length SimpsonsLengthOf<TPos, TDiff, TTime, TVel>(
+            Polynomial<TPos, TDiff, TTime, TVel> polynomial, 
             double? start = 0.0, double? end = 1.0, 
             int sections = 4
-        ) where TPos : unmanaged where TDiff : unmanaged {
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged where TVel : unmanaged {
             
             // The function whose integral in the (0..1) range gives the polynomial curve's length.
             // This is what we want to approximate.
             double LengthDeriv(double t) {
-                var v = polynomial.EvaluateDerivative(t);
+                var v = polynomial.EvaluateDerivativeNormalized(t);
                 var ret = Math.Sqrt(polynomial.Ops.Dot(v, v));
                 return ret;
             }
@@ -68,11 +74,11 @@ namespace BII.WasaBii.Splines {
         /// Approximates the polynomial curve length between 0 and <see cref="t"/>.
         /// </summary>
         [Pure]
-        internal static Length ProgressToLength<TPos, TDiff>(
-            this Polynomial<TPos, TDiff> polynomial, double t,
+        internal static Length ProgressToLength<TPos, TDiff, TTime, TVel>(
+            this Polynomial<TPos, TDiff, TTime, TVel> polynomial, double t,
             int approximationSampleSectionCount = 4
-        ) where TPos : unmanaged where TDiff : unmanaged 
-            => SimpsonsLengthOf(polynomial, end: t, sections: approximationSampleSectionCount);
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged where TVel : unmanaged => 
+            SimpsonsLengthOf(polynomial, end: t, sections: approximationSampleSectionCount);
 
         /// <summary>
         /// Iteratively approximates the progress parameter t where the length of the
@@ -92,17 +98,17 @@ namespace BII.WasaBii.Splines {
         /// <param name="thresholdFactor">Triggers an early return when the current curve segment is within a factor
         /// of <see cref="thresholdFactor"/> from the queried <see cref="length"/></param>
         /// <param name="cachedPolynomialLength">The total polynomial arc length if already known</param>
-        /// <param name="approximationSampleSectionCount">How many sections to sample when calculating the <see cref="SimpsonsLengthOf{TPos,TDiff}"/></param>
+        /// <param name="approximationSampleSectionCount">How many sections to sample when calculating the <see cref="SimpsonsLengthOf{TPos,TDiff,TTime,TVel}"/></param>
         [Pure]
-        internal static double LengthToProgress<TPos, TDiff>(
-            this Polynomial<TPos, TDiff> polynomial,
+        internal static double LengthToProgress<TPos, TDiff, TTime, TVel>(
+            this Polynomial<TPos, TDiff, TTime, TVel> polynomial,
             Length length,
             int iterations = 2,
             double oversteppingFactor = 1.1,
             double thresholdFactor = 1.01,
             Length? cachedPolynomialLength = null,
             int approximationSampleSectionCount = 2
-        ) where TPos : unmanaged where TDiff : unmanaged {
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged where TVel : unmanaged {
             if (thresholdFactor < 1)
                 throw new ArgumentException($"{nameof(thresholdFactor)} must be at least 1, was {thresholdFactor}");
             
@@ -147,11 +153,10 @@ namespace BII.WasaBii.Splines {
         }
 
         [Pure]
-        public static NormalizedSplineLocation ClosestPointInSegmentTo<TPos, TDiff>(
-            this SplineSample<TPos, TDiff> sample, TPos queriedPosition, int samples
-        ) 
-        where TPos : unmanaged 
-        where TDiff : unmanaged => NormalizedSplineLocation.From(sample.T + sample.Segment.Polynomial.EvaluateClosestPointTo(queriedPosition, samples));
+        public static NormalizedSplineLocation ClosestPointInSegmentTo<TPos, TDiff, TTime, TVel>(
+            this SplineSample<TPos, TDiff, TTime, TVel> sample, TPos queriedPosition, int samples
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
+            NormalizedSplineLocation.From(sample.TNormalized + sample.Segment.Polynomial.EvaluateClosestPointTo(queriedPosition, samples));
 
     }
 }

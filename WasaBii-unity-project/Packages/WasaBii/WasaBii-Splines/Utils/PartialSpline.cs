@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
@@ -16,15 +15,16 @@ namespace BII.WasaBii.Splines {
     /// <see cref="StartLocation"/> to <see cref="EndLocation"/>.
     /// </summary>
     [MustBeImmutable][Serializable]
-    public readonly struct PartialSpline<TPos, TDiff> where TPos : unmanaged where TDiff : unmanaged {
-        public readonly Spline<TPos, TDiff> Spline;
+    public readonly struct PartialSpline<TPos, TDiff, TTime, TVel> where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged
+    {
+        public readonly Spline<TPos, TDiff, TTime, TVel> Spline;
         public readonly SplineLocation StartLocation;
         public readonly SplineLocation EndLocation;
         public readonly NormalizedSplineLocation StartLocationNormalized;
         public readonly NormalizedSplineLocation EndLocationNormalized;
         public readonly Length Length;
 
-        public PartialSpline(Spline<TPos, TDiff> spline, SplineLocation startLocation, SplineLocation endLocation) {
+        public PartialSpline(Spline<TPos, TDiff, TTime, TVel> spline, SplineLocation startLocation, SplineLocation endLocation) {
             Spline = spline;
             StartLocation = startLocation;
             EndLocation = endLocation;
@@ -35,9 +35,9 @@ namespace BII.WasaBii.Splines {
             if(Length < Length.Zero) throw new ArgumentException($"PartialSpline must have a positive length (was {Length})");
         }
 
-        public SplineSample<TPos, TDiff> SampleAt(double percentage) => Spline[NormalizedSplineLocation.Lerp(StartLocationNormalized, EndLocationNormalized, percentage)];
+        public SplineSample<TPos, TDiff, TTime, TVel> SampleAt(double percentage) => Spline[NormalizedSplineLocation.Lerp(StartLocationNormalized, EndLocationNormalized, percentage)];
 
-        public SplineSample<TPos, TDiff> SampleFromStart(Length distanceFromStart) {
+        public SplineSample<TPos, TDiff, TTime, TVel> SampleFromStart(Length distanceFromStart) {
             if(distanceFromStart < -Length.Epsilon) throw new ArgumentException(
                 $"Distance must be above 0, but was {distanceFromStart}"
             );
@@ -47,7 +47,7 @@ namespace BII.WasaBii.Splines {
             return Spline[distanceFromStart + StartLocation];
         }
 
-        public SplineSample<TPos, TDiff> SampleFromEnd(Length distanceFromEnd) {
+        public SplineSample<TPos, TDiff, TTime, TVel> SampleFromEnd(Length distanceFromEnd) {
             if(distanceFromEnd < -Length.Epsilon) throw new ArgumentException(
                 $"Distance must be above 0, but was {distanceFromEnd}"
             );
@@ -57,7 +57,7 @@ namespace BII.WasaBii.Splines {
             return Spline[EndLocation - distanceFromEnd];
         }
 
-        public SplineSample<TPos, TDiff> SampleFrom(SampleDirection direction, Length distance) => direction switch {
+        public SplineSample<TPos, TDiff, TTime, TVel> SampleFrom(SampleDirection direction, Length distance) => direction switch {
             SampleDirection.FromStart => SampleFromStart(distance),
             SampleDirection.FromEnd => SampleFromEnd(distance),
             _ => throw new UnsupportedEnumValueException(direction)

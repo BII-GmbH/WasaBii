@@ -11,21 +11,28 @@ namespace BII.WasaBii.Splines.Maths {
 
     internal static class Polynomial {
         
-        public static Polynomial<TPos, TDiff> Quadratic<TPos, TDiff> (TPos a, TDiff b, TDiff c, GeometricOperations<TPos, TDiff> ops)
-        where TPos : unmanaged 
-        where TDiff : unmanaged =>
-            new(ops, a, b, c);
+        public static Polynomial<TPos, TDiff, TTime, TVel> Quadratic<TPos, TDiff, TTime, TVel> (
+            TPos a, TDiff b, TDiff c, 
+            TTime duration, 
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged where TVel : unmanaged =>
+            new(ops, duration, a, b, c);
 
-        public static Polynomial<TPos, TDiff> Cubic<TPos, TDiff> (TPos a, TDiff b, TDiff c, TDiff d, GeometricOperations<TPos, TDiff> ops)
-        where TPos : unmanaged 
-        where TDiff : unmanaged =>
-            new(ops, a, b, c, d);
+        public static Polynomial<TPos, TDiff, TTime, TVel> Cubic<TPos, TDiff, TTime, TVel> (
+            TPos a, TDiff b, TDiff c, TDiff d,
+            TTime duration, 
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged where TVel : unmanaged =>
+            new(ops, duration, a, b, c, d);
 
     }
     
-    internal readonly struct Polynomial<TPos, TDiff> 
+    internal readonly struct Polynomial<TPos, TDiff, TTime, TVel> 
         where TPos : unmanaged 
-        where TDiff : unmanaged {
+        where TDiff : unmanaged
+        where TTime : unmanaged
+        where TVel : unmanaged
+        {
     
         /// <summary>
         /// All coefficients of the polynomial function except the first. Eg. a cubic polynomial has
@@ -34,24 +41,33 @@ namespace BII.WasaBii.Splines.Maths {
         /// </summary>
         private readonly ImmutableArray<TDiff> TailC;
         private readonly TPos FirstC;
+        public readonly TTime Duration;
 
-        internal readonly GeometricOperations<TPos, TDiff> Ops;
+        internal readonly GeometricOperations<TPos, TDiff, TTime, TVel> Ops;
 
         public Length ArcLength => SplineSegmentUtils.SimpsonsLengthOf(this);
         
-        public Polynomial(GeometricOperations<TPos, TDiff> ops, TPos firstC, ImmutableArray<TDiff> tailC) {
+        public Polynomial(
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops,
+            TTime duration,
+            TPos firstC,
+            ImmutableArray<TDiff> tailC
+        ) {
             this.FirstC = firstC;
             this.TailC = tailC;
             this.Ops = ops;
+            this.Duration = duration;
         }
 
-        public Polynomial(GeometricOperations<TPos, TDiff> ops, TPos firstC, params TDiff[] tailC) {
+        public Polynomial(GeometricOperations<TPos, TDiff, TTime, TVel> ops, TTime duration, TPos firstC, params TDiff[] tailC) {
             this.FirstC = firstC;
             this.TailC = tailC.ToImmutableArray();
+            this.Duration = duration;
             this.Ops = ops;
         }
 
-        public TPos Evaluate(double t) {
+        public TPos Evaluate(TTime t) => EvaluateNormalized(Ops.Div(t, Duration));
+        public TPos EvaluateNormalized(double t) {
             if(!t.IsInsideInterval(0, 1, threshold: 0.001)) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var ops = Ops;
             return TailC.Aggregate(
@@ -60,7 +76,8 @@ namespace BII.WasaBii.Splines.Maths {
             ).res;
         }
 
-        public TDiff EvaluateDerivative(double t) {
+        public TVel EvaluateDerivative(TTime t) => Ops.Div(EvaluateDerivativeNormalized(Ops.Div(t, Duration)), Duration);
+        public TDiff EvaluateDerivativeNormalized(double t) {
             if(!t.IsInsideInterval(0, 1, threshold: 0.001)) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var ops = Ops;
             return TailC.ZipWithIndices().Aggregate(
@@ -75,7 +92,8 @@ namespace BII.WasaBii.Splines.Maths {
             ).res;
         }
 
-        public TDiff EvaluateSecondDerivative(double t) {
+        public TVel EvaluateSecondDerivative(TTime t) => Ops.Div(EvaluateSecondDerivativeNormalized(Ops.Div(t, Duration)), Duration);
+        public TDiff EvaluateSecondDerivativeNormalized(double t) {
             if(!t.IsInsideInterval(0, 1, threshold: 0.001)) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var ops = Ops;
             return TailC.ZipWithIndices().Skip(1).Aggregate(
@@ -90,7 +108,8 @@ namespace BII.WasaBii.Splines.Maths {
             ).res;
         }
 
-        public TDiff EvaluateNthDerivative(double t, int n) {
+        public TVel EvaluateNthDerivative(TTime t, int n) => Ops.Div(EvaluateNthDerivativeNormalized(Ops.Div(t, Duration), n), Duration);
+        public TDiff EvaluateNthDerivativeNormalized(double t, int n) {
             if(!t.IsInsideInterval(0, 1, threshold: 0.001)) throw new ArgumentException($"The parameter 't' must be between 0 and 1 but it was {t}");
             var ops = Ops;
             var factorials = new int[TailC.Length + 1];
@@ -119,7 +138,7 @@ namespace BII.WasaBii.Splines.Maths {
                 ops.Dot(tan, diff);
 
             double SqrDistanceFactorTwiceDerived(double t, TDiff diff, TDiff tan) => 
-                ops.Dot(copyOfThis.EvaluateSecondDerivative(t), diff) + ops.Dot(tan, tan);
+                ops.Dot(copyOfThis.EvaluateSecondDerivativeNormalized(t), diff) + ops.Dot(tan, tan);
 
             // We describe the squared distance from the queried position p to the spline as the distance function d(t, qp).
             // (we use the squared distance, instead of the normal distance,
@@ -140,8 +159,8 @@ namespace BII.WasaBii.Splines.Maths {
             // https://en.wikipedia.org/wiki/Newton%27s_method
             var res = 0.5;
             for (var i = 0; i < iterations; ++i) {
-                var pos = copyOfThis.Evaluate(res);
-                var tan = copyOfThis.EvaluateDerivative(res);
+                var pos = copyOfThis.EvaluateNormalized(res);
+                var tan = copyOfThis.EvaluateDerivativeNormalized(res);
                 var diff = ops.Sub(pos, p);
                 var numerator = SqrDistanceFactorDerived(res, diff, tan);
                 var denominator = SqrDistanceFactorTwiceDerived(res, diff, tan);

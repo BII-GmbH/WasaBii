@@ -59,15 +59,17 @@ namespace BII.WasaBii.Splines.Maths {
         /// Such a conversion is desirable when performance is relevant,
         /// since operations on <see cref="NormalizedSplineLocation"/> are faster.
         /// </summary>
-        public static Result<NormalizedSplineLocation, SplineLocationOutOfRangeError> Normalize<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        public static Result<NormalizedSplineLocation, SplineLocationOutOfRangeError> Normalize<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             SplineLocation location,
             SplineLocation? splineLocationOvershootTolerance = null
         ) 
             where TPos : unmanaged 
-            where TDiff : unmanaged {
+            where TDiff : unmanaged
+            where TTime : unmanaged, IComparable<TTime>
+            where TVel : unmanaged {
 
-            var searchResult = spline.SegmentOffsetsFromBegin.BinarySearch(location);
+            var searchResult = spline.SpatialSegmentOffsets.BinarySearch(location);
             var segmentIndex = SplineSegmentIndex.At(
                 searchResult > 0
                     // location is exactly at intersection of two segments -> result is index of segment that starts here
@@ -78,7 +80,7 @@ namespace BII.WasaBii.Splines.Maths {
             
             var segment = spline[segmentIndex];
             var segmentLength = segment.Length;
-            var remainingDistanceToLocation = location.Value - spline.SegmentOffsetsFromBegin[segmentIndex];
+            var remainingDistanceToLocation = location.Value - spline.SpatialSegmentOffsets[segmentIndex];
 
             var res = NormalizedSplineLocation.From(segmentIndex);
             return remainingDistanceToLocation switch {
@@ -86,20 +88,20 @@ namespace BII.WasaBii.Splines.Maths {
                     res + segment.Polynomial.LengthToProgress(d, cachedPolynomialLength: segmentLength),
                 var d when d.IsNearly(Length.Zero, threshold: splineLocationOvershootTolerance ?? 1E-3.Meters()) => res,
                 var d when d.IsNearly(segmentLength, threshold: splineLocationOvershootTolerance ?? 1E-3.Meters()) => res + 1,
-                _ => new SplineLocationOutOfRangeError(location, spline.Length())
+                _ => new SplineLocationOutOfRangeError(location, spline.Length)
             };
         }
 
-        /// <inheritdoc cref="Normalize{TPos,TDiff}"/>
+        /// <inheritdoc cref="Normalize{TPos,TDiff,TTime,TVel}"/>
         /// <exception cref="SplineLocationOutOfRangeError">When the queried <paramref name="location"/>
         /// does not lie on the spline within the <paramref name="splineLocationOvershootTolerance"/>,
         /// i.e. when it is less than <see cref="SplineLocation.Zero"/> or greater than the
         /// <paramref name="spline"/> length.</exception>
-        public static NormalizedSplineLocation NormalizeOrThrow<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        public static NormalizedSplineLocation NormalizeOrThrow<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             SplineLocation location,
             SplineLocation? splineLocationOvershootTolerance = null
-        ) where TPos : unmanaged where TDiff : unmanaged =>
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged =>
             spline.Normalize(location, splineLocationOvershootTolerance).ResultOrThrow();
 
         /// <summary>
@@ -109,28 +111,30 @@ namespace BII.WasaBii.Splines.Maths {
         /// since <see cref="SplineLocation"/> is equal to the distance
         /// from the beginning of the spline to the location, in meters.
         /// </summary>
-        public static Result<SplineLocation, NormalizedSplineLocationOutOfRangeError> DeNormalize<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        public static Result<SplineLocation, NormalizedSplineLocationOutOfRangeError> DeNormalize<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             NormalizedSplineLocation t,
             NormalizedSplineLocation? overshootTolerance = null
         )  
             where TPos : unmanaged 
-            where TDiff : unmanaged {
+            where TDiff : unmanaged
+            where TTime : unmanaged, IComparable<TTime>
+            where TVel : unmanaged {
 
-            if (t < 0) {
+            if (t.Value < 0) {
                 if (overshootTolerance is { } tolerance && -t <= tolerance)
                     t = NormalizedSplineLocation.Zero;
                 else return new NormalizedSplineLocationOutOfRangeError(t, new(spline.SegmentCount));
             }
 
-            if (t > spline.SegmentCount) {
+            if (t.Value > spline.SegmentCount) {
                 if (overshootTolerance is { } tolerance && t - spline.SegmentCount <= tolerance)
                     t = new (spline.SegmentCount);
                 else return new NormalizedSplineLocationOutOfRangeError(t, new(spline.SegmentCount));
             }
 
             var segmentIndex = new SplineSegmentIndex(Math.Min((int)t.Value, spline.SegmentCount - 1));
-            var location = spline.SegmentOffsetsFromBegin[segmentIndex];
+            var location = spline.SpatialSegmentOffsets[segmentIndex];
             var progressInLastSegment = t.Value - segmentIndex;
             if (progressInLastSegment > double.Epsilon) {
                 var lastSegment = spline[SplineSegmentIndex.At(segmentIndex)];
@@ -140,16 +144,16 @@ namespace BII.WasaBii.Splines.Maths {
             return new SplineLocation(location);
         }
 
-        /// <inheritdoc cref="DeNormalize"/>
+        /// <inheritdoc cref="DeNormalize{TPos,TDiff,TTime,TVel}"/>
         /// <exception cref="NormalizedSplineLocationOutOfRangeError">When the queried <paramref name="t"/>
         /// does not lie on the spline within the <paramref name="overshootTolerance"/>, i.e. when it is
         /// less than <see cref="NormalizedSplineLocation.Zero"/> or greater than the <paramref name="spline"/>
-        /// <see cref="Spline{TPos,TDiff}.SegmentCount"/>.</exception>
-        public static SplineLocation DeNormalizeOrThrow<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        /// <see cref="Spline{TPos,TDiff,TTime,TVel}.SegmentCount"/>.</exception>
+        public static SplineLocation DeNormalizeOrThrow<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             NormalizedSplineLocation t,
             NormalizedSplineLocation? overshootTolerance = null
-        ) where TPos : unmanaged where TDiff : unmanaged =>
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged =>
             spline.DeNormalize(t, overshootTolerance).ResultOrThrow();
 
         /// <summary>
@@ -161,16 +165,18 @@ namespace BII.WasaBii.Splines.Maths {
         /// to avoid situations where points are returned in a different
         /// order than they were provided, leading to hard-to-understand bugs.
         /// 
-        /// This method is a more performant alternative to <see cref="Normalize{TPos,TDiff}"/>
+        /// This method is a more performant alternative to <see cref="Normalize{TPos,TDiff,TTime,TVel}"/>
         /// when normalizing multiple locations at once.
         /// </summary>
-        public static IEnumerable<NormalizedSplineLocation> BulkNormalizeOrdered<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        public static IEnumerable<NormalizedSplineLocation> BulkNormalizeOrdered<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             IEnumerable<SplineLocation> locations,
             SplineLocation? splineLocationOvershootTolerance = null
         ) 
             where TPos : unmanaged 
-            where TDiff : unmanaged {
+            where TDiff : unmanaged
+            where TTime : unmanaged, IComparable<TTime>
+            where TVel : unmanaged {
             // Explanation of the algorithm:
             // To convert from an (absolute) spline location to a normalized spline location, two things are needed:
             // - The index of the segment the position is in
@@ -214,7 +220,7 @@ namespace BII.WasaBii.Splines.Maths {
                     } else {
                         // If neither is true, this is an error.
                         throw new SplineLocationOutOfRangeError(
-                            currentLocation, spline.Length()
+                            currentLocation, spline.Length
                         );
                     }
                    

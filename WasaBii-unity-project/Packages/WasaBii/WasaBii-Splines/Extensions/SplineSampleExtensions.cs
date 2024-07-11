@@ -18,9 +18,9 @@ namespace BII.WasaBii.Splines {
         /// The samples are not distributed equidistantly, meaning that the distance between two successive samples
         /// can vary, especially for splines where the segments vary in length and for some higher-order-segments.
         /// </summary>
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplinePerSegment<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline, int samplesPerSegment
-        ) where TPos : unmanaged where TDiff : unmanaged {
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSplinePerSegment<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline, int samplesPerSegment
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
 
             var fromLoc = NormalizedSplineLocation.Zero;
             var toLoc = NormalizedSplineLocation.From(spline.SegmentCount);
@@ -32,21 +32,20 @@ namespace BII.WasaBii.Splines {
         }
 
         /// <summary>
-        /// Behaves similar to <see cref="SampleSplineBetween{TPos,TDiff}(Spline{TPos,TDiff},SplineLocation,SplineLocation,Length,int,bool)"/>
+        /// Behaves similar to <see cref="SampleSplineBetween{TPos,TDiff,TTime,TVel}(Spline{TPos,TDiff,TTime,TVel},SplineLocation,SplineLocation,Length,int,bool)"/>
         /// but the spline is always sampled along its entire length.
         /// </summary>
         /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
         /// This prevents samples "clumping together", which can happen especially with higher-order-curves. However,
         /// it is much more computationally intensive, so leaving this off is significantly faster.</param>
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplineEvery<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSplineEvery<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             Length desiredSampleLength,
             int minSamples = 2,
             bool equidistant = false
-        ) where TPos : unmanaged where TDiff : unmanaged 
-            => spline.SampleSplineBetween(
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => spline.SampleSplineBetween(
                 SplineLocation.Zero, 
-                spline.Length(),
+                spline.Length,
                 desiredSampleLength,
                 minSamples,
                 equidistant
@@ -59,14 +58,13 @@ namespace BII.WasaBii.Splines {
         /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
         /// This prevents samples "clumping together", which can happen especially with higher-order-curves. However,
         /// it is much more computationally intensive, so leaving this off is significantly faster.</param>
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSpline<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSpline<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             int samples,
             bool equidistant = false
-        ) where TPos : unmanaged where TDiff : unmanaged 
-            => spline.SampleSplineBetween(
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => spline.SampleSplineBetween(
                 SplineLocation.Zero, 
-                spline.Length(),
+                spline.Length,
                 samples,
                 equidistant
             );
@@ -79,14 +77,14 @@ namespace BII.WasaBii.Splines {
         /// Turning this off can cause samples to "clump together" and thus deviate from the <paramref name="desiredSampleLength"/>,
         /// which can happen especially with higher-order-curves. However, it is much more computationally intensive,
         /// so turning this off is significantly faster.</param>
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplineBetween<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSplineBetween<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             SplineLocation fromAbsolute,
             SplineLocation toAbsolute,
             Length desiredSampleLength,
             int minSamples = 2,
             bool equidistant = true
-        ) where TPos : unmanaged where TDiff : unmanaged {
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
             
             if (desiredSampleLength <= Length.Zero)
                 throw new ArgumentException($"The sampleLength cannot be 0 or smaller than 0 (was {desiredSampleLength})");
@@ -103,13 +101,13 @@ namespace BII.WasaBii.Splines {
         /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
         /// This prevents samples "clumping together", which can happen especially with higher-order-curves. However,
         /// it is much more computationally intensive, so leaving this off is significantly faster.</param>
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplineBetween<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSplineBetween<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             SplineLocation fromAbsolute,
             SplineLocation toAbsolute,
             int samples,
             bool equidistant = false
-        ) where TPos : unmanaged where TDiff : unmanaged {
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
             
             var reverse = false;
             if (toAbsolute < fromAbsolute) {

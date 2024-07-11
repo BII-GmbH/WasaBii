@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using BII.WasaBii.Core;
 using BII.WasaBii.UnitSystem;
 using JetBrains.Annotations;
 
@@ -13,11 +12,13 @@ namespace BII.WasaBii.Geometry
         
         [Pure] public static Quaternion Inverse(this Quaternion q) => Quaternion.Inverse(q);
         
-        [Pure] public static bool IsNearly(this Quaternion self, Quaternion other, double threshold = 1E-06) =>
-            self.X.IsNearly(other.X, (float)threshold)
-            && self.Y.IsNearly(other.Y, (float)threshold)
-            && self.Z.IsNearly(other.Z, (float)threshold)
-            && self.W.IsNearly(other.W, (float)threshold);
+        // Note DS: We cannot simply compare two quaternions component-wise because a quaternion and its negation
+        // represent the same orientation. So we could do the component-wise comparison twice with a negated and a
+        // non-negated rhs and return true if either comparison is true. However, this would be too much work,
+        // so we do this neat dot-product thing instead. https://gamedev.stackexchange.com/a/75108
+        // Note that this will only work for valid (unit-length) quaternions.
+        [Pure] public static bool IsNearly(this Quaternion lhs, Quaternion rhs, double equalityThreshold = 1E-06) => 
+            MathF.Abs(Quaternion.Dot(lhs, rhs)) >= 1 - equalityThreshold;
 
         [Pure]
         public static Quaternion SlerpTo(this Quaternion self, Quaternion other, double progress, bool shouldClamp = true) =>

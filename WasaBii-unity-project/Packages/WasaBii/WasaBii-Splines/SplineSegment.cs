@@ -116,6 +116,9 @@ namespace BII.WasaBii.Splines {
             var lowerThreshold = 1 / thresholdFactor;
 
             var totalLength = cachedPolynomialLength ?? SimpsonsLengthOf(polynomial, sections: approximationSampleSectionCount);
+
+            if (totalLength.IsNearly(Length.Zero)) 
+                return 0; // Degenerate / zero-length segment. Progress does not matter since the position and velocity are the same everywhere.
             
             var lowerBound = (t: 0.0, length: Length.Zero);
             var upperBound = (t: 1.0, length: totalLength);

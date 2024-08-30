@@ -7,13 +7,13 @@ using static BII.WasaBii.Splines.Tests.SplineTestUtils;
 
 namespace BII.WasaBii.Splines.Tests {
     public class SplineNormalizationUtilityTest {
-        private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizaionSamples = new Dictionary<double, double>
+        private static readonly Dictionary<SplineLocation, NormalizedSplineLocation> normalizationSamples = new Dictionary<double, double>
             {{0, 0}, {0.5, 0.202}, {1, 0.322}, {2.6, 0.622}, {3, 0.696}, {4.414, 1}}.ToDictionary(
             kvp => SplineLocation.From(kvp.Key),
             kvp => NormalizedSplineLocation.From(kvp.Value)
         );
 
-        private static readonly Dictionary<NormalizedSplineLocation, SplineLocation> deNormalizaionSamples = new Dictionary<double, double>
+        private static readonly Dictionary<NormalizedSplineLocation, SplineLocation> deNormalizationSamples = new Dictionary<double, double>
             {{0, 0}, {0.1, 0.192}, {0.3, 0.898}, {0.55, 2.198}, {0.7, 3.023}, {1, 4.414}}.ToDictionary(
             kvp => NormalizedSplineLocation.From(kvp.Key),
             kvp => SplineLocation.From(kvp.Value)
@@ -23,7 +23,7 @@ namespace BII.WasaBii.Splines.Tests {
         public void DeNormalize_BatchTest() {
             var uut = SplineTestUtils.ExampleCurvedSpline.Spline;
         
-            foreach (var kvp in deNormalizaionSamples) {
+            foreach (var kvp in deNormalizationSamples) {
                 var location = uut.DeNormalizeOrThrow(kvp.Key);
                 Assert.That(location.Value.SiValue, Is.EqualTo(kvp.Value.Value.SiValue).Within(SplineLocationTolerance));
             }
@@ -45,7 +45,7 @@ namespace BII.WasaBii.Splines.Tests {
         public void Normalize_BatchTest() {
             var uut = SplineTestUtils.ExampleCurvedSpline.Spline;
         
-            foreach (var kvp in normalizaionSamples) {
+            foreach (var kvp in normalizationSamples) {
                 var t = uut.NormalizeOrThrow(kvp.Key);
                 Assert.That(t.Value, Is.EqualTo(kvp.Value.Value).Within(SplineLocationTolerance));
             }
@@ -78,11 +78,11 @@ namespace BII.WasaBii.Splines.Tests {
         public void BulkNormalizeOrdered_BatchTest() {
             var uut = SplineTestUtils.ExampleCurvedSpline.Spline;
         
-            var toNormalize = new SplineLocation[normalizaionSamples.Count];
-            var expected = new NormalizedSplineLocation[deNormalizaionSamples.Count];
+            var toNormalize = new SplineLocation[normalizationSamples.Count];
+            var expected = new NormalizedSplineLocation[deNormalizationSamples.Count];
         
             int index = 0;
-            foreach(var kvp in normalizaionSamples) {
+            foreach(var kvp in normalizationSamples) {
                 toNormalize[index] = kvp.Key;
                 expected[index] = kvp.Value;
             }

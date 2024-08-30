@@ -55,19 +55,14 @@ namespace BII.WasaBii.Splines {
         ) where TPosNew : unmanaged where TDiffNew : unmanaged where TVelNew : unmanaged => 
             Wrapped.Map(positionMapping, newOps);
 
-        /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineToOrThrow{TPos, TDiff, TTime, TVel}"/>
-        [Pure]
-        public ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel> QueryClosestPositionOnSplineToOrThrow(
-            TPos position,
-            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) => this.QueryClosestPositionOnSplineToOrThrow<TPos, TDiff, TTime, TVel>(position, samples);
-
         /// <inheritdoc cref="ClosestOnSplineExtensions.QueryClosestPositionOnSplineTo{TPos, TDiff, TTime, TVel}"/>
         [Pure]
-        public Option<ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel>> QueryClosestPositionOnSplineTo(
+        public ClosestOnSplineQueryResult<TPos, TDiff, TTime, TVel> QueryClosestPositionOnSplineTo(
             TPos position,
-            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) => this.QueryClosestPositionOnSplineTo<TPos, TDiff, TTime, TVel>(position, samples);
+            int initialSamples = ClosestOnSplineExtensions.DefaultInitialSamplingCount,
+            int iterations = ClosestOnSplineExtensions.DefaultIterations,
+            double minStepSize = ClosestOnSplineExtensions.DefaultMinStepSize
+        ) => this.QueryClosestPositionOnSplineTo<TPos, TDiff, TTime, TVel>(position, initialSamples, iterations, minStepSize);
 
         /// <inheritdoc cref="Spline{TPos,TDiff,TTime,TVel}.Copyable.CopyWithOffset"/>
         [Pure]

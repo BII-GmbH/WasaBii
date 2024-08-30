@@ -181,7 +181,6 @@ namespace BII.WasaBii.Splines.Tests {
             public double Mul(double a, double b) => a * b;
             public double ZeroDiff => 0;
             public double ZeroTime => 0;
-            public double UnitTime => 1;
             public double ZeroVel => 0;
             public double InverseLerp(double min, double max, double value) => (value - min) / (max - min);
             public double Div(double d, double t) => d / t;

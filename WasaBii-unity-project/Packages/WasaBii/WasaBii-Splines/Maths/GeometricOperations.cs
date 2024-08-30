@@ -41,8 +41,7 @@ namespace BII.WasaBii.Splines.Maths {
         [Pure] TDiff ZeroDiff { get; }
         [Pure] TVel ZeroVel { get; }
         [Pure] TTime ZeroTime { get; }
-        [Pure] TTime UnitTime { get; }
-        
+
         [Pure] double Div(TTime a, TTime b);
 
         [Pure] TDiff Mul(TVel v, TTime t);

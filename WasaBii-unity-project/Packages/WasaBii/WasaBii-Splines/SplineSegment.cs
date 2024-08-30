@@ -23,8 +23,6 @@ namespace BII.WasaBii.Splines {
             Duration = polynomial.Duration;
             this.cachedLength = cachedLength ?? new Lazy<Length>(() => SplineSegmentUtils.SimpsonsLengthOf(polynomial));
         }
-        
-        public SplineSample<TPos, TDiff, TTime, TVel> SampleAt(TTime globalT, TTime segmentOffset) => new(this, globalT, segmentOffset);
     }
 
     public static class SplineSegmentUtils {

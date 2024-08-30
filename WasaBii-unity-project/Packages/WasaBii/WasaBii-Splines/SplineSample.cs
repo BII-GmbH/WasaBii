@@ -17,6 +17,8 @@ namespace BII.WasaBii.Splines {
         public readonly TTime LocalT;
         /// The progress of the sample withing the segment.
         public readonly double TNormalized;
+        public readonly SplineSegmentIndex SegmentIndex;
+        public NormalizedSplineLocation NormalizedLocation => new(SegmentIndex + TNormalized);
 
         public TPos Position => Segment.Polynomial.EvaluateNormalized(TNormalized);
 
@@ -36,16 +38,18 @@ namespace BII.WasaBii.Splines {
         public TVel NthDerivative(int n) => Segment.Polynomial.Ops.Div(NthDerivativeInSegment(n), Segment.Duration);
         public TDiff NthDerivativeInSegment(int n) => Segment.Polynomial.EvaluateNthDerivativeNormalized(TNormalized, n);
 
-        public SplineSample(SplineSegment<TPos, TDiff, TTime, TVel> segment, TTime globalT, TTime segmentOffset) {
+        public SplineSample(SplineSegment<TPos, TDiff, TTime, TVel> segment, TTime globalT, TTime segmentOffset, SplineSegmentIndex segmentIndex) {
             Segment = segment;
             GlobalT = globalT;
+            SegmentIndex = segmentIndex;
             LocalT = segment.Polynomial.Ops.Sub(globalT, segmentOffset);
             TNormalized = segment.Polynomial.Ops.Div(LocalT, Segment.Duration);
         }
 
-        public SplineSample(SplineSegment<TPos, TDiff, TTime, TVel> segment, double tNormalized, TTime segmentOffset) {
+        public SplineSample(SplineSegment<TPos, TDiff, TTime, TVel> segment, double tNormalized, TTime segmentOffset, SplineSegmentIndex segmentIndex) {
             Segment = segment;
             TNormalized = tNormalized;
+            SegmentIndex = segmentIndex;
             LocalT = segment.Polynomial.Ops.Mul(segment.Duration, tNormalized);
             GlobalT = segment.Polynomial.Ops.Add(LocalT, segmentOffset);
         }
@@ -65,7 +69,7 @@ namespace BII.WasaBii.Splines {
             var segment = spline[segmentIndex];
             var minT = spline.TemporalSegmentOffsets[segmentIndex];
             
-            return new SplineSample<TPos, TDiff, TTime, TVel>(segment, t, minT);
+            return new SplineSample<TPos, TDiff, TTime, TVel>(segment, t, minT, segmentIndex);
         }
         
         [Pure]
@@ -75,9 +79,10 @@ namespace BII.WasaBii.Splines {
             if (i >= spline.SegmentCount) i = spline.SegmentCount - 1;
             if (i < 0) i = 0;
             var minT = spline.TemporalSegmentOffsets[i];
-            var segment = spline[new SplineSegmentIndex(i)];
+            var segmentIndex = new SplineSegmentIndex(i);
+            var segment = spline[segmentIndex];
             
-            return new SplineSample<TPos, TDiff, TTime, TVel>(segment, time, minT);
+            return new SplineSample<TPos, TDiff, TTime, TVel>(segment, time, minT, segmentIndex);
         }
 
     }

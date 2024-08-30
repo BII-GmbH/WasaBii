@@ -22,7 +22,7 @@ namespace BII.WasaBii.Splines.Bezier {
                 var newStart = original.Ops.Add(s.Start, startOffset);
                 var newEnd = original.Ops.Add(s.End, endOffset);
                 return s.Degree == 2 // Quadratic segment might lose tangent continuity if we don't make it cubic
-                    ? BezierSegment.Cubic(newStart, startVelocity, newEnd, endVelocity, s.Duration, ops) 
+                    ? BezierSegment.CubicWithVelocity(newStart, startVelocity, newEnd, endVelocity, s.Duration, ops) 
                     : new BezierSegment<TPos, TDiff, TTime, TVel>(
                         s.Duration,
                         newStart,

@@ -89,7 +89,6 @@ namespace BII.WasaBii.Extra.Geometry {
             public static readonly GeometricOperations Instance = new();
             public GlobalVelocity ZeroVel => GlobalVelocity.Zero;
             public Duration ZeroTime => Duration.Zero;
-            public Duration UnitTime => new() { SiValue = 1 };
             public double Div(Duration a, Duration b) => a / b;
             public GlobalOffset Mul(GlobalVelocity v, Duration t) => v * t;
             public GlobalVelocity Div(GlobalOffset d, Duration t) => d / t;
@@ -154,7 +153,6 @@ namespace BII.WasaBii.Extra.Geometry {
             public static readonly GeometricOperations Instance = new();
             public GlobalOffset ZeroVel => GlobalOffset.Zero;
             public double ZeroTime => 0;
-            public double UnitTime => 1;
             public double Div(double a, double b) => a / b;
             public double Add(double a, double b) => a + b;
             public double Sub(double a, double b) => a - b;

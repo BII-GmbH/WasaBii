@@ -15,106 +15,118 @@ namespace BII.WasaBii.Splines.Bezier {
     public static class BezierSegment {
         
         /// <summary>
-        /// A curve starting at <see cref="start"/> with velocity <see cref="startVelocity"/>
+        /// A curve starting at <see cref="start"/> with tangent <see cref="startTangent"/>
         /// and ending at <see cref="end"/>.
         /// </summary>
         [Pure]
-        public static BezierSegment<TPos, TDiff, TTime, TVel> QuadraticWithUniformVelocity<TPos, TDiff, TTime, TVel>(
-            TPos start, TDiff startVelocity, TPos end,
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuadraticWithTangent<TPos, TDiff, TTime, TVel>(
+            TPos start, TDiff startTangent, TPos end,
             TTime duration,
             GeometricOperations<TPos, TDiff, TTime, TVel> ops
         ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => new(
             duration,
             start, 
-            ops.Add(start, ops.Div(startVelocity, 2)), 
+            ops.Add(start, ops.Div(startTangent, 2)), 
             end
         );
-        /// <inheritdoc cref="QuadraticWithUniformVelocity{TPos,TDiff,TTime,TVel}"/>
+        /// <summary>
+        /// A curve starting at <see cref="start"/> with velocity <see cref="startVelocity"/>
+        /// and ending at <see cref="end"/>.
+        /// </summary>
         [Pure]
-        public static BezierSegment<TPos, TDiff, TTime, TVel> Quadratic<TPos, TDiff, TTime, TVel>(
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuadraticWithVelocity<TPos, TDiff, TTime, TVel>(
             TPos start, TVel startVelocity, TPos end,
             TTime duration,
             GeometricOperations<TPos, TDiff, TTime, TVel> ops
         ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
-            QuadraticWithUniformVelocity(start, ops.Mul(startVelocity, duration), end, duration, ops);
+            QuadraticWithTangent(start, ops.Mul(startVelocity, duration), end, duration, ops);
 
+        /// <summary>
+        /// A curve starting at <see cref="start"/> with tangent <see cref="startTangent"/>
+        /// and ending at <see cref="end"/> with tangent <see cref="endTangent"/>.
+        /// </summary>
+        [Pure]
+        public static BezierSegment<TPos, TDiff, TTime, TVel> CubicWithTangents<TPos, TDiff, TTime, TVel>(
+            TPos start, TDiff startTangent, TPos end, TDiff endTangent,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => new(
+            duration,
+            start, 
+            ops.Add(start, ops.Div(startTangent, 3)),
+            ops.Sub(end, ops.Div(endTangent, 3)), 
+            end
+        );
         /// <summary>
         /// A curve starting at <see cref="start"/> with velocity <see cref="startVelocity"/>
         /// and ending at <see cref="end"/> with velocity <see cref="endVelocity"/>.
         /// </summary>
         [Pure]
-        public static BezierSegment<TPos, TDiff, TTime, TVel> CubicWithUniformVelocity<TPos, TDiff, TTime, TVel>(
-            TPos start, TDiff startVelocity, TPos end, TDiff endVelocity,
+        public static BezierSegment<TPos, TDiff, TTime, TVel> CubicWithVelocity<TPos, TDiff, TTime, TVel>(
+            TPos start, TVel startVelocity, TPos end, TVel endVelocity,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
+            CubicWithTangents(start, ops.Mul(startVelocity, duration), end, ops.Mul(endVelocity, duration), duration, ops);
+
+        /// <summary>
+        /// A curve starting at <see cref="start"/> with tangent <see cref="startTangent"/> and curvature <see cref="startCurvature"/>
+        /// and ending at <see cref="end"/> with tangent <see cref="endTangent"/>.
+        /// </summary>
+        [Pure]
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuarticWithTangents<TPos, TDiff, TTime, TVel>(
+            TPos start, TDiff startTangent, TDiff startCurvature, TPos end, TDiff endTangent,
             TTime duration,
             GeometricOperations<TPos, TDiff, TTime, TVel> ops
         ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => new(
             duration,
             start, 
-            ops.Add(start, ops.Div(startVelocity, 3)),
-            ops.Sub(end, ops.Div(endVelocity, 3)), 
+            ops.Add(start, ops.Div(startTangent, 4)),
+            ops.Add(start, ops.Div(ops.Add(startCurvature, ops.Mul(startTangent, 6)), 12)),
+            ops.Sub(end, ops.Div(endTangent, 4)), 
             end
         );
-        /// <inheritdoc cref="CubicWithUniformVelocity{TPos,TDiff,TTime,TVel}"/>
-        [Pure]
-        public static BezierSegment<TPos, TDiff, TTime, TVel> Cubic<TPos, TDiff, TTime, TVel>(
-            TPos start, TVel startVelocity, TPos end, TVel endVelocity,
-            TTime duration,
-            GeometricOperations<TPos, TDiff, TTime, TVel> ops
-        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
-            CubicWithUniformVelocity(start, ops.Mul(startVelocity, duration), end, ops.Mul(endVelocity, duration), duration, ops);
-
         /// <summary>
         /// A curve starting at <see cref="start"/> with velocity <see cref="startVelocity"/> and acceleration <see cref="startAcceleration"/>
         /// and ending at <see cref="end"/> with velocity <see cref="endVelocity"/>.
         /// </summary>
         [Pure]
-        public static BezierSegment<TPos, TDiff, TTime, TVel> QuarticWithUniformVelocity<TPos, TDiff, TTime, TVel>(
-            TPos start, TDiff startVelocity, TDiff startAcceleration, TPos end, TDiff endVelocity,
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuarticWithVelocities<TPos, TDiff, TTime, TVel>(
+            TPos start, TVel startVelocity, TVel startAcceleration, TPos end, TVel endVelocity,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
+            QuarticWithTangents(start, ops.Mul(startVelocity, duration), ops.Mul(startAcceleration, duration), end, ops.Mul(endVelocity, duration), duration, ops);
+
+        /// <summary>
+        /// A curve starting at <see cref="start"/> with tangent <see cref="startTangent"/> and curvature <see cref="startCurvature"/>
+        /// and ending at <see cref="end"/> with tangent <see cref="endTangent"/> and curvature <see cref="endCurvature"/>.
+        /// </summary>
+        [Pure]
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuinticWithTangents<TPos, TDiff, TTime, TVel>(
+            TPos start, TDiff startTangent, TDiff startCurvature, TPos end, TDiff endTangent, TDiff endCurvature,
             TTime duration,
             GeometricOperations<TPos, TDiff, TTime, TVel> ops
         ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => new(
             duration,
             start, 
-            ops.Add(start, ops.Div(startVelocity, 4)),
-            ops.Add(start, ops.Div(ops.Add(startAcceleration, ops.Mul(startVelocity, 6)), 12)),
-            ops.Sub(end, ops.Div(endVelocity, 4)), 
+            ops.Add(start, ops.Div(startTangent, 5)),
+            ops.Add(start, ops.Div(ops.Add(startCurvature, ops.Mul(startTangent, 8)), 20)),
+            ops.Add(end, ops.Div(ops.Sub(endCurvature, ops.Mul(endTangent, 8)), 20)),
+            ops.Sub(end, ops.Div(endTangent, 5)), 
             end
         );
-        /// <inheritdoc cref="QuarticWithUniformVelocity{TPos,TDiff,TTime,TVel}"/>
-        [Pure]
-        public static BezierSegment<TPos, TDiff, TTime, TVel> Quartic<TPos, TDiff, TTime, TVel>(
-            TPos start, TVel startVelocity, TVel startAcceleration, TPos end, TVel endVelocity,
-            TTime duration,
-            GeometricOperations<TPos, TDiff, TTime, TVel> ops
-        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
-            QuarticWithUniformVelocity(start, ops.Mul(startVelocity, duration), ops.Mul(startAcceleration, duration), end, ops.Mul(endVelocity, duration), duration, ops);
-
         /// <summary>
         /// A curve starting at <see cref="start"/> with velocity <see cref="startVelocity"/> and acceleration <see cref="startAcceleration"/>
         /// and ending at <see cref="end"/> with velocity <see cref="endVelocity"/> and acceleration <see cref="endAcceleration"/>.
         /// </summary>
         [Pure]
-        public static BezierSegment<TPos, TDiff, TTime, TVel> QuinticWithUniformVelocity<TPos, TDiff, TTime, TVel>(
-            TPos start, TDiff startVelocity, TDiff startAcceleration, TPos end, TDiff endVelocity, TDiff endAcceleration,
-            TTime duration,
-            GeometricOperations<TPos, TDiff, TTime, TVel> ops
-        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => new(
-            duration,
-            start, 
-            ops.Add(start, ops.Div(startVelocity, 5)),
-            ops.Add(start, ops.Div(ops.Add(startAcceleration, ops.Mul(startVelocity, 8)), 20)),
-            ops.Add(end, ops.Div(ops.Sub(endAcceleration, ops.Mul(endVelocity, 8)), 20)),
-            ops.Sub(end, ops.Div(endVelocity, 5)), 
-            end
-        );
-        /// <inheritdoc cref="CubicWithUniformVelocity{TPos,TDiff,TTime,TVel}"/>
-        [Pure]
-        public static BezierSegment<TPos, TDiff, TTime, TVel> Quintic<TPos, TDiff, TTime, TVel>(
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuinticWithVelocities<TPos, TDiff, TTime, TVel>(
             TPos start, TVel startVelocity, TVel startAcceleration, TPos end, TVel endVelocity, TVel endAcceleration,
             TTime duration,
             GeometricOperations<TPos, TDiff, TTime, TVel> ops
         ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
-            QuinticWithUniformVelocity(start, ops.Mul(startVelocity, duration), ops.Mul(startAcceleration, duration), end, ops.Mul(endVelocity, duration), ops.Mul(endAcceleration, duration), duration, ops);
+            QuinticWithTangents(start, ops.Mul(startVelocity, duration), ops.Mul(startAcceleration, duration), end, ops.Mul(endVelocity, duration), ops.Mul(endAcceleration, duration), duration, ops);
 
     }
 

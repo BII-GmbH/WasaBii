@@ -75,7 +75,6 @@ namespace BII.WasaBii.Unity.Geometry {
             public static readonly GeometricOperations Instance = new();
             public Vector3 ZeroVel => Vector3.zero;
             public Duration ZeroTime => Duration.Zero;
-            public Duration UnitTime => new() { SiValue = 1 };
             public double Div(Duration a, Duration b) => a / b;
             public Vector3 Add(Vector3 a, Vector3 b) => a + b;
             public Vector3 Mul(Vector3 v, Duration t) => v * (float) t.AsSeconds();
@@ -94,12 +93,12 @@ namespace BII.WasaBii.Unity.Geometry {
 
 #region Factory Methods
         
-        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesOrThrow{TPos,TDiff}(IEnumerable{TPos},GeometricOperations{TPos,TDiff,double,TDiff},Nullable{SplineType},bool)"/>
+        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesOrThrow{TPos,TDiff}(IEnumerable{TPos},GeometricOperations{TPos,TDiff,double,TDiff},SplineType,bool)"/>
         [Pure]
         public static UniformUnitySpline FromHandles(IEnumerable<Vector3> source, SplineType type = SplineType.Centripetal, bool shouldLoop = false)
             => new(CatmullRomSpline.UniformFromHandlesOrThrow(source, GeometricOperations.Instance, type, shouldLoop));
 
-        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesOrThrow{TPos,TDiff}(TPos,IEnumerable{TPos},TPos,GeometricOperations{TPos,TDiff,double,TDiff},Nullable{SplineType})"/>
+        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesOrThrow{TPos,TDiff}(TPos,IEnumerable{TPos},TPos,GeometricOperations{TPos,TDiff,double,TDiff},SplineType)"/>
         [Pure]
         public static UniformUnitySpline FromHandles(
             Vector3 beginMarginHandle, 
@@ -139,7 +138,6 @@ namespace BII.WasaBii.Unity.Geometry {
             public static readonly GeometricOperations Instance = new();
             public Vector3 ZeroVel => Vector3.zero;
             public double ZeroTime => 0;
-            public double UnitTime => 1;
             public double Div(double a, double b) => a / b;
             public double Add(double a, double b) => a + b;
             public double Sub(double a, double b) => a - b;

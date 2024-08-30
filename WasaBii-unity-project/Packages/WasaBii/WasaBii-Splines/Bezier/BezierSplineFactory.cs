@@ -19,7 +19,7 @@ namespace BII.WasaBii.Splines.Bezier {
         /// </summary>
         /// <param name="handles">The positions the spline should visit along with the time at which the handle
         /// should be traversed. Every other handle will only be used for influencing the segments' trajectory,
-        /// it will likely not be be traversed and its timestamp is ignored.</param>
+        /// it will likely not be traversed and its timestamp is ignored.</param>
         /// <param name="ops">The geometric operations necessary for calculation.</param>
         [Pure]
         public static BezierSpline<TPos, TDiff, TTime, TVel> FromQuadraticHandles<TPos, TDiff, TTime, TVel>(
@@ -52,10 +52,10 @@ namespace BII.WasaBii.Splines.Bezier {
         }
  
         /// <summary>
-        /// Constructs a spline from quadratic segments with uniform lengths. The spline has a duration of 1.
+        /// Constructs a spline from quadratic segments with uniform durations. The spline has a duration of 1.
         /// </summary>
         /// <param name="handles">The positions the spline should visit. Every other handle will only be used for
-        /// influencing the segments' trajectory, it will likely not be be traversed.</param>
+        /// influencing the segments' trajectory, it will likely not be traversed.</param>
         /// <param name="ops">The geometric operations necessary for calculation.</param>
         [Pure]
         public static BezierSpline<TPos, TDiff, double, TDiff> UniformFromQuadraticHandles<TPos, TDiff>(
@@ -91,7 +91,7 @@ namespace BII.WasaBii.Splines.Bezier {
         /// </summary>
         /// <param name="handles">The positions the spline should visit along with the time at which the handle
         /// should be traversed. Every two other handles will only be used for influencing the segments' trajectory,
-        /// they will likely not be be traversed and their timestamp is ignored.</param>
+        /// they will likely not be traversed and their timestamp is ignored.</param>
         /// <param name="ops">The geometric operations necessary for calculation.</param>
         [Pure]
         public static BezierSpline<TPos, TDiff, TTime, TVel> FromCubicHandles<TPos, TDiff, TTime, TVel>(
@@ -126,10 +126,10 @@ namespace BII.WasaBii.Splines.Bezier {
         }
  
         /// <summary>
-        /// Constructs a spline from cubic segments with uniform lengths. The spline has a duration of 1.
+        /// Constructs a spline from cubic segments with uniform durations. The spline has a duration of 1.
         /// </summary>
         /// <param name="handles">The positions the spline should visit. Every two other handles will only be used for
-        /// influencing the segments' trajectory, they will likely not be be traversed.</param>
+        /// influencing the segments' trajectory, they will likely not be traversed.</param>
         /// <param name="ops">The geometric operations necessary for calculation.</param>
         [Pure]
         public static BezierSpline<TPos, TDiff, double, TDiff> UniformFromCubicHandles<TPos, TDiff>(
@@ -184,7 +184,7 @@ namespace BII.WasaBii.Splines.Bezier {
                 );
             else {
                 var segments = handles.PairwiseSliding().SelectTuple((left, right) => 
-                    BezierSegment.Cubic(
+                    BezierSegment.CubicWithVelocity(
                         left.Position, left.Velocity, 
                         right.Position, right.Velocity,
                         ops.Sub(right.Time, left.Time), 
@@ -221,7 +221,7 @@ namespace BII.WasaBii.Splines.Bezier {
                 var handleList = handles.ToList();
                 var durationPerSegment = 1.0 / (shouldLoop ? handleList.Count + 1 : handleList.Count);
                 var segments = (shouldLoop ? handleList.Append(handleList[0]) : handleList).PairwiseSliding().SelectTuple((left, right) => 
-                    BezierSegment.CubicWithUniformVelocity(
+                    BezierSegment.CubicWithTangents(
                         left.Position, left.Velocity, 
                         right.Position, right.Velocity,
                         durationPerSegment, 
@@ -242,7 +242,7 @@ namespace BII.WasaBii.Splines.Bezier {
             GeometricOperations<TPos, TDiff, TTime, TVel> ops
         ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
             var segments = handles.PairwiseSliding().SelectTuple((left, right) => 
-                BezierSegment.Quintic(
+                BezierSegment.QuinticWithVelocities(
                     left.Position, left.Velocity, left.Acceleration, 
                     right.Position, right.Velocity, right.Acceleration, 
                     ops.Sub(right.Time, left.Time),
@@ -266,7 +266,7 @@ namespace BII.WasaBii.Splines.Bezier {
             var handleList = handles.ToList();
             var durationPerSegment = 1.0 / (shouldLoop ? handleList.Count + 1 : handleList.Count);
             var segments = (shouldLoop ? handleList.Append(handleList[0]) : handleList).PairwiseSliding().SelectTuple((left, right) => 
-                BezierSegment.Quintic(
+                BezierSegment.QuinticWithVelocities(
                     left.Position, left.Velocity, left.Acceleration, 
                     right.Position, right.Velocity, right.Acceleration, 
                     durationPerSegment,

@@ -39,12 +39,12 @@ namespace BII.WasaBii.Extra.Geometry {
 
 #region Factory Methods
         
-        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff,TTime,TVel}(IEnumerable{Tuple{TPos,TTime}},GeometricOperations{TPos,TDiff,TTime,TVel},Nullable{SplineType})"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff,TTime,TVel}(IEnumerable{Tuple{TPos,TTime}},GeometricOperations{TPos,TDiff,TTime,TVel},SplineType)"/>
         [Pure]
         public static LocalSpline FromHandles(IEnumerable<(LocalPosition, Duration)> source, SplineType type = SplineType.Centripetal)
             => new(CatmullRomSpline.FromHandlesOrThrow(source, GeometricOperations.Instance, type));
 
-        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff,TTime,TVel}(TPos,IEnumerable{Tuple{TPos,TTime}},TPos,GeometricOperations{TPos,TDiff,TTime,TVel},Nullable{SplineType})"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff,TTime,TVel}(TPos,IEnumerable{Tuple{TPos,TTime}},TPos,GeometricOperations{TPos,TDiff,TTime,TVel},SplineType)"/>
         [Pure]
         public static LocalSpline FromHandles(
             LocalPosition beginMarginHandle, 
@@ -104,12 +104,12 @@ namespace BII.WasaBii.Extra.Geometry {
 
 #region Factory Methods
         
-        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesOrThrow{TPos,TDiff}(IEnumerable{TPos},GeometricOperations{TPos,TDiff,double,TDiff},Nullable{SplineType},bool)"/>
+        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesOrThrow{TPos,TDiff}(IEnumerable{TPos},GeometricOperations{TPos,TDiff,double,TDiff},SplineType,bool)"/>
         [Pure]
         public static UniformLocalSpline FromHandles(IEnumerable<LocalPosition> source, SplineType type = SplineType.Centripetal, bool shouldLoop = false)
             => new(CatmullRomSpline.UniformFromHandlesOrThrow(source, GeometricOperations.Instance, type, shouldLoop));
 
-        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesOrThrow{TPos,TDiff}(TPos,IEnumerable{TPos},TPos,GeometricOperations{TPos,TDiff,double,TDiff},Nullable{SplineType})"/>
+        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesOrThrow{TPos,TDiff}(TPos,IEnumerable{TPos},TPos,GeometricOperations{TPos,TDiff,double,TDiff},SplineType)"/>
         [Pure]
         public static UniformLocalSpline FromHandles(
             LocalPosition beginMarginHandle, 
@@ -125,18 +125,18 @@ namespace BII.WasaBii.Extra.Geometry {
             SplineType type = SplineType.Centripetal
         ) => new(CatmullRomSpline.UniformFromHandlesIncludingMarginOrThrow(allHandlesIncludingMargin, GeometricOperations.Instance, type));
 
-        /// <inheritdoc cref="BezierSpline.UniformFromHandlesWithVelocities{TPos,TDiff}"/>
+        /// <inheritdoc cref="BezierSpline.UniformFromHandlesWithTangents{TPos,TDiff}"/>
         [Pure]
-        public static UniformLocalSpline FromHandlesWithVelocities(
-            IEnumerable<(LocalPosition position, LocalOffset velocity)> handles, bool shouldLoop = false,
+        public static UniformLocalSpline FromHandlesWithTangents(
+            IEnumerable<(LocalPosition position, LocalOffset tangents)> handles, bool shouldLoop = false,
             bool shouldAccelerationBeContinuous = false
-        ) => new(BezierSpline.UniformFromHandlesWithVelocities(handles, GeometricOperations.Instance, shouldLoop, shouldAccelerationBeContinuous));
+        ) => new(BezierSpline.UniformFromHandlesWithTangents(handles, GeometricOperations.Instance, shouldLoop, shouldAccelerationBeContinuous));
 
-        /// <inheritdoc cref="BezierSpline.UniformFromHandlesWithVelocitiesAndAccelerations{TPos,TDiff}"/>
+        /// <inheritdoc cref="BezierSpline.UniformFromHandlesWithTangentsAndCurvature{TPos,TDiff}"/>
         [Pure]
-        public static UniformLocalSpline FromHandlesWithVelocitiesAndAccelerations(
-            IEnumerable<(LocalPosition position, LocalOffset velocity, LocalOffset acceleration)> handles, bool shouldLoop = false
-        ) => new(BezierSpline.UniformFromHandlesWithVelocitiesAndAccelerations(handles, GeometricOperations.Instance, shouldLoop));
+        public static UniformLocalSpline FromHandlesWithTangentsAndCurvature(
+            IEnumerable<(LocalPosition position, LocalOffset tangent, LocalOffset curvature)> handles, bool shouldLoop = false
+        ) => new(BezierSpline.UniformFromHandlesWithTangentsAndCurvature(handles, GeometricOperations.Instance, shouldLoop));
 
 #endregion
 

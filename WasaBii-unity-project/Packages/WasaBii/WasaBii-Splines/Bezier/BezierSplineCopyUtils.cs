@@ -15,8 +15,9 @@ namespace BII.WasaBii.Splines.Bezier {
         ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => new(
             original.Segments.Select(s => {
                 var ops = original.Ops;
-                var startVelocity = s.ToPolynomial(ops).EvaluateDerivative(ops.ZeroTime);
-                var endVelocity = s.ToPolynomial(ops).EvaluateDerivative(s.Duration);
+                var polynomial = s.ToPolynomial(ops);
+                var startVelocity = polynomial.EvaluateDerivative(ops.ZeroTime);
+                var endVelocity = polynomial.EvaluateDerivative(s.Duration);
                 var startOffset = tangentToOffset(startVelocity);
                 var endOffset = tangentToOffset(endVelocity);
                 var newStart = original.Ops.Add(s.Start, startOffset);

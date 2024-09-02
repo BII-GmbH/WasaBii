@@ -29,12 +29,12 @@ namespace BII.WasaBii.Unity.Geometry {
 
 #region Factory Methods
         
-        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff,TTime,TVel}(IEnumerable{Tuple{TPos,TTime}},GeometricOperations{TPos,TDiff,TTime,TVel},Nullable{SplineType})"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff,TTime,TVel}(IEnumerable{Tuple{TPos,TTime}},GeometricOperations{TPos,TDiff,TTime,TVel},SplineType)"/>
         [Pure]
         public static UnitySpline FromHandles(IEnumerable<(Vector3, Duration)> source, SplineType type = SplineType.Centripetal)
             => new(CatmullRomSpline.FromHandlesOrThrow(source, GeometricOperations.Instance, type));
 
-        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff,TTime,TVel}(TPos,IEnumerable{Tuple{TPos,TTime}},TPos,GeometricOperations{TPos,TDiff,TTime,TVel},Nullable{SplineType})"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff,TTime,TVel}(TPos,IEnumerable{Tuple{TPos,TTime}},TPos,GeometricOperations{TPos,TDiff,TTime,TVel},SplineType)"/>
         [Pure]
         public static UnitySpline FromHandles(
             Vector3 beginMarginHandle, 
@@ -114,18 +114,18 @@ namespace BII.WasaBii.Unity.Geometry {
             SplineType type = SplineType.Centripetal
         ) => new(CatmullRomSpline.UniformFromHandlesIncludingMarginOrThrow(allHandlesIncludingMargin, GeometricOperations.Instance, type));
 
-        /// <inheritdoc cref="BezierSpline.UniformFromHandlesWithVelocities{TPos,TDiff}"/>
+        /// <inheritdoc cref="BezierSpline.UniformFromHandlesWithTangents{TPos,TDiff}"/>
         [Pure]
-        public static UniformUnitySpline FromHandlesWithVelocities(
-            IEnumerable<(Vector3 position, Vector3 velocity)> handles, bool shouldLoop = false,
+        public static UniformUnitySpline FromHandlesWithTangents(
+            IEnumerable<(Vector3 position, Vector3 tangent)> handles, bool shouldLoop = false,
             bool shouldAccelerationBeContinuous = false
-        ) => new(BezierSpline.UniformFromHandlesWithVelocities(handles, GeometricOperations.Instance, shouldLoop, shouldAccelerationBeContinuous));
+        ) => new(BezierSpline.UniformFromHandlesWithTangents(handles, GeometricOperations.Instance, shouldLoop, shouldAccelerationBeContinuous));
 
-        /// <inheritdoc cref="BezierSpline.UniformFromHandlesWithVelocitiesAndAccelerations{TPos,TDiff}"/>
+        /// <inheritdoc cref="BezierSpline.UniformFromHandlesWithTangentsAndCurvature{TPos,TDiff}"/>
         [Pure]
-        public static UniformUnitySpline FromHandlesWithVelocitiesAndAccelerations(
-            IEnumerable<(Vector3 position, Vector3 velocity, Vector3 acceleration)> handles, bool shouldLoop = false
-        ) => new(BezierSpline.UniformFromHandlesWithVelocitiesAndAccelerations(handles, GeometricOperations.Instance, shouldLoop));
+        public static UniformUnitySpline FromHandlesWithTangentsAndCurvature(
+            IEnumerable<(Vector3 position, Vector3 tangent, Vector3 curvature)> handles, bool shouldLoop = false
+        ) => new(BezierSpline.UniformFromHandlesWithTangentsAndCurvature(handles, GeometricOperations.Instance, shouldLoop));
 
 #endregion
 

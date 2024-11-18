@@ -12,9 +12,9 @@ namespace BII.WasaBii.Splines.Tests {
             var lastHandle = new Vector3(3, 0, 0);
             var endMarginHandle = new Vector3(4, 0, 0);
 
-            var uut = CatmullRomSpline.FromHandlesIncludingMarginOrThrow(
+            var uut = CatmullRomSpline.UniformFromHandlesIncludingMarginOrThrow(
                 new[] { beginMarginHandle, firstHandle, lastHandle, endMarginHandle }, 
-                UnitySpline.GeometricOperations.Instance
+                UniformUnitySpline.GeometricOperations.Instance
             );
 
             Assert.That(uut[SplineHandleIndex.At(0)], Is.EqualTo(beginMarginHandle));

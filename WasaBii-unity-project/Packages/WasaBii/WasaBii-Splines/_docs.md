@@ -2,22 +2,22 @@
 
 ## Overview
 
-This module provides an implementation of Catmull-Rom splines and high-level wrappers around them.
+This module provides an implementation of Catmull-Rom and Bezier splines and high-level wrappers around them.
 Splines are implicit mathematical representations of "curved lines" and can be used for Animations, Movement and curved Objects.
 
 ## Spline Fundamentals
 
-These splines are defined by a collection of points, called handles.
-All handles but the first and last handles are used to interpolate the curve. 
-The first and last handles are called *margin handles*, and the other ones will be referred to as *interpolated handles*.
-*Margin handles* do not contribute to the interpolation, but determine the curvature and the beginning and end of the spline.
+A spline is a collection of spline segment, where each segment is a curved line between two points. A segment's trajectory is usually influenced by additional points, depending on the spline type.
+The collection of a spline's points is called its *handles*.
+Additionally, spline segments each have a duration, describing how long it takes to traverse them. Thus, the spline itself has a duration, which is simply the sum of its segments'.
 
-- The `WithSpline` interface is implemented by any class that has an underlying spline, but that is not a spline itself.
-- A `Spline` is the implementation of a Catmull-Rom-Spline with a list of handles. A valid spline must have at least 4 handles (2 margin, 2 interpolated).
-- A `SplineSegment` is the segment between two interpolated handles. There are always exactly `handleCount - 3` of them.
-- A `SplineSample` is a sampled location in between a segment. Whereas a segment is a curved line, the sample is a location on that line.
+- A `Spline` is the base interface for all spline types. Built-in implementations are the `CatmullRomSpline` and the `BezierSpline`.
+- A `SplineSegment` is the segment between two interpolated handles.
+- A `SplineSample` is a sampled location somewhere on a spline. It provides information about the position, velocity / tangent and acceleration / curvature of the spline (segment) at that location.
 
 ### Generics
+
+#### Handles
 
 Splines are generic over their handle type. This means that you are not forced to build them using System.Numerics or Unity `Vector3`s, but any type you want.
 For example, you could define a spline with `LocalPosition`s or `GlobalPosition`s, thus giving more context to the spline. However
@@ -38,40 +38,37 @@ For the most common use cases (namely `UnityEngine.Vector3`, `LocalPosition`/`Lo
 the `GeometricOperations` as well as some utilities are given. Thus, the classes `UnitySpline`, `LocalSpline` and `GlobalSpline` should be
 good starting points in most situations.
 
+#### Time
+
+Splines are also generic over their duration type. This means that you can define splines whose duration is a `float`, `double`, `UnitSystem.Duration`, `TimeSpan` or any other type that represents time.
+Likewise, a spline is generic over the type of its first derivative with respect to time. For example, the derivative of a spline with handle type `GlobalPosition` and time type `Duration` would be `GlobalVelocity`.
+
+If you do not care about time, you can use so-called "uniform" splines. These splines have a duration of 1.0 (double) and their derivative is the same as their handle diff type. Each segment has the same duration.
+
 ### Sampling
 
-A spline segment can be retrieved by indexing it at a specific `SplineSegmentIndex` like this:
-```cs
-Spline spline;
-SplineSegment segment = spline[SplineSegmentIndex.At(3)];
-```
-
-The high-level spline API provides two ways of representing locations along a spline:
-- The `SplineLocation` is the distance (in meters) to a location on the spline from the splines first interpolated handle. This distance is not the eucledian distance but the path length when traversing along the spline.
+There are three ways to represent a location on a spline:
+- The aforementioned time type (e.g. `Duration`) represents the time elapsed since the spline's (temporal) beginning. Must be at least 0 and at most the spline's duration.
+- The `SplineLocation` is the distance (in meters) of a location on the spline from the spline's (spatial) beginning. This distance is not the Euclidean distance to the first handle but the path length when traversing along the spline. Must be at least 0 and at most the spline's length.
 - The `NormalizedSplineLocation` is a number which describes a location on the spline based on spline segment 
-  index and percentage of the next segment. For example, a value of `3.5f` indicates the point half-way between 
-  the 4th and 5th handles.
+  index and the progress along that segment. For example, a value of `3.5f` indicates the point half-way along 
+  the fourth segment. Must be at least 0 and at most the spline's segment count.
   
-`NormalizedSplineLocations` are faster (as they are used by the underlying spline calculations), but most problems require `SplineLocations`, since they can be converted to meters.
+`SplineLocations` are used a lot, especially when you want to traverse a spline at a custom speed independent of the spline's duration and the segment's individual durations. Note that they are computationally more expensive than the other two types, as they require conversion to a `NormalizedSplineLocation` to retrieve information about the spline at that location.
 
-A spline sample can be retrieved by indexing a spline segment with a number or indexing a spline with a `SplineLocation` or `NormalizedSplineLocation`:
+A spline sample can be retrieved by indexing a spline with one of the aforementioned location types. E.g.:
 ```cs
-// Given these variables
-Spline spline;
-SplineSegment segment = spline[SplineSegmentIndex.At(3)];
+// Given a non-uniform global spline
+Spline<GlobalPosition, GlobalOffset, Duration, GlobalVelocity> spline = GlobalSpline.FromHandles(...);
 
-// Sample at 30% between the two handles of the segment
-// Must be between 0 and 1 (inclusive)
-SplineSample s1 = segment.SampleAt(0.3); 
+// Sample the position at 20 seconds after the spline's beginning
+GlobalPosition p = spline[20.Seconds()].Position;
 
-// Sample at 15 meters along the spline from its beginning
-SplineSample s2 = spline[SplineLocation.From(15)]; 
+// Sample the velocity at 50% of the 4th segment
+GlobalVelocity v = spline[NormalizedSplineLocation.From(3.5)].Velocity; 
 
-// Sample within the 3rd segment at 50% between its handles
-SplineSample s3 = spline[NormalizedSplineLocation.From(3.5)];
-
-// Sample within the 1st segment at 0% between its handles (e.g. at the beginning of the segment)
-SplineSample s4 = spline[NormalizedSplineLocation.From(1)];
+// Sample the time at 15 meters along the spline
+Duration d = spline[SplineLocation.From(15)].GlobalT;
 ```
 
 ## Common Use-Cases
@@ -81,23 +78,6 @@ SplineSample s4 = spline[NormalizedSplineLocation.From(1)];
 Splines can be created in two ways:
 - Using the builder methods in the `GenericSpline` class or their counterparts in `UnitySpline`,`GlobalSpline` and `LocalSpline`. E.g. `UnitySpline.FromHandles(beginMargin, handles, endMargin)`
 - Using the extension method on `IEnumerable<TPos>`, found in `GenericEnumerableToSplineExtensions` or the aforementioned specialized classes.
-
-### General spline information:
-
-Here are the most commonly used operations on the fundamental spline classes:
-- `.Length()` can be called on `Spline`s and `SplineSegment`s. It will return an approximation of the length of the spline's or segment's curve. (Not eucledian distance, but path length when traversing along the spline)
-- `.Handles` can be called on the `Spline` to get all *interpolated handles*. The count thereof can be retrieved with `.HandleCount`. Variants that include the margin handles also exist.
-- `.Position`, `.Tangent` and `.Curvature` can be called on a `SplineSample` to retrieve the respective value at that location on the spline.
-
-Examples:
-```cs
-Spline<Vector3, Vector3> spline;
-
-Length length = spline.Length();
-Vector3 halfwayPosition = spline[length / 2.0f].Position;
-
-Vector3 tangentAtBeginning = spline[NormalizedSplineLocation.Zero].Tangent;
-```
 
 ### Closest position on spline:
 
@@ -111,16 +91,16 @@ For more options, refer to the contents of `ClosestOnSplineExtensions.cs`.
 
 ### Sampling splines:
 
-In order to sample the positions on a spline, the `.SampleSplineEvery(...)` and `.SampleSplineBetween(...)` extension methods can be used. They can be configured to return the Positions, Tangents or Curvatures.
+In order to sample many positions on a spline at once, the `.SampleSplineEvery(...)` and `.SampleSplineBetween(...)` extension methods can be used. They return a list of spline samples, from which you can retrieve data like Positions, Tangents or Curvatures.
 
 For more options, refer to `SplineSampleExtensions.cs`.
 
 ## Domain Specific Terms
 
 ### Definition of splines
-In mathematics, a Catmull-Rom spline is defined by 4 handles: The 2nd and 3rd are interpolated, while the other 2 only determine the course.
+In mathematics, a Catmull-Rom segment is defined by 4 handles: The 2nd and 3rd are interpolated, while the other 2 only determine the course.
 
-The high-level spline API of this module defines a spline as the following: A Begin (margin) handle, 2 or more (normal) handles and an end (margin) handle.
+The high-level spline API of this module defines a catmull-rom spline as the following: A Begin (margin) handle, 2 or more (normal) handles and an end (margin) handle.
 - These handles are positions
 - The normal handles are all interpolated in the order they appear
 - The margin handles are not interpolated and can be omitted in some cases (as they will be autogenerated)

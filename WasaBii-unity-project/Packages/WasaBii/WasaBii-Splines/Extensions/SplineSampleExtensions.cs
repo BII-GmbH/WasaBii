@@ -14,13 +14,13 @@ namespace BII.WasaBii.Splines {
         /// <summary>
         /// This method samples the positions on the entire spline.
         /// The sample rate is a defined amount between each segment of spline handles.
-        /// Returns all sampled positions in order from the begin of the spline to its end.
+        /// Returns all sampled positions in order from the beginning of the spline to its end.
         /// The samples are not distributed equidistantly, meaning that the distance between two successive samples
         /// can vary, especially for splines where the segments vary in length and for some higher-order-segments.
         /// </summary>
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplinePerSegment<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline, int samplesPerSegment
-        ) where TPos : unmanaged where TDiff : unmanaged {
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSplinePerSegment<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline, int samplesPerSegment
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
 
             var fromLoc = NormalizedSplineLocation.Zero;
             var toLoc = NormalizedSplineLocation.From(spline.SegmentCount);
@@ -32,24 +32,21 @@ namespace BII.WasaBii.Splines {
         }
 
         /// <summary>
-        /// Behaves similar to <see cref="SampleSplineBetween{TPos,TDiff}(Spline{TPos,TDiff},SplineLocation,SplineLocation,Length,int,bool)"/>
+        /// Behaves similar to <see cref="SampleSplineBetween{TPos,TDiff,TTime,TVel}(Spline{TPos,TDiff,TTime,TVel},SplineLocation,SplineLocation,Length,int,bool)"/>
         /// but the spline is always sampled along its entire length.
         /// </summary>
         /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
         /// This prevents samples "clumping together", which can happen especially with higher-order-curves. However,
         /// it is much more computationally intensive, so leaving this off is significantly faster.</param>
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplineEvery<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSplineEvery<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             Length desiredSampleLength,
-            int minSamples = 2,
-            bool equidistant = false
-        ) where TPos : unmanaged where TDiff : unmanaged 
-            => spline.SampleSplineBetween(
+            int minSamples = 2
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => spline.SampleSplineBetween(
                 SplineLocation.Zero, 
-                spline.Length(),
+                spline.Length,
                 desiredSampleLength,
-                minSamples,
-                equidistant
+                minSamples
             );
 
         /// <summary>
@@ -59,14 +56,13 @@ namespace BII.WasaBii.Splines {
         /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
         /// This prevents samples "clumping together", which can happen especially with higher-order-curves. However,
         /// it is much more computationally intensive, so leaving this off is significantly faster.</param>
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSpline<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSpline<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             int samples,
             bool equidistant = false
-        ) where TPos : unmanaged where TDiff : unmanaged 
-            => spline.SampleSplineBetween(
-                SplineLocation.Zero, 
-                spline.Length(),
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => spline.SampleSplineBetween(
+                NormalizedSplineLocation.Zero, 
+                NormalizedSplineLocation.From(spline.SegmentCount), 
                 samples,
                 equidistant
             );
@@ -79,37 +75,37 @@ namespace BII.WasaBii.Splines {
         /// Turning this off can cause samples to "clump together" and thus deviate from the <paramref name="desiredSampleLength"/>,
         /// which can happen especially with higher-order-curves. However, it is much more computationally intensive,
         /// so turning this off is significantly faster.</param>
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplineBetween<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSplineBetween<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             SplineLocation fromAbsolute,
             SplineLocation toAbsolute,
             Length desiredSampleLength,
-            int minSamples = 2,
-            bool equidistant = true
-        ) where TPos : unmanaged where TDiff : unmanaged {
+            int minSamples = 2
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
             
             if (desiredSampleLength <= Length.Zero)
                 throw new ArgumentException($"The sampleLength cannot be 0 or smaller than 0 (was {desiredSampleLength})");
 
             var segments = Math.Max(minSamples, (int) Math.Ceiling((toAbsolute - fromAbsolute) / desiredSampleLength) + 1);
 
-            return spline.SampleSplineBetween(fromAbsolute, toAbsolute, segments, equidistant);
+            return spline.SampleSplineBetween(fromAbsolute, toAbsolute, segments, equidistant: true);
         }
 
         /// <summary>
         /// Samples locations on the spline between <paramref name="fromAbsolute"/> to <paramref name="toAbsolute"/>.
         /// </summary>
-        /// <returns><see cref="samples"/> uniformly distributed samples</returns>
         /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
         /// This prevents samples "clumping together", which can happen especially with higher-order-curves. However,
         /// it is much more computationally intensive, so leaving this off is significantly faster.</param>
-        [Pure] public static IEnumerable<SplineSample<TPos, TDiff>> SampleSplineBetween<TPos, TDiff>(
-            this Spline<TPos, TDiff> spline,
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSplineBetween<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
             SplineLocation fromAbsolute,
             SplineLocation toAbsolute,
             int samples,
             bool equidistant = false
-        ) where TPos : unmanaged where TDiff : unmanaged {
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
+            if(!equidistant)
+                return spline.SampleSplineBetween(spline.NormalizeOrThrow(fromAbsolute), spline.NormalizeOrThrow(toAbsolute), samples, equidistant: false);
             
             var reverse = false;
             if (toAbsolute < fromAbsolute) {
@@ -117,18 +113,33 @@ namespace BII.WasaBii.Splines {
                 reverse = true;
             }
             
-            var sampleLocations = equidistant
-                ? spline.BulkNormalizeOrdered(
-                    SampleRange.From(fromAbsolute, inclusive: true)
-                        .To(toAbsolute, inclusive: true)
-                        .Sample(samples, SplineLocation.Lerp))
-                : SampleRange.From(spline.NormalizeOrThrow(fromAbsolute), inclusive: true)
-                    .To(spline.NormalizeOrThrow(toAbsolute), inclusive: true)
-                    .Sample(samples, NormalizedSplineLocation.Lerp);
+            var sampleLocations = spline.BulkNormalizeOrdered(
+                SampleRange.From(fromAbsolute, inclusive: true).To(toAbsolute, inclusive: true)
+                    .Sample(samples, SplineLocation.Lerp));
                 
             var result = sampleLocations.Select(nl => spline[nl]);
 
             return reverse ? result.Reverse() : result;
+        }
+
+        /// <summary>
+        /// Samples locations on the spline between <paramref name="from"/> to <paramref name="to"/>.
+        /// </summary>
+        /// <param name="equidistant"> Whether the samples should be uniformly distributed with equal distances between them.
+        /// This prevents samples "clumping together", which can happen especially with higher-order-curves. However,
+        /// it is much more computationally intensive, so leaving this off is significantly faster.</param>
+        [Pure] public static IEnumerable<SplineSample<TPos, TDiff, TTime, TVel>> SampleSplineBetween<TPos, TDiff, TTime, TVel>(
+            this Spline<TPos, TDiff, TTime, TVel> spline,
+            NormalizedSplineLocation from,
+            NormalizedSplineLocation to,
+            int samples,
+            bool equidistant = false
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
+            if (equidistant) return spline.SampleSplineBetween(spline.DeNormalizeOrThrow(from), spline.DeNormalizeOrThrow(to), samples, equidistant: true);
+            
+            return SampleRange.From(from, inclusive: true).To(to, inclusive: true)
+                .Sample(samples, NormalizedSplineLocation.Lerp)
+                .Select(nl => spline[nl]);
         }
 
     }

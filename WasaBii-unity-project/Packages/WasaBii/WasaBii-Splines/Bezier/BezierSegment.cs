@@ -9,75 +9,124 @@ using BII.WasaBii.UnitSystem;
 namespace BII.WasaBii.Splines.Bezier {
 
     /// <summary>
-    /// Factory methods for constructing a <see cref="BezierSegment{TPos,TDiff}"/> that compute the handles
+    /// Factory methods for constructing a <see cref="BezierSegment{TPos,TDiff,TTime,TVel}"/> that compute the handles
     /// to fit certain criteria regarding velocity or acceleration at the curve's start and end.
     /// </summary>
     public static class BezierSegment {
         
         /// <summary>
+        /// A curve starting at <see cref="start"/> with tangent <see cref="startTangent"/>
+        /// and ending at <see cref="end"/>.
+        /// </summary>
+        [Pure]
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuadraticWithTangent<TPos, TDiff, TTime, TVel>(
+            TPos start, TDiff startTangent, TPos end,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => new(
+            duration,
+            start, 
+            ops.Add(start, ops.Div(startTangent, 2)), 
+            end
+        );
+        /// <summary>
         /// A curve starting at <see cref="start"/> with velocity <see cref="startVelocity"/>
         /// and ending at <see cref="end"/>.
         /// </summary>
         [Pure]
-        public static BezierSegment<TPos, TDiff> Quadratic<TPos, TDiff>(
-            TPos start, TDiff startVelocity, TPos end,
-            GeometricOperations<TPos, TDiff> ops
-        ) where TPos : unmanaged where TDiff : unmanaged 
-            => new(
-                start, 
-                ops.Add(start, ops.Div(startVelocity, 2)), 
-                end
-            );
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuadraticWithVelocity<TPos, TDiff, TTime, TVel>(
+            TPos start, TVel startVelocity, TPos end,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
+            QuadraticWithTangent(start, ops.Mul(startVelocity, duration), end, duration, ops);
 
+        /// <summary>
+        /// A curve starting at <see cref="start"/> with tangent <see cref="startTangent"/>
+        /// and ending at <see cref="end"/> with tangent <see cref="endTangent"/>.
+        /// </summary>
+        [Pure]
+        public static BezierSegment<TPos, TDiff, TTime, TVel> CubicWithTangents<TPos, TDiff, TTime, TVel>(
+            TPos start, TDiff startTangent, TPos end, TDiff endTangent,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => new(
+            duration,
+            start, 
+            ops.Add(start, ops.Div(startTangent, 3)),
+            ops.Sub(end, ops.Div(endTangent, 3)), 
+            end
+        );
         /// <summary>
         /// A curve starting at <see cref="start"/> with velocity <see cref="startVelocity"/>
         /// and ending at <see cref="end"/> with velocity <see cref="endVelocity"/>.
         /// </summary>
         [Pure]
-        public static BezierSegment<TPos, TDiff> Cubic<TPos, TDiff>(
-            TPos start, TDiff startVelocity, TPos end, TDiff endVelocity,
-            GeometricOperations<TPos, TDiff> ops
-        ) where TPos : unmanaged where TDiff : unmanaged 
-            => new(
-                start, 
-                ops.Add(start, ops.Div(startVelocity, 3)),
-                ops.Sub(end, ops.Div(endVelocity, 3)), 
-                end
-            );
+        public static BezierSegment<TPos, TDiff, TTime, TVel> CubicWithVelocity<TPos, TDiff, TTime, TVel>(
+            TPos start, TVel startVelocity, TPos end, TVel endVelocity,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
+            CubicWithTangents(start, ops.Mul(startVelocity, duration), end, ops.Mul(endVelocity, duration), duration, ops);
 
+        /// <summary>
+        /// A curve starting at <see cref="start"/> with tangent <see cref="startTangent"/> and curvature <see cref="startCurvature"/>
+        /// and ending at <see cref="end"/> with tangent <see cref="endTangent"/>.
+        /// </summary>
+        [Pure]
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuarticWithTangents<TPos, TDiff, TTime, TVel>(
+            TPos start, TDiff startTangent, TDiff startCurvature, TPos end, TDiff endTangent,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => new(
+            duration,
+            start, 
+            ops.Add(start, ops.Div(startTangent, 4)),
+            ops.Add(start, ops.Div(ops.Add(startCurvature, ops.Mul(startTangent, 6)), 12)),
+            ops.Sub(end, ops.Div(endTangent, 4)), 
+            end
+        );
         /// <summary>
         /// A curve starting at <see cref="start"/> with velocity <see cref="startVelocity"/> and acceleration <see cref="startAcceleration"/>
         /// and ending at <see cref="end"/> with velocity <see cref="endVelocity"/>.
         /// </summary>
         [Pure]
-        public static BezierSegment<TPos, TDiff> Quartic<TPos, TDiff>(
-            TPos start, TDiff startVelocity, TDiff startAcceleration, TPos end, TDiff endVelocity,
-            GeometricOperations<TPos, TDiff> ops
-        ) where TPos : unmanaged where TDiff : unmanaged 
-            => new(
-                start, 
-                ops.Add(start, ops.Div(startVelocity, 4)),
-                ops.Add(start, ops.Div(ops.Add(startAcceleration, ops.Mul(startVelocity, 6)), 12)),
-                ops.Sub(end, ops.Div(endVelocity, 4)), 
-                end
-            );
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuarticWithVelocities<TPos, TDiff, TTime, TVel>(
+            TPos start, TVel startVelocity, TVel startAcceleration, TPos end, TVel endVelocity,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
+            QuarticWithTangents(start, ops.Mul(startVelocity, duration), ops.Mul(startAcceleration, duration), end, ops.Mul(endVelocity, duration), duration, ops);
 
+        /// <summary>
+        /// A curve starting at <see cref="start"/> with tangent <see cref="startTangent"/> and curvature <see cref="startCurvature"/>
+        /// and ending at <see cref="end"/> with tangent <see cref="endTangent"/> and curvature <see cref="endCurvature"/>.
+        /// </summary>
+        [Pure]
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuinticWithTangents<TPos, TDiff, TTime, TVel>(
+            TPos start, TDiff startTangent, TDiff startCurvature, TPos end, TDiff endTangent, TDiff endCurvature,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => new(
+            duration,
+            start, 
+            ops.Add(start, ops.Div(startTangent, 5)),
+            ops.Add(start, ops.Div(ops.Add(startCurvature, ops.Mul(startTangent, 8)), 20)),
+            ops.Add(end, ops.Div(ops.Sub(endCurvature, ops.Mul(endTangent, 8)), 20)),
+            ops.Sub(end, ops.Div(endTangent, 5)), 
+            end
+        );
         /// <summary>
         /// A curve starting at <see cref="start"/> with velocity <see cref="startVelocity"/> and acceleration <see cref="startAcceleration"/>
         /// and ending at <see cref="end"/> with velocity <see cref="endVelocity"/> and acceleration <see cref="endAcceleration"/>.
         /// </summary>
         [Pure]
-        public static BezierSegment<TPos, TDiff> Quintic<TPos, TDiff>(
-            TPos start, TDiff startVelocity, TDiff startAcceleration, TPos end, TDiff endVelocity, TDiff endAcceleration,
-            GeometricOperations<TPos, TDiff> ops
-        ) where TPos : unmanaged where TDiff : unmanaged => new(
-            start, 
-            ops.Add(start, ops.Div(startVelocity, 5)),
-            ops.Add(start, ops.Div(ops.Add(startAcceleration, ops.Mul(startVelocity, 8)), 20)),
-            ops.Add(end, ops.Div(ops.Sub(endAcceleration, ops.Mul(endVelocity, 8)), 20)),
-            ops.Sub(end, ops.Div(endVelocity, 5)), 
-            end
-        );
+        public static BezierSegment<TPos, TDiff, TTime, TVel> QuinticWithVelocities<TPos, TDiff, TTime, TVel>(
+            TPos start, TVel startVelocity, TVel startAcceleration, TPos end, TVel endVelocity, TVel endAcceleration,
+            TTime duration,
+            GeometricOperations<TPos, TDiff, TTime, TVel> ops
+        ) where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged => 
+            QuinticWithTangents(start, ops.Mul(startVelocity, duration), ops.Mul(startAcceleration, duration), end, ops.Mul(endVelocity, duration), ops.Mul(endAcceleration, duration), duration, ops);
 
     }
 
@@ -88,11 +137,14 @@ namespace BII.WasaBii.Splines.Bezier {
     /// with just 2 handles. The curve will usually go in the direction of the handles without ever touching them.
     /// </summary>
     [Serializable]
-    public readonly struct BezierSegment<TPos, TDiff> where TPos : unmanaged where TDiff : unmanaged {
+    public readonly struct BezierSegment<TPos, TDiff, TTime, TVel> where TPos : unmanaged where TDiff : unmanaged where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged
+    {
 
         public readonly TPos Start;
         public readonly ImmutableArray<TPos> Handles;
         public readonly TPos End;
+
+        public readonly TTime Duration;
 
         public int Degree => Handles.Length + 1;
 
@@ -104,42 +156,29 @@ namespace BII.WasaBii.Splines.Bezier {
         /// </summary>
         private const int maxDegree = 12;
         
-        public BezierSegment(TPos start, ImmutableArray<TPos> handles, TPos end) {
+        public BezierSegment(TTime duration, TPos start, ImmutableArray<TPos> handles, TPos end) {
             Start = start;
             Handles = handles;
             End = end;
+            Duration = duration;
             if (Degree > maxDegree)
                 throw new ArgumentException($"A single bezier curve may only have at most {maxDegree - 1} handles.");
         }
 
-        public BezierSegment(TPos p0, TPos p1, params TPos[] otherPos) : this(
+        public BezierSegment(TTime duration, TPos p0, TPos p1, params TPos[] otherPos) : this(
+            duration,
             p0,
             p1.PrependTo(otherPos[..^1]).ToImmutableArray(),
             otherPos[^1]
         ) { }
 
-        public TDiff StartVelocity(GeometricOperations<TPos, TDiff> ops) => Degree > 1 
-            ? ops.Mul(ops.Sub(this[1], this[0]), Degree) 
-            : ops.Sub(End, Start);
-        public TDiff StartAcceleration(GeometricOperations<TPos, TDiff> ops) => Degree > 1
-            ? ops.Mul(ops.Add(ops.Sub(this[0], this[1]), ops.Sub(this[2], this[1])), Degree * (Degree - 1))
-            : ops.ZeroDiff;
-        
-        public TDiff EndVelocity(GeometricOperations<TPos, TDiff> ops) => Degree > 1
-            ? ops.Mul(ops.Sub(this[^2], this[^1]), Degree) 
-            : ops.Sub(End, Start);
-        public TDiff EndAcceleration(GeometricOperations<TPos, TDiff> ops) => Degree > 1
-            ? ops.Mul(ops.Add(ops.Sub(this[^1], this[^2]), ops.Sub(this[^3], this[^2])), Degree * (Degree - 1))
-            : ops.ZeroDiff;
-
-        
         public TPos this[Index i] => i.Value == 0
             ? i.IsFromEnd ? End : Start
             : i.Value == Degree
                 ? i.IsFromEnd ? Start : End
                 : Handles[new Index(i.Value - 1, i.IsFromEnd)];
 
-        [Pure] internal Polynomial<TPos, TDiff> ToPolynomial(GeometricOperations<TPos, TDiff> ops) {
+        [Pure] internal Polynomial<TPos, TDiff, TTime, TVel> ToPolynomial(GeometricOperations<TPos, TDiff, TTime, TVel> ops) {
             var p0 = Start;
             var n = Handles.Length + 1;
             var p = new TDiff[n];
@@ -164,23 +203,24 @@ namespace BII.WasaBii.Splines.Bezier {
                 }
             }
 
-            return new Polynomial<TPos, TDiff>(ops, p0, p);
+            return new Polynomial<TPos, TDiff, TTime, TVel>(ops, Duration, p0, p);
         }
 
-        [Pure] public SplineSegment<TPos, TDiff> ToSplineSegment(GeometricOperations<TPos, TDiff> ops, Lazy<Length>? cachedLength = null) 
+        [Pure] public SplineSegment<TPos, TDiff, TTime, TVel> ToSplineSegment(GeometricOperations<TPos, TDiff, TTime, TVel> ops, Lazy<Length>? cachedLength = null) 
             => new(ToPolynomial(ops), cachedLength);
         
         [Pure]
-        public BezierSegment<TPosNew, TDiffNew> Map<TPosNew, TDiffNew>(Func<TPos, TPosNew> positionMapping)
-        where TPosNew : unmanaged where TDiffNew : unmanaged => new(
+        public BezierSegment<TPosNew, TDiffNew, TTime, TVelNew> Map<TPosNew, TDiffNew, TVelNew>(Func<TPos, TPosNew> positionMapping)
+        where TPosNew : unmanaged where TDiffNew : unmanaged where TVelNew : unmanaged => new(
+            Duration,
             positionMapping(Start),
             Handles.Select(positionMapping).ToImmutableArray(),
             positionMapping(End)
         );
         
-        [Pure] public BezierSegment<TPos, TDiff> Map(Func<TPos, TPos> positionMapping) => Map<TPos, TDiff>(positionMapping);
+        [Pure] public BezierSegment<TPos, TDiff, TTime, TVel> Map(Func<TPos, TPos> positionMapping) => Map<TPos, TDiff, TVel>(positionMapping);
 
-        public BezierSegment<TPos, TDiff> Reversed => new(End, Handles.ReverseList().ToImmutableArray(), Start);
+        public BezierSegment<TPos, TDiff, TTime, TVel> Reversed => new(Duration, End, Handles.ReverseList().ToImmutableArray(), Start);
 
     }
 

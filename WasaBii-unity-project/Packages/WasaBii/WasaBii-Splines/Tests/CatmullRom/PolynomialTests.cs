@@ -4,7 +4,6 @@ using BII.WasaBii.Extra.Geometry;
 using BII.WasaBii.Geometry;
 using BII.WasaBii.Splines.Maths;
 using BII.WasaBii.UnitSystem;
-using BII.WasaBii.Unity.Geometry;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -19,17 +18,19 @@ namespace BII.WasaBii.Splines.Tests {
         private static readonly GlobalOffset e = new(-1.0f / 12.0f, 2 * Mathf.PI, (float)Math.E);
         private static readonly GlobalOffset f = new(1.618f, 2.414f, 3.303f);
 
-        private static readonly Polynomial<GlobalPosition, GlobalOffset> linearPolynomial = new(
-            GlobalSpline.GeometricOperations.Instance,
+        private static readonly Polynomial<GlobalPosition, GlobalOffset, double, GlobalOffset> linearPolynomial = new(
+            UniformGlobalSpline.GeometricOperations.Instance,
+            1,
             a, b
         );
 
-        private static readonly Polynomial<GlobalPosition, GlobalOffset> cubicPolynomial = Polynomial.Cubic(
-            a, b, c, d, GlobalSpline.GeometricOperations.Instance
+        private static readonly Polynomial<GlobalPosition, GlobalOffset, double, GlobalOffset> cubicPolynomial = Polynomial.Cubic(
+            a, b, c, d, 1, UniformGlobalSpline.GeometricOperations.Instance
         );
         
-        private static readonly Polynomial<GlobalPosition, GlobalOffset> sixthOrderPolynomial = new(
-            GlobalSpline.GeometricOperations.Instance,
+        private static readonly Polynomial<GlobalPosition, GlobalOffset, double, GlobalOffset> sixthOrderPolynomial = new(
+            UniformGlobalSpline.GeometricOperations.Instance,
+            1,
             a, b, c, d, e, f
         );
 
@@ -173,12 +174,16 @@ namespace BII.WasaBii.Splines.Tests {
         // that its anti-derivative is simply the polynomial evaluation (ignoring the constant bias, which cancels out).
         // Hence, we only test against those, as we can validate the result there.
 
-        private sealed class OneDimensionalOps : GeometricOperations<double, double> {
+        private sealed class OneDimensionalOps : GeometricOperations<double, double, double, double> {
             public double Add(double a, double b) => a + b;
             public double Sub(double a, double b) => a - b;
             public double Dot(double a, double b) => a * b;
             public double Mul(double a, double b) => a * b;
             public double ZeroDiff => 0;
+            public double ZeroTime => 0;
+            public double ZeroVel => 0;
+            public double InverseLerp(double min, double max, double value) => (value - min) / (max - min);
+            public double Div(double d, double t) => d / t;
         }
 
         private const int normalizationTestSampleCount = 20;
@@ -187,7 +192,7 @@ namespace BII.WasaBii.Splines.Tests {
         public void DeNormalizeMonotoneRisingCubic1DSplineLocations() {
             
             // Positive parameters ensure a positive derivative (for positive t values) and thus a monotone rising polynomial.
-            var oneDimensionalPolynomial = Polynomial.Cubic(1, 3, 3, 7, new OneDimensionalOps());
+            var oneDimensionalPolynomial = Polynomial.Cubic(1, 3, 3, 7, duration: 1, new OneDimensionalOps());
 
             foreach (var t in SampleRange.Sample01(normalizationTestSampleCount, includeZero: true, includeOne: true)) {
                 var expected = oneDimensionalPolynomial.Evaluate(t) - oneDimensionalPolynomial.Evaluate(0);
@@ -203,7 +208,7 @@ namespace BII.WasaBii.Splines.Tests {
             const int p0 = 2;
             const int p1 = 8;
             const int p2 = 8;
-            var polynomial = new Polynomial<double, double>(new OneDimensionalOps(), p0, p1, p2);
+            var polynomial = new Polynomial<double, double, double, double>(new OneDimensionalOps(), duration: 1, p0, p1, p2);
 
             // length(t) is p1*t + p2*t²
             // thus, 0 == p2*t² + p1*t - length

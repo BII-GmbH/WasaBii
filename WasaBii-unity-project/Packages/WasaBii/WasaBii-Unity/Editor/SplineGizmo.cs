@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using BII.WasaBii.Core;
 using BII.WasaBii.Splines;
 using BII.WasaBii.UnitSystem;
@@ -20,7 +21,8 @@ namespace BII.WasaBii.Unity {
         /// Draws the spline with <see cref="samplesPerSegment"/> points per segment. This means that you will see
         /// <see cref="samplesPerSegment"/> * spline.SegmentCount - 1 individual lines.
         /// </summary>
-        public static void DrawSegments(Spline<Vector3, Vector3> spline, int samplesPerSegment = 10) {
+        public static void DrawSegments<TTime, TVel>(Spline<Vector3, Vector3, TTime, TVel> spline, int samplesPerSegment = 10) 
+        where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
             foreach (var (a, b) in spline.SampleSplinePerSegment(samplesPerSegment).Select(s => s.Position).PairwiseSliding()) 
                 Gizmos.DrawLine(a, b);
         }
@@ -29,7 +31,8 @@ namespace BII.WasaBii.Unity {
         /// Draws the spline with <see cref="samplesTotal"/> points. This means that you will see
         /// <see cref="samplesTotal"/> - 1 individual lines.
         /// </summary>
-        public static void Draw(Spline<Vector3, Vector3> spline, int samplesTotal = 10) {
+        public static void Draw<TTime, TVel>(Spline<Vector3, Vector3, TTime, TVel> spline, int samplesTotal = 10)
+        where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
             foreach (var (a, b) in spline.SampleSpline(samplesTotal).Select(s => s.Position).PairwiseSliding()) 
                 Gizmos.DrawLine(a, b);
         }
@@ -38,7 +41,8 @@ namespace BII.WasaBii.Unity {
         /// Draws the spline such that each line will have a length of approximately <see cref="desiredSampleLength"/>.
         /// This means that you will see spline.Length / <see cref="desiredSampleLength"/> individual lines.
         /// </summary>
-        public static void Draw(Spline<Vector3, Vector3> spline, Length desiredSampleLength) {
+        public static void Draw<TTime, TVel>(Spline<Vector3, Vector3, TTime, TVel> spline, Length desiredSampleLength) 
+        where TTime : unmanaged, IComparable<TTime> where TVel : unmanaged {
             foreach (var (a, b) in spline.SampleSplineEvery(desiredSampleLength).Select(s => s.Position).PairwiseSliding()) 
                 Gizmos.DrawLine(a, b);
         }

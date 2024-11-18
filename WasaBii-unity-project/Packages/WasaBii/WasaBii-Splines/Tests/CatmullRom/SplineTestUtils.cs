@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BII.WasaBii.Splines.Tests {
     
-    using Spline = CatmullRomSpline<Vector3, Vector3>;
+    using Spline = CatmullRomSpline<Vector3, Vector3, double, Vector3>;
 
     internal class SplineTestUtils {
 
@@ -46,7 +46,7 @@ namespace BII.WasaBii.Splines.Tests {
             public static Vector3 SecondHandle = new Vector3(0, 0, 2);
 
             public const int HandleCount = 2;
-            public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
+            public static Spline Spline => UniformUnitySpline.FromHandlesIncludingMargin(
                 new []{FirstHandle, SecondHandle},
                 SplineType.Centripetal
             ).AsOrThrow<Spline>();
@@ -72,11 +72,11 @@ namespace BII.WasaBii.Splines.Tests {
             public static Vector3 Expected05Curvature = Vector3.zero;
             public static Vector3 Expected1Curvature = Vector3.zero;
             
-            public static Polynomial<Vector3, Vector3> Polynomial => 
-                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance)
+            public static Polynomial<Vector3, Vector3, double, Vector3> Polynomial => 
+                new CatmullRomSegment<Vector3, Vector3, double, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, 1, 1, 1, UniformUnitySpline.GeometricOperations.Instance)
                     .ToPolynomial(splineTypeAlphaValue);
 
-            public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
+            public static Spline Spline => UniformUnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle},
                 SplineType.Centripetal
             ).AsOrThrow<Spline>();
@@ -91,7 +91,7 @@ namespace BII.WasaBii.Splines.Tests {
             public static Vector3 FourthHandle = new Vector3(0, 0, 4);
             public static Vector3 FifthHandle = new Vector3(0, 0, 5);
             
-            public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
+            public static Spline Spline => UniformUnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle, FifthHandle},
                 SplineType.Centripetal
             ).AsOrThrow<Spline>();
@@ -121,11 +121,11 @@ namespace BII.WasaBii.Splines.Tests {
             
             public static Length ExpectedSplineLength => 4.413755.Meters();
 
-            public static Polynomial<Vector3, Vector3> Polynomial => 
-                new CatmullRomSegment<Vector3, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, UnitySpline.GeometricOperations.Instance)
+            public static Polynomial<Vector3, Vector3, double, Vector3> Polynomial => 
+                new CatmullRomSegment<Vector3, Vector3, double, Vector3>(FirstHandle, SecondHandle, ThirdHandle, FourthHandle, 1, 1, 1, UniformUnitySpline.GeometricOperations.Instance)
                     .ToPolynomial(splineTypeAlphaValue);
             
-            public static Spline Spline => UnitySpline.FromHandlesIncludingMargin(
+            public static Spline Spline => UniformUnitySpline.FromHandlesIncludingMargin(
                 new[]{FirstHandle, SecondHandle, ThirdHandle, FourthHandle},
                 SplineType.Centripetal
             ).AsOrThrow<Spline>();

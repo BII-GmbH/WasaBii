@@ -8,7 +8,7 @@ namespace BII.WasaBii.Splines.Tests {
       
         [Test]
         public void QueryGreedyClosestPositionOnSplineTo_WhenEquidistantNodes_ThenReturnsCorrectLocationAndDistance() {
-            var uut = UnitySpline.FromHandlesIncludingMargin(new []{
+            var uut = UniformUnitySpline.FromHandlesIncludingMargin(new []{
                 new Vector3(-1, 0, 0),
                 new Vector3(0, 0, 0),
                 new Vector3(1, 0, 0),
@@ -20,7 +20,7 @@ namespace BII.WasaBii.Splines.Tests {
             for (var xCoord = -2f; xCoord < 5; xCoord += 0.1f) {
                 var position = new Vector3(xCoord, -1, 0);
                 var queryResult =
-                    uut.QueryClosestPositionOnSplineToOrThrow(position);
+                    uut.QueryClosestPositionOnSplineTo(position);
                 var expectedLocationOnSpline = Mathf.Clamp(xCoord, 0, 3);
                 var expectedPositionOnSpline = new Vector3(Mathf.Clamp(xCoord, 0, 3), 0, 0);
                 var expectedPositionToNodeDistance = (double) Vector3.Distance(

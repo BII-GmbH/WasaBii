@@ -11,44 +11,68 @@ using JetBrains.Annotations;
 
 namespace BII.WasaBii.Extra.Geometry {
 
+    [MustBeImmutable]
+    public interface LocalGeometricOperations<TTime, TVel> : GeometricOperations<LocalPosition, LocalOffset, TTime, TVel> 
+    where TTime : unmanaged where TVel : unmanaged
+    {
+        Length GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Distance(LocalPosition p0, LocalPosition p1) => p0.DistanceTo(p1);
+
+        LocalOffset GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Sub(LocalPosition p0, LocalPosition p1) => p0 - p1;
+        LocalPosition GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Sub(LocalPosition p, LocalOffset d) => p - d;
+        LocalOffset GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Sub(LocalOffset d1, LocalOffset d2) => d1 - d2;
+
+        LocalPosition GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Add(LocalPosition d1, LocalOffset d2) => d1 + d2;
+        LocalOffset GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Add(LocalOffset d1, LocalOffset d2) => d1 + d2;
+
+        LocalOffset GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Div(LocalOffset diff, double d) => diff / d;
+        LocalOffset GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Mul(LocalOffset diff, double f) => diff * f;
+        double GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Dot(LocalOffset a, LocalOffset b) => a.Dot(b).AsSquareMeters();
+            
+        LocalOffset GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.ZeroDiff => LocalOffset.Zero;
+            
+        LocalPosition GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Lerp(LocalPosition from, LocalPosition to, double t) => LocalPosition.Lerp(from, to, t);
+        LocalOffset GeometricOperations<LocalPosition, LocalOffset, TTime, TVel>.Lerp(LocalOffset from, LocalOffset to, double t) => LocalOffset.Lerp(from, to, t);
+    }
+
     [Serializable]
-    public sealed class LocalSpline : SpecificSplineBase<LocalSpline, LocalPosition, LocalOffset> {
+    public sealed class LocalSpline : SpecificSplineBase<LocalSpline, LocalPosition, LocalOffset, Duration, LocalVelocity> {
 
 #region Factory Methods
         
-        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff}(IEnumerable{TPos},GeometricOperations{TPos,TDiff},SplineType?,bool)"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff,TTime,TVel}(IEnumerable{Tuple{TPos,TTime}},GeometricOperations{TPos,TDiff,TTime,TVel},SplineType)"/>
         [Pure]
-        public static LocalSpline FromHandles(IEnumerable<LocalPosition> source, SplineType? splineType = null, bool shouldLoop = false)
-            => new(CatmullRomSpline.FromHandlesOrThrow(source, GeometricOperations.Instance, splineType, shouldLoop));
+        public static LocalSpline FromHandles(IEnumerable<(LocalPosition, Duration)> source, SplineType type = SplineType.Centripetal)
+            => new(CatmullRomSpline.FromHandlesOrThrow(source, GeometricOperations.Instance, type));
 
-        /// <inheritdoc cref="CatmullRomSpline.FromHandles{TPos,TDiff}(TPos,System.Collections.Generic.IEnumerable{TPos},TPos,GeometricOperations{TPos,TDiff},System.Nullable{SplineType})"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesOrThrow{TPos,TDiff,TTime,TVel}(TPos,IEnumerable{Tuple{TPos,TTime}},TPos,GeometricOperations{TPos,TDiff,TTime,TVel},SplineType)"/>
         [Pure]
         public static LocalSpline FromHandles(
             LocalPosition beginMarginHandle, 
-            IEnumerable<LocalPosition> interpolatedHandles, 
+            IEnumerable<(LocalPosition, Duration)> interpolatedHandles, 
             LocalPosition endMarginHandle, 
-            SplineType? type = null
+            SplineType type = SplineType.Centripetal
         ) => new(CatmullRomSpline.FromHandlesOrThrow(beginMarginHandle, interpolatedHandles, endMarginHandle, GeometricOperations.Instance, type));
 
-        /// <inheritdoc cref="CatmullRomSpline.FromHandlesIncludingMargin{TPos,TDiff}"/>
+        /// <inheritdoc cref="CatmullRomSpline.FromHandlesIncludingMargin{TPos,TDiff,TTime,TVel}"/>
         [Pure]
         public static LocalSpline FromHandlesIncludingMargin(
             IEnumerable<LocalPosition> allHandlesIncludingMargin,
-            SplineType? type = null
-        ) => new(CatmullRomSpline.FromHandlesIncludingMarginOrThrow(allHandlesIncludingMargin, GeometricOperations.Instance, type));
+            IEnumerable<Duration> segmentStartTimes,
+            SplineType type = SplineType.Centripetal
+        ) => new(CatmullRomSpline.FromHandlesIncludingMarginOrThrow(allHandlesIncludingMargin, segmentStartTimes, GeometricOperations.Instance, type));
 
-        /// <inheritdoc cref="BezierSpline.FromHandlesWithVelocities{TPos,TDiff}"/>
+        /// <inheritdoc cref="BezierSpline.FromHandlesWithVelocities{TPos,TDiff,TTime,TVel}"/>
         [Pure]
         public static LocalSpline FromHandlesWithVelocities(
-            IEnumerable<(LocalPosition position, LocalOffset velocity)> handles, bool shouldLoop = false,
+            IEnumerable<(LocalPosition position, LocalVelocity velocity, Duration time)> handles,
             bool shouldAccelerationBeContinuous = false
-        ) => new(BezierSpline.FromHandlesWithVelocities(handles, GeometricOperations.Instance, shouldLoop, shouldAccelerationBeContinuous));
+        ) => new(BezierSpline.FromHandlesWithVelocities(handles, GeometricOperations.Instance, shouldAccelerationBeContinuous));
 
-        /// <inheritdoc cref="BezierSpline.FromHandlesWithVelocities{TPos,TDiff}"/>
+        /// <inheritdoc cref="BezierSpline.FromHandlesWithVelocities{TPos,TDiff,TTime,TVel}"/>
         [Pure]
         public static LocalSpline FromHandlesWithVelocitiesAndAccelerations(
-            IEnumerable<(LocalPosition position, LocalOffset velocity, LocalOffset acceleration)> handles, bool shouldLoop = false
-        ) => new(BezierSpline.FromHandlesWithVelocitiesAndAccelerations(handles, GeometricOperations.Instance, shouldLoop));
+            IEnumerable<(LocalPosition position, LocalVelocity velocity, LocalVelocity acceleration, Duration time)> handles
+        ) => new(BezierSpline.FromHandlesWithVelocitiesAndAccelerations(handles, GeometricOperations.Instance));
 
 #endregion
 
@@ -56,58 +80,86 @@ namespace BII.WasaBii.Extra.Geometry {
         public GlobalSpline ToGlobalWith(TransformProvider parent) => 
             new(Map(l => l.ToGlobalWith(parent), GlobalSpline.GeometricOperations.Instance));
 
-        public LocalSpline(Spline<LocalPosition, LocalOffset> wrapped) : base(wrapped) { }
-        protected override LocalSpline mkNew(Spline<LocalPosition, LocalOffset> toWrap) => new(toWrap);
+        public LocalSpline(Spline<LocalPosition, LocalOffset, Duration, LocalVelocity> wrapped) : base(wrapped) { }
+        protected override LocalSpline mkNew(Spline<LocalPosition, LocalOffset, Duration, LocalVelocity> toWrap) => new(toWrap);
 
         [MustBeImmutable][Serializable]
-        public sealed class GeometricOperations : GeometricOperations<LocalPosition, LocalOffset> {
-
+        public sealed class GeometricOperations : LocalGeometricOperations<Duration, LocalVelocity>
+        {
             public static readonly GeometricOperations Instance = new();
-            
-            private GeometricOperations() { }
-
-            public Length Distance(LocalPosition p0, LocalPosition p1) => p0.DistanceTo(p1);
-
-            public LocalOffset Sub(LocalPosition p0, LocalPosition p1) => p0 - p1;
-            public LocalPosition Sub(LocalPosition p, LocalOffset d) => p - d;
-
-            public LocalOffset Sub(LocalOffset d1, LocalOffset d2) => d1 - d2;
-
-            public LocalPosition Add(LocalPosition d1, LocalOffset d2) => d1 + d2;
-
-            public LocalOffset Add(LocalOffset d1, LocalOffset d2) => d1 + d2;
-
-            public LocalOffset Div(LocalOffset diff, double d) => diff / d;
-
-            public LocalOffset Mul(LocalOffset diff, double f) => diff * f;
-
-            public double Dot(LocalOffset a, LocalOffset b) => a.Dot(b).AsSquareMeters();
-            
-            public LocalOffset ZeroDiff => LocalOffset.Zero;
-
-            public LocalPosition Lerp(LocalPosition from, LocalPosition to, double t) => LocalPosition.Lerp(from, to, t);
-            public LocalOffset Lerp(LocalOffset from, LocalOffset to, double t) => LocalOffset.Lerp(from, to, t);
+            public LocalVelocity ZeroVel => LocalVelocity.Zero;
+            public Duration ZeroTime => Duration.Zero;
+            public double Div(Duration a, Duration b) => a / b;
+            public LocalOffset Mul(LocalVelocity v, Duration t) => v * t;
+            public LocalVelocity Div(LocalOffset d, Duration t) => d / t;
+            public Duration Add(Duration a, Duration b) => a + b;
+            public Duration Sub(Duration a, Duration b) => a - b;
+            public Duration Mul(Duration a, double b) => a * b;
         }
-
+        
     }
 
-    public static class LocalSplineExtensions {
+    [Serializable]
+    public sealed class UniformLocalSpline : SpecificSplineBase<UniformLocalSpline, LocalPosition, LocalOffset, double, LocalOffset> {
+
+#region Factory Methods
         
-        /// <inheritdoc cref="EnumerableClosestOnSplineExtensions.QueryClosestPositionOnSplinesTo{TWithSpline, TPos, TDiff}"/>
-        [Pure] public static Option<(TWithSpline closestSpline, ClosestOnSplineQueryResult<LocalPosition, LocalOffset> queryResult)> QueryClosestPositionOnSplinesTo<TWithSpline>(
-            this IEnumerable<TWithSpline> splines,
-            Func<TWithSpline, LocalSpline> splineSelector,
-            LocalPosition position,
-            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) => splines.QueryClosestPositionOnSplinesTo<TWithSpline, LocalPosition, LocalOffset>(splineSelector, position, samples);
-        
-        /// <inheritdoc cref="EnumerableClosestOnSplineExtensions.QueryClosestPositionOnSplinesToOrThrow{TWithSpline, TPos, TDiff}"/>
-        [Pure] public static (TWithSpline closestSpline, ClosestOnSplineQueryResult<LocalPosition, LocalOffset> queryResult) QueryClosestPositionOnSplinesToOrThrow<TWithSpline>(
-            this IEnumerable<TWithSpline> splines,
-            Func<TWithSpline, LocalSpline> splineSelector,
-            LocalPosition position,
-            int samples = ClosestOnSplineExtensions.DefaultClosestOnSplineSamples
-        ) => splines.QueryClosestPositionOnSplinesToOrThrow<TWithSpline, LocalPosition, LocalOffset>(splineSelector, position, samples);
-        
+        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesOrThrow{TPos,TDiff}(IEnumerable{TPos},GeometricOperations{TPos,TDiff,double,TDiff},SplineType,bool)"/>
+        [Pure]
+        public static UniformLocalSpline FromHandles(IEnumerable<LocalPosition> source, SplineType type = SplineType.Centripetal, bool shouldLoop = false)
+            => new(CatmullRomSpline.UniformFromHandlesOrThrow(source, GeometricOperations.Instance, type, shouldLoop));
+
+        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesOrThrow{TPos,TDiff}(TPos,IEnumerable{TPos},TPos,GeometricOperations{TPos,TDiff,double,TDiff},SplineType)"/>
+        [Pure]
+        public static UniformLocalSpline FromHandles(
+            LocalPosition beginMarginHandle, 
+            IEnumerable<LocalPosition> interpolatedHandles, 
+            LocalPosition endMarginHandle, 
+            SplineType type = SplineType.Centripetal
+        ) => new(CatmullRomSpline.UniformFromHandlesOrThrow(beginMarginHandle, interpolatedHandles, endMarginHandle, GeometricOperations.Instance, type));
+
+        /// <inheritdoc cref="CatmullRomSpline.UniformFromHandlesIncludingMarginOrThrow{TPos,TDiff}"/>
+        [Pure]
+        public static UniformLocalSpline FromHandlesIncludingMargin(
+            IEnumerable<LocalPosition> allHandlesIncludingMargin,
+            SplineType type = SplineType.Centripetal
+        ) => new(CatmullRomSpline.UniformFromHandlesIncludingMarginOrThrow(allHandlesIncludingMargin, GeometricOperations.Instance, type));
+
+        /// <inheritdoc cref="BezierSpline.UniformFromHandlesWithTangents{TPos,TDiff}"/>
+        [Pure]
+        public static UniformLocalSpline FromHandlesWithTangents(
+            IEnumerable<(LocalPosition position, LocalOffset tangents)> handles, bool shouldLoop = false,
+            bool shouldAccelerationBeContinuous = false
+        ) => new(BezierSpline.UniformFromHandlesWithTangents(handles, GeometricOperations.Instance, shouldLoop, shouldAccelerationBeContinuous));
+
+        /// <inheritdoc cref="BezierSpline.UniformFromHandlesWithTangentsAndCurvature{TPos,TDiff}"/>
+        [Pure]
+        public static UniformLocalSpline FromHandlesWithTangentsAndCurvature(
+            IEnumerable<(LocalPosition position, LocalOffset tangent, LocalOffset curvature)> handles, bool shouldLoop = false
+        ) => new(BezierSpline.UniformFromHandlesWithTangentsAndCurvature(handles, GeometricOperations.Instance, shouldLoop));
+
+#endregion
+
+        [Pure]
+        public UniformGlobalSpline ToGlobalWith(TransformProvider parent) => 
+            new(Map(l => l.ToGlobalWith(parent), UniformGlobalSpline.GeometricOperations.Instance));
+
+        public UniformLocalSpline(Spline<LocalPosition, LocalOffset, double, LocalOffset> wrapped) : base(wrapped) { }
+        protected override UniformLocalSpline mkNew(Spline<LocalPosition, LocalOffset, double, LocalOffset> toWrap) => new(toWrap);
+
+        [MustBeImmutable][Serializable]
+        public sealed class GeometricOperations : LocalGeometricOperations<double, LocalOffset>
+        {
+            public static readonly GeometricOperations Instance = new();
+            public LocalOffset ZeroVel => LocalOffset.Zero;
+            public double ZeroTime => 0;
+            public double Div(double a, double b) => a / b;
+            public double Add(double a, double b) => a + b;
+            public double Sub(double a, double b) => a - b;
+            public double Mul(double a, double b) => a * b;
+            public LocalOffset Mul(LocalOffset diff, double f) => diff * f;
+            public LocalOffset Div(LocalOffset diff, double f) => diff / f;
+        }
+
     }
 }

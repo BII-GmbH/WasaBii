@@ -34,7 +34,9 @@ For a detailed presentation of the available modules and features, you can read 
 ### Manual Installation
 
 1. Download the latest release from this GitHub repository.
-2. Import the package into your Unity project.
+2. Unzip the archive.
+3. In the Unity Package Manager, use `Add package from disk...`.
+4. Select the `package.json` that you want to import.
 
 ### Explicitly Specify Subpackages
 

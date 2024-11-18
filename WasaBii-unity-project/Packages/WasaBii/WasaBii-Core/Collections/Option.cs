@@ -247,7 +247,7 @@ namespace BII.WasaBii.Core {
             return Option.None;
         }
 
-        [Pure] public static IEnumerable<T> Flatten<T>(IEnumerable<Option<T>> source) {
+        [Pure] public static IEnumerable<T> Collect<T>(IEnumerable<Option<T>> source) {
             foreach (var element in source)
                 if (element.TryGetValue(out var val))
                     yield return val;

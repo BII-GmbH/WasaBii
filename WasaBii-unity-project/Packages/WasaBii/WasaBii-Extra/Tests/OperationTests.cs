@@ -34,7 +34,7 @@ namespace BII.WasaBii.Extra.Tests
                 s => stepsCompleted.Add(s),
                 stepCountDiffs.Add,
                 reportedProgress.Add,
-                System.Threading.CancellationToken.None
+                new CancellationToken()
             ) {
                 this.StepsStarted = stepsStarted;
                 this.StepsCompleted = stepsCompleted;
